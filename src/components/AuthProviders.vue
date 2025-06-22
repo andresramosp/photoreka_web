@@ -1,11 +1,10 @@
 <template>
   <div class="auth-providers">
-    <n-space size="small" justify="space-between" class="providers-list">
+    <div class="providers-grid">
       <n-button
         class="provider-button provider-google"
         :loading="isLoading && activeProvider === 'google'"
         @click="handleProviderLogin('google')"
-        style="flex: 1"
       >
         <template #icon>
           <GoogleIcon />
@@ -17,14 +16,13 @@
         class="provider-button provider-facebook"
         :loading="isLoading && activeProvider === 'facebook'"
         @click="handleProviderLogin('facebook')"
-        style="flex: 1"
       >
         <template #icon>
           <FacebookIcon />
         </template>
         Facebook
       </n-button>
-    </n-space>
+    </div>
   </div>
 </template>
 
@@ -143,19 +141,11 @@ export default {
   z-index: 1;
 }
 
-.auth-providers .providers-list {
+.providers-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
   width: 100% !important;
-}
-
-.auth-providers .providers-list :deep(.n-space) {
-  width: 100% !important;
-  justify-content: space-between !important;
-}
-
-.auth-providers .providers-list .provider-button {
-  flex: 1 !important;
-  min-width: 0 !important;
-  max-width: calc(50% - 4px) !important;
 }
 
 .provider-button {
@@ -208,19 +198,14 @@ export default {
 
 /* Mobile responsive */
 @media (max-width: 480px) {
-  .auth-providers .providers-list {
+  .providers-grid {
     gap: 6px !important;
-    flex-direction: row !important;
+    grid-template-columns: 1fr 1fr !important;
   }
 
   .provider-button {
-    height: 36px;
-    font-size: 12px;
-  }
-
-  .divider-text {
-    font-size: 12px;
-    padding: 0 12px;
+    height: 32px !important;
+    font-size: 12px !important;
   }
 }
 </style>
