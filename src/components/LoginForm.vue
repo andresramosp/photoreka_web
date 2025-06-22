@@ -1,8 +1,8 @@
 <template>
   <div class="login-form">
     <div class="form-header">
-      <h2 class="form-title">Iniciar Sesión</h2>
-      <p class="form-description">Accede a tu cuenta de Trova</p>
+      <h2 class="form-title">Log In</h2>
+      <p class="form-description">Access your Trova account</p>
     </div>
 
     <n-form
@@ -31,7 +31,7 @@
         <n-input
           v-model:value="formData.password"
           type="password"
-          placeholder="Contraseña"
+          placeholder="Password"
           :input-props="{ autocomplete: 'current-password' }"
           class="form-input"
           show-password-on="click"
@@ -44,10 +44,10 @@
 
       <div class="form-options">
         <n-checkbox v-model:checked="rememberMe" class="remember-checkbox">
-          Recordarme
+          Remember me
         </n-checkbox>
         <n-button text type="primary" class="forgot-password">
-          ¿Olvidaste tu contraseña?
+          Forgot password?
         </n-button>
       </div>
 
@@ -59,21 +59,21 @@
         attr-type="submit"
         @click="handleSubmit"
       >
-        Iniciar Sesión
+        Log In
       </n-button>
     </n-form>
 
     <AuthProviders />
 
     <div class="form-footer">
-      <span class="footer-text">¿No tienes cuenta?</span>
+      <span class="footer-text">Don't have an account?</span>
       <n-button
         text
         type="primary"
         @click="$emit('switch-mode', 'register')"
         class="switch-button"
       >
-        Regístrate aquí
+        Sign up here
       </n-button>
     </div>
   </div>
@@ -148,24 +148,24 @@ const rules: FormRules = {
   email: [
     {
       required: true,
-      message: "Email es requerido",
+      message: "Email is required",
       trigger: ["input", "blur"],
     },
     {
       type: "email",
-      message: "Formato de email inválido",
+      message: "Invalid email format",
       trigger: ["input", "blur"],
     },
   ],
   password: [
     {
       required: true,
-      message: "Contraseña es requerida",
+      message: "Password is required",
       trigger: ["input", "blur"],
     },
     {
       min: 6,
-      message: "La contraseña debe tener al menos 6 caracteres",
+      message: "Password must be at least 6 characters",
       trigger: ["input", "blur"],
     },
   ],
@@ -180,10 +180,10 @@ const handleSubmit = async () => {
     const result = await userStore.login(formData.email, formData.password);
 
     if (result.success) {
-      message.success("¡Bienvenido de vuelta!");
+      message.success("Welcome back!");
       // Note: Navigation will be handled by App.vue watching auth state
     } else {
-      message.error(result.error || "Error al iniciar sesión");
+      message.error(result.error || "Error logging in");
     }
   } catch (error) {
     // Validation failed, errors will be shown in form
