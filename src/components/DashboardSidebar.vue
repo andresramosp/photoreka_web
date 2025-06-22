@@ -499,6 +499,7 @@ onUnmounted(() => {
 .user-profile-section.collapsed .user-profile {
   justify-content: center;
   width: auto;
+  gap: 0;
 }
 
 .user-profile {
@@ -524,6 +525,7 @@ onUnmounted(() => {
   opacity: 0;
   width: 0;
   min-width: 0;
+  flex: 0;
 }
 
 .user-name {
@@ -555,6 +557,7 @@ onUnmounted(() => {
   opacity: 0;
   width: 0;
   min-width: 0;
+  flex: 0;
 }
 
 /* Mobile sidebar container */
