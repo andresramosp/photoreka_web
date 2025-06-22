@@ -256,6 +256,23 @@ onUnmounted(() => {
   gap: 12px !important;
 }
 
+/* User menu styles */
+:deep(.user-menu-header) {
+  padding: 8px 12px;
+}
+
+:deep(.user-name) {
+  font-weight: 600;
+  font-size: 14px;
+  color: #ffffffd1;
+  margin-bottom: 2px;
+}
+
+:deep(.user-email) {
+  font-size: 12px;
+  color: #ffffff73;
+}
+
 /* Mobile styles */
 @media (max-width: 768px) {
   .header {
