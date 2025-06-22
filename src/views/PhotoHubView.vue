@@ -851,6 +851,10 @@ const formatDate = (date: Date): string => {
   gap: 16px;
 }
 
+.analyze-btn {
+  height: 36px;
+}
+
 .photo-count {
   font-size: 14px;
   color: #ffffff73;
