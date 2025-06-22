@@ -444,6 +444,10 @@ const overallProgress = computed(() => {
   return (uploadedCount.value / totalFiles.value) * 100;
 });
 
+const recentUploads = computed(() => {
+  return uploadedPhotos.value.slice(-6); // Show last 6 uploaded photos in Upload tab
+});
+
 // Drag and drop handlers
 const handleDragEnter = () => {
   isDragOver.value = true;
