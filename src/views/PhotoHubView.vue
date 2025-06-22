@@ -562,20 +562,41 @@ const formatDate = (date: Date): string => {
   overflow: hidden;
 }
 
-.hub-tabs :deep(.n-tabs-nav) {
+/* Custom Tab Navigation */
+.tab-navigation {
+  display: flex;
   background-color: #1a1a1f;
-  padding: 0;
+  padding: 8px;
+  gap: 4px;
 }
 
-.hub-tabs :deep(.n-tabs-tab) {
-  padding: 16px 24px;
-  font-weight: 500;
+.tab-button {
+  flex: 1;
+  padding: 12px 24px;
+  background-color: transparent;
+  border: none;
+  border-radius: 8px;
   color: #ffffff73;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
 }
 
-.hub-tabs :deep(.n-tabs-tab--active) {
-  color: #ffffffd1;
+.tab-button:hover {
   background-color: #2c2c32;
+  color: #ffffff99;
+}
+
+.tab-button.active {
+  background-color: #2c2c32;
+  color: #ffffffd1;
+}
+
+/* Tab Content Container */
+.tab-content-container {
+  background-color: #1a1a1f;
 }
 
 .tab-content {
