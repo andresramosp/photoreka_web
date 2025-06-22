@@ -685,7 +685,7 @@ const formatDate = (date: Date): string => {
 <style scoped>
 .photo-hub-container {
   padding: 24px;
-  max-width: 1200px;
+  /* max-width: 1200px; */
   margin: 0 auto;
   background-color: #16161a;
   min-height: 100vh;

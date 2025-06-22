@@ -409,7 +409,7 @@ const openProject = (projectId: string) => {
 
 <style scoped>
 .dashboard-container {
-  max-width: 1200px;
+  /* max-width: 1200px; */
   margin: 0 auto;
   width: 100%;
 }
