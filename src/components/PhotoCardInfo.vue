@@ -208,18 +208,46 @@ const formatDate = (date: Date | string | undefined): string => {
 @import "@/assets/global.scss";
 
 .photo-card-info {
+  position: relative;
+  width: 100%;
   aspect-ratio: 3/4; /* Taller than square for more info space */
+  cursor: pointer;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  background-color: #2c2c32;
   display: flex;
   flex-direction: column;
 }
 
+.photo-card-info:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.photo-card-info.selected {
+  border-color: #8b5cf6;
+  box-shadow:
+    0 0 0 1px #8b5cf640,
+    0 8px 24px rgba(139, 92, 246, 0.2);
+}
+
 .photo-container {
+  position: relative;
+  width: 100%;
+  background-color: #2c2c32;
   flex: 1;
   min-height: 0; /* Allow shrinking */
 }
 
 .photo-image {
-  /* Inherits from global styles */
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: #2c2c32;
 }
 
 /* Info overlay */
