@@ -56,6 +56,10 @@ export const useUserStore = defineStore("user", () => {
 
         localStorage.setItem("trova_token", mockToken);
 
+        // Force navigation to dashboard after successful login
+        const router = await import("@/router");
+        router.default.push("/dashboard");
+
         return { success: true };
       } else {
         return {
@@ -97,6 +101,10 @@ export const useUserStore = defineStore("user", () => {
 
         localStorage.setItem("trova_token", mockToken);
 
+        // Force navigation to dashboard after successful registration
+        const router = await import("@/router");
+        router.default.push("/dashboard");
+
         return { success: true };
       } else {
         return {
@@ -131,11 +139,15 @@ export const useUserStore = defineStore("user", () => {
       user.value = {
         id: `user_${provider}_${Date.now()}`,
         email: `user@${provider === "google" ? "gmail.com" : "facebook.com"}`,
-        name: `Usuario ${provider === "google" ? "Google" : "Facebook"}`,
+        name: `${provider === "google" ? "Google" : "Facebook"} User`,
         provider,
       };
 
       localStorage.setItem("trova_token", mockToken);
+
+      // Force navigation to dashboard after successful social login
+      const router = await import("@/router");
+      router.default.push("/dashboard");
 
       return { success: true };
     } catch (error) {
