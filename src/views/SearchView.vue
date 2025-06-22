@@ -5,8 +5,12 @@
       <!-- Search Mode Selector -->
       <div class="search-mode-section">
         <div class="mode-label">Search Mode:</div>
-        <n-radio-group v-model:value="globalMode" class="mode-selector">
-          <n-radio-button value="strict" class="mode-option">
+        <div class="mode-pills">
+          <div
+            class="mode-pill"
+            :class="{ active: globalMode === 'strict' }"
+            @click="globalMode = 'strict'"
+          >
             <n-icon size="16" class="mode-icon">
               <svg viewBox="0 0 24 24">
                 <path
@@ -16,8 +20,12 @@
               </svg>
             </n-icon>
             Strict
-          </n-radio-button>
-          <n-radio-button value="flexible" class="mode-option">
+          </div>
+          <div
+            class="mode-pill"
+            :class="{ active: globalMode === 'flexible' }"
+            @click="globalMode = 'flexible'"
+          >
             <n-icon size="16" class="mode-icon">
               <svg viewBox="0 0 24 24">
                 <path
@@ -27,128 +35,175 @@
               </svg>
             </n-icon>
             Flexible
-          </n-radio-button>
-        </n-radio-group>
+          </div>
+        </div>
       </div>
 
-      <!-- Search Type Tabs -->
-      <n-tabs
-        v-model:value="activeSearchType"
-        type="segment"
-        class="search-tabs"
-        @update:value="onSearchTypeChange"
-      >
-        <n-tab-pane name="natural" tab="Natural Language">
-          <div class="search-content">
-            <div class="natural-search-section">
+      <!-- Search Type Selector -->
+      <div class="search-type-section">
+        <div class="type-label">Search Type:</div>
+        <div class="type-pills">
+          <div
+            class="type-pill"
+            :class="{ active: activeSearchType === 'natural' }"
+            @click="setSearchType('natural')"
+          >
+            <n-icon size="16" class="type-icon">
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"
+                />
+              </svg>
+            </n-icon>
+            Natural Language
+          </div>
+          <div
+            class="type-pill"
+            :class="{ active: activeSearchType === 'tags' }"
+            @click="setSearchType('tags')"
+          >
+            <n-icon size="16" class="type-icon">
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M5.5 7A1.5 1.5 0 1 0 7 5.5A1.5 1.5 0 0 0 5.5 7zm6.5 4.5c0-.83-.67-1.5-1.5-1.5S9 10.67 9 11.5s.67 1.5 1.5 1.5s1.5-.67 1.5-1.5zM12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14L2 9.27l6.91-1.01L12 2z"
+                />
+              </svg>
+            </n-icon>
+            Tags
+          </div>
+          <div
+            class="type-pill"
+            :class="{ active: activeSearchType === 'spatial' }"
+            @click="setSearchType('spatial')"
+          >
+            <n-icon size="16" class="type-icon">
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-2V2h-2v2H9V2H7v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM19 20H5V9h14v11z"
+                />
+              </svg>
+            </n-icon>
+            Spatial
+          </div>
+        </div>
+      </div>
+
+      <!-- Conditional Search Content -->
+      <div class="search-content">
+        <!-- Natural Language Search -->
+        <div
+          v-if="activeSearchType === 'natural'"
+          class="natural-search-section"
+        >
+          <n-input
+            v-model:value="naturalQuery"
+            type="textarea"
+            placeholder="Describe what you're looking for... e.g., 'sunset photos with people on the beach' or 'close-up portraits with red background'"
+            :autosize="{ minRows: 2, maxRows: 4 }"
+            class="natural-input"
+            @input="onSearchChange"
+          />
+        </div>
+
+        <!-- Tags Search -->
+        <div
+          v-else-if="activeSearchType === 'tags'"
+          class="tags-search-section"
+        >
+          <div class="tags-row">
+            <div class="tags-group">
+              <label class="tags-label">
+                <n-icon size="16" color="#22c55e">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                    />
+                  </svg>
+                </n-icon>
+                Include Tags
+              </label>
+              <n-select
+                v-model:value="includedTags"
+                multiple
+                filterable
+                tag
+                placeholder="Add tags to include..."
+                :options="availableTags"
+                :max-tag-count="5"
+                class="tags-select include-tags"
+                @update:value="onSearchChange"
+              />
+            </div>
+            <div class="tags-group">
+              <label class="tags-label">
+                <n-icon size="16" color="#ef4444">
+                  <svg viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M19 13H5v-2h14v2z" />
+                  </svg>
+                </n-icon>
+                Exclude Tags
+              </label>
+              <n-select
+                v-model:value="excludedTags"
+                multiple
+                filterable
+                tag
+                placeholder="Add tags to exclude..."
+                :options="availableTags"
+                :max-tag-count="5"
+                class="tags-select exclude-tags"
+                @update:value="onSearchChange"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Spatial Search -->
+        <div
+          v-else-if="activeSearchType === 'spatial'"
+          class="spatial-search-section"
+        >
+          <div class="spatial-grid">
+            <div class="spatial-area">
+              <label class="spatial-label">Left Side</label>
               <n-input
-                v-model:value="naturalQuery"
+                v-model:value="spatialLeft"
                 type="textarea"
-                placeholder="Describe what you're looking for... e.g., 'sunset photos with people on the beach' or 'close-up portraits with red background'"
-                :autosize="{ minRows: 2, maxRows: 4 }"
-                class="natural-input"
+                placeholder="Objects on the left side..."
+                :autosize="{ minRows: 3, maxRows: 5 }"
+                class="spatial-input"
+                @input="onSearchChange"
+              />
+            </div>
+            <div class="spatial-area">
+              <label class="spatial-label">Center</label>
+              <n-input
+                v-model:value="spatialCenter"
+                type="textarea"
+                placeholder="Objects in the center..."
+                :autosize="{ minRows: 3, maxRows: 5 }"
+                class="spatial-input center-input"
+                @input="onSearchChange"
+              />
+            </div>
+            <div class="spatial-area">
+              <label class="spatial-label">Right Side</label>
+              <n-input
+                v-model:value="spatialRight"
+                type="textarea"
+                placeholder="Objects on the right side..."
+                :autosize="{ minRows: 3, maxRows: 5 }"
+                class="spatial-input"
                 @input="onSearchChange"
               />
             </div>
           </div>
-        </n-tab-pane>
-
-        <n-tab-pane name="tags" tab="Tags">
-          <div class="search-content">
-            <div class="tags-search-section">
-              <div class="tags-row">
-                <div class="tags-group">
-                  <label class="tags-label">
-                    <n-icon size="16" color="#22c55e">
-                      <svg viewBox="0 0 24 24">
-                        <path
-                          fill="currentColor"
-                          d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-                        />
-                      </svg>
-                    </n-icon>
-                    Include Tags
-                  </label>
-                  <n-select
-                    v-model:value="includedTags"
-                    multiple
-                    filterable
-                    tag
-                    placeholder="Add tags to include..."
-                    :options="availableTags"
-                    :max-tag-count="5"
-                    class="tags-select include-tags"
-                    @update:value="onSearchChange"
-                  />
-                </div>
-                <div class="tags-group">
-                  <label class="tags-label">
-                    <n-icon size="16" color="#ef4444">
-                      <svg viewBox="0 0 24 24">
-                        <path fill="currentColor" d="M19 13H5v-2h14v2z" />
-                      </svg>
-                    </n-icon>
-                    Exclude Tags
-                  </label>
-                  <n-select
-                    v-model:value="excludedTags"
-                    multiple
-                    filterable
-                    tag
-                    placeholder="Add tags to exclude..."
-                    :options="availableTags"
-                    :max-tag-count="5"
-                    class="tags-select exclude-tags"
-                    @update:value="onSearchChange"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </n-tab-pane>
-
-        <n-tab-pane name="spatial" tab="Spatial">
-          <div class="search-content">
-            <div class="spatial-search-section">
-              <div class="spatial-grid">
-                <div class="spatial-area">
-                  <label class="spatial-label">Left Side</label>
-                  <n-input
-                    v-model:value="spatialLeft"
-                    type="textarea"
-                    placeholder="Objects on the left side..."
-                    :autosize="{ minRows: 3, maxRows: 5 }"
-                    class="spatial-input"
-                    @input="onSearchChange"
-                  />
-                </div>
-                <div class="spatial-area">
-                  <label class="spatial-label">Center</label>
-                  <n-input
-                    v-model:value="spatialCenter"
-                    type="textarea"
-                    placeholder="Objects in the center..."
-                    :autosize="{ minRows: 3, maxRows: 5 }"
-                    class="spatial-input center-input"
-                    @input="onSearchChange"
-                  />
-                </div>
-                <div class="spatial-area">
-                  <label class="spatial-label">Right Side</label>
-                  <n-input
-                    v-model:value="spatialRight"
-                    type="textarea"
-                    placeholder="Objects on the right side..."
-                    :autosize="{ minRows: 3, maxRows: 5 }"
-                    class="spatial-input"
-                    @input="onSearchChange"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </n-tab-pane>
-      </n-tabs>
+        </div>
+      </div>
 
       <!-- Search Actions -->
       <div class="search-actions">
@@ -211,7 +266,9 @@
 
           <div class="search-examples">
             <h3 class="examples-title">Try something like...</h3>
-            <div class="examples-grid">
+
+            <!-- Natural Language Examples -->
+            <div v-if="activeSearchType === 'natural'" class="examples-grid">
               <div
                 class="example-card"
                 @click="
@@ -221,11 +278,40 @@
                   )
                 "
               >
-                <div class="example-type">Natural Language</div>
                 <div class="example-text">
                   "sunset photos with people on the beach"
                 </div>
               </div>
+              <div
+                class="example-card"
+                @click="
+                  setExampleSearch(
+                    'natural',
+                    'close-up portraits with red background',
+                  )
+                "
+              >
+                <div class="example-text">
+                  "close-up portraits with red background"
+                </div>
+              </div>
+              <div
+                class="example-card"
+                @click="
+                  setExampleSearch(
+                    'natural',
+                    'landscape photos with mountains and snow',
+                  )
+                "
+              >
+                <div class="example-text">
+                  "landscape photos with mountains and snow"
+                </div>
+              </div>
+            </div>
+
+            <!-- Tags Examples -->
+            <div v-else-if="activeSearchType === 'tags'" class="examples-grid">
               <div
                 class="example-card"
                 @click="
@@ -237,11 +323,45 @@
                   )
                 "
               >
-                <div class="example-type">Tags</div>
                 <div class="example-text">
                   Include: landscape, mountains • Exclude: people
                 </div>
               </div>
+              <div
+                class="example-card"
+                @click="
+                  setExampleSearch(
+                    'tags',
+                    null,
+                    ['portrait', 'indoor'],
+                    ['black-white'],
+                  )
+                "
+              >
+                <div class="example-text">
+                  Include: portrait, indoor • Exclude: black-white
+                </div>
+              </div>
+              <div
+                class="example-card"
+                @click="
+                  setExampleSearch(
+                    'tags',
+                    null,
+                    ['sunset', 'beach', 'outdoor'],
+                    [],
+                  )
+                "
+              >
+                <div class="example-text">Include: sunset, beach, outdoor</div>
+              </div>
+            </div>
+
+            <!-- Spatial Examples -->
+            <div
+              v-else-if="activeSearchType === 'spatial'"
+              class="examples-grid"
+            >
               <div
                 class="example-card"
                 @click="
@@ -256,10 +376,35 @@
                   )
                 "
               >
-                <div class="example-type">Spatial</div>
                 <div class="example-text">
                   Left: tree • Center: person • Right: building
                 </div>
+              </div>
+              <div
+                class="example-card"
+                @click="
+                  setExampleSearch(
+                    'spatial',
+                    null,
+                    null,
+                    null,
+                    'mountains',
+                    'lake',
+                    'forest',
+                  )
+                "
+              >
+                <div class="example-text">
+                  Left: mountains • Center: lake • Right: forest
+                </div>
+              </div>
+              <div
+                class="example-card"
+                @click="
+                  setExampleSearch('spatial', null, null, null, '', 'face', '')
+                "
+              >
+                <div class="example-text">Center: face</div>
               </div>
             </div>
           </div>
@@ -338,6 +483,11 @@ const hasSearchQuery = computed(() => {
 });
 
 // Methods
+const setSearchType = (type: "natural" | "tags" | "spatial") => {
+  activeSearchType.value = type;
+  console.log("Search type changed to:", type);
+};
+
 const onSearchTypeChange = (type: string) => {
   console.log("Search type changed to:", type);
 };
@@ -452,23 +602,98 @@ const setExampleSearch = (
   white-space: nowrap;
 }
 
-.mode-selector {
+.mode-pills {
+  display: flex;
+  gap: 8px;
   flex: 1;
 }
 
-.mode-option {
+.mode-pill {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid #2c2c32;
+  background-color: transparent;
+  color: #ffffff73;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.mode-pill:hover {
+  border-color: #2563eb;
+  color: #ffffffd1;
+}
+
+.mode-pill.active {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
 }
 
 .mode-icon {
-  margin-right: 4px;
+  flex-shrink: 0;
 }
 
-/* Search Tabs */
-.search-tabs {
+/* Search Type Selector */
+.search-type-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #2c2c32;
+}
+
+.type-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffffd1;
+  white-space: nowrap;
+}
+
+.type-pills {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.type-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 20px;
+  border: 1px solid #2c2c32;
+  background-color: transparent;
+  color: #ffffff73;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.type-pill:hover {
+  border-color: #2563eb;
+  color: #ffffffd1;
+  transform: translateY(-1px);
+}
+
+.type-pill.active {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+}
+
+.type-icon {
+  flex-shrink: 0;
 }
 
 .search-content {
@@ -630,13 +855,6 @@ const setExampleSearch = (
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
-.example-type {
-  font-size: 12px;
-  font-weight: 500;
-  color: #2563eb;
-  margin-bottom: 8px;
-}
-
 .example-text {
   font-size: 14px;
   color: #ffffffd1;
@@ -703,8 +921,30 @@ const setExampleSearch = (
     gap: 12px;
   }
 
-  .mode-selector {
+  .mode-pills {
     width: 100%;
+    justify-content: stretch;
+  }
+
+  .mode-pill {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .search-type-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .type-pills {
+    width: 100%;
+  }
+
+  .type-pill {
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
   }
 
   .tags-row {
