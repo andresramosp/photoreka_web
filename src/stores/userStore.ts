@@ -61,14 +61,11 @@ export const useUserStore = defineStore("user", () => {
         return {
           success: false,
           error:
-            "Email y contraseña son requeridos. La contraseña debe tener al menos 6 caracteres.",
+            "Email and password are required. Password must be at least 6 characters.",
         };
       }
     } catch (error) {
-      return {
-        success: false,
-        error: "Error al iniciar sesión. Inténtalo de nuevo.",
-      };
+      return { success: false, error: "Error logging in. Please try again." };
     } finally {
       isLoading.value = false;
     }
@@ -105,13 +102,13 @@ export const useUserStore = defineStore("user", () => {
         return {
           success: false,
           error:
-            "Todos los campos son requeridos. La contraseña debe tener al menos 6 caracteres.",
+            "All fields are required. Password must be at least 6 characters.",
         };
       }
     } catch (error) {
       return {
         success: false,
-        error: "Error al registrarse. Inténtalo de nuevo.",
+        error: "Error creating account. Please try again.",
       };
     } finally {
       isLoading.value = false;
@@ -144,7 +141,7 @@ export const useUserStore = defineStore("user", () => {
     } catch (error) {
       return {
         success: false,
-        error: `Error al iniciar sesión con ${provider}. Inténtalo de nuevo.`,
+        error: `Error logging in with ${provider}. Please try again.`,
       };
     } finally {
       isLoading.value = false;
