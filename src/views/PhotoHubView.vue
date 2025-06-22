@@ -374,6 +374,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import PhotoCardInfo from "../components/PhotoCardInfo.vue";
 
 interface Photo {
   id: string;
