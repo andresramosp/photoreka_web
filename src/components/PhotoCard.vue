@@ -142,21 +142,43 @@ const onImageError = () => {
 @import "@/assets/global.scss";
 
 .photo-card {
-  @extend .photo-card-base;
+  position: relative;
+  width: 100%;
   aspect-ratio: 1;
+  cursor: pointer;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  background-color: #2c2c32;
+}
+
+.photo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 .photo-card.selected {
-  @extend .photo-card-selected;
+  border-color: #8b5cf6;
+  box-shadow:
+    0 0 0 1px #8b5cf640,
+    0 8px 24px rgba(139, 92, 246, 0.2);
 }
 
 .photo-container {
-  @extend .photo-container-base;
+  position: relative;
+  width: 100%;
   height: 100%;
+  background-color: #2c2c32;
 }
 
 .photo-image {
-  @extend .photo-image-base;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: #2c2c32;
 }
 
 .photo-card:hover .photo-image {
