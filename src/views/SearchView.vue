@@ -1142,22 +1142,31 @@ const setExampleSearch = (
   .spatial-input-row {
     flex-direction: column;
     gap: 20px;
+    width: 100%;
   }
 
   .spatial-grid {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    width: 100%;
+    width: 100% !important;
   }
 
   .spatial-area {
-    width: 100%;
+    width: 100% !important;
   }
 
   .spatial-input {
     text-align: left;
-    width: 100%;
+    width: 100% !important;
+  }
+
+  .spatial-search-section {
+    width: 100% !important;
+  }
+
+  .spatial-search-section .spatial-input {
+    width: 100% !important;
   }
 
   .search-actions-inline {
