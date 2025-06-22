@@ -61,7 +61,7 @@
           :class="{ active: activeTab === 'analyzed' }"
           @click="activeTab = 'analyzed'"
         >
-          Analyzed
+          Catalog
         </button>
       </div>
 
