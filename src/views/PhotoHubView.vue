@@ -157,49 +157,31 @@
             </div>
           </div>
 
-          <!-- Upload Skeletons during upload process -->
-          <div v-if="skeletonCount > 0" class="upload-queue">
-            <div class="section-header">
-              <h3 class="section-title">Uploading Photos</h3>
-              <span class="photo-count"
-                >{{ skeletonCount }} photos uploading</span
-              >
-            </div>
-            <div class="photos-grid">
-              <div
-                v-for="skeleton in skeletonCount"
-                :key="`skeleton-${skeleton}`"
-                class="photo-card skeleton-card"
-              >
-                <div class="photo-skeleton">
-                  <n-skeleton height="100%" />
-                </div>
-                <div class="photo-info">
-                  <n-skeleton text :repeat="1" width="60%" />
-                  <n-skeleton text :repeat="1" width="40%" />
-                </div>
-                <div class="upload-progress-indicator">
-                  <n-spin size="small" />
-                  <span class="upload-text">Uploading...</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Recently Uploaded Photos in Upload Tab -->
+          <!-- Unified Photos Section -->
           <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-section">
             <div class="section-header">
-              <h3 class="section-title">Uploaded Photos</h3>
+              <h3 class="section-title">Photos</h3>
               <div class="header-controls">
-                <span class="photo-count"
-                  >{{ uploadedPhotos.length }} photos</span
-                >
+                <span class="photo-count">
+                  {{ uploadedPhotos.filter((p) => !p.isUploading).length }}/{{
+                    uploadedPhotos.length
+                  }}
+                  photos
+                  <span v-if="isUploading">
+                    ({{
+                      uploadedPhotos.filter((p) => p.isUploading).length
+                    }}
+                    uploading)</span
+                  >
+                </span>
                 <n-button
                   type="primary"
                   size="medium"
                   class="analyze-btn"
                   @click="analyzePhotos"
-                  :disabled="uploadedPhotos.length === 0"
+                  :disabled="
+                    uploadedPhotos.filter((p) => !p.isUploading).length === 0
+                  "
                 >
                   <template #icon>
                     <n-icon>
@@ -221,9 +203,17 @@
                 :key="photo.id"
                 :photo="{
                   ...photo,
-                  status: photo.isDuplicate ? 'uploaded' : 'uploaded',
-                  aiTags: Math.floor(Math.random() * 15) + 5,
-                  faces: Math.floor(Math.random() * 4),
+                  status: photo.isUploading
+                    ? 'processing'
+                    : photo.isDuplicate
+                      ? 'uploaded'
+                      : 'uploaded',
+                  aiTags: photo.isUploading
+                    ? undefined
+                    : Math.floor(Math.random() * 15) + 5,
+                  faces: photo.isUploading
+                    ? undefined
+                    : Math.floor(Math.random() * 4),
                 }"
                 @select="togglePhotoSelection"
                 @info="showPhotoInfo"
