@@ -1,43 +1,45 @@
 <template>
   <n-config-provider :theme="darkTheme" :theme-overrides="themeOverrides">
-    <!-- Authentication Layout -->
-    <router-view v-if="!userStore.isAuthenticated" />
+    <n-message-provider>
+      <!-- Authentication Layout -->
+      <router-view v-if="!userStore.isAuthenticated" />
 
-    <!-- Authenticated App Layout -->
-    <template v-else>
-      <!-- Desktop Layout -->
-      <n-layout
-        v-if="!isMobile"
-        has-sider
-        style="height: 100vh"
-        class="app-layout"
-      >
-        <DashboardSidebar />
-        <n-layout class="main-layout">
-          <DashboardHeader />
-          <n-layout-content class="main-content">
-            <router-view />
-          </n-layout-content>
+      <!-- Authenticated App Layout -->
+      <template v-else>
+        <!-- Desktop Layout -->
+        <n-layout
+          v-if="!isMobile"
+          has-sider
+          style="height: 100vh"
+          class="app-layout"
+        >
+          <DashboardSidebar />
+          <n-layout class="main-layout">
+            <DashboardHeader />
+            <n-layout-content class="main-content">
+              <router-view />
+            </n-layout-content>
+          </n-layout>
         </n-layout>
-      </n-layout>
 
-      <!-- Mobile Layout -->
-      <div v-else class="mobile-layout">
-        <!-- Mobile sidebar overlay - completely separate from layout -->
-        <DashboardSidebar
-          :mobile-menu-open="mobileMenuOpen"
-          @close-mobile-menu="mobileMenuOpen = false"
-        />
+        <!-- Mobile Layout -->
+        <div v-else class="mobile-layout">
+          <!-- Mobile sidebar overlay - completely separate from layout -->
+          <DashboardSidebar
+            :mobile-menu-open="mobileMenuOpen"
+            @close-mobile-menu="mobileMenuOpen = false"
+          />
 
-        <!-- Main mobile content -->
-        <div class="mobile-content">
-          <DashboardHeader @toggle-mobile-menu="toggleMobileMenu" />
-          <div class="main-content mobile-main-content">
-            <router-view />
+          <!-- Main mobile content -->
+          <div class="mobile-content">
+            <DashboardHeader @toggle-mobile-menu="toggleMobileMenu" />
+            <div class="main-content mobile-main-content">
+              <router-view />
+            </div>
           </div>
         </div>
-      </div>
-    </template>
+      </template>
+    </n-message-provider>
   </n-config-provider>
 </template>
 
