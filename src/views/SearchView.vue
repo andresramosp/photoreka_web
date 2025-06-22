@@ -1142,7 +1142,7 @@ const setExampleSearch = (
   .spatial-grid {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
   }
 
   .spatial-area {
@@ -1151,19 +1151,13 @@ const setExampleSearch = (
 
   .spatial-input {
     text-align: left;
-    min-height: 44px;
+    min-height: 56px;
+    font-size: 16px;
   }
 
-  .spatial-input:nth-child(1) {
-    order: 1;
-  }
-
-  .spatial-input:nth-child(2) {
-    order: 2;
-  }
-
-  .spatial-input:nth-child(3) {
-    order: 3;
+  .spatial-input .n-input__textarea-el {
+    min-height: 56px !important;
+    padding: 12px 16px !important;
   }
 
   .search-actions-inline {
