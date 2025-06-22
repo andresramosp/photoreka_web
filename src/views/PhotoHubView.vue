@@ -59,176 +59,341 @@
       class="duplicate-notification"
     />
 
-    <!-- Upload Dropzone -->
-    <div
-      v-if="uploadedPhotos.length === 0 && !isUploading"
-      class="upload-section"
-    >
-      <div
-        class="upload-dropzone"
-        :class="{ 'drag-over': isDragOver }"
-        @dragenter.prevent="handleDragEnter"
-        @dragover.prevent="handleDragOver"
-        @dragleave.prevent="handleDragLeave"
-        @drop.prevent="handleDrop"
-        @click="triggerFileInput"
-      >
-        <div class="dropzone-content">
-          <div class="upload-icon">
-            <n-icon size="48" color="#8b5cf6">
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
-                />
-              </svg>
-            </n-icon>
+    <!-- Tabs Section -->
+    <div class="tabs-container">
+      <!-- Tab Navigation -->
+      <div class="tab-navigation">
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'upload' }"
+          @click="activeTab = 'upload'"
+        >
+          Upload
+        </button>
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'processing' }"
+          @click="activeTab = 'processing'"
+        >
+          Processing
+        </button>
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'catalog' }"
+          @click="activeTab = 'catalog'"
+        >
+          Catalog
+        </button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="tab-content-container">
+        <!-- Tab 1: Upload -->
+        <div v-show="activeTab === 'upload'" class="tab-content">
+          <!-- Upload Dropzone -->
+          <div class="upload-section">
+            <div
+              class="upload-dropzone"
+              :class="{ 'drag-over': isDragOver }"
+              @dragenter.prevent="handleDragEnter"
+              @dragover.prevent="handleDragOver"
+              @dragleave.prevent="handleDragLeave"
+              @drop.prevent="handleDrop"
+              @click="triggerFileInput"
+            >
+              <div class="dropzone-content">
+                <div class="upload-icon">
+                  <n-icon size="48" color="#8b5cf6">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
+                      />
+                    </svg>
+                  </n-icon>
+                </div>
+                <h3 class="dropzone-title">Drop your photos here</h3>
+                <p class="dropzone-subtitle">
+                  Drag and drop your images, or click to browse
+                </p>
+                <div class="upload-buttons">
+                  <n-button type="primary" size="large" class="upload-btn">
+                    <template #icon>
+                      <n-icon>
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            fill="currentColor"
+                            d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                          />
+                        </svg>
+                      </n-icon>
+                    </template>
+                    Choose Files
+                  </n-button>
+                </div>
+                <div class="file-formats">
+                  <span class="format-text"
+                    >Supports JPG, PNG, WebP up to 50MB per file</span
+                  >
+                </div>
+              </div>
+            </div>
           </div>
-          <h3 class="dropzone-title">Drop your photos here</h3>
-          <p class="dropzone-subtitle">
-            Drag and drop your images, or click to browse
-          </p>
-          <div class="upload-buttons">
-            <n-button type="primary" size="large" class="upload-btn">
-              <template #icon>
-                <n-icon>
+
+          <!-- Recently Uploaded Photos in Upload Tab -->
+          <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-section">
+            <div class="section-header">
+              <h3 class="section-title">Recently Uploaded</h3>
+              <span class="photo-count"
+                >{{ uploadedPhotos.length }} photos</span
+              >
+            </div>
+            <div class="photos-grid">
+              <div
+                v-for="photo in recentUploads"
+                :key="photo.id"
+                class="photo-card"
+                :class="{ duplicate: photo.isDuplicate }"
+              >
+                <div class="photo-thumbnail">
+                  <img :src="photo.url" :alt="photo.name" />
+                  <div v-if="photo.isDuplicate" class="duplicate-indicator">
+                    <n-icon size="16" color="#f59e0b">
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c.55 0 1 .45 1 1s-.45 1-1 1s-1-.45-1-1s.45-1 1-1zm1 11h-2v-6h2v6z"
+                        />
+                      </svg>
+                    </n-icon>
+                  </div>
+                </div>
+                <div class="photo-info">
+                  <div class="photo-name" :title="photo.name">
+                    {{ photo.name }}
+                  </div>
+                  <div class="photo-details">
+                    <span class="photo-size">{{
+                      formatFileSize(photo.size)
+                    }}</span>
+                  </div>
+                </div>
+                <div class="photo-status">
+                  <n-tag v-if="photo.isDuplicate" size="small" type="warning">
+                    Duplicate
+                  </n-tag>
+                  <n-tag v-else size="small" type="success"> Uploaded </n-tag>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Processing -->
+        <div v-show="activeTab === 'processing'" class="tab-content">
+          <div class="processing-section">
+            <!-- Photos being uploaded (skeletons) -->
+            <div v-if="skeletonCount > 0" class="upload-queue">
+              <div class="section-header">
+                <h3 class="section-title">Uploading Photos</h3>
+                <span class="photo-count"
+                  >{{ skeletonCount }} photos uploading</span
+                >
+              </div>
+              <div class="photos-grid">
+                <div
+                  v-for="skeleton in skeletonCount"
+                  :key="`skeleton-${skeleton}`"
+                  class="photo-card skeleton-card"
+                >
+                  <div class="photo-skeleton">
+                    <n-skeleton height="100%" />
+                  </div>
+                  <div class="photo-info">
+                    <n-skeleton text :repeat="1" width="60%" />
+                    <n-skeleton text :repeat="1" width="40%" />
+                  </div>
+                  <div class="upload-progress-indicator">
+                    <n-spin size="small" />
+                    <span class="upload-text">Uploading...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Processing Queue for analysis -->
+            <div v-if="processingPhotos.length > 0" class="processing-queue">
+              <div class="section-header">
+                <h3 class="section-title">AI Analysis in Progress</h3>
+                <span class="photo-count"
+                  >{{ processingPhotos.length }} photos being analyzed</span
+                >
+              </div>
+              <div class="processing-list">
+                <div
+                  v-for="photo in processingPhotos"
+                  :key="photo.id"
+                  class="processing-item"
+                >
+                  <div class="processing-thumbnail">
+                    <img :src="photo.url" :alt="photo.name" />
+                    <div class="processing-overlay">
+                      <n-spin size="small" />
+                    </div>
+                  </div>
+                  <div class="processing-info">
+                    <span class="processing-name">{{ photo.name }}</span>
+                    <div class="processing-progress">
+                      <n-progress
+                        type="line"
+                        :percentage="photo.progress"
+                        :show-indicator="false"
+                      />
+                      <span class="progress-text"
+                        >{{ photo.progress }}% - {{ photo.stage }}</span
+                      >
+                    </div>
+                  </div>
+                  <div class="processing-status">
+                    <n-tag size="small" type="info">Analyzing</n-tag>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty Processing State -->
+            <div
+              v-if="skeletonCount === 0 && processingPhotos.length === 0"
+              class="empty-processing-state"
+            >
+              <div class="empty-state-content">
+                <n-icon size="64" color="#6b7280">
                   <svg viewBox="0 0 24 24">
                     <path
                       fill="currentColor"
-                      d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5l1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
                     />
                   </svg>
                 </n-icon>
-              </template>
-              Choose Files
-            </n-button>
-          </div>
-          <div class="file-formats">
-            <span class="format-text"
-              >Supports JPG, PNG, WebP up to 50MB per file</span
-            >
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Photos Grid -->
-    <div v-if="uploadedPhotos.length > 0 || isUploading" class="photos-section">
-      <div class="section-header">
-        <h3 class="section-title">Your Photos</h3>
-        <div class="header-controls">
-          <span class="photo-count">{{ uploadedPhotos.length }} photos</span>
-          <n-button
-            type="primary"
-            ghost
-            size="small"
-            @click="triggerFileInput"
-            :disabled="isUploading"
-          >
-            <template #icon>
-              <n-icon>
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-                  />
-                </svg>
-              </n-icon>
-            </template>
-            Add More
-          </n-button>
-        </div>
-      </div>
-
-      <div class="photos-grid">
-        <!-- Skeleton loaders for uploading photos -->
-        <div
-          v-for="skeleton in skeletonCount"
-          :key="`skeleton-${skeleton}`"
-          class="photo-card skeleton-card"
-        >
-          <div class="photo-skeleton">
-            <n-skeleton height="100%" />
-          </div>
-          <div class="photo-info">
-            <n-skeleton text :repeat="1" width="60%" />
-            <n-skeleton text :repeat="1" width="40%" />
-          </div>
-          <div class="upload-progress-indicator">
-            <n-spin size="small" />
-            <span class="upload-text">Uploading...</span>
+                <h3 class="empty-state-title">No photos being processed</h3>
+                <p class="empty-state-description">
+                  Upload photos in the Upload tab to see them here during
+                  processing
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Uploaded photos -->
-        <div
-          v-for="photo in uploadedPhotos"
-          :key="photo.id"
-          class="photo-card"
-          :class="{ duplicate: photo.isDuplicate }"
-        >
-          <div class="photo-thumbnail">
-            <img :src="photo.url" :alt="photo.name" />
+        <!-- Tab 3: Catalog -->
+        <div v-show="activeTab === 'catalog'" class="tab-content">
+          <div class="catalog-section">
+            <!-- All Uploaded Photos -->
+            <div v-if="uploadedPhotos.length > 0" class="catalog-photos">
+              <div class="section-header">
+                <h3 class="section-title">Photo Catalog</h3>
+                <span class="photo-count"
+                  >{{ uploadedPhotos.length }} photos</span
+                >
+              </div>
+              <div class="photos-grid">
+                <div
+                  v-for="photo in uploadedPhotos"
+                  :key="photo.id"
+                  class="photo-card"
+                  :class="{ duplicate: photo.isDuplicate }"
+                >
+                  <div class="photo-thumbnail">
+                    <img :src="photo.url" :alt="photo.name" />
 
-            <!-- Duplicate indicator -->
-            <div v-if="photo.isDuplicate" class="duplicate-indicator">
-              <n-icon size="16" color="#f59e0b">
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c.55 0 1 .45 1 1s-.45 1-1 1s-1-.45-1-1s.45-1 1-1zm1 11h-2v-6h2v6z"
-                  />
-                </svg>
-              </n-icon>
+                    <!-- Duplicate indicator -->
+                    <div v-if="photo.isDuplicate" class="duplicate-indicator">
+                      <n-icon size="16" color="#f59e0b">
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            fill="currentColor"
+                            d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c.55 0 1 .45 1 1s-.45 1-1 1s-1-.45-1-1s.45-1 1-1zm1 11h-2v-6h2v6z"
+                          />
+                        </svg>
+                      </n-icon>
+                    </div>
+
+                    <!-- Photo overlay -->
+                    <div class="photo-overlay">
+                      <n-button circle size="small" class="overlay-btn">
+                        <template #icon>
+                          <n-icon>
+                            <svg viewBox="0 0 24 24">
+                              <path
+                                fill="currentColor"
+                                d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5s5 2.24 5 5s-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3s3-1.34 3-3s-1.34-3-3-3z"
+                              />
+                            </svg>
+                          </n-icon>
+                        </template>
+                      </n-button>
+                      <n-button circle size="small" class="overlay-btn">
+                        <template #icon>
+                          <n-icon>
+                            <svg viewBox="0 0 24 24">
+                              <path
+                                fill="currentColor"
+                                d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"
+                              />
+                            </svg>
+                          </n-icon>
+                        </template>
+                      </n-button>
+                    </div>
+                  </div>
+
+                  <div class="photo-info">
+                    <div class="photo-name" :title="photo.name">
+                      {{ photo.name }}
+                    </div>
+                    <div class="photo-details">
+                      <span class="photo-size">{{
+                        formatFileSize(photo.size)
+                      }}</span>
+                      <span class="photo-date">{{
+                        formatDate(photo.uploadDate)
+                      }}</span>
+                    </div>
+                  </div>
+
+                  <div class="photo-status">
+                    <n-tag
+                      v-if="photo.isDuplicate"
+                      size="small"
+                      type="warning"
+                      class="duplicate-tag"
+                    >
+                      Duplicate
+                    </n-tag>
+                    <n-tag v-else size="small" type="success"> Uploaded </n-tag>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <!-- Photo overlay -->
-            <div class="photo-overlay">
-              <n-button circle size="small" class="overlay-btn">
-                <template #icon>
-                  <n-icon>
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5s5 2.24 5 5s-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3s3-1.34 3-3s-1.34-3-3-3z"
-                      />
-                    </svg>
-                  </n-icon>
-                </template>
-              </n-button>
-              <n-button circle size="small" class="overlay-btn">
-                <template #icon>
-                  <n-icon>
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"
-                      />
-                    </svg>
-                  </n-icon>
-                </template>
-              </n-button>
+            <!-- Empty Catalog State -->
+            <div v-else class="empty-catalog-state">
+              <div class="empty-state-content">
+                <n-icon size="64" color="#6b7280">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11.5-6L9 12.5l1.5 2L13 11l3 4H8l2.5-3zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"
+                    />
+                  </svg>
+                </n-icon>
+                <h3 class="empty-state-title">No photos in catalog yet</h3>
+                <p class="empty-state-description">
+                  Upload photos in the Upload tab to see them here once
+                  processed
+                </p>
+              </div>
             </div>
-          </div>
-
-          <div class="photo-info">
-            <div class="photo-name" :title="photo.name">{{ photo.name }}</div>
-            <div class="photo-details">
-              <span class="photo-size">{{ formatFileSize(photo.size) }}</span>
-              <span class="photo-date">{{ formatDate(photo.uploadDate) }}</span>
-            </div>
-          </div>
-
-          <div class="photo-status">
-            <n-tag
-              v-if="photo.isDuplicate"
-              size="small"
-              type="warning"
-              class="duplicate-tag"
-            >
-              Duplicate
-            </n-tag>
-            <n-tag v-else size="small" type="success"> Uploaded </n-tag>
           </div>
         </div>
       </div>
