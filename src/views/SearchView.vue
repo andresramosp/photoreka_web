@@ -823,6 +823,59 @@ const clearSearch = () => {
   spatialLeft.value = "";
   spatialCenter.value = "";
   spatialRight.value = "";
+  searchResults.value = [];
+  selectedPhotos.value = [];
+  hasMoreResults.value = true;
+};
+
+// Photo grid functions
+const setGridColumns = (columns: number) => {
+  gridColumns.value = columns;
+};
+
+const togglePhotoSelection = (photoId: string) => {
+  const index = selectedPhotos.value.indexOf(photoId);
+  if (index > -1) {
+    selectedPhotos.value.splice(index, 1);
+  } else {
+    selectedPhotos.value.push(photoId);
+  }
+};
+
+const showPhotoInfo = (photo: Photo) => {
+  console.log("Show photo info:", photo);
+  // Here you would implement the photo info modal/panel
+};
+
+const loadMorePhotos = async () => {
+  if (isLoadingMore.value || !hasMoreResults.value) return;
+
+  isLoadingMore.value = true;
+
+  // Simulate loading more photos
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+
+  // Add more mock photos (shuffled)
+  const morePhotos = [...mockPhotos]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 4)
+    .map((photo, index) => ({
+      ...photo,
+      id: `${photo.id}-${Date.now()}-${index}`, // Make unique IDs
+    }));
+
+  searchResults.value.push(...morePhotos);
+
+  // Simulate end of results after 3 loads
+  if (searchResults.value.length > 16) {
+    hasMoreResults.value = false;
+  }
+
+  isLoadingMore.value = false;
+};
+
+const clearSelection = () => {
+  selectedPhotos.value = [];
 };
 
 const getCurrentQuery = () => {
