@@ -861,16 +861,17 @@ const setExampleSearch = (
   width: 100%;
 }
 
-.tags-content {
+.tags-input-row {
   display: flex;
-  flex-direction: column;
   gap: 16px;
+  align-items: flex-start;
 }
 
 .tags-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+  flex: 1;
 }
 
 .tags-group {
@@ -897,16 +898,17 @@ const setExampleSearch = (
   width: 100%;
 }
 
-.spatial-content {
+.spatial-input-row {
   display: flex;
-  flex-direction: column;
   gap: 16px;
+  align-items: flex-start;
 }
 
 .spatial-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 20px;
+  flex: 1;
 }
 
 .spatial-area {
@@ -941,10 +943,18 @@ const setExampleSearch = (
 
 .search-button {
   min-width: 140px;
+  height: 40px;
 }
 
 .clear-button {
   min-width: 100px;
+  height: 40px;
+}
+
+.clear-button.icon-only {
+  min-width: 40px;
+  width: 40px;
+  padding: 0;
 }
 
 /* Search Results Container */
