@@ -14,6 +14,7 @@
       :rules="rules"
       size="large"
       :show-label="false"
+      :show-feedback="false"
       @submit.prevent="handleSubmit"
     >
       <n-form-item path="name" class="form-item">
@@ -265,6 +266,14 @@ export default {
 
 .form-item {
   margin-bottom: 6px;
+}
+
+.form-item :deep(.n-form-item-feedback-wrapper) {
+  display: none !important;
+}
+
+.form-item :deep([data-feedback]) {
+  display: none !important;
 }
 
 .form-input {
