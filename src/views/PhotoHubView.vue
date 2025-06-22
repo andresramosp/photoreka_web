@@ -520,35 +520,44 @@ const handleFiles = async (files: File[]) => {
   isUploading.value = true;
   totalFiles.value = imageFiles.length;
   uploadedCount.value = 0;
-  skeletonCount.value = imageFiles.length;
+  skeletonCount.value = 0; // No longer needed
 
-  // Stay in Upload tab during upload process
+  // Create placeholder photos immediately for all files
+  const uploadingPhotos: Photo[] = imageFiles.map((file) => ({
+    id: `photo-${Date.now()}-${Math.random()}`,
+    name: file.name,
+    size: file.size,
+    file: file,
+    isDuplicate: false,
+    isUploading: true, // Mark as uploading
+  }));
+
+  // Add all uploading photos to the list immediately
+  uploadedPhotos.value.push(...uploadingPhotos);
 
   // Simulate uploading files one by one
-  for (let i = 0; i < imageFiles.length; i++) {
-    const file = imageFiles[i];
+  for (let i = 0; i < uploadingPhotos.length; i++) {
+    const photo = uploadingPhotos[i];
 
     // Simulate upload delay (1-3 seconds per file)
     const uploadDelay = Math.random() * 2000 + 1000;
     await new Promise((resolve) => setTimeout(resolve, uploadDelay));
 
-    const newPhoto: Photo = {
-      id: `photo-${Date.now()}-${Math.random()}`,
-      name: file.name,
-      size: file.size,
-      url: URL.createObjectURL(file),
-      file: file,
-      uploadDate: new Date(),
-      isDuplicate: false,
-    };
+    // Find the photo in the uploaded list and update it
+    const photoIndex = uploadedPhotos.value.findIndex((p) => p.id === photo.id);
+    if (photoIndex !== -1) {
+      uploadedPhotos.value[photoIndex] = {
+        ...photo,
+        url: URL.createObjectURL(photo.file),
+        uploadDate: new Date(),
+        isUploading: false, // Mark as completed
+      };
+    }
 
-    uploadedPhotos.value.push(newPhoto);
     uploadedCount.value++;
-    skeletonCount.value--;
   }
 
   isUploading.value = false;
-  skeletonCount.value = 0;
 
   // Show duplicate checking notification after upload completes
   showDuplicateNotification.value = true;
@@ -557,7 +566,7 @@ const handleFiles = async (files: File[]) => {
   setTimeout(() => {
     // Randomly mark some photos as duplicates (20% chance)
     uploadedPhotos.value.forEach((photo) => {
-      if (Math.random() < 0.2) {
+      if (Math.random() < 0.2 && !photo.isUploading) {
         photo.isDuplicate = true;
       }
     });
