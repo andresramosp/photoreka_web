@@ -465,8 +465,13 @@ const handleFiles = (files: File[]) => {
         size: file.size,
         url: URL.createObjectURL(file),
         file: file,
+        progress: 0,
+        stage: "Starting analysis...",
       };
-      uploadedPhotos.value.push(newPhoto);
+      // Add to processing queue immediately after upload
+      processingPhotos.value.push(newPhoto);
+      // Auto-switch to Analyzing tab
+      activeTab.value = "analyzing";
     }
   });
 };
