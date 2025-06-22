@@ -96,6 +96,7 @@
         <!-- Natural Language Search -->
         <div
           v-if="activeSearchType === 'natural'"
+          key="natural-search"
           class="natural-search-section"
         >
           <n-input
@@ -105,12 +106,14 @@
             :autosize="{ minRows: 2, maxRows: 4 }"
             class="natural-input"
             @input="onSearchChange"
+            :key="`natural-${activeSearchType}`"
           />
         </div>
 
         <!-- Tags Search -->
         <div
           v-else-if="activeSearchType === 'tags'"
+          key="tags-search"
           class="tags-search-section"
         >
           <div class="tags-row">
@@ -136,6 +139,7 @@
                 :max-tag-count="5"
                 class="tags-select include-tags"
                 @update:value="onSearchChange"
+                :key="`include-${activeSearchType}`"
               />
             </div>
             <div class="tags-group">
@@ -157,6 +161,7 @@
                 :max-tag-count="5"
                 class="tags-select exclude-tags"
                 @update:value="onSearchChange"
+                :key="`exclude-${activeSearchType}`"
               />
             </div>
           </div>
@@ -165,6 +170,7 @@
         <!-- Spatial Search -->
         <div
           v-else-if="activeSearchType === 'spatial'"
+          key="spatial-search"
           class="spatial-search-section"
         >
           <div class="spatial-grid">
@@ -177,6 +183,7 @@
                 :autosize="{ minRows: 3, maxRows: 5 }"
                 class="spatial-input"
                 @input="onSearchChange"
+                :key="`spatial-left-${activeSearchType}`"
               />
             </div>
             <div class="spatial-area">
@@ -188,6 +195,7 @@
                 :autosize="{ minRows: 3, maxRows: 5 }"
                 class="spatial-input center-input"
                 @input="onSearchChange"
+                :key="`spatial-center-${activeSearchType}`"
               />
             </div>
             <div class="spatial-area">
@@ -199,6 +207,7 @@
                 :autosize="{ minRows: 3, maxRows: 5 }"
                 class="spatial-input"
                 @input="onSearchChange"
+                :key="`spatial-right-${activeSearchType}`"
               />
             </div>
           </div>
@@ -428,12 +437,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
 
 // Search state
 const activeSearchType = ref<"natural" | "tags" | "spatial">("natural");
 const globalMode = ref<"strict" | "flexible">("flexible");
 const isSearching = ref(false);
+
+// ResizeObserver error handling
+let resizeObserverErrorHandler: ((event: ErrorEvent) => void) | null = null;
+
+onMounted(() => {
+  // Suppress ResizeObserver errors
+  resizeObserverErrorHandler = (e: ErrorEvent) => {
+    if (
+      e.message.includes(
+        "ResizeObserver loop completed with undelivered notifications",
+      )
+    ) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+  };
+  window.addEventListener("error", resizeObserverErrorHandler);
+});
+
+onUnmounted(() => {
+  if (resizeObserverErrorHandler) {
+    window.removeEventListener("error", resizeObserverErrorHandler);
+  }
+});
 
 // Natural language search
 const naturalQuery = ref("");
@@ -482,10 +516,23 @@ const hasSearchQuery = computed(() => {
   }
 });
 
+// Debouncing for search type changes
+let searchTypeTimeout: number | null = null;
+
 // Methods
 const setSearchType = (type: "natural" | "tags" | "spatial") => {
-  activeSearchType.value = type;
-  console.log("Search type changed to:", type);
+  // Clear any pending type change
+  if (searchTypeTimeout) {
+    clearTimeout(searchTypeTimeout);
+  }
+
+  // Debounce the search type change to prevent ResizeObserver issues
+  searchTypeTimeout = window.setTimeout(async () => {
+    activeSearchType.value = type;
+    await nextTick(); // Wait for DOM updates
+    console.log("Search type changed to:", type);
+    searchTypeTimeout = null;
+  }, 50);
 };
 
 const onSearchTypeChange = (type: string) => {
