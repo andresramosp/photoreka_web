@@ -335,7 +335,7 @@
               </n-button>
             </div>
           </div>
-        >
+        </div>
       </div>
     </div>
 
@@ -365,7 +365,7 @@
                 @click="
                   setExampleSearch(
                     'natural',
-                    'sunset photos with people on the beach'
+                    'sunset photos with people on the beach',
                   )
                 "
               >
@@ -378,7 +378,7 @@
                 @click="
                   setExampleSearch(
                     'natural',
-                    'close-up portraits with red background'
+                    'close-up portraits with red background',
                   )
                 "
               >
@@ -391,7 +391,7 @@
                 @click="
                   setExampleSearch(
                     'natural',
-                    'landscape photos with mountains and snow'
+                    'landscape photos with mountains and snow',
                   )
                 "
               >
@@ -410,7 +410,7 @@
                     'tags',
                     null,
                     ['landscape', 'mountains'],
-                    ['people']
+                    ['people'],
                   )
                 "
               >
@@ -425,7 +425,7 @@
                     'tags',
                     null,
                     ['portrait', 'indoor'],
-                    ['black-white']
+                    ['black-white'],
                   )
                 "
               >
@@ -440,7 +440,7 @@
                     'tags',
                     null,
                     ['sunset', 'beach', 'outdoor'],
-                    []
+                    [],
                   )
                 "
               >
@@ -463,7 +463,7 @@
                     null,
                     'tree',
                     'person',
-                    'building'
+                    'building',
                   )
                 "
               >
@@ -481,7 +481,7 @@
                     null,
                     'mountains',
                     'lake',
-                    'forest'
+                    'forest',
                   )
                 "
               >
@@ -534,7 +534,7 @@ onMounted(() => {
   resizeObserverErrorHandler = (e: ErrorEvent) => {
     if (
       e.message.includes(
-        "ResizeObserver loop completed with undelivered notifications"
+        "ResizeObserver loop completed with undelivered notifications",
       )
     ) {
       e.preventDefault();
@@ -681,7 +681,7 @@ const setExampleSearch = (
   excluded?: string[],
   left?: string,
   center?: string,
-  right?: string
+  right?: string,
 ) => {
   clearSearch();
   activeSearchType.value = type;
