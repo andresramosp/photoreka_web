@@ -77,7 +77,11 @@
         {{ photo.name }}
       </div>
 
-      <div class="photo-details">
+      <div v-if="photo.status === 'processing'" class="photo-details">
+        <n-skeleton text :repeat="1" width="60%" />
+        <n-skeleton text :repeat="1" width="40%" />
+      </div>
+      <div v-else class="photo-details">
         <span class="photo-size">{{ formatFileSize(photo.size) }}</span>
         <span class="photo-date">{{
           formatDate(photo.uploadDate || photo.date)
@@ -87,7 +91,16 @@
       <div class="photo-status">
         <!-- Status tags -->
         <n-tag
-          v-if="photo.isDuplicate"
+          v-if="photo.status === 'processing'"
+          size="small"
+          type="info"
+          class="status-tag"
+        >
+          <n-spin size="small" style="margin-right: 4px" />
+          Uploading
+        </n-tag>
+        <n-tag
+          v-else-if="photo.isDuplicate"
           size="small"
           type="warning"
           class="status-tag"
@@ -103,14 +116,6 @@
           Uploaded
         </n-tag>
         <n-tag
-          v-else-if="photo.status === 'processing'"
-          size="small"
-          type="info"
-          class="status-tag"
-        >
-          Processing
-        </n-tag>
-        <n-tag
           v-else-if="photo.status === 'analyzed'"
           size="small"
           type="success"
@@ -119,8 +124,8 @@
           Analyzed
         </n-tag>
 
-        <!-- Additional info -->
-        <div class="additional-info">
+        <!-- Additional info - only show when not uploading -->
+        <div v-if="photo.status !== 'processing'" class="additional-info">
           <span v-if="photo.aiTags" class="ai-tags"
             >{{ photo.aiTags }} AI tags</span
           >
