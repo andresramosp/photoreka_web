@@ -1544,33 +1544,7 @@ const setExampleSearch = (
     gap: 12px;
   }
 
-  /* Photo grid mobile adjustments */
-  .grid-controls {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-
-  .grid-size-controls {
-    gap: 8px;
-  }
-
-  .grid-label {
-    font-size: 12px;
-  }
-
-  .photo-grid {
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-
-  .photo-grid.grid-cols-3,
-  .photo-grid.grid-cols-4,
-  .photo-grid.grid-cols-5,
-  .photo-grid.grid-cols-6 {
-    grid-template-columns: 1fr 1fr;
-  }
+  /* Note: Photo grid mobile styles moved to global.scss */
 
   .load-more-container {
     margin: 24px 0;
