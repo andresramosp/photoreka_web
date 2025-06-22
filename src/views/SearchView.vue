@@ -1140,12 +1140,30 @@ const setExampleSearch = (
   }
 
   .spatial-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .spatial-area {
+    width: 100%;
   }
 
   .spatial-input {
     text-align: left;
+    min-height: 44px;
+  }
+
+  .spatial-input:nth-child(1) {
+    order: 1;
+  }
+
+  .spatial-input:nth-child(2) {
+    order: 2;
+  }
+
+  .spatial-input:nth-child(3) {
+    order: 3;
   }
 
   .search-actions-inline {
