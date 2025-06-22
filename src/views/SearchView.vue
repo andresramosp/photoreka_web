@@ -1373,11 +1373,15 @@ const setExampleSearch = (
 
 /* Search Loading */
 .search-loading {
+  min-height: 400px;
+}
+
+.loading-message {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  padding: 40px 0;
   gap: 16px;
 }
 
