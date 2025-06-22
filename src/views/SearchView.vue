@@ -1283,7 +1283,7 @@ const setExampleSearch = (
 /* Search Inspiration */
 .search-inspiration {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   min-height: 500px;
   text-align: center;
