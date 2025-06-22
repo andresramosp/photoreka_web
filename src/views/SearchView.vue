@@ -1030,7 +1030,6 @@ const setExampleSearch = (
     width: 10px;
     height: 10px;
   }
-}
 
   .tags-row {
     grid-template-columns: 1fr;
