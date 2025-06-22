@@ -74,7 +74,7 @@
 
       <!-- Selection indicator -->
       <div v-if="isSelected" class="selection-indicator">
-        <n-icon size="20" color="#2563eb">
+        <n-icon size="20" color="#ffffff">
           <svg viewBox="0 0 24 24">
             <path
               fill="currentColor"
