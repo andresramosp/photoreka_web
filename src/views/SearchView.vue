@@ -1202,67 +1202,7 @@ const setExampleSearch = (
   min-height: 400px;
 }
 
-/* Grid Controls */
-.grid-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding: 16px 0;
-  border-bottom: 1px solid #2c2c32;
-}
-
-.results-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.results-count {
-  font-size: 18px;
-  font-weight: 600;
-  color: #ffffffd1;
-}
-
-.results-query {
-  font-size: 14px;
-  color: #ffffff73;
-}
-
-.grid-size-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.grid-label {
-  font-size: 14px;
-  color: #ffffffd1;
-  font-weight: 500;
-}
-
-/* Photo Grid */
-.photo-grid {
-  display: grid;
-  gap: 20px;
-  margin-bottom: 32px;
-}
-
-.photo-grid.grid-cols-3 {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.photo-grid.grid-cols-4 {
-  grid-template-columns: repeat(4, 1fr);
-}
-
-.photo-grid.grid-cols-5 {
-  grid-template-columns: repeat(5, 1fr);
-}
-
-.photo-grid.grid-cols-6 {
-  grid-template-columns: repeat(6, 1fr);
-}
+/* Note: Grid controls and photo grid styles moved to global.scss */
 
 /* Photo Skeleton */
 .photo-skeleton {
