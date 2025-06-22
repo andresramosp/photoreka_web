@@ -506,7 +506,10 @@
         </div>
 
         <!-- Skeleton Grid -->
-        <div class="photo-grid" :class="`grid-cols-${gridColumns}`">
+        <div
+          class="photo-grid photo-grid-base"
+          :class="`grid-cols-${gridColumns}`"
+        >
           <div
             v-for="n in skeletonCount"
             :key="`search-skeleton-${n}`"
