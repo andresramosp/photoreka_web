@@ -9,22 +9,73 @@
         </p>
       </div>
       <div class="header-actions">
-        <n-button type="primary" size="medium" class="action-btn">
+        <n-button
+          type="primary"
+          size="medium"
+          class="action-btn"
+          @click="triggerFileInput"
+        >
           <template #icon>
             <n-icon>
               <svg viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
-                  d="M9 16.17L4.83 12l-1.42 1.41L9 19L21 7l-1.41-1.41z"
+                  d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
                 />
               </svg>
             </n-icon>
           </template>
-          Import from Camera
+          Upload Photos
         </n-button>
-        <n-button type="primary" ghost size="medium" class="action-btn">
-          <template #icon>
-            <n-icon>
+      </div>
+    </div>
+
+    <!-- Upload Progress Section -->
+    <div v-if="isUploading" class="upload-progress-section">
+      <div class="progress-header">
+        <h3 class="progress-title">Uploading Photos</h3>
+        <span class="progress-count"
+          >{{ uploadedCount }}/{{ totalFiles }} photos uploaded</span
+        >
+      </div>
+      <n-progress
+        type="line"
+        :percentage="overallProgress"
+        :show-indicator="false"
+        class="overall-progress"
+      />
+      <div class="progress-text">
+        {{ Math.round(overallProgress) }}% complete
+      </div>
+    </div>
+
+    <!-- Duplicate Check Notification -->
+    <n-notification
+      v-if="showDuplicateNotification"
+      title="Checking for duplicates"
+      content="Analyzing uploaded photos to detect duplicates..."
+      type="info"
+      :duration="0"
+      class="duplicate-notification"
+    />
+
+    <!-- Upload Dropzone -->
+    <div
+      v-if="uploadedPhotos.length === 0 && !isUploading"
+      class="upload-section"
+    >
+      <div
+        class="upload-dropzone"
+        :class="{ 'drag-over': isDragOver }"
+        @dragenter.prevent="handleDragEnter"
+        @dragover.prevent="handleDragOver"
+        @dragleave.prevent="handleDragLeave"
+        @drop.prevent="handleDrop"
+        @click="triggerFileInput"
+      >
+        <div class="dropzone-content">
+          <div class="upload-icon">
+            <n-icon size="48" color="#8b5cf6">
               <svg viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
@@ -32,332 +83,152 @@
                 />
               </svg>
             </n-icon>
-          </template>
-          Upload Files
-        </n-button>
+          </div>
+          <h3 class="dropzone-title">Drop your photos here</h3>
+          <p class="dropzone-subtitle">
+            Drag and drop your images, or click to browse
+          </p>
+          <div class="upload-buttons">
+            <n-button type="primary" size="large" class="upload-btn">
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+              Choose Files
+            </n-button>
+          </div>
+          <div class="file-formats">
+            <span class="format-text"
+              >Supports JPG, PNG, WebP up to 50MB per file</span
+            >
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Custom Tabs Section -->
-    <div class="tabs-container">
-      <!-- Tab Navigation -->
-      <div class="tab-navigation">
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'upload' }"
-          @click="activeTab = 'upload'"
-        >
-          Upload
-        </button>
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'processing' }"
-          @click="activeTab = 'processing'"
-        >
-          Processing
-        </button>
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'analyzed' }"
-          @click="activeTab = 'analyzed'"
-        >
-          Catalog
-        </button>
+    <!-- Photos Grid -->
+    <div v-if="uploadedPhotos.length > 0 || isUploading" class="photos-section">
+      <div class="section-header">
+        <h3 class="section-title">Your Photos</h3>
+        <div class="header-controls">
+          <span class="photo-count">{{ uploadedPhotos.length }} photos</span>
+          <n-button
+            type="primary"
+            ghost
+            size="small"
+            @click="triggerFileInput"
+            :disabled="isUploading"
+          >
+            <template #icon>
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+            Add More
+          </n-button>
+        </div>
       </div>
 
-      <!-- Tab Content -->
-      <div class="tab-content-container">
-        <!-- Tab 1: Upload - Only upload area and drag & drop -->
-        <div v-show="activeTab === 'upload'" class="tab-content">
-          <div class="upload-section">
-            <div
-              class="upload-dropzone"
-              :class="{ 'drag-over': isDragOver }"
-              @dragenter.prevent="handleDragEnter"
-              @dragover.prevent="handleDragOver"
-              @dragleave.prevent="handleDragLeave"
-              @drop.prevent="handleDrop"
-              @click="triggerFileInput"
-            >
-              <div class="dropzone-content">
-                <div class="upload-icon">
-                  <n-icon size="48" color="#8b5cf6">
+      <div class="photos-grid">
+        <!-- Skeleton loaders for uploading photos -->
+        <div
+          v-for="skeleton in skeletonCount"
+          :key="`skeleton-${skeleton}`"
+          class="photo-card skeleton-card"
+        >
+          <div class="photo-skeleton">
+            <n-skeleton height="100%" />
+          </div>
+          <div class="photo-info">
+            <n-skeleton text :repeat="1" width="60%" />
+            <n-skeleton text :repeat="1" width="40%" />
+          </div>
+          <div class="upload-progress-indicator">
+            <n-spin size="small" />
+            <span class="upload-text">Uploading...</span>
+          </div>
+        </div>
+
+        <!-- Uploaded photos -->
+        <div
+          v-for="photo in uploadedPhotos"
+          :key="photo.id"
+          class="photo-card"
+          :class="{ duplicate: photo.isDuplicate }"
+        >
+          <div class="photo-thumbnail">
+            <img :src="photo.url" :alt="photo.name" />
+
+            <!-- Duplicate indicator -->
+            <div v-if="photo.isDuplicate" class="duplicate-indicator">
+              <n-icon size="16" color="#f59e0b">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c.55 0 1 .45 1 1s-.45 1-1 1s-1-.45-1-1s.45-1 1-1zm1 11h-2v-6h2v6z"
+                  />
+                </svg>
+              </n-icon>
+            </div>
+
+            <!-- Photo overlay -->
+            <div class="photo-overlay">
+              <n-button circle size="small" class="overlay-btn">
+                <template #icon>
+                  <n-icon>
                     <svg viewBox="0 0 24 24">
                       <path
                         fill="currentColor"
-                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"
+                        d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5s5 2.24 5 5s-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3s3-1.34 3-3s-1.34-3-3-3z"
                       />
                     </svg>
                   </n-icon>
-                </div>
-                <h3 class="dropzone-title">Drop your photos here</h3>
-                <p class="dropzone-subtitle">
-                  Drag and drop your images, or click to browse
-                </p>
-                <div class="upload-buttons">
-                  <n-button type="primary" size="large" class="upload-btn">
-                    <template #icon>
-                      <n-icon>
-                        <svg viewBox="0 0 24 24">
-                          <path
-                            fill="currentColor"
-                            d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-                          />
-                        </svg>
-                      </n-icon>
-                    </template>
-                    Choose Files
-                  </n-button>
-                  <n-button
-                    type="primary"
-                    ghost
-                    size="large"
-                    class="upload-btn google-photos-btn"
-                    @click="handleGooglePhotosImport"
-                  >
-                    <template #icon>
-                      <n-icon>
-                        <svg viewBox="0 0 24 24">
-                          <path
-                            fill="currentColor"
-                            d="M12.5 8.5L8 13h3v4h3v-4h3l-4.5-4.5zM12 4C9.8 4 7.8 4.9 6.3 6.3C4.9 7.8 4 9.8 4 12s.9 4.2 2.3 5.7C7.8 19.1 9.8 20 12 20s4.2-.9 5.7-2.3C19.1 16.2 20 14.2 20 12s-.9-4.2-2.3-5.7C16.2 4.9 14.2 4 12 4z"
-                          />
-                          <circle cx="12" cy="12" r="2" fill="#4285f4" />
-                          <circle cx="18" cy="9" r="1.5" fill="#ea4335" />
-                          <circle cx="6" cy="15" r="1.5" fill="#34a853" />
-                          <circle cx="15" cy="18" r="1.5" fill="#fbbc05" />
-                        </svg>
-                      </n-icon>
-                    </template>
-                    Import from Google Photos
-                  </n-button>
-                </div>
-                <div class="file-formats">
-                  <span class="format-text"
-                    >Supports JPG, PNG, WebP up to 50MB per file</span
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 2: Processing - Only photos being processed -->
-        <div v-show="activeTab === 'processing'" class="tab-content">
-          <div class="processing-section">
-            <!-- Processing Queue -->
-            <div v-if="processingPhotos.length > 0" class="processing-queue">
-              <div class="section-header">
-                <h3 class="section-title">AI Analysis in Progress</h3>
-                <span class="photo-count"
-                  >{{ processingPhotos.length }} photo{{
-                    processingPhotos.length !== 1 ? "s" : ""
-                  }}
-                  being analyzed</span
-                >
-              </div>
-              <div class="processing-list">
-                <div
-                  v-for="photo in processingPhotos"
-                  :key="photo.id"
-                  class="processing-item"
-                >
-                  <div class="processing-thumbnail">
-                    <img :src="photo.url" :alt="photo.name" />
-                    <div class="processing-overlay">
-                      <n-spin size="small" />
-                    </div>
-                  </div>
-                  <div class="processing-info">
-                    <span class="processing-name">{{ photo.name }}</span>
-                    <div class="processing-progress">
-                      <n-progress
-                        type="line"
-                        :percentage="photo.progress"
-                        :show-indicator="false"
+                </template>
+              </n-button>
+              <n-button circle size="small" class="overlay-btn">
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"
                       />
-                      <span class="progress-text"
-                        >{{ photo.progress }}% - {{ photo.stage }}</span
-                      >
-                    </div>
-                  </div>
-                  <div class="processing-status">
-                    <n-tag size="small" type="info">Analyzing</n-tag>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Empty Processing State -->
-            <div v-else class="empty-processing-state">
-              <div class="empty-state-content">
-                <n-icon size="64" color="#6b7280">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5l1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                    />
-                  </svg>
-                </n-icon>
-                <h3 class="empty-state-title">No photos being analyzed</h3>
-                <p class="empty-state-description">
-                  Upload photos in the Upload tab to see the AI analysis process
-                  here
-                </p>
-              </div>
+                    </svg>
+                  </n-icon>
+                </template>
+              </n-button>
             </div>
           </div>
-        </div>
 
-        <!-- Tab 3: Analyzed - Only completed photos -->
-        <div v-show="activeTab === 'analyzed'" class="tab-content">
-          <div class="catalog-section">
-            <!-- Catalog Filters -->
-            <div v-if="catalogPhotos.length > 0" class="catalog-filters">
-              <div class="filters-left">
-                <n-input
-                  v-model:value="searchQuery"
-                  placeholder="Search your photos..."
-                  clearable
-                  class="search-input"
-                >
-                  <template #prefix>
-                    <n-icon>
-                      <svg viewBox="0 0 24 24">
-                        <path
-                          fill="currentColor"
-                          d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
-                        />
-                      </svg>
-                    </n-icon>
-                  </template>
-                </n-input>
-                <n-select
-                  v-model:value="selectedFilter"
-                  :options="filterOptions"
-                  placeholder="Filter by..."
-                  class="filter-select"
-                />
-              </div>
-              <div class="filters-right">
-                <n-button-group>
-                  <n-button
-                    :type="viewMode === 'grid' ? 'primary' : 'default'"
-                    @click="viewMode = 'grid'"
-                  >
-                    <template #icon>
-                      <n-icon>
-                        <svg viewBox="0 0 24 24">
-                          <path
-                            fill="currentColor"
-                            d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"
-                          />
-                        </svg>
-                      </n-icon>
-                    </template>
-                  </n-button>
-                  <n-button
-                    :type="viewMode === 'list' ? 'primary' : 'default'"
-                    @click="viewMode = 'list'"
-                  >
-                    <template #icon>
-                      <n-icon>
-                        <svg viewBox="0 0 24 24">
-                          <path
-                            fill="currentColor"
-                            d="M4 14h4v-4H4v4zm0 5h4v-4H4v4zM4 9h4V5H4v4zm5 5h12v-4H9v4zm0 5h12v-4H9v4zM9 5v4h12V5H9z"
-                          />
-                        </svg>
-                      </n-icon>
-                    </template>
-                  </n-button>
-                </n-button-group>
-              </div>
+          <div class="photo-info">
+            <div class="photo-name" :title="photo.name">{{ photo.name }}</div>
+            <div class="photo-details">
+              <span class="photo-size">{{ formatFileSize(photo.size) }}</span>
+              <span class="photo-date">{{ formatDate(photo.uploadDate) }}</span>
             </div>
+          </div>
 
-            <!-- Analyzed Photos Grid -->
-            <div v-if="catalogPhotos.length > 0" class="catalog-photos">
-              <div class="section-header">
-                <h3 class="section-title">Analyzed Photos</h3>
-                <span class="photo-count"
-                  >{{ catalogPhotos.length }} photo{{
-                    catalogPhotos.length !== 1 ? "s" : ""
-                  }}
-                  analyzed</span
-                >
-              </div>
-              <div
-                class="photos-grid"
-                :class="{ 'list-view': viewMode === 'list' }"
-              >
-                <div
-                  v-for="photo in filteredCatalogPhotos"
-                  :key="photo.id"
-                  class="catalog-photo-card"
-                >
-                  <div class="photo-thumbnail">
-                    <img :src="photo.url" :alt="photo.name" />
-                    <div class="photo-overlay">
-                      <n-button circle size="small" class="overlay-btn">
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path
-                                fill="currentColor"
-                                d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5s5 2.24 5 5s-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3s3-1.34 3-3s-1.34-3-3-3z"
-                              />
-                            </svg>
-                          </n-icon>
-                        </template>
-                      </n-button>
-                      <n-button circle size="small" class="overlay-btn">
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path
-                                fill="currentColor"
-                                d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14l-5-4.87l6.91-1.01L12 2z"
-                              />
-                            </svg>
-                          </n-icon>
-                        </template>
-                      </n-button>
-                    </div>
-                  </div>
-                  <div class="photo-info">
-                    <span class="photo-name">{{ photo.name }}</span>
-                    <span class="photo-date">{{
-                      formatDate(photo.uploadDate)
-                    }}</span>
-                  </div>
-                  <div class="photo-analysis">
-                    <n-tag size="small" type="success">✓ Analyzed</n-tag>
-                    <span class="analysis-count"
-                      >{{ photo.tags?.length || 0 }} tags found</span
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Empty Analyzed State -->
-            <div v-else class="empty-catalog-state">
-              <div class="empty-state-content">
-                <n-icon size="64" color="#6b7280">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11.5-6L9 12.5l1.5 2L13 11l3 4H8l2.5-3zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"
-                    />
-                  </svg>
-                </n-icon>
-                <h3 class="empty-state-title">No analyzed photos yet</h3>
-                <p class="empty-state-description">
-                  Once photos finish processing, they will appear here with AI
-                  insights
-                </p>
-              </div>
-            </div>
+          <div class="photo-status">
+            <n-tag
+              v-if="photo.isDuplicate"
+              size="small"
+              type="warning"
+              class="duplicate-tag"
+            >
+              Duplicate
+            </n-tag>
+            <n-tag v-else size="small" type="success"> Uploaded </n-tag>
           </div>
         </div>
       </div>
@@ -378,85 +249,30 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from "vue";
 
+interface Photo {
+  id: string;
+  name: string;
+  size: number;
+  url: string;
+  file: File;
+  uploadDate: Date;
+  isDuplicate: boolean;
+}
+
 // Reactive state
-const activeTab = ref("upload");
 const isDragOver = ref(false);
-const searchQuery = ref("");
-const selectedFilter = ref(null);
-const viewMode = ref("grid");
 const fileInput = ref<HTMLInputElement>();
-
-// Mock data - In real app, this would come from API/store
-const processingPhotos = ref<any[]>([
-  {
-    id: 1,
-    name: "IMG_001.jpg",
-    url: "/api/placeholder/150/150",
-    progress: 65,
-    stage: "Analyzing content",
-  },
-  {
-    id: 2,
-    name: "vacation-photo.png",
-    url: "/api/placeholder/150/150",
-    progress: 30,
-    stage: "Extracting metadata",
-  },
-]);
-
-const catalogPhotos = ref<any[]>([
-  {
-    id: 1,
-    name: "sunset-beach.jpg",
-    url: "/api/placeholder/200/200",
-    uploadDate: new Date("2024-01-15"),
-    tags: ["sunset", "beach", "nature", "landscape"],
-  },
-  {
-    id: 2,
-    name: "family-dinner.png",
-    url: "/api/placeholder/200/200",
-    uploadDate: new Date("2024-01-14"),
-    tags: ["family", "food", "indoor", "people"],
-  },
-  {
-    id: 3,
-    name: "mountain-hike.jpg",
-    url: "/api/placeholder/200/200",
-    uploadDate: new Date("2024-01-13"),
-    tags: ["mountain", "hiking", "nature", "adventure"],
-  },
-]);
-
-// Filter options
-const filterOptions = [
-  { label: "All Photos", value: "all" },
-  { label: "Recent", value: "recent" },
-  { label: "Favorites", value: "favorites" },
-  { label: "Landscapes", value: "landscape" },
-  { label: "People", value: "people" },
-];
+const uploadedPhotos = ref<Photo[]>([]);
+const isUploading = ref(false);
+const uploadedCount = ref(0);
+const totalFiles = ref(0);
+const skeletonCount = ref(0);
+const showDuplicateNotification = ref(false);
 
 // Computed properties
-const filteredCatalogPhotos = computed(() => {
-  let photos = catalogPhotos.value;
-
-  // Filter by search query
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    photos = photos.filter(
-      (photo) =>
-        photo.name.toLowerCase().includes(query) ||
-        photo.tags?.some((tag: string) => tag.toLowerCase().includes(query)),
-    );
-  }
-
-  // Filter by selected filter
-  if (selectedFilter.value && selectedFilter.value !== "all") {
-    // Add filtering logic based on selectedFilter.value
-  }
-
-  return photos;
+const overallProgress = computed(() => {
+  if (totalFiles.value === 0) return 0;
+  return (uploadedCount.value / totalFiles.value) * 100;
 });
 
 // Drag and drop handlers
@@ -487,7 +303,9 @@ const handleDrop = (e: DragEvent) => {
 
 // File handling
 const triggerFileInput = () => {
-  fileInput.value?.click();
+  if (!isUploading.value) {
+    fileInput.value?.click();
+  }
 };
 
 const handleFileSelect = (e: Event) => {
@@ -495,56 +313,59 @@ const handleFileSelect = (e: Event) => {
   if (target.files) {
     handleFiles(Array.from(target.files));
   }
+  // Reset the input so the same files can be selected again
+  target.value = "";
 };
 
-const handleFiles = (files: File[]) => {
-  files.forEach((file) => {
-    if (file.type.startsWith("image/")) {
-      const newPhoto = {
-        id: Date.now() + Math.random(),
-        name: file.name,
-        size: file.size,
-        url: URL.createObjectURL(file),
-        file: file,
-        progress: 0,
-        stage: "Starting analysis...",
-      };
-      // Add to processing queue immediately after upload
-      processingPhotos.value.push(newPhoto);
-      // Auto-switch to Processing tab
-      activeTab.value = "processing";
-    }
-  });
-};
+const handleFiles = async (files: File[]) => {
+  const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+  if (imageFiles.length === 0) return;
 
-// Google Photos import handler
-const handleGooglePhotosImport = () => {
-  // In a real app, this would open Google Photos API integration
-  console.log("Opening Google Photos import...");
-  // For demo purposes, simulate importing some photos
-  const mockGooglePhotos = [
-    {
-      id: Date.now() + Math.random(),
-      name: "google-photo-1.jpg",
-      size: 2456789,
-      url: "/api/placeholder/300/300",
-      progress: 10,
-      stage: "Importing from Google Photos...",
-    },
-    {
-      id: Date.now() + Math.random() + 1,
-      name: "google-photo-2.jpg",
-      size: 3234567,
-      url: "/api/placeholder/300/300",
-      progress: 5,
-      stage: "Importing from Google Photos...",
-    },
-  ];
+  isUploading.value = true;
+  totalFiles.value = imageFiles.length;
+  uploadedCount.value = 0;
+  skeletonCount.value = imageFiles.length;
 
-  // Add to processing queue
-  processingPhotos.value.push(...mockGooglePhotos);
-  // Auto-switch to Processing tab
-  activeTab.value = "processing";
+  // Simulate uploading files one by one
+  for (let i = 0; i < imageFiles.length; i++) {
+    const file = imageFiles[i];
+
+    // Simulate upload delay (1-3 seconds per file)
+    const uploadDelay = Math.random() * 2000 + 1000;
+    await new Promise((resolve) => setTimeout(resolve, uploadDelay));
+
+    const newPhoto: Photo = {
+      id: `photo-${Date.now()}-${Math.random()}`,
+      name: file.name,
+      size: file.size,
+      url: URL.createObjectURL(file),
+      file: file,
+      uploadDate: new Date(),
+      isDuplicate: false,
+    };
+
+    uploadedPhotos.value.push(newPhoto);
+    uploadedCount.value++;
+    skeletonCount.value--;
+  }
+
+  isUploading.value = false;
+  skeletonCount.value = 0;
+
+  // Show duplicate checking notification
+  showDuplicateNotification.value = true;
+
+  // Simulate duplicate checking process
+  setTimeout(() => {
+    // Randomly mark some photos as duplicates (20% chance)
+    uploadedPhotos.value.forEach((photo) => {
+      if (Math.random() < 0.2) {
+        photo.isDuplicate = true;
+      }
+    });
+
+    showDuplicateNotification.value = false;
+  }, 2000);
 };
 
 // Utility functions
@@ -610,53 +431,50 @@ const formatDate = (date: Date): string => {
   height: 40px;
 }
 
-/* Tabs Section */
-.tabs-container {
+/* Upload Progress Section */
+.upload-progress-section {
   background-color: #1a1a1f;
   border-radius: 12px;
-  overflow: hidden;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #2c2c32;
 }
 
-/* Custom Tab Navigation */
-.tab-navigation {
+.progress-header {
   display: flex;
-  background-color: #1a1a1f;
-  padding: 8px;
-  gap: 4px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
 }
 
-.tab-button {
-  flex: 1;
-  padding: 12px 24px;
-  background-color: transparent;
-  border: none;
-  border-radius: 8px;
-  color: #ffffff73;
+.progress-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffffd1;
+  margin: 0;
+}
+
+.progress-count {
   font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  color: #ffffff73;
+}
+
+.overall-progress {
+  margin-bottom: 8px;
+}
+
+.progress-text {
+  font-size: 14px;
+  color: #ffffff73;
   text-align: center;
 }
 
-.tab-button:hover {
-  background-color: #2c2c32;
-  color: #ffffff99;
-}
-
-.tab-button.active {
-  background-color: #2c2c32;
-  color: #ffffffd1;
-}
-
-/* Tab Content Container */
-.tab-content-container {
-  background-color: #1a1a1f;
-}
-
-.tab-content {
-  padding: 32px;
-  background-color: #1a1a1f;
+/* Duplicate Notification */
+.duplicate-notification {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 1000;
 }
 
 /* Upload Section */
@@ -671,7 +489,7 @@ const formatDate = (date: Date): string => {
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  background-color: #16161a;
+  background-color: #1a1a1f;
 }
 
 .upload-dropzone:hover,
@@ -714,15 +532,6 @@ const formatDate = (date: Date): string => {
   min-width: 180px;
 }
 
-.google-photos-btn {
-  border-color: #4285f4 !important;
-  color: #4285f4 !important;
-}
-
-.google-photos-btn:hover {
-  background-color: rgba(66, 133, 244, 0.1) !important;
-}
-
 .file-formats {
   color: #ffffff73;
   font-size: 14px;
@@ -730,7 +539,7 @@ const formatDate = (date: Date): string => {
 
 /* Photos Section */
 .photos-section {
-  margin-top: 48px;
+  margin-top: 24px;
 }
 
 .section-header {
@@ -747,6 +556,12 @@ const formatDate = (date: Date): string => {
   margin: 0;
 }
 
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .photo-count {
   font-size: 14px;
   color: #ffffff73;
@@ -754,25 +569,34 @@ const formatDate = (date: Date): string => {
 
 .photos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 20px;
 }
 
-.photos-grid.list-view {
-  grid-template-columns: 1fr;
-}
-
-.photo-card,
-.catalog-photo-card {
-  background-color: #2c2c32;
+.photo-card {
+  background-color: #1a1a1f;
   border-radius: 12px;
   overflow: hidden;
-  transition: transform 0.2s ease;
+  transition: all 0.2s ease;
+  border: 1px solid #2c2c32;
 }
 
-.photo-card:hover,
-.catalog-photo-card:hover {
+.photo-card:hover {
   transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.photo-card.duplicate {
+  border-color: #f59e0b;
+}
+
+.skeleton-card {
+  opacity: 0.8;
+}
+
+.photo-skeleton {
+  aspect-ratio: 1;
+  overflow: hidden;
 }
 
 .photo-thumbnail {
@@ -785,6 +609,20 @@ const formatDate = (date: Date): string => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.duplicate-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: rgba(245, 158, 11, 0.9);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
 }
 
 .photo-overlay {
@@ -812,10 +650,10 @@ const formatDate = (date: Date): string => {
 }
 
 .photo-info {
-  padding: 12px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .photo-name {
@@ -827,157 +665,38 @@ const formatDate = (date: Date): string => {
   white-space: nowrap;
 }
 
-.photo-size,
-.photo-date {
-  font-size: 12px;
-  color: #ffffff73;
-}
-
-.photo-status,
-.photo-analysis {
-  padding: 0 12px 12px;
+.photo-details {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-}
-
-.analysis-count {
+  align-items: center;
   font-size: 12px;
   color: #ffffff73;
 }
 
-/* Processing Section */
-.processing-section {
-  min-height: 400px;
-}
-
-.processing-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.processing-item {
+.photo-status {
+  padding: 0 16px 16px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  background-color: #2c2c32;
-  border-radius: 12px;
+  justify-content: flex-start;
+}
+
+.duplicate-tag {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.upload-progress-indicator {
   padding: 16px;
-}
-
-.processing-thumbnail {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  border-radius: 8px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.processing-thumbnail img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.processing-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.processing-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   gap: 8px;
 }
 
-.processing-name {
-  font-size: 16px;
-  font-weight: 500;
-  color: #ffffffd1;
-}
-
-.processing-progress {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.progress-text {
+.upload-text {
   font-size: 12px;
   color: #ffffff73;
-}
-
-.processing-status {
-  flex-shrink: 0;
-}
-
-/* Catalog Section */
-.catalog-section {
-  min-height: 400px;
-}
-
-.catalog-filters {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  gap: 16px;
-}
-
-.filters-left {
-  display: flex;
-  gap: 12px;
-  flex: 1;
-}
-
-.search-input {
-  max-width: 300px;
-}
-
-.filter-select {
-  width: 150px;
-}
-
-.filters-right {
-  flex-shrink: 0;
-}
-
-/* Empty States */
-.empty-photos-state,
-.empty-processing-state,
-.empty-catalog-state {
-  min-height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.empty-state-content {
-  text-align: center;
-  max-width: 400px;
-}
-
-.empty-state-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #ffffffd1;
-  margin: 16px 0 8px 0;
-}
-
-.empty-state-description {
-  font-size: 16px;
-  color: #ffffff73;
-  margin: 0;
 }
 
 /* Responsive */
@@ -1000,40 +719,30 @@ const formatDate = (date: Date): string => {
     flex: 1;
   }
 
-  .tab-content {
-    padding: 24px 16px;
-  }
-
   .upload-dropzone {
     padding: 48px 24px;
   }
 
   .photos-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 16px;
   }
 
-  .catalog-filters {
+  .section-header {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
+    gap: 12px;
   }
 
-  .filters-left {
-    flex-direction: column;
+  .header-controls {
+    width: 100%;
+    justify-content: space-between;
   }
 
-  .search-input {
-    max-width: none;
-  }
-
-  .processing-item {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .processing-thumbnail {
-    width: 120px;
-    height: 120px;
+  .duplicate-notification {
+    top: 16px;
+    right: 16px;
+    left: 16px;
   }
 }
 </style>
