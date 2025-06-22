@@ -41,9 +41,9 @@
     <!-- Tabs Section -->
     <div class="tabs-container">
       <n-tabs v-model:value="activeTab" type="segment" class="hub-tabs">
+        <!-- Tab 1: Upload - Only upload area and drag & drop -->
         <n-tab-pane name="upload" tab="Upload">
           <div class="tab-content">
-            <!-- Upload Area -->
             <div class="upload-section">
               <div
                 class="upload-dropzone"
@@ -94,97 +94,22 @@
                 </div>
               </div>
             </div>
-
-            <!-- Uploaded Photos Grid -->
-            <div v-if="uploadedPhotos.length > 0" class="photos-section">
-              <div class="section-header">
-                <h3 class="section-title">Recently Uploaded</h3>
-                <span class="photo-count"
-                  >{{ uploadedPhotos.length }} photo{{
-                    uploadedPhotos.length !== 1 ? "s" : ""
-                  }}</span
-                >
-              </div>
-              <div class="photos-grid">
-                <div
-                  v-for="photo in uploadedPhotos"
-                  :key="photo.id"
-                  class="photo-card"
-                >
-                  <div class="photo-thumbnail">
-                    <img :src="photo.url" :alt="photo.name" />
-                    <div class="photo-overlay">
-                      <n-button circle size="small" class="overlay-btn">
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path
-                                fill="currentColor"
-                                d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5s5 2.24 5 5s-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3s3-1.34 3-3s-1.34-3-3-3z"
-                              />
-                            </svg>
-                          </n-icon>
-                        </template>
-                      </n-button>
-                      <n-button circle size="small" class="overlay-btn">
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path
-                                fill="currentColor"
-                                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-                              />
-                            </svg>
-                          </n-icon>
-                        </template>
-                      </n-button>
-                    </div>
-                  </div>
-                  <div class="photo-info">
-                    <span class="photo-name">{{ photo.name }}</span>
-                    <span class="photo-size">{{
-                      formatFileSize(photo.size)
-                    }}</span>
-                  </div>
-                  <div class="photo-status">
-                    <n-tag size="small" type="warning">Pending Analysis</n-tag>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Empty State -->
-            <div v-else class="empty-photos-state">
-              <div class="empty-state-content">
-                <n-icon size="64" color="#6b7280">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
-                    />
-                  </svg>
-                </n-icon>
-                <h3 class="empty-state-title">No photos uploaded yet</h3>
-                <p class="empty-state-description">
-                  Start by uploading your photos to analyze them with AI
-                </p>
-              </div>
-            </div>
           </div>
         </n-tab-pane>
 
-        <n-tab-pane name="processing" tab="Processing">
+        <!-- Tab 2: Analyzing - Only photos being processed -->
+        <n-tab-pane name="analyzing" tab="Analyzing">
           <div class="tab-content">
             <div class="processing-section">
               <!-- Processing Queue -->
               <div v-if="processingPhotos.length > 0" class="processing-queue">
                 <div class="section-header">
-                  <h3 class="section-title">Processing Queue</h3>
+                  <h3 class="section-title">AI Analysis in Progress</h3>
                   <span class="photo-count"
                     >{{ processingPhotos.length }} photo{{
                       processingPhotos.length !== 1 ? "s" : ""
                     }}
-                    in queue</span
+                    being analyzed</span
                   >
                 </div>
                 <div class="processing-list">
@@ -213,7 +138,7 @@
                       </div>
                     </div>
                     <div class="processing-status">
-                      <n-tag size="small" type="info">Processing</n-tag>
+                      <n-tag size="small" type="info">Analyzing</n-tag>
                     </div>
                   </div>
                 </div>
@@ -230,10 +155,10 @@
                       />
                     </svg>
                   </n-icon>
-                  <h3 class="empty-state-title">No photos processing</h3>
+                  <h3 class="empty-state-title">No photos being analyzed</h3>
                   <p class="empty-state-description">
-                    Upload photos in the Upload tab to see them here during
-                    analysis
+                    Upload photos in the Upload tab to see the AI analysis
+                    process here
                   </p>
                 </div>
               </div>
@@ -241,11 +166,12 @@
           </div>
         </n-tab-pane>
 
-        <n-tab-pane name="catalog" tab="Your Photos">
+        <!-- Tab 3: Analyzed - Only completed photos -->
+        <n-tab-pane name="analyzed" tab="Analyzed">
           <div class="tab-content">
             <div class="catalog-section">
               <!-- Catalog Filters -->
-              <div class="catalog-filters">
+              <div v-if="catalogPhotos.length > 0" class="catalog-filters">
                 <div class="filters-left">
                   <n-input
                     v-model:value="searchQuery"
@@ -307,14 +233,15 @@
                 </div>
               </div>
 
-              <!-- Catalog Photos -->
+              <!-- Analyzed Photos Grid -->
               <div v-if="catalogPhotos.length > 0" class="catalog-photos">
                 <div class="section-header">
-                  <h3 class="section-title">Your Photo Library</h3>
+                  <h3 class="section-title">Analyzed Photos</h3>
                   <span class="photo-count"
                     >{{ catalogPhotos.length }} photo{{
                       catalogPhotos.length !== 1 ? "s" : ""
-                    }}</span
+                    }}
+                    analyzed</span
                   >
                 </div>
                 <div
@@ -362,16 +289,16 @@
                       }}</span>
                     </div>
                     <div class="photo-analysis">
-                      <n-tag size="small" type="success">Analyzed</n-tag>
+                      <n-tag size="small" type="success">✓ Analyzed</n-tag>
                       <span class="analysis-count"
-                        >{{ photo.tags?.length || 0 }} tags</span
+                        >{{ photo.tags?.length || 0 }} tags found</span
                       >
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Empty Catalog State -->
+              <!-- Empty Analyzed State -->
               <div v-else class="empty-catalog-state">
                 <div class="empty-state-content">
                   <n-icon size="64" color="#6b7280">
@@ -382,10 +309,10 @@
                       />
                     </svg>
                   </n-icon>
-                  <h3 class="empty-state-title">No photos in your catalog</h3>
+                  <h3 class="empty-state-title">No analyzed photos yet</h3>
                   <p class="empty-state-description">
-                    Upload and analyze photos to build your personal photo
-                    library
+                    Once photos finish processing, they will appear here with AI
+                    insights
                   </p>
                 </div>
               </div>
