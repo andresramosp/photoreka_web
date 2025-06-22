@@ -309,17 +309,17 @@
         <!-- Tab 3: Catalog -->
         <div v-show="activeTab === 'catalog'" class="tab-content">
           <div class="catalog-section">
-            <!-- All Uploaded Photos -->
-            <div v-if="uploadedPhotos.length > 0" class="catalog-photos">
+            <!-- Static Example Photos -->
+            <div class="catalog-photos">
               <div class="section-header">
                 <h3 class="section-title">Photo Catalog</h3>
                 <span class="photo-count"
-                  >{{ uploadedPhotos.length }} photos</span
+                  >{{ catalogPhotos.length }} photos</span
                 >
               </div>
               <div class="photos-grid">
                 <div
-                  v-for="photo in uploadedPhotos"
+                  v-for="photo in catalogPhotos"
                   :key="photo.id"
                   class="photo-card"
                   :class="{ duplicate: photo.isDuplicate }"
@@ -373,12 +373,8 @@
                       {{ photo.name }}
                     </div>
                     <div class="photo-details">
-                      <span class="photo-size">{{
-                        formatFileSize(photo.size)
-                      }}</span>
-                      <span class="photo-date">{{
-                        formatDate(photo.uploadDate)
-                      }}</span>
+                      <span class="photo-size">{{ photo.size }}</span>
+                      <span class="photo-date">{{ photo.date }}</span>
                     </div>
                   </div>
 
@@ -391,28 +387,9 @@
                     >
                       Duplicate
                     </n-tag>
-                    <n-tag v-else size="small" type="success"> Uploaded </n-tag>
+                    <n-tag v-else size="small" type="success"> Analyzed </n-tag>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <!-- Empty Catalog State -->
-            <div v-else class="empty-catalog-state">
-              <div class="empty-state-content">
-                <n-icon size="64" color="#6b7280">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11.5-6L9 12.5l1.5 2L13 11l3 4H8l2.5-3zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"
-                    />
-                  </svg>
-                </n-icon>
-                <h3 class="empty-state-title">No photos in catalog yet</h3>
-                <p class="empty-state-description">
-                  Upload photos in the Upload tab to see them here once
-                  processed
-                </p>
               </div>
             </div>
           </div>
