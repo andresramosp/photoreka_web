@@ -567,6 +567,25 @@ interface Photo {
   height?: number;
 }
 
+// Example interfaces for carousel
+interface NaturalExample {
+  text: string;
+  query: string;
+}
+
+interface TagExample {
+  text: string;
+  included: string[];
+  excluded: string[];
+}
+
+interface SpatialExample {
+  text: string;
+  left: string;
+  center: string;
+  right: string;
+}
+
 // Mock photo data
 const mockPhotos: Photo[] = [
   {
