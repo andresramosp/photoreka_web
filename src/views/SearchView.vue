@@ -1157,9 +1157,16 @@ const setExampleSearch = (
     gap: 20px;
   }
 
-  /* Make spatial inputs much larger on mobile */
-  .spatial-search-section .spatial-input {
-    min-height: 80px;
+  /* Force proper height for spatial inputs on mobile */
+  .spatial-search-section .spatial-input :deep(.n-input__textarea-el) {
+    min-height: 60px !important;
+    font-size: 16px !important;
+    padding: 12px 16px !important;
+    line-height: 1.4 !important;
+  }
+
+  .spatial-search-section .spatial-input :deep(.n-input-wrapper) {
+    min-height: 60px !important;
   }
 
   .search-actions-inline {
