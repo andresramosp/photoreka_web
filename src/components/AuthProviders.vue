@@ -145,16 +145,16 @@ export default {
 
 .providers-list {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  flex-direction: row;
+  gap: 8px;
 }
 
 .provider-button {
   width: 100%;
-  height: 48px;
-  border-radius: 8px;
+  height: 40px;
+  border-radius: 6px;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 13px;
   border: 1px solid #2c2c32;
   background-color: #2c2c32 !important;
   color: #ffffffd1 !important;

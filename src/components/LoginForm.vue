@@ -212,7 +212,7 @@ export default {
 
 .form-header {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .form-description {
@@ -223,12 +223,12 @@ export default {
 }
 
 .form-item {
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 
 .form-input {
-  height: 48px;
-  border-radius: 8px;
+  height: 40px;
+  border-radius: 6px;
 }
 
 .form-input :deep(.n-input__input-el) {
@@ -250,7 +250,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .remember-checkbox :deep(.n-checkbox__label) {
@@ -266,17 +266,17 @@ export default {
 
 .submit-button {
   width: 100%;
-  height: 48px;
-  border-radius: 8px;
+  height: 40px;
+  border-radius: 6px;
   font-weight: 600;
   font-size: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .email-divider {
   position: relative;
   text-align: center;
-  margin: 16px 0;
+  margin: 12px 0;
 }
 
 .email-divider::before {
@@ -300,7 +300,7 @@ export default {
 
 .form-footer {
   text-align: center;
-  margin-top: 20px;
+  margin-top: 12px;
   display: flex;
   align-items: center;
   justify-content: center;

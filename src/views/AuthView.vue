@@ -56,12 +56,12 @@ const handleSwitchMode = (mode: AuthMode) => {
   background-color: #2c2c32;
   border-radius: 8px;
   padding: 4px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .tab-button {
   flex: 1;
-  padding: 12px 24px;
+  padding: 10px 20px;
   background: none;
   border: none;
   color: #ffffff73;

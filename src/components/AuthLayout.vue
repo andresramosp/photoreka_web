@@ -55,14 +55,14 @@ import TrovaLogo from "./TrovaLogo.vue";
   background-color: #1a1a1f;
   border-radius: 16px;
   border: 1px solid #2c2c32;
-  padding: 32px;
+  padding: 24px;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
   width: 100%;
 }
 
 .auth-header {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .auth-subtitle {
@@ -73,7 +73,7 @@ import TrovaLogo from "./TrovaLogo.vue";
 }
 
 .auth-form-container {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .auth-footer {
