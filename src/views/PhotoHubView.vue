@@ -878,6 +878,10 @@ const formatDate = (date: Date): string => {
   min-width: 180px;
 }
 
+.google-photos-btn {
+  min-width: 220px;
+}
+
 .file-formats {
   color: #ffffff73;
   font-size: 14px;
