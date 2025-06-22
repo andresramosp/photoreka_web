@@ -55,6 +55,12 @@ const naive = create({
     NTag,
     NDataTable,
     NInput,
+    NSelect,
+    NSkeleton,
+    NSpin,
+    NButtonGroup,
+    NProgress,
+    NNotification,
   ],
 });
 
