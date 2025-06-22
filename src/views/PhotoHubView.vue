@@ -157,49 +157,47 @@
             </div>
           </div>
 
-          <!-- Upload Skeletons during upload process -->
-          <div v-if="skeletonCount > 0" class="upload-queue">
-            <div class="section-header">
-              <h3 class="section-title">Uploading Photos</h3>
-              <span class="photo-count"
-                >{{ skeletonCount }} photos uploading</span
-              >
-            </div>
-            <div class="photos-grid">
-              <div
-                v-for="skeleton in skeletonCount"
-                :key="`skeleton-${skeleton}`"
-                class="photo-card skeleton-card"
-              >
-                <div class="photo-skeleton">
-                  <n-skeleton height="100%" />
-                </div>
-                <div class="photo-info">
-                  <n-skeleton text :repeat="1" width="60%" />
-                  <n-skeleton text :repeat="1" width="40%" />
-                </div>
-                <div class="upload-progress-indicator">
-                  <n-spin size="small" />
-                  <span class="upload-text">Uploading...</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Recently Uploaded Photos in Upload Tab -->
+          <!-- Unified Photos Section -->
           <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-section">
-            <div class="section-header">
-              <h3 class="section-title">Uploaded Photos</h3>
+            <!-- Grid Controls -->
+            <div class="grid-controls grid-controls-base">
+              <div class="results-info results-info-base">
+                <span class="results-count results-count-base">
+                  {{ uploadedPhotos.filter((p) => !p.isUploading).length }}/{{
+                    uploadedPhotos.length
+                  }}
+                  photos
+                  <span v-if="isUploading">
+                    ({{
+                      uploadedPhotos.filter((p) => p.isUploading).length
+                    }}
+                    uploading)</span
+                  >
+                </span>
+              </div>
               <div class="header-controls">
-                <span class="photo-count"
-                  >{{ uploadedPhotos.length }} photos</span
-                >
+                <div class="grid-size-controls grid-size-controls-base">
+                  <span class="grid-label grid-label-base">Columns:</span>
+                  <n-button-group>
+                    <n-button
+                      v-for="size in [3, 4, 5, 6]"
+                      :key="size"
+                      :type="gridColumns === size ? 'primary' : 'default'"
+                      size="small"
+                      @click="setGridColumns(size)"
+                    >
+                      {{ size }}
+                    </n-button>
+                  </n-button-group>
+                </div>
                 <n-button
                   type="primary"
                   size="medium"
                   class="analyze-btn"
                   @click="analyzePhotos"
-                  :disabled="uploadedPhotos.length === 0"
+                  :disabled="
+                    uploadedPhotos.filter((p) => !p.isUploading).length === 0
+                  "
                 >
                   <template #icon>
                     <n-icon>
@@ -215,43 +213,32 @@
                 </n-button>
               </div>
             </div>
-            <div class="photos-grid">
-              <div
+
+            <!-- Photo Grid -->
+            <div
+              class="photos-grid photo-grid-base"
+              :class="`grid-cols-${gridColumns}`"
+            >
+              <PhotoCardInfo
                 v-for="photo in uploadedPhotos"
                 :key="photo.id"
-                class="photo-card"
-                :class="{ duplicate: photo.isDuplicate }"
-              >
-                <div class="photo-thumbnail">
-                  <img :src="photo.url" :alt="photo.name" />
-                  <div v-if="photo.isDuplicate" class="duplicate-indicator">
-                    <n-icon size="16" color="#f59e0b">
-                      <svg viewBox="0 0 24 24">
-                        <path
-                          fill="currentColor"
-                          d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c.55 0 1 .45 1 1s-.45 1-1 1s-1-.45-1-1s.45-1 1-1zm1 11h-2v-6h2v6z"
-                        />
-                      </svg>
-                    </n-icon>
-                  </div>
-                </div>
-                <div class="photo-info">
-                  <div class="photo-name" :title="photo.name">
-                    {{ photo.name }}
-                  </div>
-                  <div class="photo-details">
-                    <span class="photo-size">{{
-                      formatFileSize(photo.size)
-                    }}</span>
-                  </div>
-                </div>
-                <div class="photo-status">
-                  <n-tag v-if="photo.isDuplicate" size="small" type="warning">
-                    Duplicate
-                  </n-tag>
-                  <n-tag v-else size="small" type="success"> Uploaded </n-tag>
-                </div>
-              </div>
+                :photo="{
+                  ...photo,
+                  status: photo.isUploading
+                    ? 'processing'
+                    : photo.isDuplicate
+                      ? 'uploaded'
+                      : 'uploaded',
+                  aiTags: photo.isUploading
+                    ? undefined
+                    : Math.floor(Math.random() * 15) + 5,
+                  faces: photo.isUploading
+                    ? undefined
+                    : Math.floor(Math.random() * 4),
+                }"
+                @select="togglePhotoSelection"
+                @info="showPhotoInfo"
+              />
             </div>
           </div>
         </div>
@@ -357,85 +344,47 @@
           <div class="catalog-section">
             <!-- Static Example Photos -->
             <div class="catalog-photos">
-              <div class="section-header">
-                <h3 class="section-title">Photo Catalog</h3>
-                <span class="photo-count"
-                  >{{ catalogPhotos.length }} photos</span
-                >
+              <!-- Grid Controls -->
+              <div class="grid-controls grid-controls-base">
+                <div class="results-info results-info-base">
+                  <span class="results-count results-count-base"
+                    >{{ catalogPhotos.length }} photos</span
+                  >
+                </div>
+                <div class="grid-size-controls grid-size-controls-base">
+                  <span class="grid-label grid-label-base">Columns:</span>
+                  <n-button-group>
+                    <n-button
+                      v-for="size in [3, 4, 5, 6]"
+                      :key="size"
+                      :type="gridColumns === size ? 'primary' : 'default'"
+                      size="small"
+                      @click="setGridColumns(size)"
+                    >
+                      {{ size }}
+                    </n-button>
+                  </n-button-group>
+                </div>
               </div>
-              <div class="photos-grid">
-                <div
+
+              <!-- Photo Grid -->
+              <div
+                class="photos-grid photo-grid-base"
+                :class="`grid-cols-${gridColumns}`"
+              >
+                <PhotoCardInfo
                   v-for="photo in catalogPhotos"
                   :key="photo.id"
-                  class="photo-card"
-                  :class="{ duplicate: photo.isDuplicate }"
-                >
-                  <div class="photo-thumbnail">
-                    <img :src="photo.url" :alt="photo.name" />
-
-                    <!-- Duplicate indicator -->
-                    <div v-if="photo.isDuplicate" class="duplicate-indicator">
-                      <n-icon size="16" color="#f59e0b">
-                        <svg viewBox="0 0 24 24">
-                          <path
-                            fill="currentColor"
-                            d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c.55 0 1 .45 1 1s-.45 1-1 1s-1-.45-1-1s.45-1 1-1zm1 11h-2v-6h2v6z"
-                          />
-                        </svg>
-                      </n-icon>
-                    </div>
-
-                    <!-- Photo overlay -->
-                    <div class="photo-overlay">
-                      <n-button circle size="small" class="overlay-btn">
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path
-                                fill="currentColor"
-                                d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5s5 2.24 5 5s-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3s3-1.34 3-3s-1.34-3-3-3z"
-                              />
-                            </svg>
-                          </n-icon>
-                        </template>
-                      </n-button>
-                      <n-button circle size="small" class="overlay-btn">
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path
-                                fill="currentColor"
-                                d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"
-                              />
-                            </svg>
-                          </n-icon>
-                        </template>
-                      </n-button>
-                    </div>
-                  </div>
-
-                  <div class="photo-info">
-                    <div class="photo-name" :title="photo.name">
-                      {{ photo.name }}
-                    </div>
-                    <div class="photo-details">
-                      <span class="photo-size">{{ photo.size }}</span>
-                      <span class="photo-date">{{ photo.date }}</span>
-                    </div>
-                  </div>
-
-                  <div class="photo-status">
-                    <n-tag
-                      v-if="photo.isDuplicate"
-                      size="small"
-                      type="warning"
-                      class="duplicate-tag"
-                    >
-                      Duplicate
-                    </n-tag>
-                    <n-tag v-else size="small" type="success"> Analyzed </n-tag>
-                  </div>
-                </div>
+                  :photo="{
+                    ...photo,
+                    size: parseFloat(photo.size) * 1024 * 1024, // Convert MB to bytes
+                    status: 'analyzed',
+                    aiTags: Math.floor(Math.random() * 20) + 10,
+                    faces: Math.floor(Math.random() * 6),
+                  }"
+                  @select="togglePhotoSelection"
+                  @info="showPhotoInfo"
+                />
               </div>
             </div>
           </div>
@@ -457,15 +406,17 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import PhotoCardInfo from "../components/PhotoCardInfo.vue";
 
 interface Photo {
   id: string;
   name: string;
   size: number;
-  url: string;
+  url?: string;
   file: File;
-  uploadDate: Date;
+  uploadDate?: Date;
   isDuplicate: boolean;
+  isUploading?: boolean;
 }
 
 interface CatalogPhoto {
@@ -488,6 +439,12 @@ const totalFiles = ref(0);
 const skeletonCount = ref(0);
 const showDuplicateNotification = ref(false);
 
+// Photo selection state
+const selectedPhotos = ref<string[]>([]);
+
+// Grid columns state
+const gridColumns = ref(4);
+
 // Mock processing photos for the Processing tab
 const processingPhotos = ref<any[]>([]);
 
@@ -497,7 +454,7 @@ const catalogPhotos = ref<CatalogPhoto[]>([
     id: "catalog-1",
     name: "mountain-landscape.jpg",
     size: "2.3 MB",
-    url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop",
+    url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=600",
     date: "Nov 15, 2024",
     isDuplicate: false,
   },
@@ -505,7 +462,7 @@ const catalogPhotos = ref<CatalogPhoto[]>([
     id: "catalog-2",
     name: "city-skyline.jpg",
     size: "1.8 MB",
-    url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=400&fit=crop",
+    url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=600&h=600",
     date: "Nov 14, 2024",
     isDuplicate: false,
   },
@@ -513,7 +470,7 @@ const catalogPhotos = ref<CatalogPhoto[]>([
     id: "catalog-3",
     name: "beach-sunset.jpg",
     size: "3.1 MB",
-    url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=400&fit=crop",
+    url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=600",
     date: "Nov 13, 2024",
     isDuplicate: false,
   },
@@ -521,7 +478,7 @@ const catalogPhotos = ref<CatalogPhoto[]>([
     id: "catalog-4",
     name: "forest-path.jpg",
     size: "2.7 MB",
-    url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=400&fit=crop",
+    url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&h=600",
     date: "Nov 12, 2024",
     isDuplicate: false,
   },
@@ -529,7 +486,7 @@ const catalogPhotos = ref<CatalogPhoto[]>([
     id: "catalog-5",
     name: "mountain-lake.jpg",
     size: "2.9 MB",
-    url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop&brightness=0.8",
+    url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=600&brightness=0.8",
     date: "Nov 11, 2024",
     isDuplicate: true,
   },
@@ -537,7 +494,7 @@ const catalogPhotos = ref<CatalogPhoto[]>([
     id: "catalog-6",
     name: "urban-street.jpg",
     size: "1.5 MB",
-    url: "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=400&h=400&fit=crop",
+    url: "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=600&h=600",
     date: "Nov 10, 2024",
     isDuplicate: false,
   },
@@ -598,35 +555,44 @@ const handleFiles = async (files: File[]) => {
   isUploading.value = true;
   totalFiles.value = imageFiles.length;
   uploadedCount.value = 0;
-  skeletonCount.value = imageFiles.length;
+  skeletonCount.value = 0; // No longer needed
 
-  // Stay in Upload tab during upload process
+  // Create placeholder photos immediately for all files
+  const uploadingPhotos: Photo[] = imageFiles.map((file) => ({
+    id: `photo-${Date.now()}-${Math.random()}`,
+    name: file.name,
+    size: file.size,
+    file: file,
+    isDuplicate: false,
+    isUploading: true, // Mark as uploading
+  }));
+
+  // Add all uploading photos to the list immediately
+  uploadedPhotos.value.push(...uploadingPhotos);
 
   // Simulate uploading files one by one
-  for (let i = 0; i < imageFiles.length; i++) {
-    const file = imageFiles[i];
+  for (let i = 0; i < uploadingPhotos.length; i++) {
+    const photo = uploadingPhotos[i];
 
     // Simulate upload delay (1-3 seconds per file)
     const uploadDelay = Math.random() * 2000 + 1000;
     await new Promise((resolve) => setTimeout(resolve, uploadDelay));
 
-    const newPhoto: Photo = {
-      id: `photo-${Date.now()}-${Math.random()}`,
-      name: file.name,
-      size: file.size,
-      url: URL.createObjectURL(file),
-      file: file,
-      uploadDate: new Date(),
-      isDuplicate: false,
-    };
+    // Find the photo in the uploaded list and update it
+    const photoIndex = uploadedPhotos.value.findIndex((p) => p.id === photo.id);
+    if (photoIndex !== -1) {
+      uploadedPhotos.value[photoIndex] = {
+        ...photo,
+        url: URL.createObjectURL(photo.file),
+        uploadDate: new Date(),
+        isUploading: false, // Mark as completed
+      };
+    }
 
-    uploadedPhotos.value.push(newPhoto);
     uploadedCount.value++;
-    skeletonCount.value--;
   }
 
   isUploading.value = false;
-  skeletonCount.value = 0;
 
   // Show duplicate checking notification after upload completes
   showDuplicateNotification.value = true;
@@ -635,7 +601,7 @@ const handleFiles = async (files: File[]) => {
   setTimeout(() => {
     // Randomly mark some photos as duplicates (20% chance)
     uploadedPhotos.value.forEach((photo) => {
-      if (Math.random() < 0.2) {
+      if (Math.random() < 0.2 && !photo.isUploading) {
         photo.isDuplicate = true;
       }
     });
@@ -679,6 +645,26 @@ const formatDate = (date: Date): string => {
     month: "short",
     day: "numeric",
   });
+};
+
+// Photo selection functions
+const togglePhotoSelection = (photoId: string) => {
+  const index = selectedPhotos.value.indexOf(photoId);
+  if (index > -1) {
+    selectedPhotos.value.splice(index, 1);
+  } else {
+    selectedPhotos.value.push(photoId);
+  }
+};
+
+const showPhotoInfo = (photo: any) => {
+  console.log("Show photo info:", photo);
+  // Here you would implement the photo info modal/panel
+};
+
+// Grid columns function
+const setGridColumns = (columns: number) => {
+  gridColumns.value = columns;
 };
 </script>
 
@@ -950,10 +936,7 @@ const formatDate = (date: Date): string => {
   opacity: 0.8;
 }
 
-.photo-skeleton {
-  aspect-ratio: 1;
-  overflow: hidden;
-}
+/* Note: Photo skeleton styles moved to global.scss */
 
 .photo-thumbnail {
   position: relative;

@@ -20,11 +20,19 @@ import {
   NTag,
   NDataTable,
   NInput,
+  NSelect,
+  NSkeleton,
+  NSpin,
+  NButtonGroup,
+  NProgress,
   darkTheme,
 } from "naive-ui";
 
 import App from "./App.vue";
 import router from "./router";
+
+// Import global styles
+import "./assets/global.scss";
 
 const naive = create({
   components: [
@@ -46,6 +54,11 @@ const naive = create({
     NTag,
     NDataTable,
     NInput,
+    NSelect,
+    NSkeleton,
+    NSpin,
+    NButtonGroup,
+    NProgress,
   ],
 });
 

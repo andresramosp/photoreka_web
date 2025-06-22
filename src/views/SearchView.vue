@@ -102,15 +102,55 @@
           key="natural-search"
           class="natural-search-section"
         >
-          <n-input
-            v-model:value="naturalQuery"
-            type="textarea"
-            placeholder="Describe what you're looking for... e.g., 'sunset photos with people on the beach' or 'close-up portraits with red background'"
-            :autosize="{ minRows: 2, maxRows: 4 }"
-            class="natural-input"
-            @input="onSearchChange"
-            :key="`natural-${activeSearchType}`"
-          />
+          <div class="search-input-row">
+            <n-input
+              v-model:value="naturalQuery"
+              type="textarea"
+              placeholder="Describe what you're looking for... e.g., 'sunset photos with people on the beach' or 'close-up portraits with red background'"
+              :autosize="{ minRows: 1, maxRows: 2 }"
+              class="natural-input"
+              @input="onSearchChange"
+              :key="`natural-${activeSearchType}`"
+            />
+            <div class="search-actions-inline">
+              <n-button
+                type="primary"
+                :loading="isSearching"
+                :disabled="!hasSearchQuery"
+                @click="performSearch"
+                class="search-button"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Search Photos
+              </n-button>
+              <n-button
+                secondary
+                @click="clearSearch"
+                :disabled="!hasSearchQuery"
+                class="clear-button icon-only"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+              </n-button>
+            </div>
+          </div>
         </div>
 
         <!-- Tags Search -->
@@ -119,53 +159,93 @@
           key="tags-search"
           class="tags-search-section"
         >
-          <div class="tags-row">
-            <div class="tags-group">
-              <label class="tags-label">
-                <n-icon size="16" color="#22c55e">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-                    />
-                  </svg>
-                </n-icon>
-                Include Tags
-              </label>
-              <n-select
-                v-model:value="includedTags"
-                multiple
-                filterable
-                tag
-                placeholder="Add tags to include..."
-                :options="availableTags"
-                :max-tag-count="5"
-                class="tags-select include-tags"
-                @update:value="onSearchChange"
-                :key="`include-${activeSearchType}`"
-              />
+          <div class="tags-input-row">
+            <div class="tags-row">
+              <div class="tags-group">
+                <label class="tags-label">
+                  <n-icon size="16" color="#22c55e">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                      />
+                    </svg>
+                  </n-icon>
+                  Include Tags
+                </label>
+                <n-select
+                  v-model:value="includedTags"
+                  multiple
+                  filterable
+                  tag
+                  placeholder="Add tags to include..."
+                  :options="availableTags"
+                  :max-tag-count="5"
+                  class="tags-select include-tags"
+                  @update:value="onSearchChange"
+                  :key="`include-${activeSearchType}`"
+                />
+              </div>
+              <div class="tags-group">
+                <label class="tags-label">
+                  <n-icon size="16" color="#ef4444">
+                    <svg viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M19 13H5v-2h14v2z" />
+                    </svg>
+                  </n-icon>
+                  Exclude Tags
+                </label>
+                <n-select
+                  v-model:value="excludedTags"
+                  multiple
+                  filterable
+                  tag
+                  placeholder="Add tags to exclude..."
+                  :options="availableTags"
+                  :max-tag-count="5"
+                  class="tags-select exclude-tags"
+                  @update:value="onSearchChange"
+                  :key="`exclude-${activeSearchType}`"
+                />
+              </div>
             </div>
-            <div class="tags-group">
-              <label class="tags-label">
-                <n-icon size="16" color="#ef4444">
-                  <svg viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M19 13H5v-2h14v2z" />
-                  </svg>
-                </n-icon>
-                Exclude Tags
-              </label>
-              <n-select
-                v-model:value="excludedTags"
-                multiple
-                filterable
-                tag
-                placeholder="Add tags to exclude..."
-                :options="availableTags"
-                :max-tag-count="5"
-                class="tags-select exclude-tags"
-                @update:value="onSearchChange"
-                :key="`exclude-${activeSearchType}`"
-              />
+            <div class="search-actions-inline">
+              <n-button
+                type="primary"
+                :loading="isSearching"
+                :disabled="!hasSearchQuery"
+                @click="performSearch"
+                class="search-button"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Search Photos
+              </n-button>
+              <n-button
+                secondary
+                @click="clearSearch"
+                :disabled="!hasSearchQuery"
+                class="clear-button icon-only"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+              </n-button>
             </div>
           </div>
         </div>
@@ -176,86 +256,82 @@
           key="spatial-search"
           class="spatial-search-section"
         >
-          <div class="spatial-grid">
-            <div class="spatial-area">
-              <label class="spatial-label">Left Side</label>
-              <n-input
-                v-model:value="spatialLeft"
-                type="textarea"
-                placeholder="Objects on the left side..."
-                :autosize="{ minRows: 3, maxRows: 5 }"
-                class="spatial-input"
-                @input="onSearchChange"
-                :key="`spatial-left-${activeSearchType}`"
-              />
+          <div class="spatial-input-row">
+            <div class="spatial-grid">
+              <div class="spatial-area">
+                <n-input
+                  v-model:value="spatialLeft"
+                  type="textarea"
+                  placeholder="Left side objects..."
+                  :autosize="{ minRows: 1, maxRows: 2 }"
+                  class="spatial-input"
+                  @input="onSearchChange"
+                  :key="`spatial-left-${activeSearchType}`"
+                />
+              </div>
+              <div class="spatial-area">
+                <n-input
+                  v-model:value="spatialCenter"
+                  type="textarea"
+                  placeholder="Center objects..."
+                  :autosize="{ minRows: 1, maxRows: 2 }"
+                  class="spatial-input center-input"
+                  @input="onSearchChange"
+                  :key="`spatial-center-${activeSearchType}`"
+                />
+              </div>
+              <div class="spatial-area">
+                <n-input
+                  v-model:value="spatialRight"
+                  type="textarea"
+                  placeholder="Right side objects..."
+                  :autosize="{ minRows: 1, maxRows: 2 }"
+                  class="spatial-input"
+                  @input="onSearchChange"
+                  :key="`spatial-right-${activeSearchType}`"
+                />
+              </div>
             </div>
-            <div class="spatial-area">
-              <label class="spatial-label">Center</label>
-              <n-input
-                v-model:value="spatialCenter"
-                type="textarea"
-                placeholder="Objects in the center..."
-                :autosize="{ minRows: 3, maxRows: 5 }"
-                class="spatial-input center-input"
-                @input="onSearchChange"
-                :key="`spatial-center-${activeSearchType}`"
-              />
-            </div>
-            <div class="spatial-area">
-              <label class="spatial-label">Right Side</label>
-              <n-input
-                v-model:value="spatialRight"
-                type="textarea"
-                placeholder="Objects on the right side..."
-                :autosize="{ minRows: 3, maxRows: 5 }"
-                class="spatial-input"
-                @input="onSearchChange"
-                :key="`spatial-right-${activeSearchType}`"
-              />
+            <div class="search-actions-inline">
+              <n-button
+                type="primary"
+                :loading="isSearching"
+                :disabled="!hasSearchQuery"
+                @click="performSearch"
+                class="search-button"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Search Photos
+              </n-button>
+              <n-button
+                secondary
+                @click="clearSearch"
+                :disabled="!hasSearchQuery"
+                class="clear-button icon-only"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+              </n-button>
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Search Actions -->
-      <div class="search-actions">
-        <n-button
-          type="primary"
-          :loading="isSearching"
-          :disabled="!hasSearchQuery"
-          @click="performSearch"
-          class="search-button"
-        >
-          <template #icon>
-            <n-icon>
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
-                />
-              </svg>
-            </n-icon>
-          </template>
-          Search Photos
-        </n-button>
-        <n-button
-          secondary
-          @click="clearSearch"
-          :disabled="!hasSearchQuery"
-          class="clear-button"
-        >
-          <template #icon>
-            <n-icon>
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
-                />
-              </svg>
-            </n-icon>
-          </template>
-          Clear
-        </n-button>
       </div>
     </div>
 
@@ -285,7 +361,7 @@
                 @click="
                   setExampleSearch(
                     'natural',
-                    'sunset photos with people on the beach'
+                    'sunset photos with people on the beach',
                   )
                 "
               >
@@ -298,7 +374,7 @@
                 @click="
                   setExampleSearch(
                     'natural',
-                    'close-up portraits with red background'
+                    'close-up portraits with red background',
                   )
                 "
               >
@@ -311,7 +387,7 @@
                 @click="
                   setExampleSearch(
                     'natural',
-                    'landscape photos with mountains and snow'
+                    'landscape photos with mountains and snow',
                   )
                 "
               >
@@ -330,7 +406,7 @@
                     'tags',
                     null,
                     ['landscape', 'mountains'],
-                    ['people']
+                    ['people'],
                   )
                 "
               >
@@ -345,7 +421,7 @@
                     'tags',
                     null,
                     ['portrait', 'indoor'],
-                    ['black-white']
+                    ['black-white'],
                   )
                 "
               >
@@ -360,7 +436,7 @@
                     'tags',
                     null,
                     ['sunset', 'beach', 'outdoor'],
-                    []
+                    [],
                   )
                 "
               >
@@ -383,7 +459,7 @@
                     null,
                     'tree',
                     'person',
-                    'building'
+                    'building',
                   )
                 "
               >
@@ -401,7 +477,7 @@
                     null,
                     'mountains',
                     'lake',
-                    'forest'
+                    'forest',
                   )
                 "
               >
@@ -423,15 +499,113 @@
       </div>
 
       <div v-else-if="isSearching" class="search-loading">
-        <n-spin size="large" />
-        <p class="loading-text">Searching through your photos...</p>
+        <!-- Search Loading Message -->
+        <div class="loading-message">
+          <n-spin size="large" />
+          <p class="loading-text">Searching through your photos...</p>
+        </div>
+
+        <!-- Skeleton Grid -->
+        <div
+          class="photo-grid photo-grid-base"
+          :class="`grid-cols-${gridColumns}`"
+        >
+          <div
+            v-for="n in skeletonCount"
+            :key="`search-skeleton-${n}`"
+            class="photo-skeleton"
+          >
+            <n-skeleton height="100%" />
+          </div>
+        </div>
       </div>
 
       <div v-else class="search-results">
-        <!-- Photo grid will be implemented here later -->
-        <div class="results-placeholder">
-          <p class="results-text">Photo grid will be displayed here</p>
-          <p class="results-query">Query: {{ getCurrentQuery() }}</p>
+        <!-- Grid Controls -->
+        <div class="grid-controls grid-controls-base">
+          <div class="results-info results-info-base">
+            <span class="results-count results-count-base"
+              >{{ searchResults.length }} photos found</span
+            >
+            <span class="results-query results-query-base">{{
+              getCurrentQuery()
+            }}</span>
+          </div>
+          <div class="grid-size-controls grid-size-controls-base">
+            <span class="grid-label grid-label-base">Columns:</span>
+            <n-button-group>
+              <n-button
+                v-for="size in [3, 4, 5, 6]"
+                :key="size"
+                :type="gridColumns === size ? 'primary' : 'default'"
+                size="small"
+                @click="setGridColumns(size)"
+              >
+                {{ size }}
+              </n-button>
+            </n-button-group>
+          </div>
+        </div>
+
+        <!-- Photo Grid -->
+        <div
+          class="photo-grid photo-grid-base"
+          :class="`grid-cols-${gridColumns}`"
+        >
+          <!-- Photo Cards -->
+          <PhotoCard
+            v-for="photo in searchResults"
+            :key="photo.id"
+            :photo="photo"
+            :selected="selectedPhotos.includes(photo.id)"
+            @select="togglePhotoSelection"
+            @info="showPhotoInfo"
+          />
+
+          <!-- Skeleton Loading for Load More -->
+          <template v-if="isLoadingMore">
+            <div v-for="n in 4" :key="`skeleton-${n}`" class="photo-skeleton">
+              <n-skeleton height="100%" />
+            </div>
+          </template>
+        </div>
+
+        <!-- Load More Button -->
+        <div
+          class="load-more-container"
+          v-if="searchResults.length > 0 && hasMoreResults"
+        >
+          <n-button
+            size="large"
+            :loading="isLoadingMore"
+            @click="loadMorePhotos"
+            class="load-more-button"
+          >
+            <template #icon>
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+            Load More Photos
+          </n-button>
+        </div>
+
+        <!-- Selection Info -->
+        <div v-if="selectedPhotos.length > 0" class="selection-info">
+          <span
+            >{{ selectedPhotos.length }} photo{{
+              selectedPhotos.length > 1 ? "s" : ""
+            }}
+            selected</span
+          >
+          <n-button size="small" @click="clearSelection"
+            >Clear Selection</n-button
+          >
         </div>
       </div>
     </div>
@@ -440,11 +614,107 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
+import PhotoCard from "../components/PhotoCard.vue";
 
 // Search state
 const activeSearchType = ref<"natural" | "tags" | "spatial">("natural");
 const globalMode = ref<"strict" | "flexible">("flexible");
 const isSearching = ref(false);
+
+// Photo grid state
+const searchResults = ref<Photo[]>([]);
+const selectedPhotos = ref<string[]>([]);
+const gridColumns = ref(4);
+const isLoadingMore = ref(false);
+const hasMoreResults = ref(true);
+const skeletonCount = computed(() => gridColumns.value * 2);
+
+// Photo interface
+interface Photo {
+  id: string;
+  url: string;
+  title: string;
+  rating: number;
+  matchedTags?: string[];
+  width?: number;
+  height?: number;
+}
+
+// Mock photo data
+const mockPhotos: Photo[] = [
+  {
+    id: "1",
+    url: "https://images.pexels.com/photos/32669076/pexels-photo-32669076.jpeg",
+    title: "Iceland Mountains",
+    rating: 5,
+    matchedTags: ["landscape", "mountains", "nature"],
+    width: 6000,
+    height: 3376,
+  },
+  {
+    id: "2",
+    url: "https://images.pexels.com/photos/32657569/pexels-photo-32657569.jpeg",
+    title: "Sisters in Dresses",
+    rating: 4,
+    matchedTags: ["portrait", "people", "family"],
+    width: 7107,
+    height: 9600,
+  },
+  {
+    id: "3",
+    url: "https://images.pexels.com/photos/32666826/pexels-photo-32666826.jpeg",
+    title: "Carballino España",
+    rating: 3,
+    matchedTags: ["street", "urban", "architecture"],
+    width: 3648,
+    height: 2432,
+  },
+  {
+    id: "4",
+    url: "https://images.pexels.com/photos/3117550/pexels-photo-3117550.jpeg",
+    title: "Vintage Flowers",
+    rating: 4,
+    matchedTags: ["flowers", "vintage", "art"],
+    width: 2016,
+    height: 2016,
+  },
+  {
+    id: "5",
+    url: "https://images.pexels.com/photos/32675858/pexels-photo-32675858.jpeg",
+    title: "Beach Sunset",
+    rating: 5,
+    matchedTags: ["sunset", "beach", "ocean"],
+    width: 3888,
+    height: 2592,
+  },
+  {
+    id: "6",
+    url: "https://images.pexels.com/photos/32617822/pexels-photo-32617822.jpeg",
+    title: "City River View",
+    rating: 4,
+    matchedTags: ["city", "river", "sunset"],
+    width: 2639,
+    height: 3959,
+  },
+  {
+    id: "7",
+    url: "https://images.pexels.com/photos/983587/pexels-photo-983587.jpeg",
+    title: "Italian Pasta",
+    rating: 3,
+    matchedTags: ["food", "pasta", "wine"],
+    width: 2000,
+    height: 2000,
+  },
+  {
+    id: "8",
+    url: "https://images.pexels.com/photos/32642185/pexels-photo-32642185.jpeg",
+    title: "Scorpion Detail",
+    rating: 2,
+    matchedTags: ["wildlife", "macro", "animal"],
+    width: 3560,
+    height: 2608,
+  },
+];
 
 // ResizeObserver error handling
 let resizeObserverErrorHandler: ((event: ErrorEvent) => void) | null = null;
@@ -454,7 +724,7 @@ onMounted(() => {
   resizeObserverErrorHandler = (e: ErrorEvent) => {
     if (
       e.message.includes(
-        "ResizeObserver loop completed with undelivered notifications"
+        "ResizeObserver loop completed with undelivered notifications",
       )
     ) {
       e.preventDefault();
@@ -549,6 +819,7 @@ const performSearch = async () => {
   if (!hasSearchQuery.value) return;
 
   isSearching.value = true;
+  selectedPhotos.value = [];
   console.log("Performing search:", {
     type: activeSearchType.value,
     mode: globalMode.value,
@@ -557,6 +828,12 @@ const performSearch = async () => {
 
   // Simulate API call
   await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  // Simulate search results based on current search type
+  const results = [...mockPhotos].sort(() => Math.random() - 0.5);
+  searchResults.value = results.slice(0, Math.min(8, results.length));
+  hasMoreResults.value = results.length > 8;
+
   isSearching.value = false;
 };
 
@@ -567,6 +844,59 @@ const clearSearch = () => {
   spatialLeft.value = "";
   spatialCenter.value = "";
   spatialRight.value = "";
+  searchResults.value = [];
+  selectedPhotos.value = [];
+  hasMoreResults.value = true;
+};
+
+// Photo grid functions
+const setGridColumns = (columns: number) => {
+  gridColumns.value = columns;
+};
+
+const togglePhotoSelection = (photoId: string) => {
+  const index = selectedPhotos.value.indexOf(photoId);
+  if (index > -1) {
+    selectedPhotos.value.splice(index, 1);
+  } else {
+    selectedPhotos.value.push(photoId);
+  }
+};
+
+const showPhotoInfo = (photo: Photo) => {
+  console.log("Show photo info:", photo);
+  // Here you would implement the photo info modal/panel
+};
+
+const loadMorePhotos = async () => {
+  if (isLoadingMore.value || !hasMoreResults.value) return;
+
+  isLoadingMore.value = true;
+
+  // Simulate loading more photos
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+
+  // Add more mock photos (shuffled)
+  const morePhotos = [...mockPhotos]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 4)
+    .map((photo, index) => ({
+      ...photo,
+      id: `${photo.id}-${Date.now()}-${index}`, // Make unique IDs
+    }));
+
+  searchResults.value.push(...morePhotos);
+
+  // Simulate end of results after 3 loads
+  if (searchResults.value.length > 16) {
+    hasMoreResults.value = false;
+  }
+
+  isLoadingMore.value = false;
+};
+
+const clearSelection = () => {
+  selectedPhotos.value = [];
 };
 
 const getCurrentQuery = () => {
@@ -601,7 +931,7 @@ const setExampleSearch = (
   excluded?: string[],
   left?: string,
   center?: string,
-  right?: string
+  right?: string,
 ) => {
   clearSearch();
   activeSearchType.value = type;
@@ -758,7 +1088,7 @@ const setExampleSearch = (
 }
 
 .search-content {
-  padding-top: 20px;
+  padding-top: 12px;
 }
 
 /* Natural Language Search */
@@ -766,8 +1096,15 @@ const setExampleSearch = (
   max-width: 100%;
 }
 
+.search-input-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
 .natural-input {
   font-size: 16px;
+  flex: 1;
 }
 
 /* Tags Search */
@@ -775,10 +1112,17 @@ const setExampleSearch = (
   width: 100%;
 }
 
+.tags-input-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
 .tags-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+  flex: 1;
 }
 
 .tags-group {
@@ -805,53 +1149,100 @@ const setExampleSearch = (
   width: 100%;
 }
 
+.spatial-input-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
 .spatial-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 20px;
+  flex: 1;
 }
 
 .spatial-area {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.spatial-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #ffffffd1;
-  text-align: center;
+  width: 100%;
 }
 
 .spatial-input {
   text-align: center;
+  width: 100%;
 }
 
 .center-input {
   border-color: #2563eb;
 }
 
-/* Search Actions */
-.search-actions {
+/* Inline Search Actions */
+.search-actions-inline {
   display: flex;
+  flex-direction: row;
   gap: 12px;
-  justify-content: flex-end;
-  padding-top: 20px;
-  border-top: 1px solid #2c2c32;
+  align-self: flex-start;
+  flex-shrink: 0;
 }
 
 .search-button {
   min-width: 140px;
+  height: 40px;
 }
 
 .clear-button {
   min-width: 100px;
+  height: 40px;
+}
+
+.clear-button.icon-only {
+  min-width: 40px;
+  width: 40px;
+  padding: 0;
 }
 
 /* Search Results Container */
 .search-results-container {
   min-height: 400px;
+}
+
+/* Note: Grid controls and photo grid styles moved to global.scss */
+
+/* Note: Photo skeleton styles moved to global.scss */
+
+/* Load More */
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  margin: 32px 0;
+}
+
+.load-more-button {
+  min-width: 200px;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Selection Info */
+.selection-info {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #2563eb;
+  color: #ffffff;
+  padding: 12px 24px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+  z-index: 100;
+  font-weight: 500;
+}
+
+.selection-info span {
+  font-size: 14px;
 }
 
 /* Search Inspiration */
@@ -924,11 +1315,15 @@ const setExampleSearch = (
 
 /* Search Loading */
 .search-loading {
+  min-height: 400px;
+}
+
+.loading-message {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  padding: 40px 0;
   gap: 16px;
 }
 
@@ -1006,10 +1401,25 @@ const setExampleSearch = (
     font-size: 12px;
     padding: 8px 10px;
   }
+
+  /* Note: Grid responsive styles moved to global.scss */
+
+  .selection-info {
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    transform: none;
+    border-radius: 16px;
+  }
 }
 
 /* Small mobile - compress further if needed */
 @media (max-width: 480px) {
+  .search-toolbar {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
   .type-pills {
     gap: 2px;
   }
@@ -1031,31 +1441,92 @@ const setExampleSearch = (
     height: 10px;
   }
 
+  .search-input-row,
+  .tags-input-row,
+  .spatial-input-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+
   .tags-row {
     grid-template-columns: 1fr;
     gap: 16px;
   }
 
-  .spatial-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+  .spatial-input-row {
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
   }
 
-  .spatial-label {
-    text-align: left;
+  .spatial-grid {
+    display: grid;
+    grid-template-columns: 1fr !important;
+    gap: 20px;
+    width: 100% !important;
+  }
+
+  .spatial-area {
+    width: 100% !important;
   }
 
   .spatial-input {
     text-align: left;
+    width: 100% !important;
   }
 
-  .search-actions {
-    flex-direction: column;
+  .spatial-search-section {
+    width: 100% !important;
   }
 
-  .search-button,
-  .clear-button {
+  .spatial-search-section .spatial-input {
+    width: 100% !important;
+  }
+
+  .spatial-search-section .spatial-input-row {
+    width: 100% !important;
+  }
+
+  .spatial-search-section .spatial-grid {
+    width: 100% !important;
+  }
+
+  .spatial-search-section .spatial-area {
+    width: 100% !important;
+  }
+
+  .spatial-search-section .n-input {
+    width: 100% !important;
+  }
+
+  .spatial-search-section :deep(.n-input) {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .spatial-search-section :deep(.n-input-wrapper) {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .spatial-search-section :deep(.n-input__input-el) {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .search-actions-inline {
+    flex-direction: row;
     width: 100%;
+  }
+
+  .search-button {
+    flex: 1;
+  }
+
+  .clear-button.icon-only {
+    min-width: 40px;
+    width: 40px;
+    flex: none;
   }
 
   .inspiration-title {
@@ -1069,10 +1540,36 @@ const setExampleSearch = (
   .examples-grid {
     gap: 12px;
   }
+
+  /* Note: Photo grid mobile styles moved to global.scss */
+
+  .load-more-container {
+    margin: 24px 0;
+  }
+
+  .load-more-button {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .selection-info {
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    transform: none;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
 }
 
 /* Tablet Responsive */
 @media (min-width: 768px) and (max-width: 1024px) {
+  .search-input-row,
+  .tags-input-row,
+  .spatial-input-row {
+    gap: 12px;
+  }
+
   .spatial-grid {
     gap: 16px;
   }
