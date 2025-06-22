@@ -1191,6 +1191,21 @@ const setExampleSearch = (
     width: 100% !important;
   }
 
+  .spatial-search-section :deep(.n-input) {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .spatial-search-section :deep(.n-input-wrapper) {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .spatial-search-section :deep(.n-input__input-el) {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
   .search-actions-inline {
     flex-direction: row;
     width: 100%;
