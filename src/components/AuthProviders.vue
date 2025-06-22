@@ -93,10 +93,12 @@ const handleProviderLogin = async (provider: "google" | "facebook") => {
     const result = await userStore.loginWithProvider(provider);
 
     if (result.success) {
+      // For social login, assume existing users go to dashboard
+      // In a real app, the backend would tell us if this is a new user
       message.success(
-        `Welcome! You've signed up with ${provider === "google" ? "Google" : "Facebook"}.`,
+        `Welcome! You've logged in with ${provider === "google" ? "Google" : "Facebook"}.`,
       );
-      router.push("/profile-setup");
+      router.push("/dashboard");
     } else {
       message.error(result.error || "Error logging in");
     }
