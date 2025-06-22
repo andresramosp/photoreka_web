@@ -1,9 +1,5 @@
 <template>
   <div class="auth-providers">
-    <div class="providers-divider">
-      <span class="divider-text">Or continue with</span>
-    </div>
-
     <div class="providers-list">
       <n-button
         class="provider-button provider-google"
@@ -125,13 +121,7 @@ export default {
 
 <style scoped>
 .auth-providers {
-  margin-top: 24px;
-}
-
-.providers-divider {
-  position: relative;
-  text-align: center;
-  margin: 24px 0;
+  margin-top: 0;
 }
 
 .providers-divider::before {

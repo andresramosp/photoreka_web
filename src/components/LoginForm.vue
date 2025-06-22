@@ -5,6 +5,12 @@
       <p class="form-description">Access your Trova account</p>
     </div>
 
+    <AuthProviders />
+
+    <div class="email-divider">
+      <span class="divider-text">Or with email</span>
+    </div>
+
     <n-form
       ref="formRef"
       :model="formData"
@@ -62,8 +68,6 @@
         Log In
       </n-button>
     </n-form>
-
-    <AuthProviders />
 
     <div class="form-footer">
       <span class="footer-text">Don't have an account?</span>
@@ -208,19 +212,19 @@ export default {
 
 .form-header {
   text-align: center;
-  margin-bottom: 32px;
-}
-
-.form-title {
-  margin: 0 0 8px 0;
-  font-size: 28px;
-  font-weight: 700;
-  color: #ffffffd1;
-  letter-spacing: -0.025em;
+  margin-bottom: 20px;
 }
 
 .form-description {
   margin: 0;
+  font-size: 16px;
+  color: #ffffff73;
+  font-weight: 400;
+}
+
+.form-item {
+  margin-bottom: 14px;
+}
   font-size: 16px;
   color: #ffffff73;
   font-weight: 400;
@@ -254,7 +258,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .remember-checkbox :deep(.n-checkbox__label) {
@@ -277,9 +281,34 @@ export default {
   margin-bottom: 16px;
 }
 
+.email-divider {
+  position: relative;
+  text-align: center;
+  margin: 16px 0;
+}
+
+.email-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #2c2c32;
+}
+
+.divider-text {
+  background-color: #1a1a1f;
+  padding: 0 16px;
+  font-size: 13px;
+  color: #ffffff73;
+  position: relative;
+  z-index: 1;
+}
+
 .form-footer {
   text-align: center;
-  margin-top: 24px;
+  margin-top: 20px;
   display: flex;
   align-items: center;
   justify-content: center;

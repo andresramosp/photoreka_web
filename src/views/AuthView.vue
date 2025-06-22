@@ -56,7 +56,7 @@ const handleSwitchMode = (mode: AuthMode) => {
   background-color: #2c2c32;
   border-radius: 8px;
   padding: 4px;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
 }
 
 .tab-button {

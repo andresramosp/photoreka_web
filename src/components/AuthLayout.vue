@@ -31,27 +31,21 @@ import TrovaLogo from "./TrovaLogo.vue";
 
 <style scoped>
 .auth-layout {
-  position: fixed;
-  top: 0;
-  left: 0;
   width: 100vw;
   height: 100vh;
   background-color: #101014;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow-y: auto;
-  overflow-x: hidden;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .auth-container {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 450px;
-  margin: auto;
-  padding: 24px;
-  min-height: 100vh;
+  max-width: 420px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -61,16 +55,14 @@ import TrovaLogo from "./TrovaLogo.vue";
   background-color: #1a1a1f;
   border-radius: 16px;
   border: 1px solid #2c2c32;
-  padding: 40px;
+  padding: 32px;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
   width: 100%;
-  max-height: calc(100vh - 48px);
-  overflow-y: auto;
 }
 
 .auth-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .auth-subtitle {
@@ -81,7 +73,7 @@ import TrovaLogo from "./TrovaLogo.vue";
 }
 
 .auth-form-container {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .auth-footer {
@@ -160,27 +152,23 @@ import TrovaLogo from "./TrovaLogo.vue";
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .auth-container {
-    max-width: 100%;
+  .auth-layout {
     padding: 16px;
-    min-height: 100vh;
   }
 
   .auth-content {
-    padding: 32px 24px;
+    padding: 28px 24px;
     border-radius: 12px;
-    max-height: calc(100vh - 32px);
   }
 
   .auth-header {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
 }
 
 @media (max-width: 480px) {
-  .auth-container {
+  .auth-layout {
     padding: 12px;
-    min-height: 100vh;
   }
 
   .auth-content {
@@ -188,7 +176,10 @@ import TrovaLogo from "./TrovaLogo.vue";
     border-radius: 8px;
     border: none;
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
-    max-height: calc(100vh - 24px);
+  }
+
+  .auth-header {
+    margin-bottom: 16px;
   }
 }
 
