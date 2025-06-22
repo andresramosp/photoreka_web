@@ -346,7 +346,6 @@ const viewMode = ref("grid");
 const fileInput = ref<HTMLInputElement>();
 
 // Mock data - In real app, this would come from API/store
-const uploadedPhotos = ref<any[]>([]);
 const processingPhotos = ref<any[]>([
   {
     id: 1,
