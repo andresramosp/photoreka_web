@@ -1,10 +1,11 @@
 <template>
   <div class="auth-providers">
-    <div class="providers-list">
+    <n-space size="small" justify="space-between" class="providers-list">
       <n-button
         class="provider-button provider-google"
         :loading="isLoading && activeProvider === 'google'"
         @click="handleProviderLogin('google')"
+        style="flex: 1"
       >
         <template #icon>
           <GoogleIcon />
@@ -16,13 +17,14 @@
         class="provider-button provider-facebook"
         :loading="isLoading && activeProvider === 'facebook'"
         @click="handleProviderLogin('facebook')"
+        style="flex: 1"
       >
         <template #icon>
           <FacebookIcon />
         </template>
         Facebook
       </n-button>
-    </div>
+    </n-space>
   </div>
 </template>
 
@@ -142,15 +144,18 @@ export default {
 }
 
 .auth-providers .providers-list {
-  display: flex !important;
-  flex-direction: row !important;
-  gap: 8px !important;
-  width: 100%;
+  width: 100% !important;
+}
+
+.auth-providers .providers-list :deep(.n-space) {
+  width: 100% !important;
+  justify-content: space-between !important;
 }
 
 .auth-providers .providers-list .provider-button {
   flex: 1 !important;
   min-width: 0 !important;
+  max-width: calc(50% - 4px) !important;
 }
 
 .provider-button {
