@@ -364,12 +364,13 @@ onUnmounted(() => {
 }
 
 .logo-container {
-  padding: 20px 16px;
+  padding: 0 16px;
   border-bottom: 1px solid #2c2c32;
   transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   height: 64px;
   display: flex;
   align-items: center;
+  box-sizing: border-box;
 }
 
 .logo {
@@ -381,6 +382,18 @@ onUnmounted(() => {
 
 .logo-icon {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(37, 99, 235, 0.1);
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.logo-icon:hover {
+  background-color: rgba(37, 99, 235, 0.15);
 }
 
 .logo-text {
