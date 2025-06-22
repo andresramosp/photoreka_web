@@ -1139,21 +1139,15 @@ const setExampleSearch = (
     height: 10px;
   }
 
-  .search-input-row {
+  .search-input-row,
+  .tags-input-row,
+  .spatial-input-row {
     flex-direction: column;
-    gap: 16px;
-  }
-
-  .tags-content {
     gap: 16px;
   }
 
   .tags-row {
     grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .spatial-content {
     gap: 16px;
   }
 
@@ -1175,9 +1169,14 @@ const setExampleSearch = (
     width: 100%;
   }
 
-  .search-button,
-  .clear-button {
+  .search-button {
     flex: 1;
+  }
+
+  .clear-button.icon-only {
+    min-width: 40px;
+    width: 40px;
+    flex: none;
   }
 
   .inspiration-title {
