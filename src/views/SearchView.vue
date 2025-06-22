@@ -13,7 +13,7 @@
               :class="{ active: activeSearchType === 'natural' }"
               @click="setSearchType('natural')"
             >
-              <n-icon size="16" class="type-icon">
+              <n-icon size="12" class="type-icon">
                 <svg viewBox="0 0 24 24">
                   <path
                     fill="currentColor"
@@ -65,7 +65,7 @@
               :class="{ active: globalMode === 'strict' }"
               @click="globalMode = 'strict'"
             >
-              <n-icon size="16" class="mode-icon">
+              <n-icon size="12" class="mode-icon">
                 <svg viewBox="0 0 24 24">
                   <path
                     fill="currentColor"
@@ -671,28 +671,30 @@ const setExampleSearch = (
 /* Search Type Pills */
 .type-pills {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 4px;
+  flex-wrap: nowrap;
   width: 100%;
+  justify-content: space-between;
 }
 
 .type-pill {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
+  gap: 4px;
+  padding: 8px 10px;
   border-radius: 20px;
   border: 1px solid #2c2c32;
   background-color: transparent;
   color: #ffffff73;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
-  flex: 1;
-  min-width: fit-content;
+  flex: 1 1 auto;
+  min-width: 0;
   justify-content: center;
+  text-align: center;
 }
 
 .type-pill:hover {
@@ -711,19 +713,21 @@ const setExampleSearch = (
 
 .type-icon {
   flex-shrink: 0;
+  width: 12px;
+  height: 12px;
 }
 
 /* Search Mode Pills */
 .mode-pills {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   width: 100%;
 }
 
 .mode-pill {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   padding: 8px 12px;
   border-radius: 20px;
   border: 1px solid #2c2c32;
@@ -731,11 +735,12 @@ const setExampleSearch = (
   color: #ffffff73;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
   flex: 1;
   justify-content: center;
+  min-width: 0;
 }
 
 .mode-pill:hover {
@@ -751,6 +756,8 @@ const setExampleSearch = (
 
 .mode-icon {
   flex-shrink: 0;
+  width: 12px;
+  height: 12px;
 }
 
 .search-content {
@@ -965,7 +972,7 @@ const setExampleSearch = (
   text-align: center;
 }
 
-/* Medium screens - reduce gap */
+/* Medium screens - adjust spacing */
 @media (max-width: 1024px) {
   .search-selector-section {
     gap: 16px;
@@ -973,9 +980,9 @@ const setExampleSearch = (
 
   .type-pill,
   .mode-pill {
-    font-size: 12px;
-    padding: 7px 10px;
-    gap: 5px;
+    font-size: 11px;
+    padding: 7px 8px;
+    gap: 3px;
   }
 }
 
@@ -996,21 +1003,35 @@ const setExampleSearch = (
     flex: 1;
     width: 100%;
   }
+
+  .type-pill,
+  .mode-pill {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
 }
 
-/* Small mobile - wrap type pills if needed */
+/* Small mobile - compress further if needed */
 @media (max-width: 480px) {
   .type-pills {
-    flex-wrap: wrap;
+    gap: 2px;
   }
 
-  .type-pill {
-    flex: 0 1 auto;
-    min-width: fit-content;
+  .mode-pills {
+    gap: 2px;
   }
 
+  .type-pill,
   .mode-pill {
-    min-width: 80px;
+    font-size: 10px;
+    padding: 6px 6px;
+    gap: 2px;
+  }
+
+  .type-icon,
+  .mode-icon {
+    width: 10px;
+    height: 10px;
   }
 }
 
