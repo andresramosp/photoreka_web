@@ -554,8 +554,7 @@ const handleFiles = async (files: File[]) => {
   uploadedCount.value = 0;
   skeletonCount.value = imageFiles.length;
 
-  // Show Processing tab during upload
-  activeTab.value = "processing";
+  // Stay in Upload tab during upload process
 
   // Simulate uploading files one by one
   for (let i = 0; i < imageFiles.length; i++) {
@@ -583,8 +582,20 @@ const handleFiles = async (files: File[]) => {
   isUploading.value = false;
   skeletonCount.value = 0;
 
-  // Switch back to Upload tab to show uploaded photos
-  activeTab.value = "upload";
+  // Show duplicate checking notification after upload completes
+  showDuplicateNotification.value = true;
+
+  // Simulate duplicate checking process
+  setTimeout(() => {
+    // Randomly mark some photos as duplicates (20% chance)
+    uploadedPhotos.value.forEach((photo) => {
+      if (Math.random() < 0.2) {
+        photo.isDuplicate = true;
+      }
+    });
+
+    showDuplicateNotification.value = false;
+  }, 2000);
 };
 
 // Function to analyze photos manually
