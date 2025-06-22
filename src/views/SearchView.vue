@@ -764,6 +764,31 @@ const hasSearchQuery = computed(() => {
   }
 });
 
+const getCurrentExamples = () => {
+  switch (activeSearchType.value) {
+    case "natural":
+      return naturalExamples;
+    case "tags":
+      return tagExamples;
+    case "spatial":
+      return spatialExamples;
+    default:
+      return [];
+  }
+};
+
+const currentExampleText = computed(() => {
+  const examples = getCurrentExamples();
+  if (examples.length === 0) return "";
+  return examples[currentExampleIndex.value]?.text || "";
+});
+
+const currentExample = computed(() => {
+  const examples = getCurrentExamples();
+  if (examples.length === 0) return null;
+  return examples[currentExampleIndex.value] || null;
+});
+
 // Debouncing for search type changes
 let searchTypeTimeout: number | null = null;
 
