@@ -1634,15 +1634,10 @@ const setExampleSearch = (
 
   .carousel-container {
     height: 70px;
-    overflow: visible;
   }
 
-  .carousel-item {
+  .carousel-item.sliding {
     transform: translateX(-60px);
-  }
-
-  .carousel-item.active {
-    transform: translateX(0);
   }
 
   .example-card {
