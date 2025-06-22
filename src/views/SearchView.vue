@@ -1170,6 +1170,22 @@ const setExampleSearch = (
     width: 100% !important;
   }
 
+  .spatial-search-section .spatial-input-row {
+    width: 100% !important;
+  }
+
+  .spatial-search-section .spatial-grid {
+    width: 100% !important;
+  }
+
+  .spatial-search-section .spatial-area {
+    width: 100% !important;
+  }
+
+  .spatial-search-section .n-input {
+    width: 100% !important;
+  }
+
   .search-actions-inline {
     flex-direction: row;
     width: 100%;
