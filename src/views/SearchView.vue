@@ -1147,8 +1147,8 @@ const setExampleSearch = (
   }
 
   .spatial-grid {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr !important;
     gap: 20px;
     width: 100% !important;
   }
