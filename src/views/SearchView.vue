@@ -821,6 +821,46 @@ const hasSearchQuery = computed(() => {
 // Debouncing for search type changes
 let searchTypeTimeout: number | null = null;
 
+// Carousel methods
+const startCarousel = () => {
+  stopCarousel(); // Clear any existing interval
+  carouselInterval = window.setInterval(() => {
+    rotateCarousel();
+  }, 3500); // 3.5 seconds interval
+};
+
+const stopCarousel = () => {
+  if (carouselInterval) {
+    clearInterval(carouselInterval);
+    carouselInterval = null;
+  }
+};
+
+const rotateCarousel = () => {
+  const getCurrentExamples = () => {
+    switch (activeSearchType.value) {
+      case "natural":
+        return naturalExamples;
+      case "tags":
+        return tagExamples;
+      case "spatial":
+        return spatialExamples;
+      default:
+        return [];
+    }
+  };
+
+  const examples = getCurrentExamples();
+  if (examples.length > 0) {
+    currentExampleIndex.value =
+      (currentExampleIndex.value + 1) % examples.length;
+  }
+};
+
+const resetCarouselIndex = () => {
+  currentExampleIndex.value = 0;
+};
+
 // Methods
 const setSearchType = (type: "natural" | "tags" | "spatial") => {
   // Clear any pending type change
@@ -831,6 +871,7 @@ const setSearchType = (type: "natural" | "tags" | "spatial") => {
   // Debounce the search type change to prevent ResizeObserver issues
   searchTypeTimeout = window.setTimeout(async () => {
     activeSearchType.value = type;
+    resetCarouselIndex(); // Reset carousel when switching search types
     await nextTick(); // Wait for DOM updates
     console.log("Search type changed to:", type);
     searchTypeTimeout = null;
