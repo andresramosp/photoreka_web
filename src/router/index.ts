@@ -4,6 +4,7 @@ import CanvasView from "../views/CanvasView.vue";
 import SearchView from "../views/SearchView.vue";
 import CollectionsView from "../views/CollectionsView.vue";
 import PhotoHubView from "../views/PhotoHubView.vue";
+import CurationView from "../views/CurationView.vue";
 import SettingsView from "../views/SettingsView.vue";
 import HelpView from "../views/HelpView.vue";
 
@@ -38,6 +39,11 @@ const router = createRouter({
       path: "/photo-hub",
       name: "photo-hub",
       component: PhotoHubView,
+    },
+    {
+      path: "/curation",
+      name: "curation",
+      component: CurationView,
     },
     {
       path: "/settings",
