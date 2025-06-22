@@ -1442,6 +1442,29 @@ const setExampleSearch = (
     font-size: 12px;
     padding: 8px 10px;
   }
+
+  /* Grid responsive adjustments */
+  .grid-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .photo-grid.grid-cols-3,
+  .photo-grid.grid-cols-4,
+  .photo-grid.grid-cols-5,
+  .photo-grid.grid-cols-6 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .selection-info {
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    transform: none;
+    border-radius: 16px;
+  }
 }
 
 /* Small mobile - compress further if needed */
