@@ -960,6 +960,27 @@ const getCurrentQuery = () => {
   }
 };
 
+const handleExampleClick = () => {
+  const example = currentExample.value;
+  if (!example) return;
+
+  clearSearch();
+
+  if (activeSearchType.value === "natural") {
+    const natExample = example as NaturalExample;
+    naturalQuery.value = natExample.query;
+  } else if (activeSearchType.value === "tags") {
+    const tagExample = example as TagExample;
+    includedTags.value = tagExample.included;
+    excludedTags.value = tagExample.excluded;
+  } else if (activeSearchType.value === "spatial") {
+    const spatExample = example as SpatialExample;
+    spatialLeft.value = spatExample.left;
+    spatialCenter.value = spatExample.center;
+    spatialRight.value = spatExample.right;
+  }
+};
+
 const setExampleSearch = (
   type: "natural" | "tags" | "spatial",
   natural?: string,
