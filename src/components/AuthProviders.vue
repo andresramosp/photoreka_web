@@ -34,6 +34,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 import { useUserStore } from "../stores/userStore";
 import { useMessage } from "naive-ui";
 
@@ -83,6 +84,7 @@ const FacebookIcon = () =>
     ],
   );
 
+const router = useRouter();
 const userStore = useUserStore();
 const message = useMessage();
 
@@ -100,6 +102,7 @@ const handleProviderLogin = async (provider: "google" | "facebook") => {
       message.success(
         `Welcome! You've logged in with ${provider === "google" ? "Google" : "Facebook"}.`,
       );
+      router.push("/dashboard");
     } else {
       message.error(result.error || "Error logging in");
     }

@@ -116,6 +116,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from "vue";
+import { useRouter } from "vue-router";
 import { useUserStore } from "../stores/userStore";
 import { useMessage } from "naive-ui";
 import type { FormInst, FormRules } from "naive-ui";
@@ -185,6 +186,7 @@ const LockIcon = () =>
 
 const emit = defineEmits(["switch-mode"]);
 
+const router = useRouter();
 const userStore = useUserStore();
 const message = useMessage();
 
@@ -272,7 +274,7 @@ const handleSubmit = async () => {
 
     if (result.success) {
       message.success("Account created successfully! Welcome to Trova.");
-      // Note: Navigation will be handled by App.vue watching auth state
+      router.push("/dashboard");
     } else {
       message.error(result.error || "Error creating account");
     }
