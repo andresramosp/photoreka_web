@@ -1323,10 +1323,14 @@ const setExampleSearch = (
   justify-content: center;
   min-height: 500px;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .inspiration-content {
   max-width: 600px;
+  position: relative;
+  z-index: 2;
 }
 
 .inspiration-icon {
