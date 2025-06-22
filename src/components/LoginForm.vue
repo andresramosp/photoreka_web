@@ -2,7 +2,7 @@
   <div class="login-form">
     <div class="form-header">Access your Trova account</div>
 
-    <AuthProviders />
+    <AuthProviders mode="login" />
 
     <div class="email-divider">
       <span class="divider-text">Or with email</span>

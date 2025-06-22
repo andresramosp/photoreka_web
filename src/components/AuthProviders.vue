@@ -78,6 +78,14 @@ const FacebookIcon = () =>
     ],
   );
 
+interface Props {
+  mode?: "login" | "register";
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  mode: "login",
+});
+
 const router = useRouter();
 const userStore = useUserStore();
 const message = useMessage();
@@ -93,12 +101,17 @@ const handleProviderLogin = async (provider: "google" | "facebook") => {
     const result = await userStore.loginWithProvider(provider);
 
     if (result.success) {
-      // For social login, assume existing users go to dashboard
-      // In a real app, the backend would tell us if this is a new user
-      message.success(
-        `Welcome! You've logged in with ${provider === "google" ? "Google" : "Facebook"}.`,
-      );
-      router.push("/dashboard");
+      if (props.mode === "register") {
+        message.success(
+          `Welcome! You've signed up with ${provider === "google" ? "Google" : "Facebook"}.`,
+        );
+        router.push("/profile-setup");
+      } else {
+        message.success(
+          `Welcome back! You've logged in with ${provider === "google" ? "Google" : "Facebook"}.`,
+        );
+        router.push("/dashboard");
+      }
     } else {
       message.error(result.error || "Error logging in");
     }

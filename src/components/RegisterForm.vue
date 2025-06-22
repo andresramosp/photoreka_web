@@ -2,7 +2,7 @@
   <div class="register-form">
     <div class="form-header">Join the Trova community</div>
 
-    <AuthProviders />
+    <AuthProviders mode="register" />
 
     <div class="email-divider">
       <span class="divider-text">Or with email</span>
