@@ -716,6 +716,84 @@ const spatialLeft = ref("");
 const spatialCenter = ref("");
 const spatialRight = ref("");
 
+// Carousel state
+const currentExampleIndex = ref(0);
+let carouselInterval: number | null = null;
+
+// Example data for carousel
+const naturalExamples: NaturalExample[] = [
+  {
+    text: '"sunset photos with people on the beach"',
+    query: "sunset photos with people on the beach",
+  },
+  {
+    text: '"close-up portraits with red background"',
+    query: "close-up portraits with red background",
+  },
+  {
+    text: '"landscape photos with mountains and snow"',
+    query: "landscape photos with mountains and snow",
+  },
+  {
+    text: '"street photography with urban architecture"',
+    query: "street photography with urban architecture",
+  },
+  {
+    text: '"vintage flowers with warm lighting"',
+    query: "vintage flowers with warm lighting",
+  },
+];
+
+const tagExamples: TagExample[] = [
+  {
+    text: "Include: landscape, mountains • Exclude: people",
+    included: ["landscape", "mountains"],
+    excluded: ["people"],
+  },
+  {
+    text: "Include: portrait, indoor • Exclude: black-white",
+    included: ["portrait", "indoor"],
+    excluded: ["black-white"],
+  },
+  {
+    text: "Include: sunset, beach, outdoor",
+    included: ["sunset", "beach", "outdoor"],
+    excluded: [],
+  },
+  {
+    text: "Include: vintage, color • Exclude: modern",
+    included: ["vintage", "color"],
+    excluded: ["modern"],
+  },
+];
+
+const spatialExamples: SpatialExample[] = [
+  {
+    text: "Left: tree • Center: person • Right: building",
+    left: "tree",
+    center: "person",
+    right: "building",
+  },
+  {
+    text: "Left: mountains • Center: lake • Right: forest",
+    left: "mountains",
+    center: "lake",
+    right: "forest",
+  },
+  {
+    text: "Center: face",
+    left: "",
+    center: "face",
+    right: "",
+  },
+  {
+    text: "Left: sky • Right: ocean",
+    left: "sky",
+    center: "",
+    right: "ocean",
+  },
+];
+
 // Computed properties
 const hasSearchQuery = computed(() => {
   switch (activeSearchType.value) {
