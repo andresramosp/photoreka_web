@@ -1414,9 +1414,11 @@ const setExampleSearch = (
   align-items: center;
   justify-content: center;
   min-height: 48px;
+  width: 100%;
   position: relative;
   z-index: 10;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 0;
 }
 
 .example-card:hover {
