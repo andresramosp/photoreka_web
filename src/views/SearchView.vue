@@ -840,7 +840,7 @@ const setExampleSearch = (
 }
 
 .search-content {
-  padding-top: 20px;
+  padding-top: 12px;
 }
 
 /* Natural Language Search */
@@ -848,13 +848,26 @@ const setExampleSearch = (
   max-width: 100%;
 }
 
+.search-input-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
 .natural-input {
   font-size: 16px;
+  flex: 1;
 }
 
 /* Tags Search */
 .tags-search-section {
   width: 100%;
+}
+
+.tags-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .tags-row {
@@ -887,6 +900,12 @@ const setExampleSearch = (
   width: 100%;
 }
 
+.spatial-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .spatial-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -914,13 +933,13 @@ const setExampleSearch = (
   border-color: #2563eb;
 }
 
-/* Search Actions */
-.search-actions {
+/* Inline Search Actions */
+.search-actions-inline {
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  justify-content: flex-end;
-  padding-top: 20px;
-  border-top: 1px solid #2c2c32;
+  align-self: flex-start;
+  flex-shrink: 0;
 }
 
 .search-button {
