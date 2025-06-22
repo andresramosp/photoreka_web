@@ -185,25 +185,26 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   height: 100%;
-  max-width: 100%;
+  width: 100%;
+  gap: 24px;
 }
 
 .header-left {
-  flex: 1;
   display: flex;
   align-items: center;
+  flex: 1;
   gap: 16px;
-  max-width: calc(100% - 200px);
+  min-width: 0;
 }
 
 .hamburger-btn {
-  margin-right: 8px;
   flex-shrink: 0;
 }
 
 .search-container {
   flex: 1;
-  max-width: 600px;
+  min-width: 200px;
+  max-width: 800px;
 }
 
 .search-input {
@@ -213,14 +214,23 @@ onUnmounted(() => {
 .header-right {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
+  gap: 12px;
 }
 
 .header-icon-btn {
   color: #9ca3af;
+  flex-shrink: 0;
 }
 
 .user-avatar {
   cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Remove default spacing from n-space */
+.header-right :deep(.n-space) {
+  gap: 12px !important;
 }
 
 /* Mobile styles */
@@ -229,16 +239,25 @@ onUnmounted(() => {
     padding: 0 16px;
   }
 
-  .header-left {
-    max-width: calc(100% - 120px);
+  .header-content {
+    gap: 16px;
   }
 
   .search-container {
+    min-width: 150px;
     max-width: none;
   }
 
   .search-input {
     font-size: 14px;
+  }
+
+  .header-right {
+    gap: 8px;
+  }
+
+  .header-right :deep(.n-space) {
+    gap: 8px !important;
   }
 }
 </style>
