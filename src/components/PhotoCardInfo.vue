@@ -1,10 +1,10 @@
 <template>
   <div
-    class="photo-card-info photo-card-base"
-    :class="{ 'photo-card-selected': isSelected, duplicate: photo.isDuplicate }"
+    class="photo-card-info"
+    :class="{ selected: isSelected, duplicate: photo.isDuplicate }"
     @click="toggleSelection"
   >
-    <div class="photo-container photo-container-base">
+    <div class="photo-container">
       <img
         :src="photo.url"
         :alt="photo.name"
