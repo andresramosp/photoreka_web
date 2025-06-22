@@ -294,6 +294,61 @@ const formatDate = (date: Date | string | undefined): string => {
   z-index: 3;
 }
 
+/* Info button */
+.info-button {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  border: none !important;
+  backdrop-filter: blur(8px);
+}
+
+/* Selection indicator */
+.selection-indicator {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background-color: rgba(139, 92, 246, 0.9);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+}
+
+/* Photo footer */
+.photo-footer {
+  padding: 12px 16px;
+  background-color: #1a1a1f;
+  border-top: 1px solid #2c2c32;
+}
+
+.photo-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffffd1;
+  margin: 0 0 4px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.photo-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #ffffff73;
+  margin: 4px 0;
+}
+
+.photo-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 /* Duplicate border styling */
 .photo-card-info.duplicate {
   border-color: #f59e0b;
