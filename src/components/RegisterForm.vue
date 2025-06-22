@@ -1,8 +1,8 @@
 <template>
   <div class="register-form">
     <div class="form-header">
-      <h2 class="form-title">Crear Cuenta</h2>
-      <p class="form-description">Únete a la comunidad de Trova</p>
+      <h2 class="form-title">Create Account</h2>
+      <p class="form-description">Join the Trova community</p>
     </div>
 
     <n-form
@@ -16,7 +16,7 @@
       <n-form-item path="name" class="form-item">
         <n-input
           v-model:value="formData.name"
-          placeholder="Nombre completo"
+          placeholder="Full name"
           :input-props="{ autocomplete: 'name' }"
           class="form-input"
         >
@@ -44,7 +44,7 @@
         <n-input
           v-model:value="formData.password"
           type="password"
-          placeholder="Contraseña"
+          placeholder="Password"
           :input-props="{ autocomplete: 'new-password' }"
           class="form-input"
           show-password-on="click"
@@ -59,7 +59,7 @@
         <n-input
           v-model:value="formData.confirmPassword"
           type="password"
-          placeholder="Confirmar contraseña"
+          placeholder="Confirm password"
           :input-props="{ autocomplete: 'new-password' }"
           class="form-input"
           show-password-on="click"
@@ -73,13 +73,13 @@
       <div class="form-terms">
         <n-checkbox v-model:checked="acceptTerms" class="terms-checkbox">
           <span class="terms-text">
-            Acepto los
+            I agree to the
             <n-button text type="primary" class="terms-link"
-              >términos y condiciones</n-button
+              >terms and conditions</n-button
             >
-            y la
+            and
             <n-button text type="primary" class="terms-link"
-              >política de privacidad</n-button
+              >privacy policy</n-button
             >
           </span>
         </n-checkbox>
@@ -94,21 +94,21 @@
         attr-type="submit"
         @click="handleSubmit"
       >
-        Crear Cuenta
+        Create Account
       </n-button>
     </n-form>
 
     <AuthProviders />
 
     <div class="form-footer">
-      <span class="footer-text">¿Ya tienes cuenta?</span>
+      <span class="footer-text">Already have an account?</span>
       <n-button
         text
         type="primary"
         @click="$emit('switch-mode', 'login')"
         class="switch-button"
       >
-        Inicia sesión aquí
+        Log in here
       </n-button>
     </div>
   </div>
@@ -202,49 +202,49 @@ const rules: FormRules = {
   name: [
     {
       required: true,
-      message: "Nombre es requerido",
+      message: "Name is required",
       trigger: ["input", "blur"],
     },
     {
       min: 2,
-      message: "El nombre debe tener al menos 2 caracteres",
+      message: "Name must be at least 2 characters",
       trigger: ["input", "blur"],
     },
   ],
   email: [
     {
       required: true,
-      message: "Email es requerido",
+      message: "Email is required",
       trigger: ["input", "blur"],
     },
     {
       type: "email",
-      message: "Formato de email inválido",
+      message: "Invalid email format",
       trigger: ["input", "blur"],
     },
   ],
   password: [
     {
       required: true,
-      message: "Contraseña es requerida",
+      message: "Password is required",
       trigger: ["input", "blur"],
     },
     {
       min: 6,
-      message: "La contraseña debe tener al menos 6 caracteres",
+      message: "Password must be at least 6 characters",
       trigger: ["input", "blur"],
     },
   ],
   confirmPassword: [
     {
       required: true,
-      message: "Confirma tu contraseña",
+      message: "Please confirm your password",
       trigger: ["input", "blur"],
     },
     {
       validator: (rule, value) => {
         if (value !== formData.password) {
-          return new Error("Las contraseñas no coinciden");
+          return new Error("Passwords do not match");
         }
         return true;
       },
@@ -257,7 +257,7 @@ const handleSubmit = async () => {
   if (!formRef.value) return;
 
   if (!acceptTerms.value) {
-    message.warning("Debes aceptar los términos y condiciones");
+    message.warning("You must accept the terms and conditions");
     return;
   }
 
@@ -271,10 +271,10 @@ const handleSubmit = async () => {
     );
 
     if (result.success) {
-      message.success("¡Cuenta creada exitosamente! Bienvenido a Trova.");
+      message.success("Account created successfully! Welcome to Trova.");
       // Note: Navigation will be handled by App.vue watching auth state
     } else {
-      message.error(result.error || "Error al crear la cuenta");
+      message.error(result.error || "Error creating account");
     }
   } catch (error) {
     // Validation failed, errors will be shown in form
