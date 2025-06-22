@@ -143,14 +143,35 @@
           <!-- Recently Uploaded Photos in Upload Tab -->
           <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-section">
             <div class="section-header">
-              <h3 class="section-title">Recently Uploaded</h3>
-              <span class="photo-count"
-                >{{ uploadedPhotos.length }} photos</span
-              >
+              <h3 class="section-title">Uploaded Photos</h3>
+              <div class="header-controls">
+                <span class="photo-count"
+                  >{{ uploadedPhotos.length }} photos</span
+                >
+                <n-button
+                  type="primary"
+                  size="medium"
+                  class="analyze-btn"
+                  @click="analyzePhotos"
+                  :disabled="uploadedPhotos.length === 0"
+                >
+                  <template #icon>
+                    <n-icon>
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                        />
+                      </svg>
+                    </n-icon>
+                  </template>
+                  Analyze Photos
+                </n-button>
+              </div>
             </div>
             <div class="photos-grid">
               <div
-                v-for="photo in recentUploads"
+                v-for="photo in uploadedPhotos"
                 :key="photo.id"
                 class="photo-card"
                 :class="{ duplicate: photo.isDuplicate }"
