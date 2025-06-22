@@ -344,13 +344,34 @@
           <div class="catalog-section">
             <!-- Static Example Photos -->
             <div class="catalog-photos">
-              <div class="section-header">
-                <h3 class="section-title">Photo Catalog</h3>
-                <span class="photo-count"
-                  >{{ catalogPhotos.length }} photos</span
-                >
+              <!-- Grid Controls -->
+              <div class="grid-controls grid-controls-base">
+                <div class="results-info results-info-base">
+                  <span class="results-count results-count-base"
+                    >{{ catalogPhotos.length }} photos</span
+                  >
+                </div>
+                <div class="grid-size-controls grid-size-controls-base">
+                  <span class="grid-label grid-label-base">Columns:</span>
+                  <n-button-group>
+                    <n-button
+                      v-for="size in [3, 4, 5, 6]"
+                      :key="size"
+                      :type="gridColumns === size ? 'primary' : 'default'"
+                      size="small"
+                      @click="setGridColumns(size)"
+                    >
+                      {{ size }}
+                    </n-button>
+                  </n-button-group>
+                </div>
               </div>
-              <div class="photos-grid">
+
+              <!-- Photo Grid -->
+              <div
+                class="photos-grid photo-grid-base"
+                :class="`grid-cols-${gridColumns}`"
+              >
                 <PhotoCardInfo
                   v-for="photo in catalogPhotos"
                   :key="photo.id"
