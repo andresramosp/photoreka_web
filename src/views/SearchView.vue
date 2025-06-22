@@ -1132,8 +1132,21 @@ const setExampleSearch = (
     height: 10px;
   }
 
+  .search-input-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .tags-content {
+    gap: 16px;
+  }
+
   .tags-row {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .spatial-content {
     gap: 16px;
   }
 
@@ -1150,13 +1163,14 @@ const setExampleSearch = (
     text-align: left;
   }
 
-  .search-actions {
-    flex-direction: column;
+  .search-actions-inline {
+    flex-direction: row;
+    width: 100%;
   }
 
   .search-button,
   .clear-button {
-    width: 100%;
+    flex: 1;
   }
 
   .inspiration-title {
