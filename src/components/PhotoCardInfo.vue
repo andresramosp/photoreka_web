@@ -5,7 +5,14 @@
     @click="toggleSelection"
   >
     <div class="photo-container">
+      <!-- Show skeleton while uploading -->
+      <div v-if="photo.status === 'processing'" class="photo-skeleton">
+        <n-skeleton height="100%" />
+      </div>
+
+      <!-- Show actual image when uploaded -->
       <img
+        v-else
         :src="photo.url"
         :alt="photo.name"
         class="photo-image"
@@ -13,8 +20,8 @@
         @error="onImageError"
       />
 
-      <!-- Info Button (center overlay) -->
-      <div class="info-overlay">
+      <!-- Info Button (center overlay) - only show when not uploading -->
+      <div v-if="photo.status !== 'processing'" class="info-overlay">
         <n-button
           circle
           size="medium"
