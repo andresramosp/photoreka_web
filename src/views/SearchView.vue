@@ -356,68 +356,13 @@
 
             <!-- Carousel Container -->
             <div class="examples-carousel">
-              <!-- Natural Language Examples -->
-              <div
-                v-if="activeSearchType === 'natural'"
-                class="carousel-container"
-              >
+              <div class="carousel-container">
                 <div
-                  v-for="(example, index) in naturalExamples"
-                  :key="`natural-${index}`"
                   class="example-card carousel-item"
-                  :class="{ active: currentExampleIndex === index }"
-                  @click="setExampleSearch('natural', example.query)"
+                  :class="{ sliding: isSliding }"
+                  @click="handleExampleClick"
                 >
-                  <div class="example-text">{{ example.text }}</div>
-                </div>
-              </div>
-
-              <!-- Tags Examples -->
-              <div
-                v-else-if="activeSearchType === 'tags'"
-                class="carousel-container"
-              >
-                <div
-                  v-for="(example, index) in tagExamples"
-                  :key="`tags-${index}`"
-                  class="example-card carousel-item"
-                  :class="{ active: currentExampleIndex === index }"
-                  @click="
-                    setExampleSearch(
-                      'tags',
-                      null,
-                      example.included,
-                      example.excluded,
-                    )
-                  "
-                >
-                  <div class="example-text">{{ example.text }}</div>
-                </div>
-              </div>
-
-              <!-- Spatial Examples -->
-              <div
-                v-else-if="activeSearchType === 'spatial'"
-                class="carousel-container"
-              >
-                <div
-                  v-for="(example, index) in spatialExamples"
-                  :key="`spatial-${index}`"
-                  class="example-card carousel-item"
-                  :class="{ active: currentExampleIndex === index }"
-                  @click="
-                    setExampleSearch(
-                      'spatial',
-                      null,
-                      null,
-                      null,
-                      example.left,
-                      example.center,
-                      example.right,
-                    )
-                  "
-                >
-                  <div class="example-text">{{ example.text }}</div>
+                  <div class="example-text">{{ currentExampleText }}</div>
                 </div>
               </div>
             </div>
