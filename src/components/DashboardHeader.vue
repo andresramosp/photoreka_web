@@ -110,7 +110,7 @@ const userMenuOptions = [
   {
     label: () =>
       h("div", { class: "user-menu-header" }, [
-        h("div", { class: "user-name" }, userStore.user?.name || "Usuario"),
+        h("div", { class: "user-name" }, userStore.user?.name || "User"),
         h("div", { class: "user-email" }, userStore.user?.email || ""),
       ]),
     key: "user-info",
@@ -120,7 +120,7 @@ const userMenuOptions = [
     type: "divider",
   },
   {
-    label: "Perfil",
+    label: "Profile",
     key: "profile",
     icon: () =>
       h(NIcon, null, {
@@ -134,7 +134,7 @@ const userMenuOptions = [
       }),
   },
   {
-    label: "Configuración",
+    label: "Settings",
     key: "settings",
     icon: () =>
       h(NIcon, null, {
@@ -151,7 +151,7 @@ const userMenuOptions = [
     type: "divider",
   },
   {
-    label: "Cerrar Sesión",
+    label: "Log Out",
     key: "logout",
     icon: () =>
       h(NIcon, null, {
@@ -169,11 +169,11 @@ const userMenuOptions = [
 const handleUserMenuSelect = (key: string) => {
   if (key === "logout") {
     userStore.logout();
-    message.success("Has cerrado sesión correctamente");
+    message.success("You have logged out successfully");
     router.push("/auth");
   } else if (key === "profile") {
     // Navigate to profile or open profile modal
-    message.info("Función de perfil en desarrollo");
+    message.info("Profile feature in development");
   } else if (key === "settings") {
     router.push("/settings");
   }
