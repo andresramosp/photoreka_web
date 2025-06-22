@@ -1142,7 +1142,7 @@ const setExampleSearch = (
   .spatial-grid {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
   }
 
   .spatial-area {
@@ -1151,13 +1151,15 @@ const setExampleSearch = (
 
   .spatial-input {
     text-align: left;
-    min-height: 56px;
-    font-size: 16px;
   }
 
-  .spatial-input .n-input__textarea-el {
-    min-height: 56px !important;
-    padding: 12px 16px !important;
+  .spatial-input-row {
+    gap: 20px;
+  }
+
+  /* Make spatial inputs much larger on mobile */
+  .spatial-search-section .spatial-input {
+    min-height: 80px;
   }
 
   .search-actions-inline {
