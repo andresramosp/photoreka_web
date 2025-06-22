@@ -71,16 +71,21 @@
             </template>
           </n-button>
 
-          <n-avatar size="small" class="user-avatar" color="#2563eb">
-            <n-icon>
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4s-4 1.79-4 4s1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                />
-              </svg>
-            </n-icon>
-          </n-avatar>
+          <n-dropdown
+            :options="userMenuOptions"
+            @select="handleUserMenuSelect"
+            trigger="click"
+            placement="bottom-end"
+          >
+            <n-avatar
+              size="small"
+              class="user-avatar"
+              color="#2563eb"
+              :src="userStore.user?.avatar"
+            >
+              {{ userStore.user?.name?.charAt(0)?.toUpperCase() || "U" }}
+            </n-avatar>
+          </n-dropdown>
         </n-space>
       </div>
     </div>
@@ -89,21 +94,33 @@
 
 <script setup lang="ts">
 import { computed, h, ref, onMounted, onUnmounted } from "vue";
-import { useRoute } from "vue-router";
-import { NIcon } from "naive-ui";
+import { useRoute, useRouter } from "vue-router";
+import { NIcon, useMessage } from "naive-ui";
+import { useUserStore } from "../stores/userStore";
 
 const route = useRoute();
+const router = useRouter();
+const userStore = useUserStore();
+const message = useMessage();
 const isMobile = ref(false);
 
 defineEmits(["toggle-mobile-menu"]);
 
-// Search functionality can be added here in the future
-
-const userAvatar = "";
-
 const userMenuOptions = [
   {
-    label: "Profile",
+    label: () =>
+      h("div", { class: "user-menu-header" }, [
+        h("div", { class: "user-name" }, userStore.user?.name || "Usuario"),
+        h("div", { class: "user-email" }, userStore.user?.email || ""),
+      ]),
+    key: "user-info",
+    disabled: true,
+  },
+  {
+    type: "divider",
+  },
+  {
+    label: "Perfil",
     key: "profile",
     icon: () =>
       h(NIcon, null, {
@@ -117,7 +134,7 @@ const userMenuOptions = [
       }),
   },
   {
-    label: "Settings",
+    label: "Configuración",
     key: "settings",
     icon: () =>
       h(NIcon, null, {
@@ -134,7 +151,7 @@ const userMenuOptions = [
     type: "divider",
   },
   {
-    label: "Logout",
+    label: "Cerrar Sesión",
     key: "logout",
     icon: () =>
       h(NIcon, null, {
@@ -150,9 +167,15 @@ const userMenuOptions = [
 ];
 
 const handleUserMenuSelect = (key: string) => {
-  console.log("User menu selected:", key);
   if (key === "logout") {
-    // Handle logout logic here
+    userStore.logout();
+    message.success("Has cerrado sesión correctamente");
+    router.push("/auth");
+  } else if (key === "profile") {
+    // Navigate to profile or open profile modal
+    message.info("Función de perfil en desarrollo");
+  } else if (key === "settings") {
+    router.push("/settings");
   }
 };
 
