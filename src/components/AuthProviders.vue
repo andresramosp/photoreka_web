@@ -3,7 +3,6 @@
     <div class="providers-list">
       <n-button
         class="provider-button provider-google"
-        size="large"
         :loading="isLoading && activeProvider === 'google'"
         @click="handleProviderLogin('google')"
       >
@@ -15,7 +14,6 @@
 
       <n-button
         class="provider-button provider-facebook"
-        size="large"
         :loading="isLoading && activeProvider === 'facebook'"
         @click="handleProviderLogin('facebook')"
       >
@@ -143,10 +141,16 @@ export default {
   z-index: 1;
 }
 
-.providers-list {
+.auth-providers .providers-list {
   display: flex !important;
   flex-direction: row !important;
-  gap: 8px;
+  gap: 8px !important;
+  width: 100%;
+}
+
+.auth-providers .providers-list .provider-button {
+  flex: 1 !important;
+  min-width: 0 !important;
 }
 
 .provider-button {
@@ -187,10 +191,20 @@ export default {
   background-color: #2c2c32 !important;
 }
 
+/* Force horizontal layout with deep selectors */
+.auth-providers :deep(.n-button-group) {
+  display: flex !important;
+  flex-direction: row !important;
+}
+
+.auth-providers :deep(.n-space) {
+  flex-direction: row !important;
+}
+
 /* Mobile responsive */
 @media (max-width: 480px) {
-  .providers-list {
-    gap: 6px;
+  .auth-providers .providers-list {
+    gap: 6px !important;
     flex-direction: row !important;
   }
 
