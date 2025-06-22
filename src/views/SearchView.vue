@@ -2,91 +2,94 @@
   <div class="search-container">
     <!-- Search Toolbar -->
     <div class="search-toolbar">
-      <!-- Search Mode Selector -->
-      <div class="search-mode-section">
-        <div class="mode-label">Search Mode:</div>
-        <div class="mode-pills">
-          <div
-            class="mode-pill"
-            :class="{ active: globalMode === 'strict' }"
-            @click="globalMode = 'strict'"
-          >
-            <n-icon size="16" class="mode-icon">
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5l1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                />
-              </svg>
-            </n-icon>
-            Strict
-          </div>
-          <div
-            class="mode-pill"
-            :class="{ active: globalMode === 'flexible' }"
-            @click="globalMode = 'flexible'"
-          >
-            <n-icon size="16" class="mode-icon">
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14L2 9.27l6.91-1.01L12 2z"
-                />
-              </svg>
-            </n-icon>
-            Flexible
+      <!-- Search Type and Mode Selector -->
+      <div class="search-selector-section">
+        <!-- Search Type -->
+        <div class="selector-group">
+          <div class="selector-label">Search Type:</div>
+          <div class="type-pills">
+            <div
+              class="type-pill"
+              :class="{ active: activeSearchType === 'natural' }"
+              @click="setSearchType('natural')"
+            >
+              <n-icon size="16" class="type-icon">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"
+                  />
+                </svg>
+              </n-icon>
+              Natural Language
+            </div>
+            <div
+              class="type-pill"
+              :class="{ active: activeSearchType === 'tags' }"
+              @click="setSearchType('tags')"
+            >
+              <n-icon size="16" class="type-icon">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M5.5 7A1.5 1.5 0 1 0 7 5.5A1.5 1.5 0 0 0 5.5 7zm6.5 4.5c0-.83-.67-1.5-1.5-1.5S9 10.67 9 11.5s.67 1.5 1.5 1.5s1.5-.67 1.5-1.5zM12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14L2 9.27l6.91-1.01L12 2z"
+                  />
+                </svg>
+              </n-icon>
+              Tags
+            </div>
+            <div
+              class="type-pill"
+              :class="{ active: activeSearchType === 'spatial' }"
+              @click="setSearchType('spatial')"
+            >
+              <n-icon size="16" class="type-icon">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-2V2h-2v2H9V2H7v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM19 20H5V9h14v11z"
+                  />
+                </svg>
+              </n-icon>
+              Spatial
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Search Type Selector -->
-      <div class="search-type-section">
-        <div class="type-label">Search Type:</div>
-        <div class="type-pills">
-          <div
-            class="type-pill"
-            :class="{ active: activeSearchType === 'natural' }"
-            @click="setSearchType('natural')"
-          >
-            <n-icon size="16" class="type-icon">
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"
-                />
-              </svg>
-            </n-icon>
-            Natural Language
-          </div>
-          <div
-            class="type-pill"
-            :class="{ active: activeSearchType === 'tags' }"
-            @click="setSearchType('tags')"
-          >
-            <n-icon size="16" class="type-icon">
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M5.5 7A1.5 1.5 0 1 0 7 5.5A1.5 1.5 0 0 0 5.5 7zm6.5 4.5c0-.83-.67-1.5-1.5-1.5S9 10.67 9 11.5s.67 1.5 1.5 1.5s1.5-.67 1.5-1.5zM12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14L2 9.27l6.91-1.01L12 2z"
-                />
-              </svg>
-            </n-icon>
-            Tags
-          </div>
-          <div
-            class="type-pill"
-            :class="{ active: activeSearchType === 'spatial' }"
-            @click="setSearchType('spatial')"
-          >
-            <n-icon size="16" class="type-icon">
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-2V2h-2v2H9V2H7v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM19 20H5V9h14v11z"
-                />
-              </svg>
-            </n-icon>
-            Spatial
+        <!-- Search Mode -->
+        <div class="selector-group">
+          <div class="selector-label">Search Mode:</div>
+          <div class="mode-pills">
+            <div
+              class="mode-pill"
+              :class="{ active: globalMode === 'strict' }"
+              @click="globalMode = 'strict'"
+            >
+              <n-icon size="16" class="mode-icon">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5l1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                  />
+                </svg>
+              </n-icon>
+              Strict
+            </div>
+            <div
+              class="mode-pill"
+              :class="{ active: globalMode === 'flexible' }"
+              @click="globalMode = 'flexible'"
+            >
+              <n-icon size="16" class="mode-icon">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14L2 9.27l6.91-1.01L12 2z"
+                  />
+                </svg>
+              </n-icon>
+              Flexible
+            </div>
           </div>
         </div>
       </div>
@@ -633,79 +636,41 @@ const setExampleSearch = (
   margin-bottom: 32px;
 }
 
-.search-mode-section {
+/* Combined Search Selector Section */
+.search-selector-section {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  align-items: flex-start;
+  gap: 32px;
   margin-bottom: 24px;
   padding-bottom: 20px;
   border-bottom: 1px solid #2c2c32;
 }
 
-.mode-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #ffffffd1;
-  white-space: nowrap;
+.selector-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.mode-pills {
-  display: flex;
-  gap: 8px;
+.selector-group:first-child {
+  flex: 2;
+}
+
+.selector-group:last-child {
   flex: 1;
 }
 
-.mode-pill {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: 1px solid #2c2c32;
-  background-color: transparent;
-  color: #ffffff73;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.mode-pill:hover {
-  border-color: #2563eb;
-  color: #ffffffd1;
-}
-
-.mode-pill.active {
-  background-color: #2563eb;
-  border-color: #2563eb;
-  color: #ffffff;
-}
-
-.mode-icon {
-  flex-shrink: 0;
-}
-
-/* Search Type Selector */
-.search-type-section {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #2c2c32;
-}
-
-.type-label {
+.selector-label {
   font-size: 14px;
   font-weight: 500;
   color: #ffffffd1;
   white-space: nowrap;
 }
 
+/* Search Type Pills */
 .type-pills {
   display: flex;
   gap: 8px;
-  flex: 1;
   flex-wrap: wrap;
 }
 
@@ -740,6 +705,42 @@ const setExampleSearch = (
 }
 
 .type-icon {
+  flex-shrink: 0;
+}
+
+/* Search Mode Pills */
+.mode-pills {
+  display: flex;
+  gap: 8px;
+}
+
+.mode-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid #2c2c32;
+  background-color: transparent;
+  color: #ffffff73;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.mode-pill:hover {
+  border-color: #2563eb;
+  color: #ffffffd1;
+}
+
+.mode-pill.active {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+
+.mode-icon {
   flex-shrink: 0;
 }
 
@@ -962,26 +963,14 @@ const setExampleSearch = (
     margin-bottom: 24px;
   }
 
-  .search-mode-section {
+  .search-selector-section {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    gap: 20px;
   }
 
-  .mode-pills {
-    width: 100%;
-    justify-content: stretch;
-  }
-
-  .mode-pill {
+  .selector-group:first-child,
+  .selector-group:last-child {
     flex: 1;
-    justify-content: center;
-  }
-
-  .search-type-section {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
   }
 
   .type-pills {
@@ -992,6 +981,16 @@ const setExampleSearch = (
     flex: 1;
     justify-content: center;
     min-width: 0;
+  }
+
+  .mode-pills {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .mode-pill {
+    flex: 1;
+    justify-content: center;
   }
 
   .tags-row {
