@@ -583,6 +583,56 @@ const formatDate = (date: Date): string => {
   gap: 24px;
 }
 
+/* Tabs Section */
+.tabs-container {
+  background-color: #1a1a1f;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+/* Custom Tab Navigation */
+.tab-navigation {
+  display: flex;
+  background-color: #1a1a1f;
+  padding: 8px;
+  gap: 4px;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 12px 24px;
+  background-color: transparent;
+  border: none;
+  border-radius: 8px;
+  color: #ffffff73;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.tab-button:hover {
+  background-color: #2c2c32;
+  color: #ffffff99;
+}
+
+.tab-button.active {
+  background-color: #2c2c32;
+  color: #ffffffd1;
+}
+
+/* Tab Content Container */
+.tab-content-container {
+  background-color: #1a1a1f;
+}
+
+.tab-content {
+  padding: 32px;
+  background-color: #1a1a1f;
+}
+
 .header-content {
   flex: 1;
 }
