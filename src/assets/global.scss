@@ -147,6 +147,16 @@
   background-color: #18181c;
 }
 
+/* Photo skeleton for search and grids */
+.photo-skeleton {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #2c2c32;
+  width: 100%;
+  height: 100%;
+}
+
 .loading-animation {
   background: linear-gradient(90deg, #18181c 25%, #2c2c32 50%, #18181c 75%);
   background-size: 200% 100%;
