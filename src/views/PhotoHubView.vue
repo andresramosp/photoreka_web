@@ -340,78 +340,19 @@
                 >
               </div>
               <div class="photos-grid">
-                <div
+                <PhotoCardInfo
                   v-for="photo in catalogPhotos"
                   :key="photo.id"
-                  class="photo-card"
-                  :class="{ duplicate: photo.isDuplicate }"
-                >
-                  <div class="photo-thumbnail">
-                    <img :src="photo.url" :alt="photo.name" />
-
-                    <!-- Duplicate indicator -->
-                    <div v-if="photo.isDuplicate" class="duplicate-indicator">
-                      <n-icon size="16" color="#f59e0b">
-                        <svg viewBox="0 0 24 24">
-                          <path
-                            fill="currentColor"
-                            d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c.55 0 1 .45 1 1s-.45 1-1 1s-1-.45-1-1s.45-1 1-1zm1 11h-2v-6h2v6z"
-                          />
-                        </svg>
-                      </n-icon>
-                    </div>
-
-                    <!-- Photo overlay -->
-                    <div class="photo-overlay">
-                      <n-button circle size="small" class="overlay-btn">
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path
-                                fill="currentColor"
-                                d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5s5 2.24 5 5s-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3s3-1.34 3-3s-1.34-3-3-3z"
-                              />
-                            </svg>
-                          </n-icon>
-                        </template>
-                      </n-button>
-                      <n-button circle size="small" class="overlay-btn">
-                        <template #icon>
-                          <n-icon>
-                            <svg viewBox="0 0 24 24">
-                              <path
-                                fill="currentColor"
-                                d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"
-                              />
-                            </svg>
-                          </n-icon>
-                        </template>
-                      </n-button>
-                    </div>
-                  </div>
-
-                  <div class="photo-info">
-                    <div class="photo-name" :title="photo.name">
-                      {{ photo.name }}
-                    </div>
-                    <div class="photo-details">
-                      <span class="photo-size">{{ photo.size }}</span>
-                      <span class="photo-date">{{ photo.date }}</span>
-                    </div>
-                  </div>
-
-                  <div class="photo-status">
-                    <n-tag
-                      v-if="photo.isDuplicate"
-                      size="small"
-                      type="warning"
-                      class="duplicate-tag"
-                    >
-                      Duplicate
-                    </n-tag>
-                    <n-tag v-else size="small" type="success"> Analyzed </n-tag>
-                  </div>
-                </div>
+                  :photo="{
+                    ...photo,
+                    size: parseFloat(photo.size) * 1024 * 1024, // Convert MB to bytes
+                    status: 'analyzed',
+                    aiTags: Math.floor(Math.random() * 20) + 10,
+                    faces: Math.floor(Math.random() * 6),
+                  }"
+                  @select="togglePhotoSelection"
+                  @info="showPhotoInfo"
+                />
               </div>
             </div>
           </div>
