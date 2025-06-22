@@ -1144,10 +1144,6 @@ const setExampleSearch = (
     gap: 16px;
   }
 
-  .spatial-label {
-    text-align: left;
-  }
-
   .spatial-input {
     text-align: left;
   }
