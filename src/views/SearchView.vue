@@ -259,11 +259,10 @@
           <div class="spatial-input-row">
             <div class="spatial-grid">
               <div class="spatial-area">
-                <label class="spatial-label">Left Side</label>
                 <n-input
                   v-model:value="spatialLeft"
                   type="textarea"
-                  placeholder="Objects on the left side..."
+                  placeholder="Left side objects..."
                   :autosize="{ minRows: 1, maxRows: 2 }"
                   class="spatial-input"
                   @input="onSearchChange"
@@ -271,11 +270,10 @@
                 />
               </div>
               <div class="spatial-area">
-                <label class="spatial-label">Center</label>
                 <n-input
                   v-model:value="spatialCenter"
                   type="textarea"
-                  placeholder="Objects in the center..."
+                  placeholder="Center objects..."
                   :autosize="{ minRows: 1, maxRows: 2 }"
                   class="spatial-input center-input"
                   @input="onSearchChange"
@@ -283,11 +281,10 @@
                 />
               </div>
               <div class="spatial-area">
-                <label class="spatial-label">Right Side</label>
                 <n-input
                   v-model:value="spatialRight"
                   type="textarea"
-                  placeholder="Objects on the right side..."
+                  placeholder="Right side objects..."
                   :autosize="{ minRows: 1, maxRows: 2 }"
                   class="spatial-input"
                   @input="onSearchChange"
