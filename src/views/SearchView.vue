@@ -669,6 +669,7 @@ const spatialRight = ref("");
 
 // Carousel state
 const currentExampleIndex = ref(0);
+const isSliding = ref(false);
 let carouselInterval: number | null = null;
 
 // Example data for carousel
