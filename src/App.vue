@@ -1,0 +1,158 @@
+<template>
+  <n-config-provider :theme="darkTheme">
+    <!-- Desktop Layout -->
+    <n-layout
+      v-if="!isMobile"
+      has-sider
+      style="height: 100vh"
+      class="app-layout"
+    >
+      <DashboardSidebar />
+      <n-layout class="main-layout">
+        <DashboardHeader />
+        <n-layout-content class="main-content">
+          <router-view />
+        </n-layout-content>
+      </n-layout>
+    </n-layout>
+
+    <!-- Mobile Layout -->
+    <div v-else class="mobile-layout">
+      <!-- Mobile sidebar overlay - completely separate from layout -->
+      <DashboardSidebar
+        :mobile-menu-open="mobileMenuOpen"
+        @close-mobile-menu="mobileMenuOpen = false"
+      />
+
+      <!-- Main mobile content -->
+      <div class="mobile-content">
+        <DashboardHeader @toggle-mobile-menu="toggleMobileMenu" />
+        <div class="main-content mobile-main-content">
+          <router-view />
+        </div>
+      </div>
+    </div>
+  </n-config-provider>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted } from "vue";
+import { darkTheme } from "naive-ui";
+import DashboardSidebar from "./components/DashboardSidebar.vue";
+import DashboardHeader from "./components/DashboardHeader.vue";
+
+const mobileMenuOpen = ref(false);
+const isMobile = ref(false);
+
+const toggleMobileMenu = () => {
+  mobileMenuOpen.value = !mobileMenuOpen.value;
+};
+
+const checkIsMobile = () => {
+  isMobile.value = window.innerWidth < 768;
+  if (!isMobile.value) {
+    mobileMenuOpen.value = false;
+  }
+};
+
+onMounted(() => {
+  checkIsMobile();
+  window.addEventListener("resize", checkIsMobile);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", checkIsMobile);
+});
+</script>
+
+<style scoped>
+.app-layout {
+  position: relative;
+}
+
+.main-layout {
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 100vh;
+}
+
+.main-content {
+  padding: 24px;
+  background-color: #101014;
+  min-height: calc(100vh - 64px);
+  overflow-x: auto;
+  transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mobile layout styles */
+.mobile-layout {
+  position: relative;
+  height: 100vh;
+  background-color: #101014;
+}
+
+.mobile-content {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-main-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 16px;
+    background-color: #101014;
+    min-height: calc(100vh - 64px);
+    overflow-x: auto;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .main-content {
+    padding: 20px;
+  }
+}
+
+/* Large desktop styles */
+@media (min-width: 1200px) {
+  .main-content {
+    padding: 32px;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .main-content {
+    padding: 20px;
+  }
+}
+
+/* Large desktop styles */
+@media (min-width: 1200px) {
+  .main-content {
+    padding: 32px;
+  }
+}
+</style>
+
+<style>
+body {
+  margin: 0;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #101014;
+}
+
+#app {
+  height: 100vh;
+}
+</style>
