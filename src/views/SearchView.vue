@@ -549,7 +549,10 @@
         </div>
 
         <!-- Load More Button -->
-        <div class="load-more-container" v-if="hasMoreResults">
+        <div
+          class="load-more-container"
+          v-if="searchResults.length > 0 && hasMoreResults"
+        >
           <n-button
             size="large"
             :loading="isLoadingMore"
