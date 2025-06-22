@@ -914,6 +914,7 @@ const setExampleSearch = (
 
 .spatial-input {
   text-align: center;
+  width: 100%;
 }
 
 .center-input {
