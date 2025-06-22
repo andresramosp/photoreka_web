@@ -25,6 +25,10 @@ import {
   NSpin,
   NButtonGroup,
   NProgress,
+  NForm,
+  NFormItem,
+  NCheckbox,
+  NMessageProvider,
   darkTheme,
 } from "naive-ui";
 
@@ -59,6 +63,10 @@ const naive = create({
     NSpin,
     NButtonGroup,
     NProgress,
+    NForm,
+    NFormItem,
+    NCheckbox,
+    NMessageProvider,
   ],
 });
 
