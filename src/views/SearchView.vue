@@ -1207,13 +1207,7 @@ const setExampleSearch = (
 
 /* Note: Grid controls and photo grid styles moved to global.scss */
 
-/* Photo Skeleton */
-.photo-skeleton {
-  aspect-ratio: 1;
-  border-radius: 12px;
-  overflow: hidden;
-  background-color: #18181c;
-}
+/* Note: Photo skeleton styles moved to global.scss */
 
 /* Load More */
 .load-more-container {
