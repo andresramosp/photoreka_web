@@ -13,7 +13,7 @@
               :class="{ active: activeSearchType === 'natural' }"
               @click="setSearchType('natural')"
             >
-              <n-icon size="12" class="type-icon">
+              <n-icon size="14" class="type-icon">
                 <svg viewBox="0 0 24 24">
                   <path
                     fill="currentColor"
@@ -65,7 +65,7 @@
               :class="{ active: globalMode === 'strict' }"
               @click="globalMode = 'strict'"
             >
-              <n-icon size="12" class="mode-icon">
+              <n-icon size="14" class="mode-icon">
                 <svg viewBox="0 0 24 24">
                   <path
                     fill="currentColor"
@@ -639,27 +639,26 @@ const setExampleSearch = (
 .search-selector-section {
   display: flex;
   align-items: flex-start;
-  gap: 32px;
+  gap: 24px;
   margin-bottom: 24px;
   padding-bottom: 20px;
   border-bottom: 1px solid #2c2c32;
+  overflow: visible;
 }
 
 .selector-group {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  min-width: 0;
+  overflow: visible;
 }
 
 .selector-group:first-child {
-  flex: 1;
-  min-width: 400px;
+  flex: 1 1 auto;
 }
 
 .selector-group:last-child {
   flex: 0 0 auto;
-  min-width: 200px;
 }
 
 .selector-label {
@@ -674,27 +673,28 @@ const setExampleSearch = (
   display: flex;
   gap: 6px;
   flex-wrap: nowrap;
-  width: 100%;
   justify-content: flex-start;
+  overflow: visible;
 }
 
 .type-pill {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 8px 12px;
+  gap: 6px;
+  padding: 8px 14px;
   border-radius: 20px;
   border: 1px solid #2c2c32;
   background-color: transparent;
   color: #ffffff73;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
-  flex: 0 0 auto;
+  flex-shrink: 0;
   justify-content: center;
   text-align: center;
+  overflow: visible;
 }
 
 .type-pill:hover {
@@ -713,22 +713,20 @@ const setExampleSearch = (
 
 .type-icon {
   flex-shrink: 0;
-  width: 12px;
-  height: 12px;
 }
 
 /* Search Mode Pills */
 .mode-pills {
   display: flex;
   gap: 6px;
-  width: 100%;
   justify-content: flex-start;
+  overflow: visible;
 }
 
 .mode-pill {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   padding: 8px 16px;
   border-radius: 20px;
   border: 1px solid #2c2c32;
@@ -736,11 +734,12 @@ const setExampleSearch = (
   color: #ffffff73;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
-  flex: 0 0 auto;
+  flex-shrink: 0;
   justify-content: center;
+  overflow: visible;
 }
 
 .mode-pill:hover {
@@ -756,8 +755,6 @@ const setExampleSearch = (
 
 .mode-icon {
   flex-shrink: 0;
-  width: 12px;
-  height: 12px;
 }
 
 .search-content {
