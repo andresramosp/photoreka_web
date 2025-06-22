@@ -166,7 +166,7 @@ const onImageError = () => {
   position: relative;
   width: 100%;
   height: 100%;
-  background-color: #18181c;
+  background-color: #2c2c32;
 }
 
 .photo-image {
