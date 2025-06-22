@@ -38,288 +38,304 @@
       </div>
     </div>
 
-    <!-- Tabs Section -->
+    <!-- Custom Tabs Section -->
     <div class="tabs-container">
-      <n-tabs v-model:value="activeTab" type="segment" class="hub-tabs">
+      <!-- Tab Navigation -->
+      <div class="tab-navigation">
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'upload' }"
+          @click="activeTab = 'upload'"
+        >
+          Upload
+        </button>
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'processing' }"
+          @click="activeTab = 'processing'"
+        >
+          Processing
+        </button>
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'analyzed' }"
+          @click="activeTab = 'analyzed'"
+        >
+          Analyzed
+        </button>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="tab-content-container">
         <!-- Tab 1: Upload - Only upload area and drag & drop -->
-        <n-tab-pane name="upload" tab="Upload">
-          <div class="tab-content">
-            <div class="upload-section">
-              <div
-                class="upload-dropzone"
-                :class="{ 'drag-over': isDragOver }"
-                @dragenter.prevent="handleDragEnter"
-                @dragover.prevent="handleDragOver"
-                @dragleave.prevent="handleDragLeave"
-                @drop.prevent="handleDrop"
-                @click="triggerFileInput"
-              >
-                <div class="dropzone-content">
-                  <div class="upload-icon">
-                    <n-icon size="48" color="#8b5cf6">
+        <div v-show="activeTab === 'upload'" class="tab-content">
+          <div class="upload-section">
+            <div
+              class="upload-dropzone"
+              :class="{ 'drag-over': isDragOver }"
+              @dragenter.prevent="handleDragEnter"
+              @dragover.prevent="handleDragOver"
+              @dragleave.prevent="handleDragLeave"
+              @drop.prevent="handleDrop"
+              @click="triggerFileInput"
+            >
+              <div class="dropzone-content">
+                <div class="upload-icon">
+                  <n-icon size="48" color="#8b5cf6">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"
+                      />
+                    </svg>
+                  </n-icon>
+                </div>
+                <h3 class="dropzone-title">Drop your photos here</h3>
+                <p class="dropzone-subtitle">
+                  Drag and drop your images, or click to browse
+                </p>
+                <n-button type="primary" size="large" class="choose-files-btn">
+                  <template #icon>
+                    <n-icon>
                       <svg viewBox="0 0 24 24">
                         <path
                           fill="currentColor"
-                          d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"
+                          d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
                         />
                       </svg>
                     </n-icon>
+                  </template>
+                  Choose Files
+                </n-button>
+                <div class="file-formats">
+                  <span class="format-text"
+                    >Supports JPG, PNG, WebP up to 50MB per file</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Processing - Only photos being processed -->
+        <div v-show="activeTab === 'processing'" class="tab-content">
+          <div class="processing-section">
+            <!-- Processing Queue -->
+            <div v-if="processingPhotos.length > 0" class="processing-queue">
+              <div class="section-header">
+                <h3 class="section-title">AI Analysis in Progress</h3>
+                <span class="photo-count"
+                  >{{ processingPhotos.length }} photo{{
+                    processingPhotos.length !== 1 ? "s" : ""
+                  }}
+                  being analyzed</span
+                >
+              </div>
+              <div class="processing-list">
+                <div
+                  v-for="photo in processingPhotos"
+                  :key="photo.id"
+                  class="processing-item"
+                >
+                  <div class="processing-thumbnail">
+                    <img :src="photo.url" :alt="photo.name" />
+                    <div class="processing-overlay">
+                      <n-spin size="small" />
+                    </div>
                   </div>
-                  <h3 class="dropzone-title">Drop your photos here</h3>
-                  <p class="dropzone-subtitle">
-                    Drag and drop your images, or click to browse
-                  </p>
+                  <div class="processing-info">
+                    <span class="processing-name">{{ photo.name }}</span>
+                    <div class="processing-progress">
+                      <n-progress
+                        type="line"
+                        :percentage="photo.progress"
+                        :show-indicator="false"
+                      />
+                      <span class="progress-text"
+                        >{{ photo.progress }}% - {{ photo.stage }}</span
+                      >
+                    </div>
+                  </div>
+                  <div class="processing-status">
+                    <n-tag size="small" type="info">Analyzing</n-tag>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty Processing State -->
+            <div v-else class="empty-processing-state">
+              <div class="empty-state-content">
+                <n-icon size="64" color="#6b7280">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5l1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                    />
+                  </svg>
+                </n-icon>
+                <h3 class="empty-state-title">No photos being analyzed</h3>
+                <p class="empty-state-description">
+                  Upload photos in the Upload tab to see the AI analysis process
+                  here
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Analyzed - Only completed photos -->
+        <div v-show="activeTab === 'analyzed'" class="tab-content">
+          <div class="catalog-section">
+            <!-- Catalog Filters -->
+            <div v-if="catalogPhotos.length > 0" class="catalog-filters">
+              <div class="filters-left">
+                <n-input
+                  v-model:value="searchQuery"
+                  placeholder="Search your photos..."
+                  clearable
+                  class="search-input"
+                >
+                  <template #prefix>
+                    <n-icon>
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+                        />
+                      </svg>
+                    </n-icon>
+                  </template>
+                </n-input>
+                <n-select
+                  v-model:value="selectedFilter"
+                  :options="filterOptions"
+                  placeholder="Filter by..."
+                  class="filter-select"
+                />
+              </div>
+              <div class="filters-right">
+                <n-button-group>
                   <n-button
-                    type="primary"
-                    size="large"
-                    class="choose-files-btn"
+                    :type="viewMode === 'grid' ? 'primary' : 'default'"
+                    @click="viewMode = 'grid'"
                   >
                     <template #icon>
                       <n-icon>
                         <svg viewBox="0 0 24 24">
                           <path
                             fill="currentColor"
-                            d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                            d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"
                           />
                         </svg>
                       </n-icon>
                     </template>
-                    Choose Files
                   </n-button>
-                  <div class="file-formats">
-                    <span class="format-text"
-                      >Supports JPG, PNG, WebP up to 50MB per file</span
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </n-tab-pane>
-
-        <!-- Tab 2: Analyzing - Only photos being processed -->
-        <n-tab-pane name="analyzing" tab="Analyzing">
-          <div class="tab-content">
-            <div class="processing-section">
-              <!-- Processing Queue -->
-              <div v-if="processingPhotos.length > 0" class="processing-queue">
-                <div class="section-header">
-                  <h3 class="section-title">AI Analysis in Progress</h3>
-                  <span class="photo-count"
-                    >{{ processingPhotos.length }} photo{{
-                      processingPhotos.length !== 1 ? "s" : ""
-                    }}
-                    being analyzed</span
+                  <n-button
+                    :type="viewMode === 'list' ? 'primary' : 'default'"
+                    @click="viewMode = 'list'"
                   >
-                </div>
-                <div class="processing-list">
-                  <div
-                    v-for="photo in processingPhotos"
-                    :key="photo.id"
-                    class="processing-item"
-                  >
-                    <div class="processing-thumbnail">
-                      <img :src="photo.url" :alt="photo.name" />
-                      <div class="processing-overlay">
-                        <n-spin size="small" />
-                      </div>
-                    </div>
-                    <div class="processing-info">
-                      <span class="processing-name">{{ photo.name }}</span>
-                      <div class="processing-progress">
-                        <n-progress
-                          type="line"
-                          :percentage="photo.progress"
-                          :show-indicator="false"
-                        />
-                        <span class="progress-text"
-                          >{{ photo.progress }}% - {{ photo.stage }}</span
-                        >
-                      </div>
-                    </div>
-                    <div class="processing-status">
-                      <n-tag size="small" type="info">Analyzing</n-tag>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Empty Processing State -->
-              <div v-else class="empty-processing-state">
-                <div class="empty-state-content">
-                  <n-icon size="64" color="#6b7280">
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5l1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                      />
-                    </svg>
-                  </n-icon>
-                  <h3 class="empty-state-title">No photos being analyzed</h3>
-                  <p class="empty-state-description">
-                    Upload photos in the Upload tab to see the AI analysis
-                    process here
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </n-tab-pane>
-
-        <!-- Tab 3: Analyzed - Only completed photos -->
-        <n-tab-pane name="analyzed" tab="Analyzed">
-          <div class="tab-content">
-            <div class="catalog-section">
-              <!-- Catalog Filters -->
-              <div v-if="catalogPhotos.length > 0" class="catalog-filters">
-                <div class="filters-left">
-                  <n-input
-                    v-model:value="searchQuery"
-                    placeholder="Search your photos..."
-                    clearable
-                    class="search-input"
-                  >
-                    <template #prefix>
+                    <template #icon>
                       <n-icon>
                         <svg viewBox="0 0 24 24">
                           <path
                             fill="currentColor"
-                            d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+                            d="M4 14h4v-4H4v4zm0 5h4v-4H4v4zM4 9h4V5H4v4zm5 5h12v-4H9v4zm0 5h12v-4H9v4zM9 5v4h12V5H9z"
                           />
                         </svg>
                       </n-icon>
                     </template>
-                  </n-input>
-                  <n-select
-                    v-model:value="selectedFilter"
-                    :options="filterOptions"
-                    placeholder="Filter by..."
-                    class="filter-select"
-                  />
-                </div>
-                <div class="filters-right">
-                  <n-button-group>
-                    <n-button
-                      :type="viewMode === 'grid' ? 'primary' : 'default'"
-                      @click="viewMode = 'grid'"
-                    >
-                      <template #icon>
-                        <n-icon>
-                          <svg viewBox="0 0 24 24">
-                            <path
-                              fill="currentColor"
-                              d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"
-                            />
-                          </svg>
-                        </n-icon>
-                      </template>
-                    </n-button>
-                    <n-button
-                      :type="viewMode === 'list' ? 'primary' : 'default'"
-                      @click="viewMode = 'list'"
-                    >
-                      <template #icon>
-                        <n-icon>
-                          <svg viewBox="0 0 24 24">
-                            <path
-                              fill="currentColor"
-                              d="M4 14h4v-4H4v4zm0 5h4v-4H4v4zM4 9h4V5H4v4zm5 5h12v-4H9v4zm0 5h12v-4H9v4zM9 5v4h12V5H9z"
-                            />
-                          </svg>
-                        </n-icon>
-                      </template>
-                    </n-button>
-                  </n-button-group>
-                </div>
+                  </n-button>
+                </n-button-group>
               </div>
+            </div>
 
-              <!-- Analyzed Photos Grid -->
-              <div v-if="catalogPhotos.length > 0" class="catalog-photos">
-                <div class="section-header">
-                  <h3 class="section-title">Analyzed Photos</h3>
-                  <span class="photo-count"
-                    >{{ catalogPhotos.length }} photo{{
-                      catalogPhotos.length !== 1 ? "s" : ""
-                    }}
-                    analyzed</span
-                  >
-                </div>
-                <div
-                  class="photos-grid"
-                  :class="{ 'list-view': viewMode === 'list' }"
+            <!-- Analyzed Photos Grid -->
+            <div v-if="catalogPhotos.length > 0" class="catalog-photos">
+              <div class="section-header">
+                <h3 class="section-title">Analyzed Photos</h3>
+                <span class="photo-count"
+                  >{{ catalogPhotos.length }} photo{{
+                    catalogPhotos.length !== 1 ? "s" : ""
+                  }}
+                  analyzed</span
                 >
-                  <div
-                    v-for="photo in filteredCatalogPhotos"
-                    :key="photo.id"
-                    class="catalog-photo-card"
-                  >
-                    <div class="photo-thumbnail">
-                      <img :src="photo.url" :alt="photo.name" />
-                      <div class="photo-overlay">
-                        <n-button circle size="small" class="overlay-btn">
-                          <template #icon>
-                            <n-icon>
-                              <svg viewBox="0 0 24 24">
-                                <path
-                                  fill="currentColor"
-                                  d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5s5 2.24 5 5s-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3s3-1.34 3-3s-1.34-3-3-3z"
-                                />
-                              </svg>
-                            </n-icon>
-                          </template>
-                        </n-button>
-                        <n-button circle size="small" class="overlay-btn">
-                          <template #icon>
-                            <n-icon>
-                              <svg viewBox="0 0 24 24">
-                                <path
-                                  fill="currentColor"
-                                  d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14l-5-4.87l6.91-1.01L12 2z"
-                                />
-                              </svg>
-                            </n-icon>
-                          </template>
-                        </n-button>
-                      </div>
+              </div>
+              <div
+                class="photos-grid"
+                :class="{ 'list-view': viewMode === 'list' }"
+              >
+                <div
+                  v-for="photo in filteredCatalogPhotos"
+                  :key="photo.id"
+                  class="catalog-photo-card"
+                >
+                  <div class="photo-thumbnail">
+                    <img :src="photo.url" :alt="photo.name" />
+                    <div class="photo-overlay">
+                      <n-button circle size="small" class="overlay-btn">
+                        <template #icon>
+                          <n-icon>
+                            <svg viewBox="0 0 24 24">
+                              <path
+                                fill="currentColor"
+                                d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5s5 2.24 5 5s-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3s3-1.34 3-3s-1.34-3-3-3z"
+                              />
+                            </svg>
+                          </n-icon>
+                        </template>
+                      </n-button>
+                      <n-button circle size="small" class="overlay-btn">
+                        <template #icon>
+                          <n-icon>
+                            <svg viewBox="0 0 24 24">
+                              <path
+                                fill="currentColor"
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14l-5-4.87l6.91-1.01L12 2z"
+                              />
+                            </svg>
+                          </n-icon>
+                        </template>
+                      </n-button>
                     </div>
-                    <div class="photo-info">
-                      <span class="photo-name">{{ photo.name }}</span>
-                      <span class="photo-date">{{
-                        formatDate(photo.uploadDate)
-                      }}</span>
-                    </div>
-                    <div class="photo-analysis">
-                      <n-tag size="small" type="success">✓ Analyzed</n-tag>
-                      <span class="analysis-count"
-                        >{{ photo.tags?.length || 0 }} tags found</span
-                      >
-                    </div>
+                  </div>
+                  <div class="photo-info">
+                    <span class="photo-name">{{ photo.name }}</span>
+                    <span class="photo-date">{{
+                      formatDate(photo.uploadDate)
+                    }}</span>
+                  </div>
+                  <div class="photo-analysis">
+                    <n-tag size="small" type="success">✓ Analyzed</n-tag>
+                    <span class="analysis-count"
+                      >{{ photo.tags?.length || 0 }} tags found</span
+                    >
                   </div>
                 </div>
               </div>
+            </div>
 
-              <!-- Empty Analyzed State -->
-              <div v-else class="empty-catalog-state">
-                <div class="empty-state-content">
-                  <n-icon size="64" color="#6b7280">
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11.5-6L9 12.5l1.5 2L13 11l3 4H8l2.5-3zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"
-                      />
-                    </svg>
-                  </n-icon>
-                  <h3 class="empty-state-title">No analyzed photos yet</h3>
-                  <p class="empty-state-description">
-                    Once photos finish processing, they will appear here with AI
-                    insights
-                  </p>
-                </div>
+            <!-- Empty Analyzed State -->
+            <div v-else class="empty-catalog-state">
+              <div class="empty-state-content">
+                <n-icon size="64" color="#6b7280">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11.5-6L9 12.5l1.5 2L13 11l3 4H8l2.5-3zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"
+                    />
+                  </svg>
+                </n-icon>
+                <h3 class="empty-state-title">No analyzed photos yet</h3>
+                <p class="empty-state-description">
+                  Once photos finish processing, they will appear here with AI
+                  insights
+                </p>
               </div>
             </div>
           </div>
-        </n-tab-pane>
-      </n-tabs>
+        </div>
+      </div>
     </div>
 
     <!-- Hidden File Input -->
