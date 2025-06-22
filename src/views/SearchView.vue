@@ -593,11 +593,107 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
+import PhotoCard from "../components/PhotoCard.vue";
 
 // Search state
 const activeSearchType = ref<"natural" | "tags" | "spatial">("natural");
 const globalMode = ref<"strict" | "flexible">("flexible");
 const isSearching = ref(false);
+
+// Photo grid state
+const searchResults = ref<Photo[]>([]);
+const selectedPhotos = ref<string[]>([]);
+const gridColumns = ref(4);
+const isLoadingMore = ref(false);
+const hasMoreResults = ref(true);
+const skeletonCount = computed(() => gridColumns.value * 2);
+
+// Photo interface
+interface Photo {
+  id: string;
+  url: string;
+  title: string;
+  rating: number;
+  matchedTags?: string[];
+  width?: number;
+  height?: number;
+}
+
+// Mock photo data
+const mockPhotos: Photo[] = [
+  {
+    id: "1",
+    url: "https://images.pexels.com/photos/32669076/pexels-photo-32669076.jpeg",
+    title: "Iceland Mountains",
+    rating: 5,
+    matchedTags: ["landscape", "mountains", "nature"],
+    width: 6000,
+    height: 3376,
+  },
+  {
+    id: "2",
+    url: "https://images.pexels.com/photos/32657569/pexels-photo-32657569.jpeg",
+    title: "Sisters in Dresses",
+    rating: 4,
+    matchedTags: ["portrait", "people", "family"],
+    width: 7107,
+    height: 9600,
+  },
+  {
+    id: "3",
+    url: "https://images.pexels.com/photos/32666826/pexels-photo-32666826.jpeg",
+    title: "Carballino España",
+    rating: 3,
+    matchedTags: ["street", "urban", "architecture"],
+    width: 3648,
+    height: 2432,
+  },
+  {
+    id: "4",
+    url: "https://images.pexels.com/photos/3117550/pexels-photo-3117550.jpeg",
+    title: "Vintage Flowers",
+    rating: 4,
+    matchedTags: ["flowers", "vintage", "art"],
+    width: 2016,
+    height: 2016,
+  },
+  {
+    id: "5",
+    url: "https://images.pexels.com/photos/32675858/pexels-photo-32675858.jpeg",
+    title: "Beach Sunset",
+    rating: 5,
+    matchedTags: ["sunset", "beach", "ocean"],
+    width: 3888,
+    height: 2592,
+  },
+  {
+    id: "6",
+    url: "https://images.pexels.com/photos/32617822/pexels-photo-32617822.jpeg",
+    title: "City River View",
+    rating: 4,
+    matchedTags: ["city", "river", "sunset"],
+    width: 2639,
+    height: 3959,
+  },
+  {
+    id: "7",
+    url: "https://images.pexels.com/photos/983587/pexels-photo-983587.jpeg",
+    title: "Italian Pasta",
+    rating: 3,
+    matchedTags: ["food", "pasta", "wine"],
+    width: 2000,
+    height: 2000,
+  },
+  {
+    id: "8",
+    url: "https://images.pexels.com/photos/32642185/pexels-photo-32642185.jpeg",
+    title: "Scorpion Detail",
+    rating: 2,
+    matchedTags: ["wildlife", "macro", "animal"],
+    width: 3560,
+    height: 2608,
+  },
+];
 
 // ResizeObserver error handling
 let resizeObserverErrorHandler: ((event: ErrorEvent) => void) | null = null;
