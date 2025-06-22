@@ -140,6 +140,35 @@
             </div>
           </div>
 
+          <!-- Upload Skeletons during upload process -->
+          <div v-if="skeletonCount > 0" class="upload-queue">
+            <div class="section-header">
+              <h3 class="section-title">Uploading Photos</h3>
+              <span class="photo-count"
+                >{{ skeletonCount }} photos uploading</span
+              >
+            </div>
+            <div class="photos-grid">
+              <div
+                v-for="skeleton in skeletonCount"
+                :key="`skeleton-${skeleton}`"
+                class="photo-card skeleton-card"
+              >
+                <div class="photo-skeleton">
+                  <n-skeleton height="100%" />
+                </div>
+                <div class="photo-info">
+                  <n-skeleton text :repeat="1" width="60%" />
+                  <n-skeleton text :repeat="1" width="40%" />
+                </div>
+                <div class="upload-progress-indicator">
+                  <n-spin size="small" />
+                  <span class="upload-text">Uploading...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Recently Uploaded Photos in Upload Tab -->
           <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-section">
             <div class="section-header">
