@@ -201,7 +201,9 @@ const onImageError = () => {
 }
 
 .info-button {
-  @extend .info-button-base;
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  border: none !important;
+  backdrop-filter: blur(8px);
 }
 
 .top-overlay {
@@ -212,7 +214,12 @@ const onImageError = () => {
 }
 
 .stars {
-  @extend .stars-base;
+  display: flex;
+  gap: 2px;
+  padding: 4px 8px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
 }
 
 .bottom-overlay {
@@ -230,15 +237,36 @@ const onImageError = () => {
 }
 
 .tag {
-  @extend .tag-base;
+  background-color: #22c55e;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 8px;
+  text-transform: lowercase;
 }
 
 .tag-more {
-  @extend .tag-more-base;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 8px;
 }
 
 .selection-indicator {
-  @extend .selection-indicator-base;
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background-color: rgba(139, 92, 246, 0.9);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
 }
 
 /* Loading states */
