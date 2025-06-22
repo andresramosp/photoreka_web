@@ -499,6 +499,9 @@ const handleFiles = async (files: File[]) => {
   uploadedCount.value = 0;
   skeletonCount.value = imageFiles.length;
 
+  // Auto-switch to Processing tab when upload starts
+  activeTab.value = "processing";
+
   // Simulate uploading files one by one
   for (let i = 0; i < imageFiles.length; i++) {
     const file = imageFiles[i];
@@ -538,6 +541,9 @@ const handleFiles = async (files: File[]) => {
     });
 
     showDuplicateNotification.value = false;
+
+    // Auto-switch to Catalog tab when duplicate checking is done
+    activeTab.value = "catalog";
   }, 2000);
 };
 
