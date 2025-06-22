@@ -328,9 +328,6 @@
               />
             </svg>
           </n-icon>
-          <p class="inspiration-subtitle">
-            Use AI-powered search to find exactly what you're looking for
-          </p>
 
           <div class="search-examples">
             <h3 class="examples-title">Try something like...</h3>
