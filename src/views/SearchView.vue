@@ -519,15 +519,17 @@
 
       <div v-else class="search-results">
         <!-- Grid Controls -->
-        <div class="grid-controls">
-          <div class="results-info">
-            <span class="results-count"
+        <div class="grid-controls grid-controls-base">
+          <div class="results-info results-info-base">
+            <span class="results-count results-count-base"
               >{{ searchResults.length }} photos found</span
             >
-            <span class="results-query">{{ getCurrentQuery() }}</span>
+            <span class="results-query results-query-base">{{
+              getCurrentQuery()
+            }}</span>
           </div>
-          <div class="grid-size-controls">
-            <span class="grid-label">Columns:</span>
+          <div class="grid-size-controls grid-size-controls-base">
+            <span class="grid-label grid-label-base">Columns:</span>
             <n-button-group>
               <n-button
                 v-for="size in [3, 4, 5, 6]"
@@ -543,7 +545,10 @@
         </div>
 
         <!-- Photo Grid -->
-        <div class="photo-grid" :class="`grid-cols-${gridColumns}`">
+        <div
+          class="photo-grid photo-grid-base"
+          :class="`grid-cols-${gridColumns}`"
+        >
           <!-- Photo Cards -->
           <PhotoCard
             v-for="photo in searchResults"
