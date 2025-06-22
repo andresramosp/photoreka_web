@@ -29,26 +29,40 @@
         </div>
       </div>
 
-      <!-- Main Menu Section -->
+      <!-- First Menu Section: Dashboard, Photo Hub, Collections -->
       <n-menu
         :collapsed="false"
         :collapsed-width="64"
         :collapsed-icon-size="22"
-        :options="mainMenuOptions"
+        :options="firstSectionOptions"
         :value="activeKey"
         @update:value="handleMenuSelect"
         class="sidebar-menu"
       />
 
-      <!-- Divider -->
+      <!-- First Divider -->
       <div class="menu-divider"></div>
 
-      <!-- Secondary Menu Section -->
+      <!-- Second Menu Section: Search, Canvas, Curation -->
       <n-menu
         :collapsed="false"
         :collapsed-width="64"
         :collapsed-icon-size="22"
-        :options="secondaryMenuOptions"
+        :options="secondSectionOptions"
+        :value="activeKey"
+        @update:value="handleMenuSelect"
+        class="sidebar-menu"
+      />
+
+      <!-- Second Divider -->
+      <div class="menu-divider"></div>
+
+      <!-- Third Menu Section: Settings, Help -->
+      <n-menu
+        :collapsed="false"
+        :collapsed-width="64"
+        :collapsed-icon-size="22"
+        :options="thirdSectionOptions"
         :value="activeKey"
         @update:value="handleMenuSelect"
         class="sidebar-menu"
@@ -120,26 +134,40 @@
         </div>
       </div>
 
-      <!-- Main Menu Section -->
+      <!-- First Menu Section: Dashboard, Photo Hub, Collections -->
       <n-menu
         :collapsed="collapsed"
         :collapsed-width="64"
         :collapsed-icon-size="22"
-        :options="mainMenuOptions"
+        :options="firstSectionOptions"
         :value="activeKey"
         @update:value="handleMenuSelect"
         class="sidebar-menu"
       />
 
-      <!-- Divider -->
+      <!-- First Divider -->
       <div class="menu-divider" :class="{ collapsed }"></div>
 
-      <!-- Secondary Menu Section -->
+      <!-- Second Menu Section: Search, Canvas, Curation -->
       <n-menu
         :collapsed="collapsed"
         :collapsed-width="64"
         :collapsed-icon-size="22"
-        :options="secondaryMenuOptions"
+        :options="secondSectionOptions"
+        :value="activeKey"
+        @update:value="handleMenuSelect"
+        class="sidebar-menu"
+      />
+
+      <!-- Second Divider -->
+      <div class="menu-divider" :class="{ collapsed }"></div>
+
+      <!-- Third Menu Section: Settings, Help -->
+      <n-menu
+        :collapsed="collapsed"
+        :collapsed-width="64"
+        :collapsed-icon-size="22"
+        :options="thirdSectionOptions"
         :value="activeKey"
         @update:value="handleMenuSelect"
         class="sidebar-menu"
@@ -158,12 +186,12 @@
               </svg>
             </n-icon>
           </n-avatar>
-          <div v-if="!collapsed" class="user-info">
+          <div class="user-info" :class="{ collapsed }">
             <div class="user-name">John Doe</div>
             <div class="user-email">john@example.com</div>
           </div>
           <n-button
-            v-if="!collapsed"
+            :class="{ collapsed }"
             quaternary
             circle
             size="small"
@@ -205,8 +233,8 @@ const emit = defineEmits(["close-mobile-menu"]);
 
 const activeKey = computed(() => route.name as string);
 
-// Main tools section
-const mainMenuOptions: MenuOption[] = [
+// First section: Dashboard, Photo Hub, Collections
+const firstSectionOptions: MenuOption[] = [
   {
     label: "Dashboard",
     key: "dashboard",
@@ -217,6 +245,52 @@ const mainMenuOptions: MenuOption[] = [
             h("path", {
               fill: "currentColor",
               d: "M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z",
+            }),
+          ]),
+      }),
+  },
+  {
+    label: "Photo Hub",
+    key: "photo-hub",
+    icon: () =>
+      h(NIcon, null, {
+        default: () =>
+          h("svg", { viewBox: "0 0 24 24" }, [
+            h("path", {
+              fill: "currentColor",
+              d: "M9 12l2 2l4-4m6 2a9 9 0 11-18 0a9 9 0 0118 0z",
+            }),
+          ]),
+      }),
+  },
+  {
+    label: "Collections",
+    key: "collections",
+    icon: () =>
+      h(NIcon, null, {
+        default: () =>
+          h("svg", { viewBox: "0 0 24 24" }, [
+            h("path", {
+              fill: "currentColor",
+              d: "M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11.5-6L9 12.5l1.5 2L13 11l3 4H8l2.5-3zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z",
+            }),
+          ]),
+      }),
+  },
+];
+
+// Second section: Search, Canvas, Curation
+const secondSectionOptions: MenuOption[] = [
+  {
+    label: "Search",
+    key: "search",
+    icon: () =>
+      h(NIcon, null, {
+        default: () =>
+          h("svg", { viewBox: "0 0 24 24" }, [
+            h("path", {
+              fill: "currentColor",
+              d: "M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z",
             }),
           ]),
       }),
@@ -236,51 +310,23 @@ const mainMenuOptions: MenuOption[] = [
       }),
   },
   {
-    label: "Search",
-    key: "search",
+    label: "Curation",
+    key: "curation",
     icon: () =>
       h(NIcon, null, {
         default: () =>
           h("svg", { viewBox: "0 0 24 24" }, [
             h("path", {
               fill: "currentColor",
-              d: "M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z",
-            }),
-          ]),
-      }),
-  },
-  {
-    label: "Collections",
-    key: "collections",
-    icon: () =>
-      h(NIcon, null, {
-        default: () =>
-          h("svg", { viewBox: "0 0 24 24" }, [
-            h("path", {
-              fill: "currentColor",
-              d: "M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11.5-6L9 12.5l1.5 2L13 11l3 4H8l2.5-3zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z",
-            }),
-          ]),
-      }),
-  },
-  {
-    label: "Photo Hub",
-    key: "photo-hub",
-    icon: () =>
-      h(NIcon, null, {
-        default: () =>
-          h("svg", { viewBox: "0 0 24 24" }, [
-            h("path", {
-              fill: "currentColor",
-              d: "M9 12l2 2l4-4m6 2a9 9 0 11-18 0a9 9 0 0118 0z",
+              d: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5 19l3.5-4.5l2.5 3.01L14.5 12l4.5 7H5zm9-12c.83 0 1.5-.67 1.5-1.5S14.83 4 14 4s-1.5.67-1.5 1.5S13.17 7 14 7z",
             }),
           ]),
       }),
   },
 ];
 
-// Settings and help section
-const secondaryMenuOptions: MenuOption[] = [
+// Third section: Settings, Help
+const thirdSectionOptions: MenuOption[] = [
   {
     label: "Settings",
     key: "settings",
@@ -355,12 +401,14 @@ onUnmounted(() => {
   border-right: 1px solid #2c2c32 !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   z-index: 100 !important;
+  overflow: hidden !important;
 }
 
 .sidebar-content {
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow: hidden;
 }
 
 .logo-container {
@@ -400,6 +448,7 @@ onUnmounted(() => {
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
   overflow: hidden;
+  min-width: 0;
 }
 
 .app-name {
@@ -441,9 +490,16 @@ onUnmounted(() => {
 }
 
 .user-profile-section.collapsed {
-  padding: 16px 8px;
+  padding: 16px 0;
   display: flex;
   justify-content: center;
+  align-items: center;
+}
+
+.user-profile-section.collapsed .user-profile {
+  justify-content: center;
+  width: auto;
+  gap: 0;
 }
 
 .user-profile {
@@ -460,6 +516,16 @@ onUnmounted(() => {
 .user-info {
   flex: 1;
   min-width: 0;
+  opacity: 1;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.user-info.collapsed {
+  opacity: 0;
+  width: 0;
+  min-width: 0;
+  flex: 0;
 }
 
 .user-name {
@@ -468,6 +534,7 @@ onUnmounted(() => {
   color: #ffffffd1;
   line-height: 1.2;
   margin-bottom: 2px;
+  white-space: nowrap;
 }
 
 .user-email {
@@ -482,6 +549,15 @@ onUnmounted(() => {
 .logout-btn {
   flex-shrink: 0;
   color: #9ca3af;
+  opacity: 1;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logout-btn.collapsed {
+  opacity: 0;
+  width: 0;
+  min-width: 0;
+  flex: 0;
 }
 
 /* Mobile sidebar container */
