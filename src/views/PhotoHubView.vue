@@ -410,7 +410,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from "vue";
+import { ref, computed } from "vue";
 
 interface Photo {
   id: string;
@@ -419,6 +419,15 @@ interface Photo {
   url: string;
   file: File;
   uploadDate: Date;
+  isDuplicate: boolean;
+}
+
+interface CatalogPhoto {
+  id: string;
+  name: string;
+  size: string;
+  url: string;
+  date: string;
   isDuplicate: boolean;
 }
 
@@ -436,14 +445,62 @@ const showDuplicateNotification = ref(false);
 // Mock processing photos for the Processing tab
 const processingPhotos = ref<any[]>([]);
 
+// Static catalog photos for demonstration
+const catalogPhotos = ref<CatalogPhoto[]>([
+  {
+    id: "catalog-1",
+    name: "mountain-landscape.jpg",
+    size: "2.3 MB",
+    url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop",
+    date: "Nov 15, 2024",
+    isDuplicate: false,
+  },
+  {
+    id: "catalog-2",
+    name: "city-skyline.jpg",
+    size: "1.8 MB",
+    url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=400&fit=crop",
+    date: "Nov 14, 2024",
+    isDuplicate: false,
+  },
+  {
+    id: "catalog-3",
+    name: "beach-sunset.jpg",
+    size: "3.1 MB",
+    url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=400&fit=crop",
+    date: "Nov 13, 2024",
+    isDuplicate: false,
+  },
+  {
+    id: "catalog-4",
+    name: "forest-path.jpg",
+    size: "2.7 MB",
+    url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=400&fit=crop",
+    date: "Nov 12, 2024",
+    isDuplicate: false,
+  },
+  {
+    id: "catalog-5",
+    name: "mountain-lake.jpg",
+    size: "2.9 MB",
+    url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop&brightness=0.8",
+    date: "Nov 11, 2024",
+    isDuplicate: true,
+  },
+  {
+    id: "catalog-6",
+    name: "urban-street.jpg",
+    size: "1.5 MB",
+    url: "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=400&h=400&fit=crop",
+    date: "Nov 10, 2024",
+    isDuplicate: false,
+  },
+]);
+
 // Computed properties
 const overallProgress = computed(() => {
   if (totalFiles.value === 0) return 0;
   return (uploadedCount.value / totalFiles.value) * 100;
-});
-
-const recentUploads = computed(() => {
-  return uploadedPhotos.value.slice(-6); // Show last 6 uploaded photos in Upload tab
 });
 
 // Drag and drop handlers
