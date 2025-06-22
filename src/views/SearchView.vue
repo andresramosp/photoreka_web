@@ -1188,12 +1188,24 @@ const setExampleSearch = (
 
 /* Tablet Responsive */
 @media (min-width: 768px) and (max-width: 1024px) {
+  .search-input-row {
+    gap: 12px;
+  }
+
   .spatial-grid {
     gap: 16px;
   }
 
+  .spatial-content {
+    gap: 12px;
+  }
+
   .tags-row {
     gap: 16px;
+  }
+
+  .tags-content {
+    gap: 12px;
   }
 }
 </style>
