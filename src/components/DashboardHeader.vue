@@ -234,15 +234,20 @@ onUnmounted(() => {
   }
 
   .header-left {
-    max-width: calc(100% - 120px);
+    max-width: calc(100% - 140px);
   }
 
   .search-container {
     max-width: none;
+    flex-grow: 1;
   }
 
   .search-input {
     font-size: 14px;
+  }
+
+  .header-right {
+    gap: 8px;
   }
 }
 </style>
