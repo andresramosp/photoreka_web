@@ -144,14 +144,14 @@ export default {
 }
 
 .providers-list {
-  display: flex;
-  flex-direction: row;
+  display: flex !important;
+  flex-direction: row !important;
   gap: 8px;
 }
 
 .provider-button {
   width: 100%;
-  height: 40px;
+  height: 36px;
   border-radius: 6px;
   font-weight: 500;
   font-size: 13px;
@@ -190,16 +190,17 @@ export default {
 /* Mobile responsive */
 @media (max-width: 480px) {
   .providers-list {
-    gap: 10px;
+    gap: 6px;
+    flex-direction: row !important;
   }
 
   .provider-button {
-    height: 44px;
-    font-size: 13px;
+    height: 36px;
+    font-size: 12px;
   }
 
   .divider-text {
-    font-size: 13px;
+    font-size: 12px;
     padding: 0 12px;
   }
 }

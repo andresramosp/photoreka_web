@@ -290,11 +290,11 @@ export default {
 }
 
 .form-item {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .form-input {
-  height: 40px;
+  height: 36px;
   border-radius: 6px;
 }
 
@@ -337,11 +337,11 @@ export default {
 
 .submit-button {
   width: 100%;
-  height: 40px;
+  height: 36px;
   border-radius: 6px;
   font-weight: 600;
   font-size: 14px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .submit-button:disabled {
@@ -352,7 +352,7 @@ export default {
 .email-divider {
   position: relative;
   text-align: center;
-  margin: 12px 0;
+  margin: 8px 0;
 }
 
 .email-divider::before {

@@ -45,7 +45,7 @@ import TrovaLogo from "./TrovaLogo.vue";
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 420px;
+  max-width: 380px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -53,21 +53,21 @@ import TrovaLogo from "./TrovaLogo.vue";
 
 .auth-content {
   background-color: #1a1a1f;
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid #2c2c32;
-  padding: 24px;
+  padding: 20px;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
   width: 100%;
 }
 
 .auth-header {
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .auth-subtitle {
-  margin: 16px 0 0 0;
-  font-size: 16px;
+  margin: 8px 0 0 0;
+  font-size: 14px;
   color: #ffffff73;
   font-weight: 400;
 }
