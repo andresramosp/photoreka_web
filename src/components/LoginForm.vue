@@ -225,14 +225,6 @@ export default {
 .form-item {
   margin-bottom: 14px;
 }
-  font-size: 16px;
-  color: #ffffff73;
-  font-weight: 400;
-}
-
-.form-item {
-  margin-bottom: 20px;
-}
 
 .form-input {
   height: 48px;
@@ -288,7 +280,7 @@ export default {
 }
 
 .email-divider::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 0;
