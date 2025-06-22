@@ -936,10 +936,7 @@ const setGridColumns = (columns: number) => {
   opacity: 0.8;
 }
 
-.photo-skeleton {
-  aspect-ratio: 1;
-  overflow: hidden;
-}
+/* Note: Photo skeleton styles moved to global.scss */
 
 .photo-thumbnail {
   position: relative;
