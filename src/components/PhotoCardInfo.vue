@@ -262,11 +262,7 @@ const formatDate = (date: Date | string | undefined): string => {
   background-color: #2c2c32;
 }
 
-.photo-skeleton {
-  width: 100%;
-  height: 100%;
-  background-color: #2c2c32;
-}
+/* Note: Photo skeleton styles moved to global.scss */
 
 /* Info overlay */
 .info-overlay {
