@@ -1,0 +1,123 @@
+<template>
+  <AuthLayout>
+    <div class="auth-tabs">
+      <div class="tab-buttons">
+        <button
+          class="tab-button"
+          :class="{ active: currentMode === 'login' }"
+          @click="currentMode = 'login'"
+        >
+          Iniciar Sesión
+        </button>
+        <button
+          class="tab-button"
+          :class="{ active: currentMode === 'register' }"
+          @click="currentMode = 'register'"
+        >
+          Registrarse
+        </button>
+      </div>
+
+      <div class="tab-content">
+        <Transition name="slide" mode="out-in">
+          <LoginForm
+            v-if="currentMode === 'login'"
+            @switch-mode="handleSwitchMode"
+          />
+          <RegisterForm v-else @switch-mode="handleSwitchMode" />
+        </Transition>
+      </div>
+    </div>
+  </AuthLayout>
+</template>
+
+<script setup lang="ts">
+import { ref } from "vue";
+import AuthLayout from "../components/AuthLayout.vue";
+import LoginForm from "../components/LoginForm.vue";
+import RegisterForm from "../components/RegisterForm.vue";
+
+type AuthMode = "login" | "register";
+
+const currentMode = ref<AuthMode>("login");
+
+const handleSwitchMode = (mode: AuthMode) => {
+  currentMode.value = mode;
+};
+</script>
+
+<style scoped>
+.auth-tabs {
+  width: 100%;
+}
+
+.tab-buttons {
+  display: flex;
+  background-color: #2c2c32;
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 32px;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 12px 24px;
+  background: none;
+  border: none;
+  color: #ffffff73;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-button:hover {
+  color: #ffffffd1;
+}
+
+.tab-button.active {
+  background-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.tab-content {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Transition animations */
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.slide-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.slide-enter-to,
+.slide-leave-from {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .tab-buttons {
+    margin-bottom: 24px;
+  }
+
+  .tab-button {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
+</style>
