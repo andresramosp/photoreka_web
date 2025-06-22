@@ -671,8 +671,25 @@ const formatDate = (date: Date): string => {
   margin: 0 0 32px 0;
 }
 
-.choose-files-btn {
+.upload-buttons {
+  display: flex;
+  gap: 16px;
   margin-bottom: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.upload-btn {
+  min-width: 180px;
+}
+
+.google-photos-btn {
+  border-color: #4285f4 !important;
+  color: #4285f4 !important;
+}
+
+.google-photos-btn:hover {
+  background-color: rgba(66, 133, 244, 0.1) !important;
 }
 
 .file-formats {
