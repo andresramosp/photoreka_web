@@ -1660,8 +1660,17 @@ const setExampleSearch = (
     font-size: 16px;
   }
 
+  .examples-carousel {
+    padding: 12px 0;
+  }
+
   .carousel-container {
     height: 70px;
+    overflow: visible;
+  }
+
+  .carousel-item {
+    transform: translateX(-60px);
   }
 
   .example-card {
