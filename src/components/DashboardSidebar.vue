@@ -401,12 +401,14 @@ onUnmounted(() => {
   border-right: 1px solid #2c2c32 !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   z-index: 100 !important;
+  overflow: hidden !important;
 }
 
 .sidebar-content {
   display: flex;
   flex-direction: column;
   height: 100%;
+  overflow: hidden;
 }
 
 .logo-container {
@@ -446,6 +448,7 @@ onUnmounted(() => {
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
   overflow: hidden;
+  min-width: 0;
 }
 
 .app-name {
@@ -487,9 +490,15 @@ onUnmounted(() => {
 }
 
 .user-profile-section.collapsed {
-  padding: 16px 8px;
+  padding: 16px 0;
   display: flex;
   justify-content: center;
+  align-items: center;
+}
+
+.user-profile-section.collapsed .user-profile {
+  justify-content: center;
+  width: auto;
 }
 
 .user-profile {
