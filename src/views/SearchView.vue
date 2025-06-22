@@ -257,7 +257,7 @@
           key="spatial-search"
           class="spatial-search-section"
         >
-          <div class="spatial-content">
+          <div class="spatial-input-row">
             <div class="spatial-grid">
               <div class="spatial-area">
                 <label class="spatial-label">Left Side</label>
@@ -265,7 +265,7 @@
                   v-model:value="spatialLeft"
                   type="textarea"
                   placeholder="Objects on the left side..."
-                  :autosize="{ minRows: 2, maxRows: 4 }"
+                  :autosize="{ minRows: 1, maxRows: 2 }"
                   class="spatial-input"
                   @input="onSearchChange"
                   :key="`spatial-left-${activeSearchType}`"
@@ -277,7 +277,7 @@
                   v-model:value="spatialCenter"
                   type="textarea"
                   placeholder="Objects in the center..."
-                  :autosize="{ minRows: 2, maxRows: 4 }"
+                  :autosize="{ minRows: 1, maxRows: 2 }"
                   class="spatial-input center-input"
                   @input="onSearchChange"
                   :key="`spatial-center-${activeSearchType}`"
@@ -289,7 +289,7 @@
                   v-model:value="spatialRight"
                   type="textarea"
                   placeholder="Objects on the right side..."
-                  :autosize="{ minRows: 2, maxRows: 4 }"
+                  :autosize="{ minRows: 1, maxRows: 2 }"
                   class="spatial-input"
                   @input="onSearchChange"
                   :key="`spatial-right-${activeSearchType}`"
@@ -320,7 +320,7 @@
                 secondary
                 @click="clearSearch"
                 :disabled="!hasSearchQuery"
-                class="clear-button"
+                class="clear-button icon-only"
               >
                 <template #icon>
                   <n-icon>
@@ -332,11 +332,10 @@
                     </svg>
                   </n-icon>
                 </template>
-                Clear
               </n-button>
             </div>
           </div>
-        </div>
+        >
       </div>
     </div>
 
@@ -366,7 +365,7 @@
                 @click="
                   setExampleSearch(
                     'natural',
-                    'sunset photos with people on the beach',
+                    'sunset photos with people on the beach'
                   )
                 "
               >
@@ -379,7 +378,7 @@
                 @click="
                   setExampleSearch(
                     'natural',
-                    'close-up portraits with red background',
+                    'close-up portraits with red background'
                   )
                 "
               >
@@ -392,7 +391,7 @@
                 @click="
                   setExampleSearch(
                     'natural',
-                    'landscape photos with mountains and snow',
+                    'landscape photos with mountains and snow'
                   )
                 "
               >
@@ -411,7 +410,7 @@
                     'tags',
                     null,
                     ['landscape', 'mountains'],
-                    ['people'],
+                    ['people']
                   )
                 "
               >
@@ -426,7 +425,7 @@
                     'tags',
                     null,
                     ['portrait', 'indoor'],
-                    ['black-white'],
+                    ['black-white']
                   )
                 "
               >
@@ -441,7 +440,7 @@
                     'tags',
                     null,
                     ['sunset', 'beach', 'outdoor'],
-                    [],
+                    []
                   )
                 "
               >
@@ -464,7 +463,7 @@
                     null,
                     'tree',
                     'person',
-                    'building',
+                    'building'
                   )
                 "
               >
@@ -482,7 +481,7 @@
                     null,
                     'mountains',
                     'lake',
-                    'forest',
+                    'forest'
                   )
                 "
               >
@@ -535,7 +534,7 @@ onMounted(() => {
   resizeObserverErrorHandler = (e: ErrorEvent) => {
     if (
       e.message.includes(
-        "ResizeObserver loop completed with undelivered notifications",
+        "ResizeObserver loop completed with undelivered notifications"
       )
     ) {
       e.preventDefault();
@@ -682,7 +681,7 @@ const setExampleSearch = (
   excluded?: string[],
   left?: string,
   center?: string,
-  right?: string,
+  right?: string
 ) => {
   clearSearch();
   activeSearchType.value = type;
