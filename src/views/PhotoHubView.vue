@@ -113,6 +113,7 @@
                     ghost
                     size="large"
                     class="upload-btn google-photos-btn"
+                    @click="handleGooglePhotosImport"
                   >
                     <template #icon>
                       <n-icon>
