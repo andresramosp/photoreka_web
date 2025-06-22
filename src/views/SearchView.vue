@@ -107,7 +107,7 @@
               v-model:value="naturalQuery"
               type="textarea"
               placeholder="Describe what you're looking for... e.g., 'sunset photos with people on the beach' or 'close-up portraits with red background'"
-              :autosize="{ minRows: 2, maxRows: 4 }"
+              :autosize="{ minRows: 1, maxRows: 2 }"
               class="natural-input"
               @input="onSearchChange"
               :key="`natural-${activeSearchType}`"
@@ -136,7 +136,7 @@
                 secondary
                 @click="clearSearch"
                 :disabled="!hasSearchQuery"
-                class="clear-button"
+                class="clear-button icon-only"
               >
                 <template #icon>
                   <n-icon>
@@ -148,7 +148,6 @@
                     </svg>
                   </n-icon>
                 </template>
-                Clear
               </n-button>
             </div>
           </div>
