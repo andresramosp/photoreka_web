@@ -380,10 +380,11 @@ interface Photo {
   id: string;
   name: string;
   size: number;
-  url: string;
+  url?: string;
   file: File;
-  uploadDate: Date;
+  uploadDate?: Date;
   isDuplicate: boolean;
+  isUploading?: boolean;
 }
 
 interface CatalogPhoto {
