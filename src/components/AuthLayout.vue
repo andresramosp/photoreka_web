@@ -4,7 +4,7 @@
       <div class="auth-content">
         <div class="auth-header">
           <TrovaLogo size="large" />
-          <p class="auth-subtitle">Tu plataforma de gestión fotográfica</p>
+          <p class="auth-subtitle">Your photo management platform</p>
         </div>
 
         <div class="auth-form-container">
@@ -12,9 +12,7 @@
         </div>
 
         <div class="auth-footer">
-          <p class="footer-text">
-            © 2024 Trova. Todos los derechos reservados.
-          </p>
+          <p class="footer-text">© 2024 Trova. All rights reserved.</p>
         </div>
       </div>
     </div>
