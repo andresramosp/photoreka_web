@@ -5,7 +5,7 @@
       <router-view v-if="!userStore.isAuthenticated" />
 
       <!-- Profile Setup Layout (authenticated but special case) -->
-      <router-view v-else-if="$route.name === 'profile-setup'" />
+      <router-view v-else-if="route.name === 'profile-setup'" />
 
       <!-- Authenticated App Layout -->
       <template v-else>
@@ -48,12 +48,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
+import { useRoute } from "vue-router";
 import { darkTheme } from "naive-ui";
 import type { GlobalThemeOverrides } from "naive-ui";
 import { useUserStore } from "./stores/userStore";
 import DashboardSidebar from "./components/DashboardSidebar.vue";
 import DashboardHeader from "./components/DashboardHeader.vue";
 
+const route = useRoute();
 const userStore = useUserStore();
 
 const themeOverrides: GlobalThemeOverrides = {

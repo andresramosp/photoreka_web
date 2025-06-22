@@ -1,5 +1,5 @@
 <template>
-  <AuthLayout>
+  <ProfileLayout>
     <div class="profile-selection-content">
       <div class="profile-header">
         <h1 class="profile-title">What is your preferred style?</h1>
@@ -205,14 +205,14 @@
         </n-button>
       </div>
     </div>
-  </AuthLayout>
+  </ProfileLayout>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useMessage } from "naive-ui";
-import AuthLayout from "../components/AuthLayout.vue";
+import ProfileLayout from "../components/ProfileLayout.vue";
 
 const router = useRouter();
 const message = useMessage();
@@ -308,7 +308,6 @@ const skipProfile = () => {
 <style scoped>
 .profile-selection-content {
   width: 100%;
-  max-width: 700px;
   margin: 0 auto;
 }
 
