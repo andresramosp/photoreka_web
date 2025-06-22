@@ -1383,12 +1383,17 @@ const setExampleSearch = (
   top: 0;
   left: 0;
   right: 0;
+  bottom: 0;
   width: 100%;
+  height: 100%;
   opacity: 0;
   transform: translateX(-80px);
   transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   pointer-events: none;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .carousel-item.active {
