@@ -406,6 +406,9 @@ const totalFiles = ref(0);
 const skeletonCount = ref(0);
 const showDuplicateNotification = ref(false);
 
+// Photo selection state
+const selectedPhotos = ref<string[]>([]);
+
 // Mock processing photos for the Processing tab
 const processingPhotos = ref<any[]>([]);
 
