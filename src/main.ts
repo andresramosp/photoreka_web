@@ -59,7 +59,6 @@ const naive = create({
     NSpin,
     NButtonGroup,
     NProgress,
-    NNotification,
   ],
 });
 
