@@ -130,6 +130,23 @@
                     </template>
                     Choose Files
                   </n-button>
+                  <n-button
+                    type="default"
+                    size="large"
+                    class="google-photos-btn"
+                  >
+                    <template #icon>
+                      <n-icon>
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            fill="currentColor"
+                            d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 13L13.5 11.5C12.1 10.1 9.9 10.1 8.5 11.5L3 17V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V9ZM5 19L8.5 15.5C9.3 14.7 10.7 14.7 11.5 15.5L13 17L19 11V19H5Z"
+                          />
+                        </svg>
+                      </n-icon>
+                    </template>
+                    Import from Google Photos
+                  </n-button>
                 </div>
                 <div class="file-formats">
                   <span class="format-text"
@@ -140,17 +157,67 @@
             </div>
           </div>
 
-          <!-- Recently Uploaded Photos in Upload Tab -->
-          <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-section">
+          <!-- Upload Skeletons during upload process -->
+          <div v-if="skeletonCount > 0" class="upload-queue">
             <div class="section-header">
-              <h3 class="section-title">Recently Uploaded</h3>
+              <h3 class="section-title">Uploading Photos</h3>
               <span class="photo-count"
-                >{{ uploadedPhotos.length }} photos</span
+                >{{ skeletonCount }} photos uploading</span
               >
             </div>
             <div class="photos-grid">
               <div
-                v-for="photo in recentUploads"
+                v-for="skeleton in skeletonCount"
+                :key="`skeleton-${skeleton}`"
+                class="photo-card skeleton-card"
+              >
+                <div class="photo-skeleton">
+                  <n-skeleton height="100%" />
+                </div>
+                <div class="photo-info">
+                  <n-skeleton text :repeat="1" width="60%" />
+                  <n-skeleton text :repeat="1" width="40%" />
+                </div>
+                <div class="upload-progress-indicator">
+                  <n-spin size="small" />
+                  <span class="upload-text">Uploading...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recently Uploaded Photos in Upload Tab -->
+          <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-section">
+            <div class="section-header">
+              <h3 class="section-title">Uploaded Photos</h3>
+              <div class="header-controls">
+                <span class="photo-count"
+                  >{{ uploadedPhotos.length }} photos</span
+                >
+                <n-button
+                  type="primary"
+                  size="medium"
+                  class="analyze-btn"
+                  @click="analyzePhotos"
+                  :disabled="uploadedPhotos.length === 0"
+                >
+                  <template #icon>
+                    <n-icon>
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                        />
+                      </svg>
+                    </n-icon>
+                  </template>
+                  Analyze Photos
+                </n-button>
+              </div>
+            </div>
+            <div class="photos-grid">
+              <div
+                v-for="photo in uploadedPhotos"
                 :key="photo.id"
                 class="photo-card"
                 :class="{ duplicate: photo.isDuplicate }"
@@ -288,17 +355,17 @@
         <!-- Tab 3: Catalog -->
         <div v-show="activeTab === 'catalog'" class="tab-content">
           <div class="catalog-section">
-            <!-- All Uploaded Photos -->
-            <div v-if="uploadedPhotos.length > 0" class="catalog-photos">
+            <!-- Static Example Photos -->
+            <div class="catalog-photos">
               <div class="section-header">
                 <h3 class="section-title">Photo Catalog</h3>
                 <span class="photo-count"
-                  >{{ uploadedPhotos.length }} photos</span
+                  >{{ catalogPhotos.length }} photos</span
                 >
               </div>
               <div class="photos-grid">
                 <div
-                  v-for="photo in uploadedPhotos"
+                  v-for="photo in catalogPhotos"
                   :key="photo.id"
                   class="photo-card"
                   :class="{ duplicate: photo.isDuplicate }"
@@ -352,12 +419,8 @@
                       {{ photo.name }}
                     </div>
                     <div class="photo-details">
-                      <span class="photo-size">{{
-                        formatFileSize(photo.size)
-                      }}</span>
-                      <span class="photo-date">{{
-                        formatDate(photo.uploadDate)
-                      }}</span>
+                      <span class="photo-size">{{ photo.size }}</span>
+                      <span class="photo-date">{{ photo.date }}</span>
                     </div>
                   </div>
 
@@ -370,28 +433,9 @@
                     >
                       Duplicate
                     </n-tag>
-                    <n-tag v-else size="small" type="success"> Uploaded </n-tag>
+                    <n-tag v-else size="small" type="success"> Analyzed </n-tag>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            <!-- Empty Catalog State -->
-            <div v-else class="empty-catalog-state">
-              <div class="empty-state-content">
-                <n-icon size="64" color="#6b7280">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11.5-6L9 12.5l1.5 2L13 11l3 4H8l2.5-3zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"
-                    />
-                  </svg>
-                </n-icon>
-                <h3 class="empty-state-title">No photos in catalog yet</h3>
-                <p class="empty-state-description">
-                  Upload photos in the Upload tab to see them here once
-                  processed
-                </p>
               </div>
             </div>
           </div>
@@ -412,7 +456,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from "vue";
+import { ref, computed } from "vue";
 
 interface Photo {
   id: string;
@@ -421,6 +465,15 @@ interface Photo {
   url: string;
   file: File;
   uploadDate: Date;
+  isDuplicate: boolean;
+}
+
+interface CatalogPhoto {
+  id: string;
+  name: string;
+  size: string;
+  url: string;
+  date: string;
   isDuplicate: boolean;
 }
 
@@ -438,14 +491,62 @@ const showDuplicateNotification = ref(false);
 // Mock processing photos for the Processing tab
 const processingPhotos = ref<any[]>([]);
 
+// Static catalog photos for demonstration
+const catalogPhotos = ref<CatalogPhoto[]>([
+  {
+    id: "catalog-1",
+    name: "mountain-landscape.jpg",
+    size: "2.3 MB",
+    url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop",
+    date: "Nov 15, 2024",
+    isDuplicate: false,
+  },
+  {
+    id: "catalog-2",
+    name: "city-skyline.jpg",
+    size: "1.8 MB",
+    url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=400&fit=crop",
+    date: "Nov 14, 2024",
+    isDuplicate: false,
+  },
+  {
+    id: "catalog-3",
+    name: "beach-sunset.jpg",
+    size: "3.1 MB",
+    url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=400&fit=crop",
+    date: "Nov 13, 2024",
+    isDuplicate: false,
+  },
+  {
+    id: "catalog-4",
+    name: "forest-path.jpg",
+    size: "2.7 MB",
+    url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=400&fit=crop",
+    date: "Nov 12, 2024",
+    isDuplicate: false,
+  },
+  {
+    id: "catalog-5",
+    name: "mountain-lake.jpg",
+    size: "2.9 MB",
+    url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop&brightness=0.8",
+    date: "Nov 11, 2024",
+    isDuplicate: true,
+  },
+  {
+    id: "catalog-6",
+    name: "urban-street.jpg",
+    size: "1.5 MB",
+    url: "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=400&h=400&fit=crop",
+    date: "Nov 10, 2024",
+    isDuplicate: false,
+  },
+]);
+
 // Computed properties
 const overallProgress = computed(() => {
   if (totalFiles.value === 0) return 0;
   return (uploadedCount.value / totalFiles.value) * 100;
-});
-
-const recentUploads = computed(() => {
-  return uploadedPhotos.value.slice(-6); // Show last 6 uploaded photos in Upload tab
 });
 
 // Drag and drop handlers
@@ -499,8 +600,7 @@ const handleFiles = async (files: File[]) => {
   uploadedCount.value = 0;
   skeletonCount.value = imageFiles.length;
 
-  // Auto-switch to Processing tab when upload starts
-  activeTab.value = "processing";
+  // Stay in Upload tab during upload process
 
   // Simulate uploading files one by one
   for (let i = 0; i < imageFiles.length; i++) {
@@ -528,6 +628,26 @@ const handleFiles = async (files: File[]) => {
   isUploading.value = false;
   skeletonCount.value = 0;
 
+  // Show duplicate checking notification after upload completes
+  showDuplicateNotification.value = true;
+
+  // Simulate duplicate checking process
+  setTimeout(() => {
+    // Randomly mark some photos as duplicates (20% chance)
+    uploadedPhotos.value.forEach((photo) => {
+      if (Math.random() < 0.2) {
+        photo.isDuplicate = true;
+      }
+    });
+
+    showDuplicateNotification.value = false;
+  }, 2000);
+};
+
+// Function to analyze photos manually
+const analyzePhotos = () => {
+  if (uploadedPhotos.value.length === 0) return;
+
   // Show duplicate checking notification
   showDuplicateNotification.value = true;
 
@@ -541,9 +661,6 @@ const handleFiles = async (files: File[]) => {
     });
 
     showDuplicateNotification.value = false;
-
-    // Auto-switch to Catalog tab when duplicate checking is done
-    activeTab.value = "catalog";
   }, 2000);
 };
 
@@ -761,13 +878,19 @@ const formatDate = (date: Date): string => {
   min-width: 180px;
 }
 
+.google-photos-btn {
+  min-width: 220px;
+}
+
 .file-formats {
   color: #ffffff73;
   font-size: 14px;
 }
 
 /* Photos Section */
-.photos-section {
+.photos-section,
+.uploaded-photos-section,
+.upload-queue {
   margin-top: 24px;
 }
 
@@ -789,6 +912,10 @@ const formatDate = (date: Date): string => {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.analyze-btn {
+  height: 36px;
 }
 
 .photo-count {
