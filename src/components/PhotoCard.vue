@@ -256,7 +256,7 @@ const onImageError = () => {
   position: absolute;
   top: 8px;
   left: 8px;
-  background-color: rgba(37, 99, 235, 0.9);
+  background-color: rgba(139, 92, 246, 0.9);
   border-radius: 50%;
   width: 32px;
   height: 32px;
