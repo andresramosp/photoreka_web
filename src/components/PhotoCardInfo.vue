@@ -8,7 +8,7 @@
       <img
         :src="photo.url"
         :alt="photo.name"
-        class="photo-image photo-image-base"
+        class="photo-image"
         @load="onImageLoad"
         @error="onImageError"
       />
