@@ -1594,6 +1594,52 @@ const setExampleSearch = (
   .examples-grid {
     gap: 12px;
   }
+
+  /* Photo grid mobile adjustments */
+  .grid-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .grid-size-controls {
+    gap: 8px;
+  }
+
+  .grid-label {
+    font-size: 12px;
+  }
+
+  .photo-grid {
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .photo-grid.grid-cols-3,
+  .photo-grid.grid-cols-4,
+  .photo-grid.grid-cols-5,
+  .photo-grid.grid-cols-6 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .load-more-container {
+    margin: 24px 0;
+  }
+
+  .load-more-button {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .selection-info {
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    transform: none;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
 }
 
 /* Tablet Responsive */
