@@ -1,9 +1,6 @@
 <template>
   <div class="login-form">
-    <div class="form-header">
-      <h2 class="form-title">Log In</h2>
-      <p class="form-description">Access your Trova account</p>
-    </div>
+    <div class="form-header">Access your Trova account</div>
 
     <AuthProviders />
 
@@ -213,13 +210,10 @@ export default {
 .form-header {
   text-align: center;
   margin-bottom: 16px;
-}
-
-.form-description {
-  margin: 0;
   font-size: 16px;
   color: #ffffff73;
   font-weight: 400;
+  line-height: 1.6;
 }
 
 .form-item {
@@ -323,14 +317,6 @@ export default {
 @media (max-width: 480px) {
   .form-header {
     margin-bottom: 24px;
-  }
-
-  .form-title {
-    font-size: 24px;
-  }
-
-  .form-description {
-    font-size: 14px;
   }
 
   .form-input,
