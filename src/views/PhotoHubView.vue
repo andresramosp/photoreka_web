@@ -425,6 +425,7 @@ interface Photo {
 }
 
 // Reactive state
+const activeTab = ref("upload");
 const isDragOver = ref(false);
 const fileInput = ref<HTMLInputElement>();
 const uploadedPhotos = ref<Photo[]>([]);
@@ -433,6 +434,9 @@ const uploadedCount = ref(0);
 const totalFiles = ref(0);
 const skeletonCount = ref(0);
 const showDuplicateNotification = ref(false);
+
+// Mock processing photos for the Processing tab
+const processingPhotos = ref<any[]>([]);
 
 // Computed properties
 const overallProgress = computed(() => {
