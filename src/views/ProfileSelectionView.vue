@@ -1,229 +1,218 @@
 <template>
-  <div class="profile-selection-layout">
-    <div class="profile-container">
-      <div class="profile-content">
-        <div class="profile-header">
-          <TrovaLogo size="normal" />
-          <h1 class="profile-title">What is your preferred style?</h1>
-          <p class="profile-subtitle">
-            Help us customize your Trova experience
-          </p>
-        </div>
+  <AuthLayout>
+    <div class="profile-selection-content">
+      <div class="profile-header">
+        <h1 class="profile-title">What is your preferred style?</h1>
+        <p class="profile-subtitle">Help us customize your Trova experience</p>
+      </div>
 
-        <!-- Main Style Categories -->
-        <div class="main-categories">
-          <h3 class="section-title">Choose up to 2 main styles</h3>
-          <div class="categories-grid">
-            <div
-              class="category-card"
-              :class="{
-                selected: selectedCategories.includes('street'),
-                disabled:
-                  selectedCategories.length >= 2 &&
-                  !selectedCategories.includes('street'),
-              }"
-              @click="toggleCategory('street')"
-            >
-              <div class="category-icon">
-                <n-icon size="32">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M14.12 4L12 2L9.88 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-5.88zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5s5 2.24 5 5s-2.24 5-5 5zm0-8c-1.65 0-3 1.35-3 3s1.35 3 3 3s3-1.35 3-3s-1.35-3-3-3z"
-                    />
-                  </svg>
-                </n-icon>
-              </div>
-              <h4 class="category-title">Street Photography</h4>
-              <p class="category-description">
-                Capture life as it happens in urban environments
-              </p>
-            </div>
-
-            <div
-              class="category-card"
-              :class="{
-                selected: selectedCategories.includes('documentary'),
-                disabled:
-                  selectedCategories.length >= 2 &&
-                  !selectedCategories.includes('documentary'),
-              }"
-              @click="toggleCategory('documentary')"
-            >
-              <div class="category-icon">
-                <n-icon size="32">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"
-                    />
-                  </svg>
-                </n-icon>
-              </div>
-              <h4 class="category-title">Documentary Photography</h4>
-              <p class="category-description">
-                Tell stories and document real-world events
-              </p>
-            </div>
-
-            <div
-              class="category-card"
-              :class="{
-                selected: selectedCategories.includes('artistic'),
-                disabled:
-                  selectedCategories.length >= 2 &&
-                  !selectedCategories.includes('artistic'),
-              }"
-              @click="toggleCategory('artistic')"
-            >
-              <div class="category-icon">
-                <n-icon size="32">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14l-5-4.87l6.91-1.01L12 2z"
-                    />
-                  </svg>
-                </n-icon>
-              </div>
-              <h4 class="category-title">Artistic Photography</h4>
-              <p class="category-description">
-                Create expressive and creative visual art
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Detailed Tags -->
-        <div class="detailed-tags">
-          <h3 class="section-title">Or select specific interests</h3>
-          <p class="section-subtitle">
-            Choose tags that best describe your photography interests
-          </p>
-
-          <div class="tags-sections">
-            <!-- Street Photography Tags -->
-            <div class="tag-category">
-              <h4 class="tag-category-title">
-                <n-icon size="18" class="category-title-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M14.12 4L12 2L9.88 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-5.88z"
-                    />
-                  </svg>
-                </n-icon>
-                Street Photography
-              </h4>
-              <div class="tags-grid">
-                <n-tag
-                  v-for="tag in streetTags"
-                  :key="tag"
-                  :type="selectedTags.includes(tag) ? 'primary' : 'default'"
-                  :bordered="false"
-                  checkable
-                  :checked="selectedTags.includes(tag)"
-                  @update:checked="toggleTag(tag)"
-                  class="custom-tag"
-                >
-                  {{ tag }}
-                </n-tag>
-              </div>
-            </div>
-
-            <!-- Documentary Photography Tags -->
-            <div class="tag-category">
-              <h4 class="tag-category-title">
-                <n-icon size="18" class="category-title-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
-                    />
-                  </svg>
-                </n-icon>
-                Documentary Photography
-              </h4>
-              <div class="tags-grid">
-                <n-tag
-                  v-for="tag in documentaryTags"
-                  :key="tag"
-                  :type="selectedTags.includes(tag) ? 'primary' : 'default'"
-                  :bordered="false"
-                  checkable
-                  :checked="selectedTags.includes(tag)"
-                  @update:checked="toggleTag(tag)"
-                  class="custom-tag"
-                >
-                  {{ tag }}
-                </n-tag>
-              </div>
-            </div>
-
-            <!-- Artistic Photography Tags -->
-            <div class="tag-category">
-              <h4 class="tag-category-title">
-                <n-icon size="18" class="category-title-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14l-5-4.87l6.91-1.01L12 2z"
-                    />
-                  </svg>
-                </n-icon>
-                Artistic Photography
-              </h4>
-              <div class="tags-grid">
-                <n-tag
-                  v-for="tag in artisticTags"
-                  :key="tag"
-                  :type="selectedTags.includes(tag) ? 'primary' : 'default'"
-                  :bordered="false"
-                  checkable
-                  :checked="selectedTags.includes(tag)"
-                  @update:checked="toggleTag(tag)"
-                  class="custom-tag"
-                >
-                  {{ tag }}
-                </n-tag>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="profile-actions">
-          <n-button
-            type="primary"
-            size="large"
-            :disabled="
-              selectedCategories.length === 0 && selectedTags.length === 0
-            "
-            @click="completeProfile"
-            class="complete-button"
+      <!-- Main Style Categories -->
+      <div class="main-categories">
+        <h3 class="section-title">Choose up to 2 main styles</h3>
+        <div class="categories-grid">
+          <div
+            class="category-card"
+            :class="{
+              selected: selectedCategories.includes('street'),
+              disabled:
+                selectedCategories.length >= 2 &&
+                !selectedCategories.includes('street'),
+            }"
+            @click="toggleCategory('street')"
           >
-            Complete Setup
-          </n-button>
-          <n-button text size="medium" @click="skipProfile" class="skip-button">
-            Skip for now
-          </n-button>
+            <div class="category-icon">
+              <n-icon size="32">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M14.12 4L12 2L9.88 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-5.88zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5s5 2.24 5 5s-2.24 5-5 5zm0-8c-1.65 0-3 1.35-3 3s1.35 3 3 3s3-1.35 3-3s-1.35-3-3-3z"
+                  />
+                </svg>
+              </n-icon>
+            </div>
+            <h4 class="category-title">Street Photography</h4>
+            <p class="category-description">
+              Capture life as it happens in urban environments
+            </p>
+          </div>
+
+          <div
+            class="category-card"
+            :class="{
+              selected: selectedCategories.includes('documentary'),
+              disabled:
+                selectedCategories.length >= 2 &&
+                !selectedCategories.includes('documentary'),
+            }"
+            @click="toggleCategory('documentary')"
+          >
+            <div class="category-icon">
+              <n-icon size="32">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"
+                  />
+                </svg>
+              </n-icon>
+            </div>
+            <h4 class="category-title">Documentary Photography</h4>
+            <p class="category-description">
+              Tell stories and document real-world events
+            </p>
+          </div>
+
+          <div
+            class="category-card"
+            :class="{
+              selected: selectedCategories.includes('artistic'),
+              disabled:
+                selectedCategories.length >= 2 &&
+                !selectedCategories.includes('artistic'),
+            }"
+            @click="toggleCategory('artistic')"
+          >
+            <div class="category-icon">
+              <n-icon size="32">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14l-5-4.87l6.91-1.01L12 2z"
+                  />
+                </svg>
+              </n-icon>
+            </div>
+            <h4 class="category-title">Artistic Photography</h4>
+            <p class="category-description">
+              Create expressive and creative visual art
+            </p>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Background decoration -->
-    <div class="profile-background">
-      <div class="bg-pattern"></div>
-      <div class="bg-gradient"></div>
+      <!-- Detailed Tags -->
+      <div class="detailed-tags">
+        <h3 class="section-title">Or select specific interests</h3>
+        <p class="section-subtitle">
+          Choose tags that best describe your photography interests
+        </p>
+
+        <div class="tags-sections">
+          <!-- Street Photography Tags -->
+          <div class="tag-category">
+            <h4 class="tag-category-title">
+              <n-icon size="18" class="category-title-icon">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M14.12 4L12 2L9.88 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-5.88z"
+                  />
+                </svg>
+              </n-icon>
+              Street Photography
+            </h4>
+            <div class="tags-grid">
+              <n-tag
+                v-for="tag in streetTags"
+                :key="tag"
+                :type="selectedTags.includes(tag) ? 'primary' : 'default'"
+                :bordered="false"
+                checkable
+                :checked="selectedTags.includes(tag)"
+                @update:checked="toggleTag(tag)"
+                class="custom-tag"
+              >
+                {{ tag }}
+              </n-tag>
+            </div>
+          </div>
+
+          <!-- Documentary Photography Tags -->
+          <div class="tag-category">
+            <h4 class="tag-category-title">
+              <n-icon size="18" class="category-title-icon">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                  />
+                </svg>
+              </n-icon>
+              Documentary Photography
+            </h4>
+            <div class="tags-grid">
+              <n-tag
+                v-for="tag in documentaryTags"
+                :key="tag"
+                :type="selectedTags.includes(tag) ? 'primary' : 'default'"
+                :bordered="false"
+                checkable
+                :checked="selectedTags.includes(tag)"
+                @update:checked="toggleTag(tag)"
+                class="custom-tag"
+              >
+                {{ tag }}
+              </n-tag>
+            </div>
+          </div>
+
+          <!-- Artistic Photography Tags -->
+          <div class="tag-category">
+            <h4 class="tag-category-title">
+              <n-icon size="18" class="category-title-icon">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14l-5-4.87l6.91-1.01L12 2z"
+                  />
+                </svg>
+              </n-icon>
+              Artistic Photography
+            </h4>
+            <div class="tags-grid">
+              <n-tag
+                v-for="tag in artisticTags"
+                :key="tag"
+                :type="selectedTags.includes(tag) ? 'primary' : 'default'"
+                :bordered="false"
+                checkable
+                :checked="selectedTags.includes(tag)"
+                @update:checked="toggleTag(tag)"
+                class="custom-tag"
+              >
+                {{ tag }}
+              </n-tag>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="profile-actions">
+        <n-button
+          type="primary"
+          size="large"
+          :disabled="
+            selectedCategories.length === 0 && selectedTags.length === 0
+          "
+          @click="completeProfile"
+          class="complete-button"
+        >
+          Complete Setup
+        </n-button>
+        <n-button text size="medium" @click="skipProfile" class="skip-button">
+          Skip for now
+        </n-button>
+      </div>
     </div>
-  </div>
+  </AuthLayout>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useMessage } from "naive-ui";
-import TrovaLogo from "../components/TrovaLogo.vue";
+import AuthLayout from "../components/AuthLayout.vue";
 
 const router = useRouter();
 const message = useMessage();
@@ -317,34 +306,10 @@ const skipProfile = () => {
 </script>
 
 <style scoped>
-.profile-selection-layout {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  background-color: #101014;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 20px;
-  box-sizing: border-box;
-  overflow-y: auto;
-}
-
-.profile-container {
-  position: relative;
-  z-index: 2;
+.profile-selection-content {
   width: 100%;
-  max-width: 800px;
+  max-width: 700px;
   margin: 0 auto;
-}
-
-.profile-content {
-  background-color: #1a1a1f;
-  border-radius: 16px;
-  border: 1px solid #2c2c32;
-  padding: 40px;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
-  width: 100%;
 }
 
 .profile-header {
@@ -518,75 +483,8 @@ const skipProfile = () => {
   color: #ffffff73;
 }
 
-/* Background decoration */
-.profile-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1;
-}
-
-.bg-pattern {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image:
-    radial-gradient(
-      circle at 25% 25%,
-      rgba(37, 99, 235, 0.1) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      circle at 75% 75%,
-      rgba(139, 92, 246, 0.1) 0%,
-      transparent 50%
-    );
-  background-size:
-    800px 800px,
-    600px 600px;
-  background-position:
-    0 0,
-    200px 200px;
-  animation: float 20s infinite ease-in-out;
-}
-
-.bg-gradient {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(37, 99, 235, 0.05) 0%,
-    transparent 70%
-  );
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translate(0, 0) rotate(0deg);
-  }
-  33% {
-    transform: translate(30px, -30px) rotate(1deg);
-  }
-  66% {
-    transform: translate(-20px, 20px) rotate(-1deg);
-  }
-}
-
 /* Responsive design */
 @media (max-width: 768px) {
-  .profile-content {
-    padding: 28px 24px;
-    border-radius: 12px;
-  }
-
   .profile-title {
     font-size: 28px;
   }
@@ -611,17 +509,6 @@ const skipProfile = () => {
 }
 
 @media (max-width: 480px) {
-  .profile-selection-layout {
-    padding: 12px;
-  }
-
-  .profile-content {
-    padding: 24px 20px;
-    border-radius: 8px;
-    border: none;
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
-  }
-
   .profile-title {
     font-size: 24px;
   }
@@ -637,22 +524,6 @@ const skipProfile = () => {
 
   .category-description {
     font-size: 12px;
-  }
-}
-
-/* Animation for content entrance */
-.profile-content {
-  animation: slideUp 0.6s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 </style>

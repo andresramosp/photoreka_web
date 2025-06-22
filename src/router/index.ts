@@ -31,7 +31,7 @@ const router = createRouter({
       name: "profile-setup",
       component: ProfileSelectionView,
       meta: {
-        requiresAuth: true,
+        requiresGuest: true,
       },
     },
     {
