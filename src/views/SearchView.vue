@@ -798,6 +798,7 @@ const performSearch = async () => {
   if (!hasSearchQuery.value) return;
 
   isSearching.value = true;
+  selectedPhotos.value = [];
   console.log("Performing search:", {
     type: activeSearchType.value,
     mode: globalMode.value,
@@ -806,6 +807,12 @@ const performSearch = async () => {
 
   // Simulate API call
   await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  // Simulate search results based on current search type
+  const results = [...mockPhotos].sort(() => Math.random() - 0.5);
+  searchResults.value = results.slice(0, Math.min(8, results.length));
+  hasMoreResults.value = results.length > 8;
+
   isSearching.value = false;
 };
 
