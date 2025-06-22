@@ -499,8 +499,22 @@
       </div>
 
       <div v-else-if="isSearching" class="search-loading">
-        <n-spin size="large" />
-        <p class="loading-text">Searching through your photos...</p>
+        <!-- Search Loading Message -->
+        <div class="loading-message">
+          <n-spin size="large" />
+          <p class="loading-text">Searching through your photos...</p>
+        </div>
+
+        <!-- Skeleton Grid -->
+        <div class="photo-grid" :class="`grid-cols-${gridColumns}`">
+          <div
+            v-for="n in skeletonCount"
+            :key="`search-skeleton-${n}`"
+            class="photo-skeleton"
+          >
+            <n-skeleton height="100%" />
+          </div>
+        </div>
       </div>
 
       <div v-else class="search-results">
