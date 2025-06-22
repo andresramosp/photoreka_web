@@ -1,7 +1,7 @@
 <template>
   <div class="auth-providers">
     <div class="providers-divider">
-      <span class="divider-text">O continúa con</span>
+      <span class="divider-text">Or continue with</span>
     </div>
 
     <div class="providers-list">
@@ -14,7 +14,7 @@
         <template #icon>
           <GoogleIcon />
         </template>
-        Google Photos
+        Google
       </n-button>
 
       <n-button
@@ -98,13 +98,13 @@ const handleProviderLogin = async (provider: "google" | "facebook") => {
 
     if (result.success) {
       message.success(
-        `¡Bienvenido! Has iniciado sesión con ${provider === "google" ? "Google" : "Facebook"}.`,
+        `Welcome! You've logged in with ${provider === "google" ? "Google" : "Facebook"}.`,
       );
     } else {
-      message.error(result.error || "Error al iniciar sesión");
+      message.error(result.error || "Error logging in");
     }
   } catch (error) {
-    message.error("Error inesperado al iniciar sesión");
+    message.error("Unexpected error logging in");
   } finally {
     isLoading.value = false;
     activeProvider.value = null;
