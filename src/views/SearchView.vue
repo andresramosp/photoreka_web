@@ -1139,10 +1139,16 @@ const setExampleSearch = (
     gap: 16px;
   }
 
+  .spatial-input-row {
+    flex-direction: column;
+    gap: 20px;
+  }
+
   .spatial-grid {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    width: 100%;
   }
 
   .spatial-area {
@@ -1151,10 +1157,7 @@ const setExampleSearch = (
 
   .spatial-input {
     text-align: left;
-  }
-
-  .spatial-input-row {
-    gap: 20px;
+    width: 100%;
   }
 
   .search-actions-inline {
