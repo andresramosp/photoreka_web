@@ -354,144 +354,71 @@
           <div class="search-examples">
             <h3 class="examples-title">Try something like...</h3>
 
-            <!-- Natural Language Examples -->
-            <div v-if="activeSearchType === 'natural'" class="examples-grid">
+            <!-- Carousel Container -->
+            <div class="examples-carousel">
+              <!-- Natural Language Examples -->
               <div
-                class="example-card"
-                @click="
-                  setExampleSearch(
-                    'natural',
-                    'sunset photos with people on the beach',
-                  )
-                "
+                v-if="activeSearchType === 'natural'"
+                class="carousel-container"
               >
-                <div class="example-text">
-                  "sunset photos with people on the beach"
+                <div
+                  v-for="(example, index) in naturalExamples"
+                  :key="`natural-${index}`"
+                  class="example-card carousel-item"
+                  :class="{ active: currentExampleIndex === index }"
+                  @click="setExampleSearch('natural', example.query)"
+                >
+                  <div class="example-text">{{ example.text }}</div>
                 </div>
               </div>
-              <div
-                class="example-card"
-                @click="
-                  setExampleSearch(
-                    'natural',
-                    'close-up portraits with red background',
-                  )
-                "
-              >
-                <div class="example-text">
-                  "close-up portraits with red background"
-                </div>
-              </div>
-              <div
-                class="example-card"
-                @click="
-                  setExampleSearch(
-                    'natural',
-                    'landscape photos with mountains and snow',
-                  )
-                "
-              >
-                <div class="example-text">
-                  "landscape photos with mountains and snow"
-                </div>
-              </div>
-            </div>
 
-            <!-- Tags Examples -->
-            <div v-else-if="activeSearchType === 'tags'" class="examples-grid">
+              <!-- Tags Examples -->
               <div
-                class="example-card"
-                @click="
-                  setExampleSearch(
-                    'tags',
-                    null,
-                    ['landscape', 'mountains'],
-                    ['people'],
-                  )
-                "
+                v-else-if="activeSearchType === 'tags'"
+                class="carousel-container"
               >
-                <div class="example-text">
-                  Include: landscape, mountains • Exclude: people
+                <div
+                  v-for="(example, index) in tagExamples"
+                  :key="`tags-${index}`"
+                  class="example-card carousel-item"
+                  :class="{ active: currentExampleIndex === index }"
+                  @click="
+                    setExampleSearch(
+                      'tags',
+                      null,
+                      example.included,
+                      example.excluded,
+                    )
+                  "
+                >
+                  <div class="example-text">{{ example.text }}</div>
                 </div>
               </div>
-              <div
-                class="example-card"
-                @click="
-                  setExampleSearch(
-                    'tags',
-                    null,
-                    ['portrait', 'indoor'],
-                    ['black-white'],
-                  )
-                "
-              >
-                <div class="example-text">
-                  Include: portrait, indoor • Exclude: black-white
-                </div>
-              </div>
-              <div
-                class="example-card"
-                @click="
-                  setExampleSearch(
-                    'tags',
-                    null,
-                    ['sunset', 'beach', 'outdoor'],
-                    [],
-                  )
-                "
-              >
-                <div class="example-text">Include: sunset, beach, outdoor</div>
-              </div>
-            </div>
 
-            <!-- Spatial Examples -->
-            <div
-              v-else-if="activeSearchType === 'spatial'"
-              class="examples-grid"
-            >
+              <!-- Spatial Examples -->
               <div
-                class="example-card"
-                @click="
-                  setExampleSearch(
-                    'spatial',
-                    null,
-                    null,
-                    null,
-                    'tree',
-                    'person',
-                    'building',
-                  )
-                "
+                v-else-if="activeSearchType === 'spatial'"
+                class="carousel-container"
               >
-                <div class="example-text">
-                  Left: tree • Center: person • Right: building
+                <div
+                  v-for="(example, index) in spatialExamples"
+                  :key="`spatial-${index}`"
+                  class="example-card carousel-item"
+                  :class="{ active: currentExampleIndex === index }"
+                  @click="
+                    setExampleSearch(
+                      'spatial',
+                      null,
+                      null,
+                      null,
+                      example.left,
+                      example.center,
+                      example.right,
+                    )
+                  "
+                >
+                  <div class="example-text">{{ example.text }}</div>
                 </div>
-              </div>
-              <div
-                class="example-card"
-                @click="
-                  setExampleSearch(
-                    'spatial',
-                    null,
-                    null,
-                    null,
-                    'mountains',
-                    'lake',
-                    'forest',
-                  )
-                "
-              >
-                <div class="example-text">
-                  Left: mountains • Center: lake • Right: forest
-                </div>
-              </div>
-              <div
-                class="example-card"
-                @click="
-                  setExampleSearch('spatial', null, null, null, '', 'face', '')
-                "
-              >
-                <div class="example-text">Center: face</div>
               </div>
             </div>
           </div>
