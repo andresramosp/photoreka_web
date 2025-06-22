@@ -159,10 +159,10 @@
 
           <!-- Unified Photos Section -->
           <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-section">
-            <div class="section-header">
-              <h3 class="section-title">Photos</h3>
-              <div class="header-controls">
-                <span class="photo-count">
+            <!-- Grid Controls -->
+            <div class="grid-controls grid-controls-base">
+              <div class="results-info results-info-base">
+                <span class="results-count results-count-base">
                   {{ uploadedPhotos.filter((p) => !p.isUploading).length }}/{{
                     uploadedPhotos.length
                   }}
@@ -174,6 +174,22 @@
                     uploading)</span
                   >
                 </span>
+              </div>
+              <div class="header-controls">
+                <div class="grid-size-controls grid-size-controls-base">
+                  <span class="grid-label grid-label-base">Columns:</span>
+                  <n-button-group>
+                    <n-button
+                      v-for="size in [3, 4, 5, 6]"
+                      :key="size"
+                      :type="gridColumns === size ? 'primary' : 'default'"
+                      size="small"
+                      @click="setGridColumns(size)"
+                    >
+                      {{ size }}
+                    </n-button>
+                  </n-button-group>
+                </div>
                 <n-button
                   type="primary"
                   size="medium"
@@ -197,7 +213,12 @@
                 </n-button>
               </div>
             </div>
-            <div class="photos-grid">
+
+            <!-- Photo Grid -->
+            <div
+              class="photos-grid photo-grid-base"
+              :class="`grid-cols-${gridColumns}`"
+            >
               <PhotoCardInfo
                 v-for="photo in uploadedPhotos"
                 :key="photo.id"
