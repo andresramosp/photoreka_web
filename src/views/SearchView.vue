@@ -271,7 +271,6 @@
               />
             </svg>
           </n-icon>
-          <h2 class="inspiration-title">Discover your photos</h2>
           <p class="inspiration-subtitle">
             Use AI-powered search to find exactly what you're looking for
           </p>
