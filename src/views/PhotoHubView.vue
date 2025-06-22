@@ -554,7 +554,7 @@ const handleFiles = async (files: File[]) => {
   uploadedCount.value = 0;
   skeletonCount.value = imageFiles.length;
 
-  // Auto-switch to Processing tab when upload starts
+  // Show Processing tab during upload
   activeTab.value = "processing";
 
   // Simulate uploading files one by one
@@ -583,6 +583,14 @@ const handleFiles = async (files: File[]) => {
   isUploading.value = false;
   skeletonCount.value = 0;
 
+  // Switch back to Upload tab to show uploaded photos
+  activeTab.value = "upload";
+};
+
+// Function to analyze photos manually
+const analyzePhotos = () => {
+  if (uploadedPhotos.value.length === 0) return;
+
   // Show duplicate checking notification
   showDuplicateNotification.value = true;
 
@@ -596,9 +604,6 @@ const handleFiles = async (files: File[]) => {
     });
 
     showDuplicateNotification.value = false;
-
-    // Auto-switch to Catalog tab when duplicate checking is done
-    activeTab.value = "catalog";
   }, 2000);
 };
 
