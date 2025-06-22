@@ -827,7 +827,8 @@ const formatDate = (date: Date): string => {
 }
 
 /* Photos Section */
-.photos-section {
+.photos-section,
+.uploaded-photos-section {
   margin-top: 24px;
 }
 
