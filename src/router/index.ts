@@ -9,6 +9,7 @@ import CurationView from "../views/CurationView.vue";
 import SettingsView from "../views/SettingsView.vue";
 import HelpView from "../views/HelpView.vue";
 import AuthView from "../views/AuthView.vue";
+import ProfileSelectionView from "../views/ProfileSelectionView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,6 +24,14 @@ const router = createRouter({
       component: AuthView,
       meta: {
         requiresGuest: true,
+      },
+    },
+    {
+      path: "/profile-setup",
+      name: "profile-setup",
+      component: ProfileSelectionView,
+      meta: {
+        requiresAuth: true,
       },
     },
     {

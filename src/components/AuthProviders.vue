@@ -94,9 +94,9 @@ const handleProviderLogin = async (provider: "google" | "facebook") => {
 
     if (result.success) {
       message.success(
-        `Welcome! You've logged in with ${provider === "google" ? "Google" : "Facebook"}.`,
+        `Welcome! You've signed up with ${provider === "google" ? "Google" : "Facebook"}.`,
       );
-      router.push("/dashboard");
+      router.push("/profile-setup");
     } else {
       message.error(result.error || "Error logging in");
     }

@@ -231,8 +231,10 @@ const handleSubmit = async () => {
     );
 
     if (result.success) {
-      message.success("Account created successfully! Welcome to Trova.");
-      router.push("/dashboard");
+      message.success(
+        "Account created successfully! Let's set up your profile.",
+      );
+      router.push("/profile-setup");
     } else {
       message.error(result.error || "Error creating account");
     }
