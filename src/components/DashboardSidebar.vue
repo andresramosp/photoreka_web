@@ -186,12 +186,12 @@
               </svg>
             </n-icon>
           </n-avatar>
-          <div v-if="!collapsed" class="user-info">
+          <div class="user-info" :class="{ collapsed }">
             <div class="user-name">John Doe</div>
             <div class="user-email">john@example.com</div>
           </div>
           <n-button
-            v-if="!collapsed"
+            :class="{ collapsed }"
             quaternary
             circle
             size="small"
@@ -515,6 +515,15 @@ onUnmounted(() => {
 .user-info {
   flex: 1;
   min-width: 0;
+  opacity: 1;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.user-info.collapsed {
+  opacity: 0;
+  width: 0;
+  min-width: 0;
 }
 
 .user-name {
@@ -523,6 +532,7 @@ onUnmounted(() => {
   color: #ffffffd1;
   line-height: 1.2;
   margin-bottom: 2px;
+  white-space: nowrap;
 }
 
 .user-email {
@@ -537,6 +547,14 @@ onUnmounted(() => {
 .logout-btn {
   flex-shrink: 0;
   color: #9ca3af;
+  opacity: 1;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logout-btn.collapsed {
+  opacity: 0;
+  width: 0;
+  min-width: 0;
 }
 
 /* Mobile sidebar container */
