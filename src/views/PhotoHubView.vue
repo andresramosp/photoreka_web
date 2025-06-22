@@ -601,6 +601,21 @@ const formatDate = (date: Date): string => {
     day: "numeric",
   });
 };
+
+// Photo selection functions
+const togglePhotoSelection = (photoId: string) => {
+  const index = selectedPhotos.value.indexOf(photoId);
+  if (index > -1) {
+    selectedPhotos.value.splice(index, 1);
+  } else {
+    selectedPhotos.value.push(photoId);
+  }
+};
+
+const showPhotoInfo = (photo: any) => {
+  console.log("Show photo info:", photo);
+  // Here you would implement the photo info modal/panel
+};
 </script>
 
 <style scoped>
