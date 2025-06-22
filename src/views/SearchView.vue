@@ -162,17 +162,6 @@
           <div class="tags-input-row">
             <div class="tags-row">
               <div class="tags-group">
-                <label class="tags-label">
-                  <n-icon size="16" color="#22c55e">
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-                      />
-                    </svg>
-                  </n-icon>
-                  Include Tags
-                </label>
                 <n-select
                   v-model:value="includedTags"
                   multiple
@@ -187,14 +176,6 @@
                 />
               </div>
               <div class="tags-group">
-                <label class="tags-label">
-                  <n-icon size="16" color="#ef4444">
-                    <svg viewBox="0 0 24 24">
-                      <path fill="currentColor" d="M19 13H5v-2h14v2z" />
-                    </svg>
-                  </n-icon>
-                  Exclude Tags
-                </label>
                 <n-select
                   v-model:value="excludedTags"
                   multiple
@@ -347,151 +328,20 @@
               />
             </svg>
           </n-icon>
-          <p class="inspiration-subtitle">
-            Use AI-powered search to find exactly what you're looking for
-          </p>
 
           <div class="search-examples">
             <h3 class="examples-title">Try something like...</h3>
 
-            <!-- Natural Language Examples -->
-            <div v-if="activeSearchType === 'natural'" class="examples-grid">
-              <div
-                class="example-card"
-                @click="
-                  setExampleSearch(
-                    'natural',
-                    'sunset photos with people on the beach',
-                  )
-                "
-              >
-                <div class="example-text">
-                  "sunset photos with people on the beach"
+            <!-- Carousel Container -->
+            <div class="examples-carousel">
+              <div class="carousel-container">
+                <div
+                  class="example-card carousel-item"
+                  :class="{ sliding: isSliding }"
+                  @click="handleExampleClick"
+                >
+                  <div class="example-text">{{ currentExampleText }}</div>
                 </div>
-              </div>
-              <div
-                class="example-card"
-                @click="
-                  setExampleSearch(
-                    'natural',
-                    'close-up portraits with red background',
-                  )
-                "
-              >
-                <div class="example-text">
-                  "close-up portraits with red background"
-                </div>
-              </div>
-              <div
-                class="example-card"
-                @click="
-                  setExampleSearch(
-                    'natural',
-                    'landscape photos with mountains and snow',
-                  )
-                "
-              >
-                <div class="example-text">
-                  "landscape photos with mountains and snow"
-                </div>
-              </div>
-            </div>
-
-            <!-- Tags Examples -->
-            <div v-else-if="activeSearchType === 'tags'" class="examples-grid">
-              <div
-                class="example-card"
-                @click="
-                  setExampleSearch(
-                    'tags',
-                    null,
-                    ['landscape', 'mountains'],
-                    ['people'],
-                  )
-                "
-              >
-                <div class="example-text">
-                  Include: landscape, mountains • Exclude: people
-                </div>
-              </div>
-              <div
-                class="example-card"
-                @click="
-                  setExampleSearch(
-                    'tags',
-                    null,
-                    ['portrait', 'indoor'],
-                    ['black-white'],
-                  )
-                "
-              >
-                <div class="example-text">
-                  Include: portrait, indoor • Exclude: black-white
-                </div>
-              </div>
-              <div
-                class="example-card"
-                @click="
-                  setExampleSearch(
-                    'tags',
-                    null,
-                    ['sunset', 'beach', 'outdoor'],
-                    [],
-                  )
-                "
-              >
-                <div class="example-text">Include: sunset, beach, outdoor</div>
-              </div>
-            </div>
-
-            <!-- Spatial Examples -->
-            <div
-              v-else-if="activeSearchType === 'spatial'"
-              class="examples-grid"
-            >
-              <div
-                class="example-card"
-                @click="
-                  setExampleSearch(
-                    'spatial',
-                    null,
-                    null,
-                    null,
-                    'tree',
-                    'person',
-                    'building',
-                  )
-                "
-              >
-                <div class="example-text">
-                  Left: tree • Center: person • Right: building
-                </div>
-              </div>
-              <div
-                class="example-card"
-                @click="
-                  setExampleSearch(
-                    'spatial',
-                    null,
-                    null,
-                    null,
-                    'mountains',
-                    'lake',
-                    'forest',
-                  )
-                "
-              >
-                <div class="example-text">
-                  Left: mountains • Center: lake • Right: forest
-                </div>
-              </div>
-              <div
-                class="example-card"
-                @click="
-                  setExampleSearch('spatial', null, null, null, '', 'face', '')
-                "
-              >
-                <div class="example-text">Center: face</div>
               </div>
             </div>
           </div>
@@ -640,6 +490,25 @@ interface Photo {
   height?: number;
 }
 
+// Example interfaces for carousel
+interface NaturalExample {
+  text: string;
+  query: string;
+}
+
+interface TagExample {
+  text: string;
+  included: string[];
+  excluded: string[];
+}
+
+interface SpatialExample {
+  text: string;
+  left: string;
+  center: string;
+  right: string;
+}
+
 // Mock photo data
 const mockPhotos: Photo[] = [
   {
@@ -733,12 +602,18 @@ onMounted(() => {
     }
   };
   window.addEventListener("error", resizeObserverErrorHandler);
+
+  // Start carousel rotation
+  startCarousel();
 });
 
 onUnmounted(() => {
   if (resizeObserverErrorHandler) {
     window.removeEventListener("error", resizeObserverErrorHandler);
   }
+
+  // Clean up carousel
+  stopCarousel();
 });
 
 // Natural language search
@@ -770,6 +645,85 @@ const spatialLeft = ref("");
 const spatialCenter = ref("");
 const spatialRight = ref("");
 
+// Carousel state
+const currentExampleIndex = ref(0);
+const isSliding = ref(false);
+let carouselInterval: number | null = null;
+
+// Example data for carousel
+const naturalExamples: NaturalExample[] = [
+  {
+    text: '"sunset photos with people on the beach"',
+    query: "sunset photos with people on the beach",
+  },
+  {
+    text: '"close-up portraits with red background"',
+    query: "close-up portraits with red background",
+  },
+  {
+    text: '"landscape photos with mountains and snow"',
+    query: "landscape photos with mountains and snow",
+  },
+  {
+    text: '"street photography with urban architecture"',
+    query: "street photography with urban architecture",
+  },
+  {
+    text: '"vintage flowers with warm lighting"',
+    query: "vintage flowers with warm lighting",
+  },
+];
+
+const tagExamples: TagExample[] = [
+  {
+    text: "Include: landscape, mountains • Exclude: people",
+    included: ["landscape", "mountains"],
+    excluded: ["people"],
+  },
+  {
+    text: "Include: portrait, indoor • Exclude: black-white",
+    included: ["portrait", "indoor"],
+    excluded: ["black-white"],
+  },
+  {
+    text: "Include: sunset, beach, outdoor",
+    included: ["sunset", "beach", "outdoor"],
+    excluded: [],
+  },
+  {
+    text: "Include: vintage, color • Exclude: modern",
+    included: ["vintage", "color"],
+    excluded: ["modern"],
+  },
+];
+
+const spatialExamples: SpatialExample[] = [
+  {
+    text: "Left: tree • Center: person • Right: building",
+    left: "tree",
+    center: "person",
+    right: "building",
+  },
+  {
+    text: "Left: mountains • Center: lake • Right: forest",
+    left: "mountains",
+    center: "lake",
+    right: "forest",
+  },
+  {
+    text: "Center: face",
+    left: "",
+    center: "face",
+    right: "",
+  },
+  {
+    text: "Left: sky • Right: ocean",
+    left: "sky",
+    center: "",
+    right: "ocean",
+  },
+];
+
 // Computed properties
 const hasSearchQuery = computed(() => {
   switch (activeSearchType.value) {
@@ -788,8 +742,67 @@ const hasSearchQuery = computed(() => {
   }
 });
 
+const getCurrentExamples = () => {
+  switch (activeSearchType.value) {
+    case "natural":
+      return naturalExamples;
+    case "tags":
+      return tagExamples;
+    case "spatial":
+      return spatialExamples;
+    default:
+      return [];
+  }
+};
+
+const currentExampleText = computed(() => {
+  const examples = getCurrentExamples();
+  if (examples.length === 0) return "";
+  return examples[currentExampleIndex.value]?.text || "";
+});
+
+const currentExample = computed(() => {
+  const examples = getCurrentExamples();
+  if (examples.length === 0) return null;
+  return examples[currentExampleIndex.value] || null;
+});
+
 // Debouncing for search type changes
 let searchTypeTimeout: number | null = null;
+
+// Carousel methods
+const startCarousel = () => {
+  stopCarousel(); // Clear any existing interval
+  carouselInterval = window.setInterval(() => {
+    rotateCarousel();
+  }, 3500); // 3.5 seconds interval
+};
+
+const stopCarousel = () => {
+  if (carouselInterval) {
+    clearInterval(carouselInterval);
+    carouselInterval = null;
+  }
+};
+
+const rotateCarousel = () => {
+  const examples = getCurrentExamples();
+  if (examples.length === 0) return;
+
+  // Trigger slide out animation
+  isSliding.value = true;
+
+  // After slide out, change content and slide in
+  setTimeout(() => {
+    currentExampleIndex.value =
+      (currentExampleIndex.value + 1) % examples.length;
+    isSliding.value = false;
+  }, 300); // Half of transition time
+};
+
+const resetCarouselIndex = () => {
+  currentExampleIndex.value = 0;
+};
 
 // Methods
 const setSearchType = (type: "natural" | "tags" | "spatial") => {
@@ -801,6 +814,7 @@ const setSearchType = (type: "natural" | "tags" | "spatial") => {
   // Debounce the search type change to prevent ResizeObserver issues
   searchTypeTimeout = window.setTimeout(async () => {
     activeSearchType.value = type;
+    resetCarouselIndex(); // Reset carousel when switching search types
     await nextTick(); // Wait for DOM updates
     console.log("Search type changed to:", type);
     searchTypeTimeout = null;
@@ -921,6 +935,27 @@ const getCurrentQuery = () => {
       return parts.join(" • ");
     default:
       return "";
+  }
+};
+
+const handleExampleClick = () => {
+  const example = currentExample.value;
+  if (!example) return;
+
+  clearSearch();
+
+  if (activeSearchType.value === "natural") {
+    const natExample = example as NaturalExample;
+    naturalQuery.value = natExample.query;
+  } else if (activeSearchType.value === "tags") {
+    const tagExample = example as TagExample;
+    includedTags.value = tagExample.included;
+    excludedTags.value = tagExample.excluded;
+  } else if (activeSearchType.value === "spatial") {
+    const spatExample = example as SpatialExample;
+    spatialLeft.value = spatExample.left;
+    spatialCenter.value = spatExample.center;
+    spatialRight.value = spatExample.right;
   }
 };
 
@@ -1248,14 +1283,18 @@ const setExampleSearch = (
 /* Search Inspiration */
 .search-inspiration {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   min-height: 500px;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .inspiration-content {
   max-width: 600px;
+  position: relative;
+  z-index: 2;
 }
 
 .inspiration-icon {
@@ -1287,9 +1326,32 @@ const setExampleSearch = (
   text-align: center;
 }
 
-.examples-grid {
-  display: grid;
-  gap: 16px;
+.examples-carousel {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.carousel-container {
+  width: 100%;
+  max-width: 500px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-item {
+  width: 100%;
+  opacity: 1;
+  transform: translateX(0);
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.carousel-item.sliding {
+  opacity: 0;
+  transform: translateX(-80px);
 }
 
 .example-card {
@@ -1299,18 +1361,25 @@ const setExampleSearch = (
   padding: 16px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .example-card:hover {
   border-color: #2563eb;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
 }
 
 .example-text {
   font-size: 14px;
   color: #ffffffd1;
   line-height: 1.4;
+  text-align: center;
 }
 
 /* Search Loading */
@@ -1537,8 +1606,25 @@ const setExampleSearch = (
     font-size: 16px;
   }
 
-  .examples-grid {
-    gap: 12px;
+  .examples-carousel {
+    padding: 12px 0;
+  }
+
+  .carousel-container {
+    height: 70px;
+  }
+
+  .carousel-item.sliding {
+    transform: translateX(-60px);
+  }
+
+  .example-card {
+    padding: 12px;
+    min-height: 40px;
+  }
+
+  .example-text {
+    font-size: 13px;
   }
 
   /* Note: Photo grid mobile styles moved to global.scss */
