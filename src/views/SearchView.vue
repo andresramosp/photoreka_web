@@ -932,7 +932,7 @@ const setExampleSearch = (
 /* Inline Search Actions */
 .search-actions-inline {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 12px;
   align-self: flex-start;
   flex-shrink: 0;
