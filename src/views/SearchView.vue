@@ -1107,6 +1107,11 @@ const setExampleSearch = (
 
 /* Small mobile - compress further if needed */
 @media (max-width: 480px) {
+  .search-toolbar {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
   .type-pills {
     gap: 2px;
   }
