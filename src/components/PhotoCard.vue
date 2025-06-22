@@ -156,10 +156,10 @@ const onImageError = () => {
 }
 
 .photo-card.selected {
-  border-color: #2563eb;
+  border-color: #8b5cf6;
   box-shadow:
-    0 0 0 1px #2563eb40,
-    0 8px 24px rgba(37, 99, 235, 0.2);
+    0 0 0 1px #8b5cf640,
+    0 8px 24px rgba(139, 92, 246, 0.2);
 }
 
 .photo-container {
