@@ -94,19 +94,43 @@
                 <p class="dropzone-subtitle">
                   Drag and drop your images, or click to browse
                 </p>
-                <n-button type="primary" size="large" class="choose-files-btn">
-                  <template #icon>
-                    <n-icon>
-                      <svg viewBox="0 0 24 24">
-                        <path
-                          fill="currentColor"
-                          d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-                        />
-                      </svg>
-                    </n-icon>
-                  </template>
-                  Choose Files
-                </n-button>
+                <div class="upload-buttons">
+                  <n-button type="primary" size="large" class="upload-btn">
+                    <template #icon>
+                      <n-icon>
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            fill="currentColor"
+                            d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                          />
+                        </svg>
+                      </n-icon>
+                    </template>
+                    Choose Files
+                  </n-button>
+                  <n-button
+                    type="primary"
+                    ghost
+                    size="large"
+                    class="upload-btn google-photos-btn"
+                  >
+                    <template #icon>
+                      <n-icon>
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            fill="currentColor"
+                            d="M12.5 8.5L8 13h3v4h3v-4h3l-4.5-4.5zM12 4C9.8 4 7.8 4.9 6.3 6.3C4.9 7.8 4 9.8 4 12s.9 4.2 2.3 5.7C7.8 19.1 9.8 20 12 20s4.2-.9 5.7-2.3C19.1 16.2 20 14.2 20 12s-.9-4.2-2.3-5.7C16.2 4.9 14.2 4 12 4z"
+                          />
+                          <circle cx="12" cy="12" r="2" fill="#4285f4" />
+                          <circle cx="18" cy="9" r="1.5" fill="#ea4335" />
+                          <circle cx="6" cy="15" r="1.5" fill="#34a853" />
+                          <circle cx="15" cy="18" r="1.5" fill="#fbbc05" />
+                        </svg>
+                      </n-icon>
+                    </template>
+                    Import from Google Photos
+                  </n-button>
+                </div>
                 <div class="file-formats">
                   <span class="format-text"
                     >Supports JPG, PNG, WebP up to 50MB per file</span
