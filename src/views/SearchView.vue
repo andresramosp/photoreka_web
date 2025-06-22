@@ -639,7 +639,7 @@ const setExampleSearch = (
 .search-selector-section {
   display: flex;
   align-items: flex-start;
-  gap: 24px;
+  gap: 32px;
   margin-bottom: 24px;
   padding-bottom: 20px;
   border-bottom: 1px solid #2c2c32;
@@ -650,15 +650,16 @@ const setExampleSearch = (
   flex-direction: column;
   gap: 12px;
   min-width: 0;
-  width: 100%;
 }
 
 .selector-group:first-child {
-  flex: 3;
+  flex: 1;
+  min-width: 400px;
 }
 
 .selector-group:last-child {
-  flex: 2;
+  flex: 0 0 auto;
+  min-width: 200px;
 }
 
 .selector-label {
@@ -671,17 +672,17 @@ const setExampleSearch = (
 /* Search Type Pills */
 .type-pills {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   flex-wrap: nowrap;
   width: 100%;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 .type-pill {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 8px 10px;
+  padding: 8px 12px;
   border-radius: 20px;
   border: 1px solid #2c2c32;
   background-color: transparent;
@@ -691,8 +692,7 @@ const setExampleSearch = (
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
-  flex: 1 1 auto;
-  min-width: 0;
+  flex: 0 0 auto;
   justify-content: center;
   text-align: center;
 }
@@ -720,15 +720,16 @@ const setExampleSearch = (
 /* Search Mode Pills */
 .mode-pills {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   width: 100%;
+  justify-content: flex-start;
 }
 
 .mode-pill {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 8px 12px;
+  padding: 8px 16px;
   border-radius: 20px;
   border: 1px solid #2c2c32;
   background-color: transparent;
@@ -738,9 +739,8 @@ const setExampleSearch = (
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
-  flex: 1;
+  flex: 0 0 auto;
   justify-content: center;
-  min-width: 0;
 }
 
 .mode-pill:hover {
