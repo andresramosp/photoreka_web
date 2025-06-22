@@ -679,12 +679,18 @@ onMounted(() => {
     }
   };
   window.addEventListener("error", resizeObserverErrorHandler);
+
+  // Start carousel rotation
+  startCarousel();
 });
 
 onUnmounted(() => {
   if (resizeObserverErrorHandler) {
     window.removeEventListener("error", resizeObserverErrorHandler);
   }
+
+  // Clean up carousel
+  stopCarousel();
 });
 
 // Natural language search
