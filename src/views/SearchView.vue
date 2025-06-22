@@ -1362,6 +1362,7 @@ const setExampleSearch = (
   display: flex;
   justify-content: center;
   width: 100%;
+  padding: 8px 0;
 }
 
 .carousel-container {
@@ -1369,7 +1370,8 @@ const setExampleSearch = (
   height: 80px;
   width: 100%;
   max-width: 500px;
-  overflow: hidden;
+  overflow: visible;
+  z-index: 10;
 }
 
 .carousel-item {
@@ -1379,15 +1381,17 @@ const setExampleSearch = (
   right: 0;
   width: 100%;
   opacity: 0;
-  transform: translateX(20px);
-  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(-80px);
+  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   pointer-events: none;
+  z-index: 1;
 }
 
 .carousel-item.active {
   opacity: 1;
   transform: translateX(0);
   pointer-events: auto;
+  z-index: 5;
 }
 
 .example-card {
@@ -1401,20 +1405,24 @@ const setExampleSearch = (
   align-items: center;
   justify-content: center;
   min-height: 48px;
+  position: relative;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .example-card:hover {
   border-color: #2563eb;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+  z-index: 20;
 }
 
 .carousel-item:not(.active) .example-card:hover {
-  transform: translateX(20px) translateY(-2px);
+  transform: translateY(-3px);
 }
 
 .carousel-item.active .example-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
 .example-text {
