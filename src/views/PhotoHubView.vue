@@ -928,6 +928,107 @@ const formatDate = (date: Date): string => {
   color: #ffffff73;
 }
 
+/* Processing Section */
+.processing-section {
+  min-height: 400px;
+}
+
+.upload-queue {
+  margin-bottom: 32px;
+}
+
+.processing-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.processing-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: #2c2c32;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.processing-thumbnail {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.processing-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.processing-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.processing-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.processing-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #ffffffd1;
+}
+
+.processing-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.processing-status {
+  flex-shrink: 0;
+}
+
+/* Empty States */
+.empty-processing-state,
+.empty-catalog-state {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state-content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.empty-state-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffffd1;
+  margin: 16px 0 8px 0;
+}
+
+.empty-state-description {
+  font-size: 16px;
+  color: #ffffff73;
+  margin: 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .photo-hub-container {
