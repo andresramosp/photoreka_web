@@ -4,6 +4,9 @@
       <!-- Authentication Layout -->
       <router-view v-if="!userStore.isAuthenticated" />
 
+      <!-- Profile Setup Layout (authenticated but special case) -->
+      <router-view v-else-if="$route.name === 'profile-setup'" />
+
       <!-- Authenticated App Layout -->
       <template v-else>
         <!-- Desktop Layout -->
