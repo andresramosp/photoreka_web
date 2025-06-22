@@ -18,7 +18,7 @@
         <n-button
           circle
           size="medium"
-          class="info-button info-button-base"
+          class="info-button"
           @click.stop="showInfo"
         >
           <template #icon>
