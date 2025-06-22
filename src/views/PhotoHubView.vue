@@ -889,7 +889,8 @@ const formatDate = (date: Date): string => {
 
 /* Photos Section */
 .photos-section,
-.uploaded-photos-section {
+.uploaded-photos-section,
+.upload-queue {
   margin-top: 24px;
 }
 
