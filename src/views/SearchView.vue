@@ -102,15 +102,56 @@
           key="natural-search"
           class="natural-search-section"
         >
-          <n-input
-            v-model:value="naturalQuery"
-            type="textarea"
-            placeholder="Describe what you're looking for... e.g., 'sunset photos with people on the beach' or 'close-up portraits with red background'"
-            :autosize="{ minRows: 2, maxRows: 4 }"
-            class="natural-input"
-            @input="onSearchChange"
-            :key="`natural-${activeSearchType}`"
-          />
+          <div class="search-input-row">
+            <n-input
+              v-model:value="naturalQuery"
+              type="textarea"
+              placeholder="Describe what you're looking for... e.g., 'sunset photos with people on the beach' or 'close-up portraits with red background'"
+              :autosize="{ minRows: 2, maxRows: 4 }"
+              class="natural-input"
+              @input="onSearchChange"
+              :key="`natural-${activeSearchType}`"
+            />
+            <div class="search-actions-inline">
+              <n-button
+                type="primary"
+                :loading="isSearching"
+                :disabled="!hasSearchQuery"
+                @click="performSearch"
+                class="search-button"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Search Photos
+              </n-button>
+              <n-button
+                secondary
+                @click="clearSearch"
+                :disabled="!hasSearchQuery"
+                class="clear-button"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Clear
+              </n-button>
+            </div>
+          </div>
         </div>
 
         <!-- Tags Search -->
@@ -119,53 +160,94 @@
           key="tags-search"
           class="tags-search-section"
         >
-          <div class="tags-row">
-            <div class="tags-group">
-              <label class="tags-label">
-                <n-icon size="16" color="#22c55e">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-                    />
-                  </svg>
-                </n-icon>
-                Include Tags
-              </label>
-              <n-select
-                v-model:value="includedTags"
-                multiple
-                filterable
-                tag
-                placeholder="Add tags to include..."
-                :options="availableTags"
-                :max-tag-count="5"
-                class="tags-select include-tags"
-                @update:value="onSearchChange"
-                :key="`include-${activeSearchType}`"
-              />
+          <div class="tags-content">
+            <div class="tags-row">
+              <div class="tags-group">
+                <label class="tags-label">
+                  <n-icon size="16" color="#22c55e">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                      />
+                    </svg>
+                  </n-icon>
+                  Include Tags
+                </label>
+                <n-select
+                  v-model:value="includedTags"
+                  multiple
+                  filterable
+                  tag
+                  placeholder="Add tags to include..."
+                  :options="availableTags"
+                  :max-tag-count="5"
+                  class="tags-select include-tags"
+                  @update:value="onSearchChange"
+                  :key="`include-${activeSearchType}`"
+                />
+              </div>
+              <div class="tags-group">
+                <label class="tags-label">
+                  <n-icon size="16" color="#ef4444">
+                    <svg viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M19 13H5v-2h14v2z" />
+                    </svg>
+                  </n-icon>
+                  Exclude Tags
+                </label>
+                <n-select
+                  v-model:value="excludedTags"
+                  multiple
+                  filterable
+                  tag
+                  placeholder="Add tags to exclude..."
+                  :options="availableTags"
+                  :max-tag-count="5"
+                  class="tags-select exclude-tags"
+                  @update:value="onSearchChange"
+                  :key="`exclude-${activeSearchType}`"
+                />
+              </div>
             </div>
-            <div class="tags-group">
-              <label class="tags-label">
-                <n-icon size="16" color="#ef4444">
-                  <svg viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M19 13H5v-2h14v2z" />
-                  </svg>
-                </n-icon>
-                Exclude Tags
-              </label>
-              <n-select
-                v-model:value="excludedTags"
-                multiple
-                filterable
-                tag
-                placeholder="Add tags to exclude..."
-                :options="availableTags"
-                :max-tag-count="5"
-                class="tags-select exclude-tags"
-                @update:value="onSearchChange"
-                :key="`exclude-${activeSearchType}`"
-              />
+            <div class="search-actions-inline">
+              <n-button
+                type="primary"
+                :loading="isSearching"
+                :disabled="!hasSearchQuery"
+                @click="performSearch"
+                class="search-button"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Search Photos
+              </n-button>
+              <n-button
+                secondary
+                @click="clearSearch"
+                :disabled="!hasSearchQuery"
+                class="clear-button"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Clear
+              </n-button>
             </div>
           </div>
         </div>
@@ -176,86 +258,86 @@
           key="spatial-search"
           class="spatial-search-section"
         >
-          <div class="spatial-grid">
-            <div class="spatial-area">
-              <label class="spatial-label">Left Side</label>
-              <n-input
-                v-model:value="spatialLeft"
-                type="textarea"
-                placeholder="Objects on the left side..."
-                :autosize="{ minRows: 3, maxRows: 5 }"
-                class="spatial-input"
-                @input="onSearchChange"
-                :key="`spatial-left-${activeSearchType}`"
-              />
+          <div class="spatial-content">
+            <div class="spatial-grid">
+              <div class="spatial-area">
+                <label class="spatial-label">Left Side</label>
+                <n-input
+                  v-model:value="spatialLeft"
+                  type="textarea"
+                  placeholder="Objects on the left side..."
+                  :autosize="{ minRows: 2, maxRows: 4 }"
+                  class="spatial-input"
+                  @input="onSearchChange"
+                  :key="`spatial-left-${activeSearchType}`"
+                />
+              </div>
+              <div class="spatial-area">
+                <label class="spatial-label">Center</label>
+                <n-input
+                  v-model:value="spatialCenter"
+                  type="textarea"
+                  placeholder="Objects in the center..."
+                  :autosize="{ minRows: 2, maxRows: 4 }"
+                  class="spatial-input center-input"
+                  @input="onSearchChange"
+                  :key="`spatial-center-${activeSearchType}`"
+                />
+              </div>
+              <div class="spatial-area">
+                <label class="spatial-label">Right Side</label>
+                <n-input
+                  v-model:value="spatialRight"
+                  type="textarea"
+                  placeholder="Objects on the right side..."
+                  :autosize="{ minRows: 2, maxRows: 4 }"
+                  class="spatial-input"
+                  @input="onSearchChange"
+                  :key="`spatial-right-${activeSearchType}`"
+                />
+              </div>
             </div>
-            <div class="spatial-area">
-              <label class="spatial-label">Center</label>
-              <n-input
-                v-model:value="spatialCenter"
-                type="textarea"
-                placeholder="Objects in the center..."
-                :autosize="{ minRows: 3, maxRows: 5 }"
-                class="spatial-input center-input"
-                @input="onSearchChange"
-                :key="`spatial-center-${activeSearchType}`"
-              />
-            </div>
-            <div class="spatial-area">
-              <label class="spatial-label">Right Side</label>
-              <n-input
-                v-model:value="spatialRight"
-                type="textarea"
-                placeholder="Objects on the right side..."
-                :autosize="{ minRows: 3, maxRows: 5 }"
-                class="spatial-input"
-                @input="onSearchChange"
-                :key="`spatial-right-${activeSearchType}`"
-              />
+            <div class="search-actions-inline">
+              <n-button
+                type="primary"
+                :loading="isSearching"
+                :disabled="!hasSearchQuery"
+                @click="performSearch"
+                class="search-button"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Search Photos
+              </n-button>
+              <n-button
+                secondary
+                @click="clearSearch"
+                :disabled="!hasSearchQuery"
+                class="clear-button"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Clear
+              </n-button>
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Search Actions -->
-      <div class="search-actions">
-        <n-button
-          type="primary"
-          :loading="isSearching"
-          :disabled="!hasSearchQuery"
-          @click="performSearch"
-          class="search-button"
-        >
-          <template #icon>
-            <n-icon>
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
-                />
-              </svg>
-            </n-icon>
-          </template>
-          Search Photos
-        </n-button>
-        <n-button
-          secondary
-          @click="clearSearch"
-          :disabled="!hasSearchQuery"
-          class="clear-button"
-        >
-          <template #icon>
-            <n-icon>
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
-                />
-              </svg>
-            </n-icon>
-          </template>
-          Clear
-        </n-button>
       </div>
     </div>
 
@@ -285,7 +367,7 @@
                 @click="
                   setExampleSearch(
                     'natural',
-                    'sunset photos with people on the beach'
+                    'sunset photos with people on the beach',
                   )
                 "
               >
@@ -298,7 +380,7 @@
                 @click="
                   setExampleSearch(
                     'natural',
-                    'close-up portraits with red background'
+                    'close-up portraits with red background',
                   )
                 "
               >
@@ -311,7 +393,7 @@
                 @click="
                   setExampleSearch(
                     'natural',
-                    'landscape photos with mountains and snow'
+                    'landscape photos with mountains and snow',
                   )
                 "
               >
@@ -330,7 +412,7 @@
                     'tags',
                     null,
                     ['landscape', 'mountains'],
-                    ['people']
+                    ['people'],
                   )
                 "
               >
@@ -345,7 +427,7 @@
                     'tags',
                     null,
                     ['portrait', 'indoor'],
-                    ['black-white']
+                    ['black-white'],
                   )
                 "
               >
@@ -360,7 +442,7 @@
                     'tags',
                     null,
                     ['sunset', 'beach', 'outdoor'],
-                    []
+                    [],
                   )
                 "
               >
@@ -383,7 +465,7 @@
                     null,
                     'tree',
                     'person',
-                    'building'
+                    'building',
                   )
                 "
               >
@@ -401,7 +483,7 @@
                     null,
                     'mountains',
                     'lake',
-                    'forest'
+                    'forest',
                   )
                 "
               >
@@ -454,7 +536,7 @@ onMounted(() => {
   resizeObserverErrorHandler = (e: ErrorEvent) => {
     if (
       e.message.includes(
-        "ResizeObserver loop completed with undelivered notifications"
+        "ResizeObserver loop completed with undelivered notifications",
       )
     ) {
       e.preventDefault();
@@ -601,7 +683,7 @@ const setExampleSearch = (
   excluded?: string[],
   left?: string,
   center?: string,
-  right?: string
+  right?: string,
 ) => {
   clearSearch();
   activeSearchType.value = type;
