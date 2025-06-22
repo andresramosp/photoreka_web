@@ -176,6 +176,8 @@ onUnmounted(() => {
   border-bottom: 1px solid #2c2c32 !important;
   padding: 0 24px;
   height: 64px;
+  display: flex;
+  align-items: center;
 }
 
 .header-content {

@@ -29,15 +29,62 @@
         </div>
       </div>
 
+      <!-- Main Menu Section -->
       <n-menu
         :collapsed="false"
         :collapsed-width="64"
         :collapsed-icon-size="22"
-        :options="menuOptions"
+        :options="mainMenuOptions"
         :value="activeKey"
         @update:value="handleMenuSelect"
         class="sidebar-menu"
       />
+
+      <!-- Divider -->
+      <div class="menu-divider"></div>
+
+      <!-- Secondary Menu Section -->
+      <n-menu
+        :collapsed="false"
+        :collapsed-width="64"
+        :collapsed-icon-size="22"
+        :options="secondaryMenuOptions"
+        :value="activeKey"
+        @update:value="handleMenuSelect"
+        class="sidebar-menu"
+      />
+
+      <!-- User Profile Section -->
+      <div class="user-profile-section">
+        <div class="user-profile">
+          <n-avatar size="small" class="user-avatar" color="#2563eb">
+            <n-icon>
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4s-4 1.79-4 4s1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                />
+              </svg>
+            </n-icon>
+          </n-avatar>
+          <div class="user-info">
+            <div class="user-name">John Doe</div>
+            <div class="user-email">john@example.com</div>
+          </div>
+          <n-button quaternary circle size="small" class="logout-btn">
+            <template #icon>
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5l-5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+          </n-button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -53,34 +100,89 @@
     @mouseenter="handleMouseEnter"
     @mouseleave="handleMouseLeave"
   >
-    <div class="logo-container">
-      <div class="logo">
-        <div class="logo-icon">
-          <n-icon size="28" color="#2563eb">
-            <svg viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M9 12l2 2l4-4m6 2a9 9 0 11-18 0a9 9 0 0118 0z"
-              />
-            </svg>
-          </n-icon>
+    <div class="sidebar-content">
+      <div class="logo-container">
+        <div class="logo">
+          <div class="logo-icon">
+            <n-icon size="28" color="#2563eb">
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M9 12l2 2l4-4m6 2a9 9 0 11-18 0a9 9 0 0118 0z"
+                />
+              </svg>
+            </n-icon>
+          </div>
+          <div v-if="!collapsed" class="logo-text">
+            <div class="app-name">Trova</div>
+            <div class="app-subtitle">Photo Management</div>
+          </div>
         </div>
-        <div v-if="!collapsed" class="logo-text">
-          <div class="app-name">Trova</div>
-          <div class="app-subtitle">Photo Management</div>
+      </div>
+
+      <!-- Main Menu Section -->
+      <n-menu
+        :collapsed="collapsed"
+        :collapsed-width="64"
+        :collapsed-icon-size="22"
+        :options="mainMenuOptions"
+        :value="activeKey"
+        @update:value="handleMenuSelect"
+        class="sidebar-menu"
+      />
+
+      <!-- Divider -->
+      <div class="menu-divider" :class="{ collapsed }"></div>
+
+      <!-- Secondary Menu Section -->
+      <n-menu
+        :collapsed="collapsed"
+        :collapsed-width="64"
+        :collapsed-icon-size="22"
+        :options="secondaryMenuOptions"
+        :value="activeKey"
+        @update:value="handleMenuSelect"
+        class="sidebar-menu"
+      />
+
+      <!-- User Profile Section -->
+      <div class="user-profile-section" :class="{ collapsed }">
+        <div class="user-profile">
+          <n-avatar size="small" class="user-avatar" color="#2563eb">
+            <n-icon>
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4s-4 1.79-4 4s1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                />
+              </svg>
+            </n-icon>
+          </n-avatar>
+          <div v-if="!collapsed" class="user-info">
+            <div class="user-name">John Doe</div>
+            <div class="user-email">john@example.com</div>
+          </div>
+          <n-button
+            v-if="!collapsed"
+            quaternary
+            circle
+            size="small"
+            class="logout-btn"
+          >
+            <template #icon>
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5l-5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+          </n-button>
         </div>
       </div>
     </div>
-
-    <n-menu
-      :collapsed="collapsed"
-      :collapsed-width="64"
-      :collapsed-icon-size="22"
-      :options="menuOptions"
-      :value="activeKey"
-      @update:value="handleMenuSelect"
-      class="sidebar-menu"
-    />
   </n-layout-sider>
 </template>
 
@@ -103,11 +205,8 @@ const emit = defineEmits(["close-mobile-menu"]);
 
 const activeKey = computed(() => route.name as string);
 
-const renderIcon = (icon: string) => {
-  return () => h(NIcon, null, { default: () => h("i", { class: icon }) });
-};
-
-const menuOptions: MenuOption[] = [
+// Main tools section
+const mainMenuOptions: MenuOption[] = [
   {
     label: "Dashboard",
     key: "dashboard",
@@ -178,6 +277,10 @@ const menuOptions: MenuOption[] = [
           ]),
       }),
   },
+];
+
+// Settings and help section
+const secondaryMenuOptions: MenuOption[] = [
   {
     label: "Settings",
     key: "settings",
@@ -254,10 +357,19 @@ onUnmounted(() => {
   z-index: 100 !important;
 }
 
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .logo-container {
-  padding: 24px 16px;
+  padding: 20px 16px;
   border-bottom: 1px solid #2c2c32;
   transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 64px;
+  display: flex;
+  align-items: center;
 }
 
 .logo {
@@ -291,6 +403,68 @@ onUnmounted(() => {
 
 .sidebar-menu {
   margin-top: 8px;
+}
+
+.menu-divider {
+  margin: 16px 20px;
+  height: 1px;
+  background-color: #2c2c32;
+  transition: margin 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-divider.collapsed {
+  margin: 16px 12px;
+}
+
+.user-profile-section {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid #2c2c32;
+  transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-profile-section.collapsed {
+  padding: 16px 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.user-avatar {
+  flex-shrink: 0;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffffd1;
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+
+.user-email {
+  font-size: 12px;
+  color: #ffffff73;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logout-btn {
+  flex-shrink: 0;
+  color: #9ca3af;
 }
 
 /* Mobile sidebar container */
@@ -328,6 +502,8 @@ onUnmounted(() => {
   z-index: 1000;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
   animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes slideIn {
