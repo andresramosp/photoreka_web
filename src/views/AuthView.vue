@@ -3,28 +3,28 @@
     <div class="auth-tabs">
       <div class="tab-buttons">
         <button
-          class="tab-button"
-          :class="{ active: currentMode === 'login' }"
-          @click="currentMode = 'login'"
-        >
-          Iniciar Sesión
-        </button>
-        <button
-          class="tab-button"
+          class="tab-button primary-tab"
           :class="{ active: currentMode === 'register' }"
           @click="currentMode = 'register'"
         >
-          Registrarse
+          Sign Up
+        </button>
+        <button
+          class="tab-button secondary-tab"
+          :class="{ active: currentMode === 'login' }"
+          @click="currentMode = 'login'"
+        >
+          Log In
         </button>
       </div>
 
       <div class="tab-content">
         <Transition name="slide" mode="out-in">
-          <LoginForm
-            v-if="currentMode === 'login'"
+          <RegisterForm
+            v-if="currentMode === 'register'"
             @switch-mode="handleSwitchMode"
           />
-          <RegisterForm v-else @switch-mode="handleSwitchMode" />
+          <LoginForm v-else @switch-mode="handleSwitchMode" />
         </Transition>
       </div>
     </div>
@@ -39,7 +39,7 @@ import RegisterForm from "../components/RegisterForm.vue";
 
 type AuthMode = "login" | "register";
 
-const currentMode = ref<AuthMode>("login");
+const currentMode = ref<AuthMode>("register");
 
 const handleSwitchMode = (mode: AuthMode) => {
   currentMode.value = mode;
@@ -80,6 +80,26 @@ const handleSwitchMode = (mode: AuthMode) => {
   background-color: #2563eb;
   color: #ffffff;
   box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.primary-tab {
+  font-weight: 600;
+}
+
+.primary-tab.active {
+  background-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.secondary-tab {
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.secondary-tab.active {
+  background-color: #374151;
+  color: #d1d5db;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .tab-content {
