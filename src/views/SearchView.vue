@@ -530,17 +530,6 @@
 
         <!-- Photo Grid -->
         <div class="photo-grid" :class="`grid-cols-${gridColumns}`">
-          <!-- Skeleton Loading -->
-          <template v-if="isLoadingMore">
-            <div
-              v-for="n in skeletonCount"
-              :key="`skeleton-${n}`"
-              class="photo-skeleton"
-            >
-              <n-skeleton height="100%" />
-            </div>
-          </template>
-
           <!-- Photo Cards -->
           <PhotoCard
             v-for="photo in searchResults"
@@ -550,6 +539,13 @@
             @select="togglePhotoSelection"
             @info="showPhotoInfo"
           />
+
+          <!-- Skeleton Loading for Load More -->
+          <template v-if="isLoadingMore">
+            <div v-for="n in 4" :key="`skeleton-${n}`" class="photo-skeleton">
+              <n-skeleton height="100%" />
+            </div>
+          </template>
         </div>
 
         <!-- Load More Button -->
