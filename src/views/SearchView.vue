@@ -176,14 +176,6 @@
                 />
               </div>
               <div class="tags-group">
-                <label class="tags-label">
-                  <n-icon size="16" color="#ef4444">
-                    <svg viewBox="0 0 24 24">
-                      <path fill="currentColor" d="M19 13H5v-2h14v2z" />
-                    </svg>
-                  </n-icon>
-                  Exclude Tags
-                </label>
                 <n-select
                   v-model:value="excludedTags"
                   multiple
