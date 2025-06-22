@@ -808,24 +808,18 @@ const stopCarousel = () => {
 };
 
 const rotateCarousel = () => {
-  const getCurrentExamples = () => {
-    switch (activeSearchType.value) {
-      case "natural":
-        return naturalExamples;
-      case "tags":
-        return tagExamples;
-      case "spatial":
-        return spatialExamples;
-      default:
-        return [];
-    }
-  };
-
   const examples = getCurrentExamples();
-  if (examples.length > 0) {
+  if (examples.length === 0) return;
+
+  // Trigger slide out animation
+  isSliding.value = true;
+
+  // After slide out, change content and slide in
+  setTimeout(() => {
     currentExampleIndex.value =
       (currentExampleIndex.value + 1) % examples.length;
-  }
+    isSliding.value = false;
+  }, 300); // Half of transition time
 };
 
 const resetCarouselIndex = () => {
