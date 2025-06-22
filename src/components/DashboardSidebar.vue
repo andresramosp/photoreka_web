@@ -398,6 +398,8 @@ onUnmounted(() => {
 
 .logo-text {
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .app-name {
@@ -405,6 +407,7 @@ onUnmounted(() => {
   font-weight: 600;
   color: #ffffffd1;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .app-subtitle {
@@ -412,6 +415,7 @@ onUnmounted(() => {
   font-weight: 400;
   color: #ffffff73;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .sidebar-menu {
