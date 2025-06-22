@@ -1,9 +1,6 @@
 <template>
   <div class="register-form">
-    <div class="form-header">
-      <h2 class="form-title">Create Account</h2>
-      <p class="form-description">Join the Trova community</p>
-    </div>
+    <div class="form-header">Join the Trova community</div>
 
     <AuthProviders />
 
@@ -88,18 +85,6 @@
         Create Account
       </n-button>
     </n-form>
-
-    <div class="form-footer">
-      <span class="footer-text">Already have an account?</span>
-      <n-button
-        text
-        type="primary"
-        @click="$emit('switch-mode', 'login')"
-        class="switch-button"
-      >
-        Log in here
-      </n-button>
-    </div>
   </div>
 </template>
 
@@ -272,21 +257,10 @@ export default {
 .form-header {
   text-align: center;
   margin-bottom: 16px;
-}
-
-.form-title {
-  margin: 0 0 8px 0;
-  font-size: 28px;
-  font-weight: 700;
-  color: #ffffffd1;
-  letter-spacing: -0.025em;
-}
-
-.form-description {
-  margin: 0;
   font-size: 16px;
   color: #ffffff73;
   font-weight: 400;
+  line-height: 1.6;
 }
 
 .form-item {
@@ -372,27 +346,6 @@ export default {
   color: #ffffff73;
   position: relative;
   z-index: 1;
-}
-
-.form-footer {
-  text-align: center;
-  margin-top: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.footer-text {
-  font-size: 14px;
-  color: #ffffff73;
-}
-
-.switch-button {
-  font-size: 14px;
-  padding: 0;
-  height: auto;
-  font-weight: 500;
 }
 
 /* Mobile responsive */
