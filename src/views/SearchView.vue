@@ -1680,6 +1680,10 @@ const setExampleSearch = (
     transform: translateX(-60px);
   }
 
+  .carousel-item.active {
+    transform: translateX(0);
+  }
+
   .example-card {
     padding: 12px;
     min-height: 40px;
