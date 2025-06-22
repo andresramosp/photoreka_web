@@ -619,6 +619,11 @@ const showPhotoInfo = (photo: any) => {
   console.log("Show photo info:", photo);
   // Here you would implement the photo info modal/panel
 };
+
+// Grid columns function
+const setGridColumns = (columns: number) => {
+  gridColumns.value = columns;
+};
 </script>
 
 <style scoped>
