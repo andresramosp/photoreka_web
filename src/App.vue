@@ -1,37 +1,43 @@
 <template>
   <n-config-provider :theme="darkTheme" :theme-overrides="themeOverrides">
-    <!-- Desktop Layout -->
-    <n-layout
-      v-if="!isMobile"
-      has-sider
-      style="height: 100vh"
-      class="app-layout"
-    >
-      <DashboardSidebar />
-      <n-layout class="main-layout">
-        <DashboardHeader />
-        <n-layout-content class="main-content">
-          <router-view />
-        </n-layout-content>
+    <!-- Authentication Layout -->
+    <router-view v-if="!userStore.isAuthenticated" />
+
+    <!-- Authenticated App Layout -->
+    <template v-else>
+      <!-- Desktop Layout -->
+      <n-layout
+        v-if="!isMobile"
+        has-sider
+        style="height: 100vh"
+        class="app-layout"
+      >
+        <DashboardSidebar />
+        <n-layout class="main-layout">
+          <DashboardHeader />
+          <n-layout-content class="main-content">
+            <router-view />
+          </n-layout-content>
+        </n-layout>
       </n-layout>
-    </n-layout>
 
-    <!-- Mobile Layout -->
-    <div v-else class="mobile-layout">
-      <!-- Mobile sidebar overlay - completely separate from layout -->
-      <DashboardSidebar
-        :mobile-menu-open="mobileMenuOpen"
-        @close-mobile-menu="mobileMenuOpen = false"
-      />
+      <!-- Mobile Layout -->
+      <div v-else class="mobile-layout">
+        <!-- Mobile sidebar overlay - completely separate from layout -->
+        <DashboardSidebar
+          :mobile-menu-open="mobileMenuOpen"
+          @close-mobile-menu="mobileMenuOpen = false"
+        />
 
-      <!-- Main mobile content -->
-      <div class="mobile-content">
-        <DashboardHeader @toggle-mobile-menu="toggleMobileMenu" />
-        <div class="main-content mobile-main-content">
-          <router-view />
+        <!-- Main mobile content -->
+        <div class="mobile-content">
+          <DashboardHeader @toggle-mobile-menu="toggleMobileMenu" />
+          <div class="main-content mobile-main-content">
+            <router-view />
+          </div>
         </div>
       </div>
-    </div>
+    </template>
   </n-config-provider>
 </template>
 
@@ -39,8 +45,11 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { darkTheme } from "naive-ui";
 import type { GlobalThemeOverrides } from "naive-ui";
+import { useUserStore } from "./stores/userStore";
 import DashboardSidebar from "./components/DashboardSidebar.vue";
 import DashboardHeader from "./components/DashboardHeader.vue";
+
+const userStore = useUserStore();
 
 const themeOverrides: GlobalThemeOverrides = {
   common: {
