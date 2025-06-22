@@ -19,6 +19,7 @@ import {
   NDropdown,
   NTag,
   NDataTable,
+  NInput,
   darkTheme,
 } from "naive-ui";
 
@@ -44,6 +45,7 @@ const naive = create({
     NDropdown,
     NTag,
     NDataTable,
+    NInput,
   ],
 });
 

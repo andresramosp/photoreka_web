@@ -12,15 +12,20 @@
     <div v-if="props.mobileMenuOpen" class="mobile-sidebar">
       <div class="logo-container">
         <div class="logo">
-          <n-icon size="28" color="#18a058">
-            <svg viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M12 2L2 7l10 5l10-5l-10-5zM2 17l10 5l10-5M2 12l10 5l10-5"
-              />
-            </svg>
-          </n-icon>
-          <span class="logo-text">Dashboard</span>
+          <div class="logo-icon">
+            <n-icon size="28" color="#2563eb">
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M9 12l2 2l4-4m6 2a9 9 0 11-18 0a9 9 0 0118 0z"
+                />
+              </svg>
+            </n-icon>
+          </div>
+          <div class="logo-text">
+            <div class="app-name">Trova</div>
+            <div class="app-subtitle">Photo Management</div>
+          </div>
         </div>
       </div>
 
@@ -50,15 +55,20 @@
   >
     <div class="logo-container">
       <div class="logo">
-        <n-icon size="28" color="#18a058">
-          <svg viewBox="0 0 24 24">
-            <path
-              fill="currentColor"
-              d="M12 2L2 7l10 5l10-5l-10-5zM2 17l10 5l10-5M2 12l10 5l10-5"
-            />
-          </svg>
-        </n-icon>
-        <span v-if="!collapsed" class="logo-text">Dashboard</span>
+        <div class="logo-icon">
+          <n-icon size="28" color="#2563eb">
+            <svg viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M9 12l2 2l4-4m6 2a9 9 0 11-18 0a9 9 0 0118 0z"
+              />
+            </svg>
+          </n-icon>
+        </div>
+        <div v-if="!collapsed" class="logo-text">
+          <div class="app-name">Trova</div>
+          <div class="app-subtitle">Photo Management</div>
+        </div>
       </div>
     </div>
 
@@ -113,29 +123,57 @@ const menuOptions: MenuOption[] = [
       }),
   },
   {
-    label: "Analytics",
-    key: "analytics",
+    label: "Canvas",
+    key: "canvas",
     icon: () =>
       h(NIcon, null, {
         default: () =>
           h("svg", { viewBox: "0 0 24 24" }, [
             h("path", {
               fill: "currentColor",
-              d: "M16 6l2.29 2.29l-4.88 4.88l-4-4L2 16.59L3.41 18l6-6l4 4l6.3-6.29L22 12V6h-6z",
+              d: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5 19l3.5-4.5l2.5 3.01L14.5 12l4.5 7H5z",
             }),
           ]),
       }),
   },
   {
-    label: "Users",
-    key: "users",
+    label: "Search",
+    key: "search",
     icon: () =>
       h(NIcon, null, {
         default: () =>
           h("svg", { viewBox: "0 0 24 24" }, [
             h("path", {
               fill: "currentColor",
-              d: "M16 4c0-1.11.89-2 2-2s2 .89 2 2s-.89 2-2 2s-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A3.002 3.002 0 0 0 17 6c-1.1 0-2 .9-2 2v14h2v-6h3zm-4.5-14c.83 0 1.5.67 1.5 1.5S16.33 10 15.5 10S14 9.33 14 8.5s.67-1.5 1.5-1.5zm-2.5 6c0 .83-.67 1.5-1.5 1.5S9.5 14.83 9.5 14s.67-1.5 1.5-1.5s1.5.67 1.5 1.5zM8 22v-4h2v4h2V11.5c0-.83-.67-1.5-1.5-1.5h-3C6.67 10 6 10.67 6 11.5V22h2z",
+              d: "M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z",
+            }),
+          ]),
+      }),
+  },
+  {
+    label: "Collections",
+    key: "collections",
+    icon: () =>
+      h(NIcon, null, {
+        default: () =>
+          h("svg", { viewBox: "0 0 24 24" }, [
+            h("path", {
+              fill: "currentColor",
+              d: "M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11.5-6L9 12.5l1.5 2L13 11l3 4H8l2.5-3zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z",
+            }),
+          ]),
+      }),
+  },
+  {
+    label: "Photo Hub",
+    key: "photo-hub",
+    icon: () =>
+      h(NIcon, null, {
+        default: () =>
+          h("svg", { viewBox: "0 0 24 24" }, [
+            h("path", {
+              fill: "currentColor",
+              d: "M9 12l2 2l4-4m6 2a9 9 0 11-18 0a9 9 0 0118 0z",
             }),
           ]),
       }),
@@ -150,6 +188,20 @@ const menuOptions: MenuOption[] = [
             h("path", {
               fill: "currentColor",
               d: "M19.14 12.94c.04-.3.06-.61.06-.94c0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6s-1.62 3.6-3.6 3.6z",
+            }),
+          ]),
+      }),
+  },
+  {
+    label: "Help",
+    key: "help",
+    icon: () =>
+      h(NIcon, null, {
+        default: () =>
+          h("svg", { viewBox: "0 0 24 24" }, [
+            h("path", {
+              fill: "currentColor",
+              d: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41c0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z",
             }),
           ]),
       }),
@@ -215,11 +267,26 @@ onUnmounted(() => {
   transition: gap 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.logo-icon {
+  flex-shrink: 0;
+}
+
 .logo-text {
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-name {
   font-size: 18px;
   font-weight: 600;
   color: #ffffffd1;
-  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1.2;
+}
+
+.app-subtitle {
+  font-size: 12px;
+  font-weight: 400;
+  color: #ffffff73;
+  line-height: 1.2;
 }
 
 .sidebar-menu {

@@ -1,5 +1,5 @@
 <template>
-  <n-config-provider :theme="darkTheme">
+  <n-config-provider :theme="darkTheme" :theme-overrides="themeOverrides">
     <!-- Desktop Layout -->
     <n-layout
       v-if="!isMobile"
@@ -38,8 +38,18 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 import { darkTheme } from "naive-ui";
+import type { GlobalThemeOverrides } from "naive-ui";
 import DashboardSidebar from "./components/DashboardSidebar.vue";
 import DashboardHeader from "./components/DashboardHeader.vue";
+
+const themeOverrides: GlobalThemeOverrides = {
+  common: {
+    primaryColor: "#2563eb",
+    primaryColorHover: "#3b82f6",
+    primaryColorPressed: "#1d4ed8",
+    primaryColorSuppl: "#2563eb",
+  },
+};
 
 const mobileMenuOpen = ref(false);
 const isMobile = ref(false);
@@ -100,6 +110,8 @@ onUnmounted(() => {
 .mobile-main-content {
   flex: 1;
   overflow-y: auto;
+  padding: 16px;
+  background-color: #101014;
 }
 
 /* Responsive styles */

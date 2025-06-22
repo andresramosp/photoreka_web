@@ -1,8 +1,11 @@
 import { createRouter, createWebHistory } from "vue-router";
 import DashboardView from "../views/DashboardView.vue";
-import AnalyticsView from "../views/AnalyticsView.vue";
-import UsersView from "../views/UsersView.vue";
+import CanvasView from "../views/CanvasView.vue";
+import SearchView from "../views/SearchView.vue";
+import CollectionsView from "../views/CollectionsView.vue";
+import PhotoHubView from "../views/PhotoHubView.vue";
 import SettingsView from "../views/SettingsView.vue";
+import HelpView from "../views/HelpView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -17,19 +20,34 @@ const router = createRouter({
       component: DashboardView,
     },
     {
-      path: "/analytics",
-      name: "analytics",
-      component: AnalyticsView,
+      path: "/canvas",
+      name: "canvas",
+      component: CanvasView,
     },
     {
-      path: "/users",
-      name: "users",
-      component: UsersView,
+      path: "/search",
+      name: "search",
+      component: SearchView,
+    },
+    {
+      path: "/collections",
+      name: "collections",
+      component: CollectionsView,
+    },
+    {
+      path: "/photo-hub",
+      name: "photo-hub",
+      component: PhotoHubView,
     },
     {
       path: "/settings",
       name: "settings",
       component: SettingsView,
+    },
+    {
+      path: "/help",
+      name: "help",
+      component: HelpView,
     },
   ],
 });
