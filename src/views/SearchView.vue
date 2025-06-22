@@ -504,10 +504,87 @@
       </div>
 
       <div v-else class="search-results">
-        <!-- Photo grid will be implemented here later -->
-        <div class="results-placeholder">
-          <p class="results-text">Photo grid will be displayed here</p>
-          <p class="results-query">Query: {{ getCurrentQuery() }}</p>
+        <!-- Grid Controls -->
+        <div class="grid-controls">
+          <div class="results-info">
+            <span class="results-count"
+              >{{ searchResults.length }} photos found</span
+            >
+            <span class="results-query">{{ getCurrentQuery() }}</span>
+          </div>
+          <div class="grid-size-controls">
+            <span class="grid-label">Columns:</span>
+            <n-button-group>
+              <n-button
+                v-for="size in [3, 4, 5, 6]"
+                :key="size"
+                :type="gridColumns === size ? 'primary' : 'default'"
+                size="small"
+                @click="setGridColumns(size)"
+              >
+                {{ size }}
+              </n-button>
+            </n-button-group>
+          </div>
+        </div>
+
+        <!-- Photo Grid -->
+        <div class="photo-grid" :class="`grid-cols-${gridColumns}`">
+          <!-- Skeleton Loading -->
+          <template v-if="isLoadingMore">
+            <div
+              v-for="n in skeletonCount"
+              :key="`skeleton-${n}`"
+              class="photo-skeleton"
+            >
+              <n-skeleton height="100%" />
+            </div>
+          </template>
+
+          <!-- Photo Cards -->
+          <PhotoCard
+            v-for="photo in searchResults"
+            :key="photo.id"
+            :photo="photo"
+            :selected="selectedPhotos.includes(photo.id)"
+            @select="togglePhotoSelection"
+            @info="showPhotoInfo"
+          />
+        </div>
+
+        <!-- Load More Button -->
+        <div class="load-more-container" v-if="hasMoreResults">
+          <n-button
+            size="large"
+            :loading="isLoadingMore"
+            @click="loadMorePhotos"
+            class="load-more-button"
+          >
+            <template #icon>
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+            Load More Photos
+          </n-button>
+        </div>
+
+        <!-- Selection Info -->
+        <div v-if="selectedPhotos.length > 0" class="selection-info">
+          <span
+            >{{ selectedPhotos.length }} photo{{
+              selectedPhotos.length > 1 ? "s" : ""
+            }}
+            selected</span
+          >
+          <n-button size="small" @click="clearSelection"
+            >Clear Selection</n-button
+          >
         </div>
       </div>
     </div>
