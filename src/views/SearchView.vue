@@ -909,16 +909,7 @@ const setExampleSearch = (
 }
 
 .spatial-area {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.spatial-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #ffffffd1;
-  text-align: center;
+  width: 100%;
 }
 
 .spatial-input {
