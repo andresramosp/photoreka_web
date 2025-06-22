@@ -639,7 +639,7 @@ const setExampleSearch = (
 .search-selector-section {
   display: flex;
   align-items: flex-start;
-  gap: 32px;
+  gap: 24px;
   margin-bottom: 24px;
   padding-bottom: 20px;
   border-bottom: 1px solid #2c2c32;
@@ -650,16 +650,15 @@ const setExampleSearch = (
   flex-direction: column;
   gap: 12px;
   min-width: 0;
+  width: 100%;
 }
 
 .selector-group:first-child {
-  flex: 2;
-  min-width: 320px;
+  flex: 3;
 }
 
 .selector-group:last-child {
-  flex: 1;
-  min-width: 200px;
+  flex: 2;
 }
 
 .selector-label {
@@ -672,26 +671,28 @@ const setExampleSearch = (
 /* Search Type Pills */
 .type-pills {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .type-pill {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 6px;
+  padding: 8px 12px;
   border-radius: 20px;
   border: 1px solid #2c2c32;
   background-color: transparent;
   color: #ffffff73;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
-  min-width: 0;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: fit-content;
+  justify-content: center;
 }
 
 .type-pill:hover {
@@ -715,25 +716,26 @@ const setExampleSearch = (
 /* Search Mode Pills */
 .mode-pills {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
 }
 
 .mode-pill {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
+  gap: 6px;
+  padding: 8px 12px;
   border-radius: 20px;
   border: 1px solid #2c2c32;
   background-color: transparent;
   color: #ffffff73;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
-  flex-shrink: 0;
+  flex: 1;
+  justify-content: center;
 }
 
 .mode-pill:hover {
@@ -963,22 +965,21 @@ const setExampleSearch = (
   text-align: center;
 }
 
-/* Medium screens - adjust layout before going mobile */
+/* Medium screens - reduce gap */
 @media (max-width: 1024px) {
   .search-selector-section {
-    gap: 20px;
+    gap: 16px;
   }
 
-  .selector-group:first-child {
-    min-width: 280px;
-  }
-
-  .selector-group:last-child {
-    min-width: 180px;
+  .type-pill,
+  .mode-pill {
+    font-size: 12px;
+    padding: 7px 10px;
+    gap: 5px;
   }
 }
 
-/* Tablet responsive - stack but keep horizontal pills */
+/* Tablet responsive - stack vertically */
 @media (max-width: 768px) {
   .search-toolbar {
     padding: 16px;
@@ -987,41 +988,29 @@ const setExampleSearch = (
 
   .search-selector-section {
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
   }
 
   .selector-group:first-child,
   .selector-group:last-child {
     flex: 1;
-    min-width: 0;
-  }
-
-  .type-pills,
-  .mode-pills {
-    justify-content: flex-start;
+    width: 100%;
   }
 }
 
-/* Mobile Responsive - full width pills */
-@media (max-width: 640px) {
+/* Small mobile - wrap type pills if needed */
+@media (max-width: 480px) {
   .type-pills {
-    width: 100%;
+    flex-wrap: wrap;
   }
 
   .type-pill {
-    flex: 1;
-    justify-content: center;
-    min-width: 0;
-  }
-
-  .mode-pills {
-    width: 100%;
-    justify-content: stretch;
+    flex: 0 1 auto;
+    min-width: fit-content;
   }
 
   .mode-pill {
-    flex: 1;
-    justify-content: center;
+    min-width: 80px;
   }
 }
 
