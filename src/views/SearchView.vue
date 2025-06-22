@@ -1648,8 +1648,17 @@ const setExampleSearch = (
     font-size: 16px;
   }
 
-  .examples-grid {
-    gap: 12px;
+  .carousel-container {
+    height: 70px;
+  }
+
+  .example-card {
+    padding: 12px;
+    min-height: 40px;
+  }
+
+  .example-text {
+    font-size: 13px;
   }
 
   /* Note: Photo grid mobile styles moved to global.scss */
