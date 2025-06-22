@@ -400,6 +400,9 @@ const showDuplicateNotification = ref(false);
 // Photo selection state
 const selectedPhotos = ref<string[]>([]);
 
+// Grid columns state
+const gridColumns = ref(4);
+
 // Mock processing photos for the Processing tab
 const processingPhotos = ref<any[]>([]);
 
