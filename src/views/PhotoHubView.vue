@@ -510,10 +510,40 @@ const handleFiles = (files: File[]) => {
       };
       // Add to processing queue immediately after upload
       processingPhotos.value.push(newPhoto);
-      // Auto-switch to Analyzing tab
-      activeTab.value = "analyzing";
+      // Auto-switch to Processing tab
+      activeTab.value = "processing";
     }
   });
+};
+
+// Google Photos import handler
+const handleGooglePhotosImport = () => {
+  // In a real app, this would open Google Photos API integration
+  console.log("Opening Google Photos import...");
+  // For demo purposes, simulate importing some photos
+  const mockGooglePhotos = [
+    {
+      id: Date.now() + Math.random(),
+      name: "google-photo-1.jpg",
+      size: 2456789,
+      url: "/api/placeholder/300/300",
+      progress: 10,
+      stage: "Importing from Google Photos...",
+    },
+    {
+      id: Date.now() + Math.random() + 1,
+      name: "google-photo-2.jpg",
+      size: 3234567,
+      url: "/api/placeholder/300/300",
+      progress: 5,
+      stage: "Importing from Google Photos...",
+    },
+  ];
+
+  // Add to processing queue
+  processingPhotos.value.push(...mockGooglePhotos);
+  // Auto-switch to Processing tab
+  activeTab.value = "processing";
 };
 
 // Utility functions
