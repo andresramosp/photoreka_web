@@ -1358,9 +1358,36 @@ const setExampleSearch = (
   text-align: center;
 }
 
-.examples-grid {
-  display: grid;
-  gap: 16px;
+.examples-carousel {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.carousel-container {
+  position: relative;
+  height: 80px;
+  width: 100%;
+  max-width: 500px;
+  overflow: hidden;
+}
+
+.carousel-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.carousel-item.active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
 }
 
 .example-card {
@@ -1370,6 +1397,10 @@ const setExampleSearch = (
   padding: 16px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
 }
 
 .example-card:hover {
@@ -1378,10 +1409,19 @@ const setExampleSearch = (
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
+.carousel-item:not(.active) .example-card:hover {
+  transform: translateX(20px) translateY(-2px);
+}
+
+.carousel-item.active .example-card:hover {
+  transform: translateY(-2px);
+}
+
 .example-text {
   font-size: 14px;
   color: #ffffffd1;
   line-height: 1.4;
+  text-align: center;
 }
 
 /* Search Loading */
