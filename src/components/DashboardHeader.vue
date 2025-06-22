@@ -186,12 +186,14 @@ onUnmounted(() => {
   justify-content: space-between;
   height: 100%;
   max-width: 100%;
+  margin: auto 0;
 }
 
 .header-left {
-  flex: 1;
   display: flex;
   align-items: center;
+  flex-basis: 0%;
+  flex-grow: 1;
   gap: 16px;
   max-width: calc(100% - 200px);
 }
@@ -202,7 +204,8 @@ onUnmounted(() => {
 }
 
 .search-container {
-  flex: 1;
+  flex-basis: 0%;
+  flex-grow: 1;
   max-width: 600px;
 }
 
@@ -213,6 +216,7 @@ onUnmounted(() => {
 .header-right {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .header-icon-btn {
