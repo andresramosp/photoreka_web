@@ -65,19 +65,19 @@
     </div>
 
     <!-- Footer with detailed information -->
-    <div class="photo-footer photo-footer-base">
-      <div class="photo-title photo-title-base" :title="photo.name">
+    <div class="photo-footer">
+      <div class="photo-title" :title="photo.name">
         {{ photo.name }}
       </div>
 
-      <div class="photo-details photo-details-base">
+      <div class="photo-details">
         <span class="photo-size">{{ formatFileSize(photo.size) }}</span>
         <span class="photo-date">{{
           formatDate(photo.uploadDate || photo.date)
         }}</span>
       </div>
 
-      <div class="photo-status photo-status-base">
+      <div class="photo-status">
         <!-- Status tags -->
         <n-tag
           v-if="photo.isDuplicate"
