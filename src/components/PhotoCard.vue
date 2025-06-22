@@ -172,9 +172,10 @@ const onImageError = () => {
 .photo-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background-color: #0f0f0f;
 }
 
 .photo-card:hover .photo-image {
