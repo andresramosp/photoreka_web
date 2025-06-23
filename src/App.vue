@@ -102,7 +102,6 @@ onUnmounted(() => {
 }
 
 .main-content {
-  padding: 24px;
   background-color: #101014;
   min-height: calc(100vh - 64px);
   overflow-x: auto;
