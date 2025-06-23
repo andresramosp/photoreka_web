@@ -988,9 +988,13 @@ const setExampleSearch = (
 .search-container {
   margin: 0 auto;
   width: 100%;
-  height: 100%;
+  height: calc(100vh - 64px); /* Fixed height like canvas */
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* No scroll at view level */
+  padding: var(
+    --spacing-2xl
+  ); /* Add padding back since we removed view-container */
 }
 
 /* Search Toolbar */
