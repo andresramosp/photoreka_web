@@ -117,6 +117,7 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
   selected: false,
+  mode: "default",
 });
 
 const emit = defineEmits<Emits>();
@@ -124,6 +125,7 @@ const emit = defineEmits<Emits>();
 const isSelected = ref(props.selected);
 const imageLoaded = ref(false);
 const imageError = ref(false);
+const showTooltip = ref(false);
 
 const toggleSelection = () => {
   isSelected.value = !isSelected.value;
