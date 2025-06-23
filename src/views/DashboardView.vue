@@ -399,27 +399,21 @@ const openProject = (projectId: string) => {
 }
 
 .section-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #ffffffd1;
-  margin: 0 0 24px 0;
+  @extend .title-secondary;
 }
 
 .actions-grid {
   display: flex;
-  gap: 20px;
-  margin-bottom: 24px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-2xl);
+  transition: var(--transition-normal);
 }
 
 .action-card {
-  background-color: #18181c;
-  border: 1px solid #2c2c32;
-  border-radius: 12px;
-  padding: 24px;
+  @extend .card-base;
+  @extend .card-interactive;
+  padding: var(--spacing-2xl);
   text-align: center;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   height: 160px;
   min-height: 160px;
   flex: 1;
@@ -427,12 +421,6 @@ const openProject = (projectId: string) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-}
-
-.action-card:hover {
-  border-color: #2563eb;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
 .action-icon {
