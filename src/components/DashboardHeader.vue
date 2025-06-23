@@ -244,33 +244,56 @@ onUnmounted(() => {
 .header-icon-btn {
   color: #9ca3af;
   flex-shrink: 0;
+  height: 32px;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .user-avatar {
   cursor: pointer;
   flex-shrink: 0;
+  height: 32px !important;
+  width: 32px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Remove default spacing from n-space */
 .header-right :deep(.n-space) {
   gap: 12px !important;
+  align-items: center !important;
 }
 
 /* User menu styles */
 :deep(.user-menu-header) {
-  padding: 8px 12px;
+  padding: 12px 16px;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
 }
 
 :deep(.user-name) {
   font-weight: 600;
   font-size: 14px;
   color: #ffffffd1;
-  margin-bottom: 2px;
+  line-height: 1.2;
+  margin: 0;
 }
 
 :deep(.user-email) {
   font-size: 12px;
   color: #ffffff73;
+  line-height: 1.2;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
 }
 
 /* Mobile styles */
