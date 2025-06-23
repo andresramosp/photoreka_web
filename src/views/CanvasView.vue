@@ -235,6 +235,7 @@ const showRelatedPhotos = ref(false);
 
 // Expandable dropdown state
 const isExpanded = ref(false);
+const isDropdownOpen = ref(false);
 const selectedOption = ref("General");
 
 // Dropdown options with SVG icons
