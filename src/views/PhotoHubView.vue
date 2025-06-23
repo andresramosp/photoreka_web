@@ -687,7 +687,10 @@ const setGridColumns = (columns: number) => {
 
 /* Tabs Section */
 .tabs-container {
-  @extend .section-container;
+  background-color: var(--bg-container);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: var(--spacing-2xl);
 }
 
 /* Custom Tab Navigation */
