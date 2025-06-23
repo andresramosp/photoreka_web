@@ -200,6 +200,7 @@ const stageScale = ref(1);
 const stagePosition = ref({ x: 0, y: 0 });
 const isDragging = ref(false);
 const lastPointerPosition = ref({ x: 0, y: 0 });
+const showRelatedPhotos = ref(false);
 
 // Stage configuration
 const stageConfig = computed(() => ({
