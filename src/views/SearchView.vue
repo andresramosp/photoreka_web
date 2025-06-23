@@ -1356,10 +1356,6 @@ const setExampleSearch = (
 }
 
 .example-card {
-  background-color: #18181c;
-  border: 1px solid #2c2c32;
-  border-radius: 12px;
-  padding: 16px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -1367,20 +1363,23 @@ const setExampleSearch = (
   justify-content: center;
   min-height: 48px;
   width: 100%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
-.example-card:hover {
-  border-color: #2563eb;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+.example-card:hover .example-text {
+  color: #2563eb;
+  transform: scale(1.02);
 }
 
 .example-text {
-  font-size: 14px;
-  color: #ffffffd1;
+  font-size: 16px;
+  color: #ffffff73;
   line-height: 1.4;
   text-align: center;
+  font-style: italic;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Search Loading */
