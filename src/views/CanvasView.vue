@@ -74,7 +74,7 @@
         <div class="expandable-button-group" ref="expandableGroupRef">
           <n-button
             :type="canvasMode === 'design' ? 'primary' : 'default'"
-            @click="canvasMode = 'design'"
+            @click="selectDesignMode"
             title="Expand on catalog"
             class="mode-button left-button"
           >
