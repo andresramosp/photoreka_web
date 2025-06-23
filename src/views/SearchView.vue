@@ -926,7 +926,7 @@ const getCurrentQuery = () => {
         excludedTags.value.length > 0
           ? `Exclude: ${excludedTags.value.join(", ")}`
           : "";
-      return [included, excluded].filter(Boolean).join(" �� ");
+      return [included, excluded].filter(Boolean).join(" • ");
     case "spatial":
       const parts = [];
       if (spatialLeft.value) parts.push(`Left: ${spatialLeft.value}`);
@@ -1417,12 +1417,13 @@ const setExampleSearch = (
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  flex: 1;
   gap: 12px;
   background-color: #18181c;
   border: 1px solid #2c2c32;
   border-radius: 12px;
   padding: 40px;
+  min-height: 200px;
 }
 
 .results-text {
