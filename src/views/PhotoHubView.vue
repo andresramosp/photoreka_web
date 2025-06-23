@@ -1040,7 +1040,9 @@ const setGridColumns = (columns: number) => {
 
 /* Processing Section */
 .processing-section {
-  min-height: 400px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .upload-queue {
