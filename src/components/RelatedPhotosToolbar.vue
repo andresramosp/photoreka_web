@@ -30,7 +30,7 @@
         </div>
 
         <div
-          class="related-photos-scroll"
+          class="related-photos-scroll scrollbar-minimal"
           @wheel="handleHorizontalScroll"
           ref="scrollContainer"
         >
