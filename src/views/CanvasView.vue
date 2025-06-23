@@ -520,9 +520,10 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   border-radius: 18px;
-  overflow: visible; /* Changed to visible to allow dropdown */
   background: var(--bg-container, rgba(255, 255, 255, 0.1));
   backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 1;
 }
 
 .mode-button {
