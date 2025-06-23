@@ -203,15 +203,22 @@ const lastPointerPosition = ref({ x: 0, y: 0 });
 const showRelatedPhotos = ref(false);
 
 // Stage configuration
-const stageConfig = computed(() => ({
-  width: window.innerWidth,
-  height: window.innerHeight,
-  scaleX: stageScale.value,
-  scaleY: stageScale.value,
-  x: stagePosition.value.x,
-  y: stagePosition.value.y,
-  draggable: interactionMode.value === "pan",
-}));
+const stageConfig = computed(() => {
+  // Get the canvas container dimensions instead of full window
+  const container = canvasContainer.value;
+  const width = container?.clientWidth || window.innerWidth;
+  const height = container?.clientHeight || window.innerHeight;
+
+  return {
+    width,
+    height,
+    scaleX: stageScale.value,
+    scaleY: stageScale.value,
+    x: stagePosition.value.x,
+    y: stagePosition.value.y,
+    draggable: interactionMode.value === "pan",
+  };
+});
 
 // Event handlers
 const handleWheel = (e: any) => {
