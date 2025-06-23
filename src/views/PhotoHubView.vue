@@ -1041,7 +1041,9 @@ const setGridColumns = (columns: number) => {
 
 /* Processing Section */
 .processing-section {
-  min-height: 400px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .upload-queue {
@@ -1116,10 +1118,11 @@ const setGridColumns = (columns: number) => {
 /* Empty States */
 .empty-processing-state,
 .empty-catalog-state {
-  min-height: 300px;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 200px;
 }
 
 .empty-state-content {

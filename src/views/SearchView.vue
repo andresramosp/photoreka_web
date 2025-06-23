@@ -986,9 +986,11 @@ const setExampleSearch = (
 
 <style scoped>
 .search-container {
-  /* max-width: 1200px; */
   margin: 0 auto;
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Search Toolbar */
@@ -1237,12 +1239,10 @@ const setExampleSearch = (
 
 /* Search Results Container */
 .search-results-container {
-  min-height: 400px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
-
-/* Note: Grid controls and photo grid styles moved to global.scss */
-
-/* Note: Photo skeleton styles moved to global.scss */
 
 /* Load More */
 .load-more-container {
@@ -1283,12 +1283,13 @@ const setExampleSearch = (
 /* Search Inspiration */
 .search-inspiration {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  min-height: 500px;
+  flex: 1;
   text-align: center;
   position: relative;
   z-index: 1;
+  min-height: 300px;
 }
 
 .inspiration-content {
@@ -1355,10 +1356,6 @@ const setExampleSearch = (
 }
 
 .example-card {
-  background-color: #18181c;
-  border: 1px solid #2c2c32;
-  border-radius: 12px;
-  padding: 16px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -1366,25 +1363,30 @@ const setExampleSearch = (
   justify-content: center;
   min-height: 48px;
   width: 100%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
-.example-card:hover {
-  border-color: #2563eb;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+.example-card:hover .example-text {
+  color: #2563eb;
+  transform: scale(1.02);
 }
 
 .example-text {
-  font-size: 14px;
-  color: #ffffffd1;
+  font-size: 16px;
+  color: #ffffff73;
   line-height: 1.4;
   text-align: center;
+  font-style: italic;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Search Loading */
 .search-loading {
-  min-height: 400px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .loading-message {
@@ -1402,9 +1404,11 @@ const setExampleSearch = (
   margin: 0;
 }
 
-/* Search Results Placeholder */
+/* Search Results */
 .search-results {
-  min-height: 400px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .results-placeholder {
@@ -1412,12 +1416,13 @@ const setExampleSearch = (
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  flex: 1;
   gap: 12px;
   background-color: #18181c;
   border: 1px solid #2c2c32;
   border-radius: 12px;
   padding: 40px;
+  min-height: 200px;
 }
 
 .results-text {
@@ -1619,12 +1624,12 @@ const setExampleSearch = (
   }
 
   .example-card {
-    padding: 12px;
     min-height: 40px;
+    padding: 0;
   }
 
   .example-text {
-    font-size: 13px;
+    font-size: 14px;
   }
 
   /* Note: Photo grid mobile styles moved to global.scss */
