@@ -1624,12 +1624,12 @@ const setExampleSearch = (
   }
 
   .example-card {
-    padding: 12px;
     min-height: 40px;
+    padding: 0;
   }
 
   .example-text {
-    font-size: 13px;
+    font-size: 14px;
   }
 
   /* Note: Photo grid mobile styles moved to global.scss */
