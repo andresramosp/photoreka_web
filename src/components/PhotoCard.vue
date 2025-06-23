@@ -143,6 +143,24 @@ const onImageLoad = () => {
 const onImageError = () => {
   imageError.value = true;
 };
+
+const moveToSelection = () => {
+  emit("move-to-selection", props.photo.id);
+};
+
+const moveToCuration = () => {
+  emit("move-to-curation", props.photo.id);
+};
+
+const handleMouseEnter = () => {
+  if (props.mode === "curation" && props.photo.aiComment) {
+    showTooltip.value = true;
+  }
+};
+
+const handleMouseLeave = () => {
+  showTooltip.value = false;
+};
 </script>
 
 <style scoped>
