@@ -1011,7 +1011,7 @@ const setExampleSearch = (
 .selector-group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--spacing-md);
   overflow: visible;
 }
 
@@ -1024,9 +1024,9 @@ const setExampleSearch = (
 }
 
 .selector-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #ffffffd1;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
   white-space: nowrap;
 }
 
