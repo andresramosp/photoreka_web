@@ -241,11 +241,11 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  gap: 12px;
+  gap: var(--spacing-md);
 }
 
 .header-icon-btn {
-  color: #9ca3af;
+  @extend .btn-icon;
   flex-shrink: 0;
   height: 32px;
   width: 32px;
@@ -266,7 +266,7 @@ onUnmounted(() => {
 
 /* Remove default spacing from n-space */
 .header-right :deep(.n-space) {
-  gap: 12px !important;
+  gap: var(--spacing-md) !important;
   align-items: center !important;
   height: 100%;
 }
