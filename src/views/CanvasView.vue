@@ -465,12 +465,11 @@ const handleResize = () => {
 // Click outside handler to close dropdown
 const handleClickOutside = (event: MouseEvent) => {
   const target = event.target as HTMLElement;
-  const expandableContainer = document.querySelector(".expandable-container");
 
   if (
     isExpanded.value &&
-    expandableContainer &&
-    !expandableContainer.contains(target)
+    expandableGroupRef.value &&
+    !expandableGroupRef.value.contains(target)
   ) {
     isExpanded.value = false;
   }
