@@ -202,8 +202,7 @@ interface CurationPhoto {
   url: string;
   title: string;
   rating: number;
-  score: number; // AI-generated curation score 0-100
-  aiComment: string; // AI-generated comment for curation
+  reasoning: string; // AI-generated reasoning for curation
   matchedTags?: string[];
   width?: number;
   height?: number;
@@ -285,24 +284,23 @@ const generateMockPhotos = (count: number = 6): CurationPhoto[] => {
     },
   ];
 
-  const aiComments = [
-    "Strong composition with excellent use of leading lines and natural lighting",
-    "Compelling subject matter with authentic emotion and perfect timing",
-    "Outstanding color palette that creates a cohesive visual narrative",
-    "Exceptional technical quality with sharp focus and balanced exposure",
-    "Unique perspective that offers fresh insight into familiar subject matter",
-    "Masterful use of depth of field to guide viewer attention",
-    "Perfect capturing of decisive moment with natural spontaneity",
-    "Excellent storytelling potential with rich contextual details",
-    "Strong visual impact through effective use of contrast and texture",
-    "Authentic atmosphere that effectively conveys mood and emotion",
-    "Professional composition following rule of thirds with balanced elements",
-    "Captivating scene with natural drama and compelling visual flow",
+  const reasoningOptions = [
+    "Strong composition with excellent use of leading lines and natural lighting that creates visual depth",
+    "Compelling subject matter with authentic emotion and perfect timing captured at the decisive moment",
+    "Outstanding color palette that creates a cohesive visual narrative and evokes the right mood",
+    "Exceptional technical quality with sharp focus and balanced exposure throughout the frame",
+    "Unique perspective that offers fresh insight into familiar subject matter from an unexpected angle",
+    "Masterful use of depth of field to guide viewer attention to the most important elements",
+    "Perfect capturing of natural spontaneity with genuine expressions and authentic interactions",
+    "Excellent storytelling potential with rich contextual details that support the main narrative",
+    "Strong visual impact through effective use of contrast and texture that creates visual interest",
+    "Authentic atmosphere that effectively conveys mood and emotion appropriate for the intended message",
+    "Professional composition following rule of thirds with balanced elements and strong focal points",
+    "Captivating scene with natural drama and compelling visual flow that draws the eye through the frame",
   ];
 
   return Array.from({ length: count }, (_, index) => {
     const basePhoto = basePhotos[index % basePhotos.length];
-    const score = Math.floor(Math.random() * 40) + 60; // Score between 60-100
     const rating = Math.floor(Math.random() * 3) + 3; // Rating between 3-5
 
     return {
@@ -310,8 +308,7 @@ const generateMockPhotos = (count: number = 6): CurationPhoto[] => {
       url: basePhoto.url,
       title: basePhoto.title,
       rating,
-      score,
-      aiComment: aiComments[index % aiComments.length],
+      reasoning: reasoningOptions[index % reasoningOptions.length],
       matchedTags: basePhoto.tags,
       width: 2000 + Math.floor(Math.random() * 2000),
       height: 1500 + Math.floor(Math.random() * 1500),
@@ -420,11 +417,11 @@ const showPhotoInfo = (photo: CurationPhoto) => {
 
 /* Search Section */
 .search-section {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-2xl);
-  margin-bottom: var(--spacing-2xl);
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: var(--spacing-lg);
 }
 
 .search-input-row {
@@ -507,7 +504,7 @@ const showPhotoInfo = (photo: CurationPhoto) => {
 .photos-grid {
   flex: 1;
   display: grid !important;
-  grid-template-columns: repeat(2, 1fr) !important;
+  grid-template-columns: repeat(3, 1fr) !important;
   grid-auto-rows: max-content !important;
   gap: var(--spacing-lg) !important;
   padding: var(--spacing-2xl);
