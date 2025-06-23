@@ -3,7 +3,9 @@
     <div class="profile-selection-content">
       <div class="profile-header">
         <h1 class="profile-title">What is your preferred style?</h1>
-        <p class="profile-subtitle">Help us customize your Trova experience</p>
+        <p class="profile-subtitle">
+          Help us customize your EyeForge experience
+        </p>
       </div>
 
       <!-- Main Style Categories -->
@@ -295,7 +297,7 @@ const completeProfile = () => {
   console.log("Selected Categories:", selectedCategories.value);
   console.log("Selected Tags:", selectedTags.value);
 
-  message.success("Profile setup completed! Welcome to Trova.");
+  message.success("Profile setup completed! Welcome to EyeForge.");
   router.push("/dashboard");
 };
 

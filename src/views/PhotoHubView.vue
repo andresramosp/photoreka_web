@@ -222,8 +222,8 @@
                   status: photo.isUploading
                     ? 'processing'
                     : photo.isDuplicate
-                      ? 'uploaded'
-                      : 'uploaded',
+                    ? 'uploaded'
+                    : 'uploaded',
                   aiTags: photo.isUploading
                     ? undefined
                     : Math.floor(Math.random() * 15) + 5,

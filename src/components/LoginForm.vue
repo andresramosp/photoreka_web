@@ -1,6 +1,6 @@
 <template>
   <div class="login-form">
-    <div class="form-header">Access your Trova account</div>
+    <div class="form-header">Access your EyeForge account</div>
 
     <AuthProviders mode="login" />
 

@@ -991,9 +991,7 @@ const setExampleSearch = (
   display: flex;
   flex-direction: column;
   overflow-y: auto; /* Restore general scroll */
-  padding: var(
-    --spacing-2xl
-  ); /* Add padding back since we removed view-container */
+  padding: var(--spacing-2xl);
 }
 
 /* Search Toolbar */

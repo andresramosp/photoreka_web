@@ -519,10 +519,6 @@ const openProject = (projectId: string) => {
 
 /* Very small screens - even more compact */
 @media (max-width: 480px) {
-  .dashboard-container {
-    padding: 0 4px;
-  }
-
   .welcome-title {
     font-size: 20px;
   }

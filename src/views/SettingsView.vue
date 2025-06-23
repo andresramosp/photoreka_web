@@ -89,8 +89,13 @@ const languageOptions = [
 
 <style scoped>
 .settings-container {
-  max-width: 800px;
   margin: 0 auto;
+  height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-width: 1000px;
+  justify-content: center;
 }
 
 .settings-card {

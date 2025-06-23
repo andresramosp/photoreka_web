@@ -113,7 +113,7 @@ const userMenuOptions = [
         h(
           "div",
           { class: "user-email-main" },
-          userStore.user?.email || "user@trova.app"
+          userStore.user?.email || "user@eyeforge.app"
         ),
       ]),
     key: "user-info",

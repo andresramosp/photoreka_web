@@ -17,14 +17,14 @@ export const useUserStore = defineStore("user", () => {
 
   // Check for existing token on store initialization
   const initAuth = () => {
-    const savedToken = localStorage.getItem("trova_token");
+    const savedToken = localStorage.getItem("eyeforge_token");
     if (savedToken) {
       token.value = savedToken;
       isAuthenticated.value = true;
       // Mock user data - in real app this would fetch from API
       user.value = {
         id: "mock-user-id",
-        email: "user@trova.app",
+        email: "user@eyeforge.app",
         name: "Usuario Demo",
         provider: "email",
       };
@@ -33,7 +33,7 @@ export const useUserStore = defineStore("user", () => {
 
   const login = async (
     email: string,
-    password: string,
+    password: string
   ): Promise<{ success: boolean; error?: string }> => {
     isLoading.value = true;
 
@@ -43,7 +43,9 @@ export const useUserStore = defineStore("user", () => {
 
       // Mock validation
       if (email && password.length >= 6) {
-        const mockToken = `mock_token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const mockToken = `mock_token_${Date.now()}_${Math.random()
+          .toString(36)
+          .substr(2, 9)}`;
 
         token.value = mockToken;
         isAuthenticated.value = true;
@@ -54,7 +56,7 @@ export const useUserStore = defineStore("user", () => {
           provider: "email",
         };
 
-        localStorage.setItem("trova_token", mockToken);
+        localStorage.setItem("eyeforge_token", mockToken);
 
         return { success: true };
       } else {
@@ -74,7 +76,7 @@ export const useUserStore = defineStore("user", () => {
   const register = async (
     email: string,
     password: string,
-    name: string,
+    name: string
   ): Promise<{ success: boolean; error?: string }> => {
     isLoading.value = true;
 
@@ -84,7 +86,9 @@ export const useUserStore = defineStore("user", () => {
 
       // Mock validation
       if (email && password.length >= 6 && name) {
-        const mockToken = `mock_token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const mockToken = `mock_token_${Date.now()}_${Math.random()
+          .toString(36)
+          .substr(2, 9)}`;
 
         token.value = mockToken;
         isAuthenticated.value = true;
@@ -95,7 +99,7 @@ export const useUserStore = defineStore("user", () => {
           provider: "email",
         };
 
-        localStorage.setItem("trova_token", mockToken);
+        localStorage.setItem("eyeforge_token", mockToken);
 
         return { success: true };
       } else {
@@ -116,7 +120,7 @@ export const useUserStore = defineStore("user", () => {
   };
 
   const loginWithProvider = async (
-    provider: "google" | "facebook",
+    provider: "google" | "facebook"
   ): Promise<{ success: boolean; error?: string }> => {
     isLoading.value = true;
 
@@ -124,7 +128,9 @@ export const useUserStore = defineStore("user", () => {
       // Mock social authentication - replace with real OAuth implementation
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      const mockToken = `mock_token_${provider}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const mockToken = `mock_token_${provider}_${Date.now()}_${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
 
       token.value = mockToken;
       isAuthenticated.value = true;
@@ -135,7 +141,7 @@ export const useUserStore = defineStore("user", () => {
         provider,
       };
 
-      localStorage.setItem("trova_token", mockToken);
+      localStorage.setItem("eyeforge_token", mockToken);
 
       return { success: true };
     } catch (error) {
@@ -152,7 +158,7 @@ export const useUserStore = defineStore("user", () => {
     token.value = null;
     isAuthenticated.value = false;
     user.value = null;
-    localStorage.removeItem("trova_token");
+    localStorage.removeItem("eyeforge_token");
   };
 
   // Initialize auth state

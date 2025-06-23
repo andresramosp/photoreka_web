@@ -3,7 +3,7 @@
     <div class="auth-container">
       <div class="auth-content">
         <div class="auth-header">
-          <TrovaLogo size="large" />
+          <AppLogo size="large" />
           <p class="auth-subtitle">Your photo management platform</p>
         </div>
 
@@ -12,7 +12,7 @@
         </div>
 
         <div class="auth-footer">
-          <p class="footer-text">© 2024 Trova. All rights reserved.</p>
+          <p class="footer-text">© 2024 EyeForge. All rights reserved.</p>
         </div>
       </div>
     </div>
@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import TrovaLogo from "./TrovaLogo.vue";
+import AppLogo from "./AppLogo.vue";
 </script>
 
 <style scoped>
@@ -104,8 +104,7 @@ import TrovaLogo from "./TrovaLogo.vue";
   left: 0;
   right: 0;
   bottom: 0;
-  background-image:
-    radial-gradient(
+  background-image: radial-gradient(
       circle at 25% 25%,
       rgba(37, 99, 235, 0.1) 0%,
       transparent 50%
@@ -115,12 +114,8 @@ import TrovaLogo from "./TrovaLogo.vue";
       rgba(139, 92, 246, 0.1) 0%,
       transparent 50%
     );
-  background-size:
-    800px 800px,
-    600px 600px;
-  background-position:
-    0 0,
-    200px 200px;
+  background-size: 800px 800px, 600px 600px;
+  background-position: 0 0, 200px 200px;
   animation: float 20s infinite ease-in-out;
 }
 

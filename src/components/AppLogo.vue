@@ -1,5 +1,5 @@
 <template>
-  <div class="trova-logo" :class="{ 'logo-large': size === 'large' }">
+  <div class="eyeforge-logo" :class="{ 'logo-large': size === 'large' }">
     <div class="logo-icon">
       <svg
         :width="iconSize"
@@ -8,7 +8,7 @@
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <!-- Stylized camera/lens icon for Trova -->
+        <!-- Stylized camera/lens icon for EyeForge -->
         <circle
           cx="24"
           cy="24"
@@ -35,7 +35,7 @@
         />
       </svg>
     </div>
-    <span class="logo-text" v-if="showText">Trova</span>
+    <span class="logo-text" v-if="showText">EyeForge</span>
   </div>
 </template>
 
@@ -59,19 +59,19 @@ const iconSize = computed(() => {
 import { computed } from "vue";
 
 export default {
-  name: "TrovaLogo",
+  name: "AppLogo",
 };
 </script>
 
 <style scoped>
-.trova-logo {
+.eyeforge-logo {
   display: flex;
   align-items: center;
   gap: 12px;
   color: #2563eb;
 }
 
-.trova-logo.logo-large {
+.eyeforge-logo.logo-large {
   gap: 16px;
 }
 
@@ -87,8 +87,8 @@ export default {
   font-weight: 700;
   letter-spacing: -0.025em;
   color: #ffffffd1;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    sans-serif;
 }
 
 .logo-large .logo-text {
@@ -100,7 +100,7 @@ export default {
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.trova-logo:hover .logo-icon svg {
+.eyeforge-logo:hover .logo-icon svg {
   transform: scale(1.05);
 }
 

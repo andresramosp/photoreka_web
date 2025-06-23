@@ -1,6 +1,6 @@
 <template>
   <div class="register-form">
-    <div class="form-header">Join the Trova community</div>
+    <div class="form-header">Join the EyeForge community</div>
 
     <AuthProviders mode="register" />
 

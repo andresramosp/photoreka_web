@@ -23,7 +23,7 @@
             </n-icon>
           </div>
           <div class="logo-text">
-            <div class="app-name">Trova</div>
+            <div class="app-name">EyeForge</div>
             <div class="app-subtitle">Photo Management</div>
           </div>
         </div>
@@ -128,7 +128,7 @@
             </n-icon>
           </div>
           <div v-if="!collapsed" class="logo-text">
-            <div class="app-name">Trova</div>
+            <div class="app-name">EyeForge</div>
             <div class="app-subtitle">Photo Management</div>
           </div>
         </div>

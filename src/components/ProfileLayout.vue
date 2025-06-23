@@ -3,7 +3,7 @@
     <div class="profile-container">
       <div class="profile-content">
         <div class="profile-header">
-          <TrovaLogo size="large" />
+          <AppLogo size="large" />
         </div>
 
         <div class="profile-form-container">
@@ -11,7 +11,7 @@
         </div>
 
         <div class="profile-footer">
-          <p class="footer-text">© 2024 Trova. All rights reserved.</p>
+          <p class="footer-text">© 2024 EyeForge. All rights reserved.</p>
         </div>
       </div>
     </div>
@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import TrovaLogo from "./TrovaLogo.vue";
+import AppLogo from "./AppLogo.vue";
 </script>
 
 <style scoped>
