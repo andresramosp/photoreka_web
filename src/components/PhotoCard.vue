@@ -492,6 +492,11 @@ const handleMouseLeave = () => {
     padding: 3px 6px;
   }
 
+  .score-badge {
+    padding: 1px 6px;
+    font-size: 10px;
+  }
+
   .tag {
     font-size: 9px;
     padding: 1px 4px;
@@ -500,6 +505,17 @@ const handleMouseLeave = () => {
   .tag-more {
     font-size: 9px;
     padding: 1px 4px;
+  }
+
+  .ai-comment-tooltip {
+    font-size: 11px;
+    padding: 8px;
+  }
+
+  .move-button {
+    font-size: 10px;
+    height: 24px;
+    padding: 0 8px;
   }
 }
 </style>
