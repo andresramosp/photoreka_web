@@ -1251,26 +1251,26 @@ const setExampleSearch = (
 .load-more-button {
   min-width: 200px;
   height: 48px;
-  font-size: 16px;
-  font-weight: 500;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
 }
 
 /* Selection Info */
 .selection-info {
   position: fixed;
-  bottom: 24px;
+  bottom: var(--spacing-2xl);
   left: 50%;
   transform: translateX(-50%);
-  background-color: #2563eb;
-  color: #ffffff;
-  padding: 12px 24px;
-  border-radius: 24px;
+  background-color: var(--primary-color);
+  color: var(--text-primary);
+  padding: var(--spacing-md) var(--spacing-2xl);
+  border-radius: var(--radius-2xl);
   display: flex;
   align-items: center;
-  gap: 16px;
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
-  z-index: 100;
-  font-weight: 500;
+  gap: var(--spacing-lg);
+  box-shadow: var(--shadow-primary);
+  z-index: var(--z-dropdown);
+  font-weight: var(--font-weight-medium);
 }
 
 .selection-info span {
