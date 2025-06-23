@@ -421,12 +421,17 @@ const toggleInteractionMode = () => {
 
 // Dropdown functions
 const handleRightButtonClick = () => {
-  if (!isExpanded.value) {
+  if (canvasMode.value !== "preview") {
+    // First click: switch to preview mode and expand button
     canvasMode.value = "preview";
     isExpanded.value = true;
+    isDropdownOpen.value = false;
+  } else if (isExpanded.value && !isDropdownOpen.value) {
+    // Second click: open dropdown
+    isDropdownOpen.value = true;
   } else {
-    // If already expanded, close it
-    isExpanded.value = false;
+    // Third click: close dropdown but keep expanded
+    isDropdownOpen.value = false;
   }
 };
 
