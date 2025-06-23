@@ -24,7 +24,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  height: 100%;
+  min-height: 200px;
 }
 
 .empty-content {
