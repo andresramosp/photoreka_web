@@ -1329,7 +1329,6 @@ const setExampleSearch = (
   margin: 0 0 var(--spacing-lg) 0;
   line-height: var(--line-height-tight);
 }
-}
 
 .examples-carousel {
   display: flex;
