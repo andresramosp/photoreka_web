@@ -186,6 +186,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from "vue";
 import { NButton, NButtonGroup, NIcon, NSpace } from "naive-ui";
+import RelatedPhotosToolbar from "../components/RelatedPhotosToolbar.vue";
 
 // Refs
 const stageRef = ref<any>(null);
