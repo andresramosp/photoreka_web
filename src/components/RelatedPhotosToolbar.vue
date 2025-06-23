@@ -422,24 +422,6 @@ const handleHorizontalScroll = (e: WheelEvent) => {
   padding-bottom: var(--spacing-xs);
 }
 
-.related-photos-scroll::-webkit-scrollbar {
-  height: 6px;
-}
-
-.related-photos-scroll::-webkit-scrollbar-track {
-  background: var(--bg-surface);
-  border-radius: var(--radius-xs);
-}
-
-.related-photos-scroll::-webkit-scrollbar-thumb {
-  background: var(--border-color-hover);
-  border-radius: var(--radius-xs);
-}
-
-.related-photos-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--text-tertiary);
-}
-
 .related-photos-grid {
   display: flex;
   gap: var(--spacing-md);
