@@ -1392,13 +1392,19 @@ const setExampleSearch = (
 }
 
 .loading-message {
-  @extend .flex-col-center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: var(--spacing-4xl) 0;
   gap: var(--spacing-lg);
 }
 
 .loading-text {
-  @extend .subtitle-secondary;
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: var(--line-height-normal);
 }
 
 /* Search Results Placeholder */
