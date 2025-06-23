@@ -1,8 +1,14 @@
 <template>
   <div
     class="photo-card"
-    :class="{ selected: isSelected }"
+    :class="{
+      selected: isSelected,
+      'curation-mode': mode === 'curation',
+      'selection-mode': mode === 'selection',
+    }"
     @click="toggleSelection"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave"
   >
     <div class="photo-container">
       <img
@@ -12,6 +18,14 @@
         @load="onImageLoad"
         @error="onImageError"
       />
+
+      <!-- AI Comment Tooltip (for curation mode) -->
+      <div
+        v-if="mode === 'curation' && photo.aiComment && showTooltip"
+        class="ai-comment-tooltip"
+      >
+        <p class="comment-text">{{ photo.aiComment }}</p>
+      </div>
 
       <!-- Info Button (center overlay) -->
       <div class="info-overlay">
@@ -34,7 +48,7 @@
         </n-button>
       </div>
 
-      <!-- Top overlay with stars -->
+      <!-- Top overlay with stars and score -->
       <div class="top-overlay">
         <div class="stars">
           <n-icon
@@ -50,6 +64,13 @@
               />
             </svg>
           </n-icon>
+        </div>
+        <!-- Score display for curation mode -->
+        <div
+          v-if="mode === 'curation' && photo.score !== undefined"
+          class="score-badge"
+        >
+          <span class="score-value">{{ photo.score }}</span>
         </div>
       </div>
 
