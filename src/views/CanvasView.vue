@@ -586,7 +586,7 @@ onUnmounted(() => {
   right: 0;
   background: var(--bg-container, rgba(30, 30, 30, 0.95));
   backdrop-filter: blur(12px);
-  border-radius: 6px;
+  border-radius: 12px;
   border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 20;
