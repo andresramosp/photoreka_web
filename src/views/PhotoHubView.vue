@@ -670,12 +670,19 @@ const setGridColumns = (columns: number) => {
 
 <style scoped>
 .photo-hub-container {
-  @extend .view-container;
+  padding: var(--spacing-2xl);
+  margin: 0 auto;
+  background-color: var(--bg-body);
+  min-height: 100vh;
 }
 
 /* Header Section */
 .hub-header {
-  @extend .view-header;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-3xl);
+  gap: var(--spacing-2xl);
 }
 
 /* Tabs Section */
