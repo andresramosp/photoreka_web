@@ -56,7 +56,9 @@
     <!-- Main Curation Area -->
     <div
       class="curation-main"
-      v-if="candidatePhotos.length > 0 || curatedPhotos.length > 0"
+      v-if="
+        candidatePhotos.length > 0 || curatedPhotos.length > 0 || isSearching
+      "
     >
       <!-- Left Side: Curation Area -->
       <div class="curation-area">
@@ -225,64 +227,64 @@ const hasSearchQuery = computed(() => searchQuery.value.trim().length > 0);
 const generateMockPhotos = (count: number = 6): CurationPhoto[] => {
   const basePhotos = [
     {
-      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop",
+      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop",
       title: "Mountain Lake",
       tags: ["landscape", "mountains", "nature", "lake", "serene"],
     },
     {
-      url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop",
-      title: "Portrait Study",
-      tags: ["portrait", "people", "studio", "lighting", "professional"],
+      url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&h=400&fit=crop",
+      title: "Forest Valley",
+      tags: ["forest", "valley", "nature", "trees", "green"],
     },
     {
-      url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=400&fit=crop",
-      title: "City Architecture",
-      tags: ["architecture", "urban", "building", "modern", "design"],
+      url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=600&h=400&fit=crop",
+      title: "City Skyline",
+      tags: ["architecture", "urban", "building", "modern", "skyline"],
     },
     {
-      url: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400&h=400&fit=crop",
-      title: "Fresh Flowers",
-      tags: ["flowers", "nature", "botanical", "fresh", "colorful"],
+      url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&h=400&fit=crop",
+      title: "Desert Landscape",
+      tags: ["desert", "nature", "landscape", "sand", "dramatic"],
     },
     {
-      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop",
-      title: "Ocean Sunset",
-      tags: ["sunset", "ocean", "waves", "golden-hour", "peaceful"],
+      url: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=600&h=400&fit=crop",
+      title: "Ocean Waves",
+      tags: ["ocean", "waves", "water", "blue", "peaceful"],
     },
     {
-      url: "https://images.unsplash.com/photo-1514924013411-cbf25faa35bb?w=400&h=400&fit=crop",
-      title: "Urban Dining",
-      tags: ["food", "dining", "restaurant", "urban", "cuisine"],
+      url: "https://images.unsplash.com/photo-1514924013411-cbf25faa35bb?w=600&h=400&fit=crop",
+      title: "Urban Street",
+      tags: ["street", "urban", "city", "culture", "lifestyle"],
     },
     {
-      url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=400&fit=crop",
-      title: "Forest Trail",
-      tags: ["forest", "hiking", "nature", "trees", "adventure"],
+      url: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=600&h=400&fit=crop",
+      title: "Waterfall Scene",
+      tags: ["waterfall", "nature", "rocks", "water", "landscape"],
     },
     {
-      url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=400&fit=crop",
-      title: "Modern Building",
-      tags: ["architecture", "modern", "glass", "urban", "geometric"],
+      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop",
+      title: "Alpine Views",
+      tags: ["alpine", "mountains", "snow", "peaks", "vista"],
     },
     {
-      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop",
-      title: "Natural Landscape",
-      tags: ["landscape", "nature", "mountains", "sky", "vista"],
+      url: "https://images.unsplash.com/photo-1485470733090-0aae1788d5af?w=600&h=400&fit=crop",
+      title: "Coastal Road",
+      tags: ["coast", "road", "cliffs", "ocean", "scenic"],
     },
     {
-      url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop",
-      title: "Creative Portrait",
-      tags: ["portrait", "creative", "lighting", "artistic", "person"],
+      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop",
+      title: "Mountain Range",
+      tags: ["mountains", "range", "landscape", "nature", "horizon"],
     },
     {
-      url: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400&h=400&fit=crop",
-      title: "Garden Scene",
-      tags: ["garden", "flowers", "nature", "outdoor", "botanical"],
+      url: "https://images.unsplash.com/photo-1500964757637-c85e8a162699?w=600&h=400&fit=crop",
+      title: "Beach Sunset",
+      tags: ["beach", "sunset", "golden", "waves", "serene"],
     },
     {
-      url: "https://images.unsplash.com/photo-1514924013411-cbf25faa35bb?w=400&h=400&fit=crop",
-      title: "Culinary Art",
-      tags: ["food", "culinary", "art", "presentation", "gourmet"],
+      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop",
+      title: "Valley View",
+      tags: ["valley", "hills", "green", "landscape", "peaceful"],
     },
   ];
 
