@@ -334,28 +334,19 @@ const openProject = (projectId: string) => {
 
 <style scoped>
 .dashboard-container {
-  /* max-width: 1200px; */
-  margin: 0 auto;
-  width: 100%;
+  @extend .view-container;
 }
 
 .welcome-section {
-  margin-bottom: 32px;
+  margin-bottom: var(--spacing-3xl);
 }
 
 .welcome-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: #ffffffd1;
-  margin: 0 0 8px 0;
-  line-height: 1.2;
+  @extend .title-primary;
 }
 
 .welcome-subtitle {
-  font-size: 16px;
-  color: #ffffff73;
-  margin: 0;
-  line-height: 1.5;
+  @extend .subtitle-primary;
 }
 
 .stats-grid {
