@@ -80,7 +80,7 @@
             <n-avatar
               size="small"
               class="user-avatar"
-              color="#2563eb"
+              :color="'var(--primary-color)'"
               :src="userStore.user?.avatar"
             >
               {{ userStore.user?.name?.charAt(0)?.toUpperCase() || "U" }}
