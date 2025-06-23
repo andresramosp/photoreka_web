@@ -71,23 +71,25 @@
           class="photos-grid"
           v-if="candidatePhotos.length > 0 || isSearching"
         >
-          <!-- Show skeletons while searching -->
-          <template v-if="isSearching">
+          <!-- Show skeletons while searching (only when no photos yet) -->
+          <template v-if="isSearching && candidatePhotos.length === 0">
             <div v-for="n in 6" :key="`skeleton-${n}`" class="photo-skeleton">
               <n-skeleton height="100%" />
             </div>
           </template>
           <!-- Show actual photos -->
-          <PhotoCard
-            v-for="photo in candidatePhotos"
-            :key="photo.id"
-            :photo="photo"
-            :mode="'curation'"
-            :selected="false"
-            @select="togglePhotoSelection"
-            @info="showPhotoInfo"
-            @move-to-selection="moveToSelection"
-          />
+          <template v-if="candidatePhotos.length > 0">
+            <PhotoCard
+              v-for="photo in candidatePhotos"
+              :key="photo.id"
+              :photo="photo"
+              :mode="'curation'"
+              :selected="false"
+              @select="togglePhotoSelection"
+              @info="showPhotoInfo"
+              @move-to-selection="moveToSelection"
+            />
+          </template>
         </div>
 
         <div class="empty-area" v-else>
@@ -474,9 +476,10 @@ const showPhotoInfo = (photo: CurationPhoto) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-lg) var(--spacing-2xl);
+  padding: var(--spacing-md) var(--spacing-2xl);
   border-bottom: 1px solid var(--border-color);
   background-color: var(--bg-surface);
+  min-height: 48px;
 }
 
 .area-title {

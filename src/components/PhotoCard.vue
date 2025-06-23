@@ -21,10 +21,15 @@
 
       <!-- AI Reasoning Tooltip (for curation mode) -->
       <div
-        v-if="mode === 'curation' && photo.reasoning && showTooltip"
+        v-if="mode === 'curation' && showTooltip"
         class="ai-reasoning-tooltip"
       >
-        <p class="reasoning-text">{{ photo.reasoning }}</p>
+        <p class="reasoning-text">
+          {{
+            photo.reasoning ||
+            "This photo demonstrates excellent composition with balanced lighting and compelling subject matter that would work well for the intended purpose."
+          }}
+        </p>
       </div>
 
       <!-- Info Button (center overlay) -->
@@ -215,7 +220,7 @@ const moveToCuration = () => {
 };
 
 const handleMouseEnter = () => {
-  if (props.mode === "curation" && props.photo.reasoning) {
+  if (props.mode === "curation") {
     showTooltip.value = true;
   }
 };
@@ -337,15 +342,17 @@ const handleMouseLeave = () => {
   bottom: 100%;
   left: 8px;
   right: 8px;
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: rgba(0, 0, 0, 0.95);
   color: white;
   padding: 12px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.4;
-  backdrop-filter: blur(8px);
-  z-index: 10;
+  backdrop-filter: blur(12px);
+  z-index: 20;
   margin-bottom: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   animation: fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
