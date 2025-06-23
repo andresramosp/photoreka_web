@@ -275,6 +275,13 @@ const handleMouseUp = () => {
   isDragging.value = false;
 };
 
+const handleStageClick = (e: any) => {
+  // Only show toolbar if clicking directly on the stage (not on objects)
+  if (e.target === e.target.getStage()) {
+    showRelatedPhotos.value = true;
+  }
+};
+
 // Control functions
 const addPhotosToCanvas = () => {
   console.log("Add photos to canvas");
