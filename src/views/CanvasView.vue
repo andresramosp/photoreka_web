@@ -591,7 +591,7 @@ onUnmounted(() => {
   border-radius: 12px;
   border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  z-index: 20;
+  z-index: 1000;
   margin-top: 4px;
   min-width: 140px;
   animation: slideDown 0.2s ease-out;
