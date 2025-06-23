@@ -1339,30 +1339,18 @@ const setExampleSearch = (
 }
 
 .example-card {
-  background-color: #18181c;
-  border: 1px solid #2c2c32;
-  border-radius: 12px;
-  padding: 16px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  @extend .card-base;
+  @extend .card-interactive;
+  padding: var(--spacing-lg);
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 48px;
   width: 100%;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.example-card:hover {
-  border-color: #2563eb;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
 }
 
 .example-text {
-  font-size: 14px;
-  color: #ffffffd1;
-  line-height: 1.4;
+  @extend .text-body;
   text-align: center;
 }
 
