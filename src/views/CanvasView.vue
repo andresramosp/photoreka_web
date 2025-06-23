@@ -232,6 +232,39 @@ const isDragging = ref(false);
 const lastPointerPosition = ref({ x: 0, y: 0 });
 const showRelatedPhotos = ref(false);
 
+// Expandable dropdown state
+const isExpanded = ref(false);
+const selectedOption = ref("General");
+
+// Dropdown options
+const dropdownOptions = [
+  {
+    value: "general",
+    label: "General",
+    icon: "svg",
+  },
+  {
+    value: "narrative",
+    label: "Narrative",
+    icon: "svg",
+  },
+  {
+    value: "context",
+    label: "Context",
+    icon: "svg",
+  },
+  {
+    value: "composition",
+    label: "Composition",
+    icon: "svg",
+  },
+  {
+    value: "tags",
+    label: "Tags",
+    icon: "svg",
+  },
+];
+
 // Stage configuration
 const stageConfig = computed(() => {
   // Get the canvas container dimensions instead of full window
