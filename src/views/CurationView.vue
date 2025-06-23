@@ -506,14 +506,19 @@ const showPhotoInfo = (photo: CurationPhoto) => {
 
 .photos-grid {
   flex: 1;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-auto-rows: max-content;
-  gap: var(--spacing-lg);
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  grid-auto-rows: max-content !important;
+  gap: var(--spacing-lg) !important;
   padding: var(--spacing-2xl);
   overflow-y: auto;
   align-content: start;
   place-items: start;
+}
+
+.photos-grid > * {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .empty-area {
