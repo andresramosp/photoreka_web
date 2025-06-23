@@ -593,7 +593,7 @@ onMounted(() => {
   resizeObserverErrorHandler = (e: ErrorEvent) => {
     if (
       e.message.includes(
-        "ResizeObserver loop completed with undelivered notifications",
+        "ResizeObserver loop completed with undelivered notifications"
       )
     ) {
       e.preventDefault();
@@ -966,7 +966,7 @@ const setExampleSearch = (
   excluded?: string[],
   left?: string,
   center?: string,
-  right?: string,
+  right?: string
 ) => {
   clearSearch();
   activeSearchType.value = type;
@@ -987,7 +987,6 @@ const setExampleSearch = (
 <style scoped>
 .search-container {
   margin: 0 auto;
-  width: 100%;
   height: calc(100vh - 64px); /* Fixed height like canvas */
   display: flex;
   flex-direction: column;
