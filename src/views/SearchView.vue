@@ -926,7 +926,7 @@ const getCurrentQuery = () => {
         excludedTags.value.length > 0
           ? `Exclude: ${excludedTags.value.join(", ")}`
           : "";
-      return [included, excluded].filter(Boolean).join(" • ");
+      return [included, excluded].filter(Boolean).join(" �� ");
     case "spatial":
       const parts = [];
       if (spatialLeft.value) parts.push(`Left: ${spatialLeft.value}`);
@@ -1405,9 +1405,11 @@ const setExampleSearch = (
   margin: 0;
 }
 
-/* Search Results Placeholder */
+/* Search Results */
 .search-results {
-  min-height: 400px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .results-placeholder {
