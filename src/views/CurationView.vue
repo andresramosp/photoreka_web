@@ -351,9 +351,9 @@ const searchMorePhotos = async () => {
   // Simulate API call
   await new Promise((resolve) => setTimeout(resolve, 1500));
 
-  // Add 6 more photos
+  // Add 6 more photos at the beginning
   const morePhotos = generateMockPhotos(6);
-  candidatePhotos.value.push(...morePhotos);
+  candidatePhotos.value.unshift(...morePhotos);
 
   // Simulate end of results after 3 loads
   if (candidatePhotos.value.length >= 18) {
