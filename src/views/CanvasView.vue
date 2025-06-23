@@ -16,7 +16,7 @@
 
     <!-- Top Left Controls -->
     <div class="canvas-controls top-left">
-      <n-button-group>
+      <n-space>
         <n-button type="primary" @click="addPhotosToCanvas">
           <template #icon>
             <n-icon>
@@ -42,7 +42,6 @@
               </svg>
             </n-icon>
           </template>
-          Clear
         </n-button>
 
         <n-button @click="openConfig">
@@ -56,9 +55,8 @@
               </svg>
             </n-icon>
           </template>
-          Config
         </n-button>
-      </n-button-group>
+      </n-space>
     </div>
 
     <!-- Top Center Mode Switch -->
