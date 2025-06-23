@@ -520,7 +520,7 @@ onUnmounted(() => {
 .expandable-button-group {
   display: flex;
   align-items: center;
-  border-radius: 6px;
+  border-radius: 18px;
   overflow: hidden;
   background: var(--bg-container, rgba(255, 255, 255, 0.1));
   backdrop-filter: blur(8px);
@@ -529,11 +529,13 @@ onUnmounted(() => {
 .mode-button {
   border-radius: 0 !important;
   border: none !important;
+  height: 36px;
 }
 
 .left-button {
-  border-top-left-radius: 6px !important;
-  border-bottom-left-radius: 6px !important;
+  border-top-left-radius: 18px !important;
+  border-bottom-left-radius: 18px !important;
+  padding: 0 12px;
 }
 
 .expandable-container {
@@ -551,10 +553,11 @@ onUnmounted(() => {
 
 .right-button {
   width: 100%;
-  border-top-right-radius: 6px !important;
-  border-bottom-right-radius: 6px !important;
+  border-top-right-radius: 18px !important;
+  border-bottom-right-radius: 18px !important;
   justify-content: space-between;
   white-space: nowrap;
+  padding: 0 12px;
 }
 
 .button-text {
