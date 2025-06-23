@@ -334,7 +334,10 @@ const openProject = (projectId: string) => {
 
 <style scoped>
 .dashboard-container {
-  @extend .view-container;
+  padding: var(--spacing-2xl);
+  margin: 0 auto;
+  background-color: var(--bg-body);
+  min-height: 100vh;
 }
 
 .welcome-section {
@@ -342,11 +345,18 @@ const openProject = (projectId: string) => {
 }
 
 .welcome-title {
-  @extend .title-primary;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+  line-height: var(--line-height-tight);
 }
 
 .welcome-subtitle {
-  @extend .subtitle-primary;
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
 }
 
 .stats-grid {
