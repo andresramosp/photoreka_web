@@ -30,7 +30,7 @@
             round
           >
             <template #prefix>
-              <n-icon color="#6b7280">
+              <n-icon :color="'var(--icon-tertiary)'">
                 <svg viewBox="0 0 24 24">
                   <path
                     fill="currentColor"
