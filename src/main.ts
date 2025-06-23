@@ -35,7 +35,8 @@ import {
 import App from "./App.vue";
 import router from "./router";
 
-// Import global styles
+// Import theme variables and global styles
+import "./assets/theme.css";
 import "./assets/global.scss";
 
 const naive = create({

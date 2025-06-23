@@ -334,42 +334,43 @@ const openProject = (projectId: string) => {
 
 <style scoped>
 .dashboard-container {
-  /* max-width: 1200px; */
+  padding: var(--spacing-2xl);
   margin: 0 auto;
-  width: 100%;
+  background-color: var(--bg-body);
+  min-height: 100vh;
 }
 
 .welcome-section {
-  margin-bottom: 32px;
+  margin-bottom: var(--spacing-3xl);
 }
 
 .welcome-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: #ffffffd1;
-  margin: 0 0 8px 0;
-  line-height: 1.2;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+  line-height: var(--line-height-tight);
 }
 
 .welcome-subtitle {
-  font-size: 16px;
-  color: #ffffff73;
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
   margin: 0;
-  line-height: 1.5;
+  line-height: var(--line-height-relaxed);
 }
 
 .stats-grid {
   display: flex;
-  gap: 20px;
-  margin-bottom: 40px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-4xl);
+  transition: var(--transition-normal);
 }
 
 .stat-card {
-  background-color: #18181c !important;
-  border: 1px solid #2c2c32 !important;
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
   flex: 1;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition-normal);
   min-height: 120px;
 }
 
@@ -408,27 +409,28 @@ const openProject = (projectId: string) => {
 }
 
 .section-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #ffffffd1;
-  margin: 0 0 24px 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-2xl) 0;
+  line-height: var(--line-height-tight);
 }
 
 .actions-grid {
   display: flex;
-  gap: 20px;
-  margin-bottom: 24px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-2xl);
+  transition: var(--transition-normal);
 }
 
 .action-card {
-  background-color: #18181c;
-  border: 1px solid #2c2c32;
-  border-radius: 12px;
-  padding: 24px;
-  text-align: center;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: var(--transition-normal);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: var(--spacing-2xl);
+  text-align: center;
   height: 160px;
   min-height: 160px;
   flex: 1;
@@ -439,45 +441,45 @@ const openProject = (projectId: string) => {
 }
 
 .action-card:hover {
-  border-color: #2563eb;
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-primary);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
 .action-icon {
-  margin-bottom: 16px;
-  color: #ffffffd1;
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-primary);
 }
 
 .new-project .action-icon {
-  color: #22c55e;
+  color: var(--success-color);
 }
 
 .upload-photos .action-icon {
-  color: #2563eb;
+  color: var(--primary-color);
 }
 
 .ai-search .action-icon {
-  color: #8b5cf6;
+  color: var(--secondary-color);
 }
 
 .collections .action-icon {
-  color: #f59e0b;
+  color: var(--warning-color);
 }
 
 .action-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #ffffffd1;
-  margin: 0 0 8px 0;
-  line-height: 1.2;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+  line-height: var(--line-height-tight);
 }
 
 .action-description {
-  font-size: 14px;
-  color: #ffffff73;
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
   margin: 0;
-  line-height: 1.4;
+  line-height: var(--line-height-normal);
 }
 
 /* Mobile devices - stack vertically when too narrow */

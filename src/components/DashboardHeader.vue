@@ -30,7 +30,7 @@
             round
           >
             <template #prefix>
-              <n-icon color="#6b7280">
+              <n-icon :color="'var(--icon-tertiary)'">
                 <svg viewBox="0 0 24 24">
                   <path
                     fill="currentColor"
@@ -80,7 +80,7 @@
             <n-avatar
               size="small"
               class="user-avatar"
-              color="#2563eb"
+              :color="'var(--primary-color)'"
               :src="userStore.user?.avatar"
             >
               {{ userStore.user?.name?.charAt(0)?.toUpperCase() || "U" }}
@@ -110,8 +110,11 @@ const userMenuOptions = [
   {
     label: () =>
       h("div", { class: "user-menu-header" }, [
-        h("div", { class: "user-name" }, userStore.user?.name || "User"),
-        h("div", { class: "user-email" }, userStore.user?.email || ""),
+        h(
+          "div",
+          { class: "user-email-main" },
+          userStore.user?.email || "user@trova.app",
+        ),
       ]),
     key: "user-info",
     disabled: true,
@@ -195,9 +198,9 @@ onUnmounted(() => {
 
 <style scoped>
 .header {
-  background-color: #16161a !important;
-  border-bottom: 1px solid #2c2c32 !important;
-  padding: 0 24px;
+  background-color: var(--bg-body) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  padding: 0 var(--spacing-2xl);
   height: 64px;
   display: flex;
   align-items: center;
@@ -209,14 +212,14 @@ onUnmounted(() => {
   justify-content: space-between;
   height: 100%;
   width: 100%;
-  gap: 24px;
+  gap: var(--spacing-2xl);
 }
 
 .header-left {
   display: flex;
   align-items: center;
   flex: 1;
-  gap: 16px;
+  gap: var(--spacing-lg);
   min-width: 0;
 }
 
@@ -238,39 +241,66 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  gap: 12px;
+  gap: var(--spacing-md);
 }
 
 .header-icon-btn {
-  color: #9ca3af;
+  color: var(--icon-secondary);
+  transition: var(--transition-fast);
   flex-shrink: 0;
+  height: 32px;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-icon-btn:hover {
+  color: var(--text-primary);
 }
 
 .user-avatar {
   cursor: pointer;
   flex-shrink: 0;
+  height: 32px !important;
+  width: 32px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Remove default spacing from n-space */
 .header-right :deep(.n-space) {
-  gap: 12px !important;
+  gap: var(--spacing-md) !important;
+  align-items: center !important;
+  height: 100%;
+}
+
+.header-right :deep(.n-space > .n-space-item) {
+  display: flex;
+  align-items: center;
+  height: 32px;
 }
 
 /* User menu styles */
 :deep(.user-menu-header) {
-  padding: 8px 12px;
+  padding: var(--spacing-md) var(--spacing-lg);
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
 }
 
-:deep(.user-name) {
-  font-weight: 600;
-  font-size: 14px;
-  color: #ffffffd1;
-  margin-bottom: 2px;
-}
-
-:deep(.user-email) {
-  font-size: 12px;
-  color: #ffffff73;
+:deep(.user-email-main) {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  line-height: var(--line-height-tight);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
 }
 
 /* Mobile styles */
@@ -298,6 +328,17 @@ onUnmounted(() => {
 
   .header-right :deep(.n-space) {
     gap: 8px !important;
+    align-items: center !important;
+  }
+
+  .header-icon-btn {
+    height: 28px;
+    width: 28px;
+  }
+
+  .user-avatar {
+    height: 28px !important;
+    width: 28px !important;
   }
 }
 </style>

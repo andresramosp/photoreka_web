@@ -670,10 +670,9 @@ const setGridColumns = (columns: number) => {
 
 <style scoped>
 .photo-hub-container {
-  padding: 24px;
-  /* max-width: 1200px; */
+  padding: var(--spacing-2xl);
   margin: 0 auto;
-  background-color: #16161a;
+  background-color: var(--bg-body);
   min-height: 100vh;
 }
 
@@ -682,58 +681,58 @@ const setGridColumns = (columns: number) => {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 32px;
-  gap: 24px;
+  margin-bottom: var(--spacing-3xl);
+  gap: var(--spacing-2xl);
 }
 
 /* Tabs Section */
 .tabs-container {
-  background-color: #1a1a1f;
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 24px;
+  background-color: var(--bg-container);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: var(--spacing-2xl);
 }
 
 /* Custom Tab Navigation */
 .tab-navigation {
   display: flex;
-  background-color: #1a1a1f;
-  padding: 8px;
-  gap: 4px;
+  background-color: var(--bg-container);
+  padding: var(--spacing-sm);
+  gap: var(--spacing-xs);
 }
 
 .tab-button {
   flex: 1;
-  padding: 12px 24px;
+  padding: var(--spacing-md) var(--spacing-2xl);
   background-color: transparent;
   border: none;
-  border-radius: 8px;
-  color: #ffffff73;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition-fast);
   text-align: center;
 }
 
 .tab-button:hover {
-  background-color: #2c2c32;
-  color: #ffffff99;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
 }
 
 .tab-button.active {
-  background-color: #2c2c32;
-  color: #ffffffd1;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
 }
 
 /* Tab Content Container */
 .tab-content-container {
-  background-color: #1a1a1f;
+  background-color: var(--bg-container);
 }
 
 .tab-content {
-  padding: 32px;
-  background-color: #1a1a1f;
+  padding: var(--spacing-3xl);
+  background-color: var(--bg-container);
 }
 
 .header-content {
@@ -741,21 +740,23 @@ const setGridColumns = (columns: number) => {
 }
 
 .page-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: #ffffffd1;
-  margin: 0 0 8px 0;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+  line-height: var(--line-height-tight);
 }
 
 .page-subtitle {
-  font-size: 16px;
-  color: #ffffff73;
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
   margin: 0;
+  line-height: var(--line-height-relaxed);
 }
 
 .header-actions {
   display: flex;
-  gap: 12px;
+  gap: var(--spacing-md);
   flex-shrink: 0;
 }
 
