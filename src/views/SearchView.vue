@@ -1281,12 +1281,13 @@ const setExampleSearch = (
 /* Search Inspiration */
 .search-inspiration {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  min-height: 500px;
+  flex: 1;
   text-align: center;
   position: relative;
   z-index: 1;
+  min-height: 300px;
 }
 
 .inspiration-content {
