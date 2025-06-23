@@ -990,13 +990,17 @@ const setExampleSearch = (
 
 <style scoped>
 .search-container {
-  @extend .view-container;
+  padding: var(--spacing-2xl);
+  margin: 0 auto;
+  background-color: var(--bg-body);
+  min-height: 100vh;
 }
 
 /* Search Toolbar */
 .search-toolbar {
-  @extend .section-container;
+  background-color: var(--bg-container);
   border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
   padding: var(--spacing-2xl);
   margin-bottom: var(--spacing-3xl);
 }
