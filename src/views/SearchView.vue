@@ -986,9 +986,11 @@ const setExampleSearch = (
 
 <style scoped>
 .search-container {
-  /* max-width: 1200px; */
   margin: 0 auto;
   width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Search Toolbar */
