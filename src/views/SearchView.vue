@@ -991,7 +991,7 @@ const setExampleSearch = (
   height: calc(100vh - 64px); /* Fixed height like canvas */
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* No scroll at view level */
+  overflow-y: auto; /* Restore general scroll */
   padding: var(
     --spacing-2xl
   ); /* Add padding back since we removed view-container */
