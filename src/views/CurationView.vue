@@ -580,36 +580,13 @@ const showPhotoInfo = (photo: CurationPhoto) => {
   line-height: var(--line-height-relaxed);
 }
 
-/* Loading Overlay */
-.loading-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(4px);
-  z-index: var(--z-overlay);
-}
-
-.loading-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-lg);
-  background-color: var(--bg-card);
-  padding: var(--spacing-4xl);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
-}
-
-.loading-text {
-  font-size: var(--font-size-md);
-  color: var(--text-secondary);
-  margin: 0;
+/* Photo Skeleton */
+.photo-skeleton {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background-color: var(--bg-surface);
 }
 
 /* Responsive Design */
