@@ -548,6 +548,7 @@ onUnmounted(() => {
 
 .expandable-container.expanded {
   width: 140px; /* Expanded width to fit text and dropdown arrow */
+  overflow: visible; /* Allow dropdown to show outside container */
 }
 
 .right-button {
