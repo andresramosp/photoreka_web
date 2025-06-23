@@ -387,6 +387,21 @@ const toggleInteractionMode = () => {
   interactionMode.value = interactionMode.value === "pan" ? "select" : "pan";
 };
 
+// Dropdown functions
+const toggleExpansion = () => {
+  if (!isExpanded.value) {
+    canvasMode.value = "preview";
+  }
+  isExpanded.value = !isExpanded.value;
+};
+
+const selectOption = (option: any) => {
+  selectedOption.value = option.label;
+  isExpanded.value = false;
+  // Here you can add logic to handle the selected option
+  console.log("Selected option:", option);
+};
+
 // Toolbar functions
 const hideRelatedPhotos = () => {
   showRelatedPhotos.value = false;
