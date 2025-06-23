@@ -419,13 +419,9 @@ const toggleInteractionMode = () => {
 };
 
 // Dropdown functions
-const handleRightButtonClick = async (event: Event) => {
-  event.stopPropagation();
-  event.preventDefault();
-
+const handleRightButtonClick = () => {
   if (!isExpanded.value) {
     canvasMode.value = "preview";
-    await nextTick();
     isExpanded.value = true;
   } else {
     // If already expanded, close it
