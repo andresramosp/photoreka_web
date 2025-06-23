@@ -353,6 +353,80 @@ const handleMouseLeave = () => {
   z-index: 2;
 }
 
+/* AI Comment Tooltip */
+.ai-comment-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 8px;
+  right: 8px;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  backdrop-filter: blur(8px);
+  z-index: 10;
+  margin-bottom: 8px;
+  animation: fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.comment-text {
+  margin: 0;
+  font-style: italic;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Curation Actions */
+.curation-actions,
+.selection-actions {
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.photo-card.curation-mode:hover .curation-actions,
+.photo-card.selection-mode:hover .selection-actions {
+  opacity: 1;
+}
+
+.move-button {
+  font-size: 11px;
+  height: 28px;
+  padding: 0 12px;
+  backdrop-filter: blur(4px);
+}
+
+/* Mode-specific styling */
+.photo-card.curation-mode {
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.photo-card.curation-mode:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.photo-card.selection-mode {
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.photo-card.selection-mode:hover {
+  border-color: var(--success-color);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+}
+
 .matched-tags {
   display: flex;
   flex-wrap: wrap;
