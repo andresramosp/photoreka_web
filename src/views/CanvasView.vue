@@ -317,6 +317,21 @@ const toggleInteractionMode = () => {
   interactionMode.value = interactionMode.value === "pan" ? "select" : "pan";
 };
 
+// Toolbar functions
+const hideRelatedPhotos = () => {
+  showRelatedPhotos.value = false;
+};
+
+const onPhotosSelected = (photoIds: string[]) => {
+  console.log("Photos selected:", photoIds);
+  // TODO: Handle selected photos
+};
+
+const onSearchTypeChanged = (searchType: string) => {
+  console.log("Search type changed:", searchType);
+  // TODO: Update related photos based on search type
+};
+
 // Resize handling
 const handleResize = () => {
   if (stageRef.value) {
