@@ -1246,7 +1246,7 @@ const setExampleSearch = (
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 430px;
+  overflow: hidden; /* Prevent container from scrolling */
 }
 
 /* Load More */
