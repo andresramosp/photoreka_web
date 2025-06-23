@@ -1385,7 +1385,9 @@ const setExampleSearch = (
 
 /* Search Loading */
 .search-loading {
-  min-height: 400px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .loading-message {
