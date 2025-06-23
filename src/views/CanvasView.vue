@@ -222,6 +222,7 @@ import RelatedPhotosToolbar from "../components/RelatedPhotosToolbar.vue";
 const stageRef = ref<any>(null);
 const layerRef = ref<any>(null);
 const canvasContainer = ref<HTMLElement>();
+const expandableGroupRef = ref<HTMLElement>();
 
 // State
 const canvasMode = ref<"design" | "preview">("design");
