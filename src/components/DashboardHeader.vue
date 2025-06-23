@@ -198,9 +198,9 @@ onUnmounted(() => {
 
 <style scoped>
 .header {
-  background-color: #16161a !important;
-  border-bottom: 1px solid #2c2c32 !important;
-  padding: 0 24px;
+  background-color: var(--bg-body) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  padding: 0 var(--spacing-2xl);
   height: 64px;
   display: flex;
   align-items: center;
