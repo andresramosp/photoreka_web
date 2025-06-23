@@ -265,6 +265,13 @@ onUnmounted(() => {
 .header-right :deep(.n-space) {
   gap: 12px !important;
   align-items: center !important;
+  height: 100%;
+}
+
+.header-right :deep(.n-space > .n-space-item) {
+  display: flex;
+  align-items: center;
+  height: 32px;
 }
 
 /* User menu styles */
