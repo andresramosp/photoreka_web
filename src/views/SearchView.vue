@@ -1237,12 +1237,10 @@ const setExampleSearch = (
 
 /* Search Results Container */
 .search-results-container {
-  min-height: 400px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
-
-/* Note: Grid controls and photo grid styles moved to global.scss */
-
-/* Note: Photo skeleton styles moved to global.scss */
 
 /* Load More */
 .load-more-container {
