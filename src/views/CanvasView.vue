@@ -419,18 +419,24 @@ const toggleInteractionMode = () => {
   interactionMode.value = interactionMode.value === "pan" ? "select" : "pan";
 };
 
-// Dropdown functions
+// Mode selection functions
+const selectDesignMode = () => {
+  canvasMode.value = "design";
+  isExpanded.value = false;
+  isDropdownOpen.value = false;
+};
+
 const handleRightButtonClick = () => {
   if (canvasMode.value !== "preview") {
     // First click: switch to preview mode and expand button
     canvasMode.value = "preview";
     isExpanded.value = true;
     isDropdownOpen.value = false;
-  } else if (isExpanded.value && !isDropdownOpen.value) {
-    // Second click: open dropdown
+  } else if (!isDropdownOpen.value) {
+    // Second click: open dropdown (already in preview mode and expanded)
     isDropdownOpen.value = true;
   } else {
-    // Third click: close dropdown but keep expanded
+    // Third click: close dropdown but keep expanded and in preview mode
     isDropdownOpen.value = false;
   }
 };
