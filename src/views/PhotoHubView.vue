@@ -9,12 +9,7 @@
         </p>
       </div>
       <div class="header-actions">
-        <n-button
-          type="primary"
-          size="medium"
-          class="action-btn"
-          @click="triggerFileInput"
-        >
+        <n-button type="info" size="large" @click="() => {}">
           <template #icon>
             <n-icon>
               <svg viewBox="0 0 24 24">
@@ -25,7 +20,7 @@
               </svg>
             </n-icon>
           </template>
-          Upload Photos
+          Get more space
         </n-button>
       </div>
     </div>
@@ -227,8 +222,8 @@
                   status: photo.isUploading
                     ? 'processing'
                     : photo.isDuplicate
-                      ? 'uploaded'
-                      : 'uploaded',
+                    ? 'uploaded'
+                    : 'uploaded',
                   aiTags: photo.isUploading
                     ? undefined
                     : Math.floor(Math.random() * 15) + 5,
@@ -760,10 +755,6 @@ const setGridColumns = (columns: number) => {
   flex-shrink: 0;
 }
 
-.action-btn {
-  height: 40px;
-}
-
 /* Upload Progress Section */
 .upload-progress-section {
   background-color: #1a1a1f;
@@ -827,7 +818,7 @@ const setGridColumns = (columns: number) => {
 
 .upload-dropzone:hover,
 .upload-dropzone.drag-over {
-  border-color: #8b5cf6;
+  border-color: var(--secondary-color);
   background-color: rgba(139, 92, 246, 0.05);
 }
 

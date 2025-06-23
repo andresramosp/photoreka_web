@@ -593,7 +593,7 @@ onMounted(() => {
   resizeObserverErrorHandler = (e: ErrorEvent) => {
     if (
       e.message.includes(
-        "ResizeObserver loop completed with undelivered notifications",
+        "ResizeObserver loop completed with undelivered notifications"
       )
     ) {
       e.preventDefault();
@@ -966,7 +966,7 @@ const setExampleSearch = (
   excluded?: string[],
   left?: string,
   center?: string,
-  right?: string,
+  right?: string
 ) => {
   clearSearch();
   activeSearchType.value = type;
@@ -1242,6 +1242,7 @@ const setExampleSearch = (
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 430px;
 }
 
 /* Load More */
@@ -1323,7 +1324,7 @@ const setExampleSearch = (
   font-size: 20px;
   font-weight: 600;
   color: #ffffffd1;
-  margin: 0 0 20px 0;
+  margin: 0 0 0 0;
   text-align: center;
 }
 
@@ -1337,7 +1338,6 @@ const setExampleSearch = (
 .carousel-container {
   width: 100%;
   max-width: 500px;
-  height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;

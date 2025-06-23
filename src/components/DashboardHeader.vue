@@ -23,7 +23,7 @@
 
         <div class="search-container">
           <n-input
-            placeholder="Search photos with natural language..."
+            placeholder="Search photos, projects, collections..."
             class="search-input"
             size="medium"
             clearable
@@ -113,7 +113,7 @@ const userMenuOptions = [
         h(
           "div",
           { class: "user-email-main" },
-          userStore.user?.email || "user@trova.app",
+          userStore.user?.email || "user@trova.app"
         ),
       ]),
     key: "user-info",
