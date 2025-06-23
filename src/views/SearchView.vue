@@ -1437,7 +1437,6 @@ const setExampleSearch = (
   color: var(--text-secondary);
   margin: 0;
 }
-}
 
 /* Medium screens - adjust spacing */
 @media (max-width: 1024px) {
