@@ -1,5 +1,6 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
+import VueKonva from "vue-konva";
 import {
   create,
   NConfigProvider,
