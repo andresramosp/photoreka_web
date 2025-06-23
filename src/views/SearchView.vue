@@ -986,18 +986,15 @@ const setExampleSearch = (
 
 <style scoped>
 .search-container {
-  /* max-width: 1200px; */
-  margin: 0 auto;
-  width: 100%;
+  @extend .view-container;
 }
 
 /* Search Toolbar */
 .search-toolbar {
-  background-color: #18181c;
-  border: 1px solid #2c2c32;
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 32px;
+  @extend .section-container;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl);
+  margin-bottom: var(--spacing-3xl);
 }
 
 /* Combined Search Selector Section */
