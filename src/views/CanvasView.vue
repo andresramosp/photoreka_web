@@ -236,32 +236,62 @@ const showRelatedPhotos = ref(false);
 const isExpanded = ref(false);
 const selectedOption = ref("General");
 
-// Dropdown options
+// Dropdown options with SVG icons
 const dropdownOptions = [
   {
     value: "general",
     label: "General",
-    icon: "svg",
+    icon: () =>
+      h("svg", { viewBox: "0 0 24 24" }, [
+        h("path", {
+          fill: "currentColor",
+          d: "M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z",
+        }),
+      ]),
   },
   {
     value: "narrative",
     label: "Narrative",
-    icon: "svg",
+    icon: () =>
+      h("svg", { viewBox: "0 0 24 24" }, [
+        h("path", {
+          fill: "currentColor",
+          d: "M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z",
+        }),
+      ]),
   },
   {
     value: "context",
     label: "Context",
-    icon: "svg",
+    icon: () =>
+      h("svg", { viewBox: "0 0 24 24" }, [
+        h("path", {
+          fill: "currentColor",
+          d: "M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17M11,9H13V7H11V9Z",
+        }),
+      ]),
   },
   {
     value: "composition",
     label: "Composition",
-    icon: "svg",
+    icon: () =>
+      h("svg", { viewBox: "0 0 24 24" }, [
+        h("path", {
+          fill: "currentColor",
+          d: "M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V18H11V8H9M13,8V18H15V8H13Z",
+        }),
+      ]),
   },
   {
     value: "tags",
     label: "Tags",
-    icon: "svg",
+    icon: () =>
+      h("svg", { viewBox: "0 0 24 24" }, [
+        h("path", {
+          fill: "currentColor",
+          d: "M5.5,7A1.5,1.5 0 0,1 4,5.5A1.5,1.5 0 0,1 5.5,4A1.5,1.5 0 0,1 7,5.5A1.5,1.5 0 0,1 5.5,7M21.41,11.58L12.41,2.58C12.05,2.22 11.55,2 11,2H4C2.89,2 2,2.89 2,4V11C2,11.55 2.22,12.05 2.59,12.41L11.58,21.41C11.95,21.78 12.45,22 13,22C13.55,22 14.05,21.78 14.41,21.41L21.41,14.41C21.78,14.05 22,13.55 22,13C22,12.45 21.78,11.95 21.41,11.58Z",
+        }),
+      ]),
   },
 ];
 
