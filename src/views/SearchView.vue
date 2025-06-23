@@ -1,5 +1,5 @@
 <template>
-  <div class="search-container">
+  <div class="search-container view-container">
     <!-- Search Toolbar -->
     <div class="search-toolbar">
       <!-- Search Type and Mode Selector -->
@@ -593,7 +593,7 @@ onMounted(() => {
   resizeObserverErrorHandler = (e: ErrorEvent) => {
     if (
       e.message.includes(
-        "ResizeObserver loop completed with undelivered notifications"
+        "ResizeObserver loop completed with undelivered notifications",
       )
     ) {
       e.preventDefault();
@@ -966,7 +966,7 @@ const setExampleSearch = (
   excluded?: string[],
   left?: string,
   center?: string,
-  right?: string
+  right?: string,
 ) => {
   clearSearch();
   activeSearchType.value = type;
