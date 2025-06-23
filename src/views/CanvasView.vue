@@ -559,6 +559,7 @@ onUnmounted(() => {
   justify-content: space-between;
   white-space: nowrap;
   padding: 0 12px;
+  overflow: hidden;
 }
 
 .button-text {
