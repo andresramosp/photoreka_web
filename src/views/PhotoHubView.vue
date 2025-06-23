@@ -721,7 +721,8 @@ const setGridColumns = (columns: number) => {
 }
 
 .tab-content {
-  @extend .section-content;
+  padding: var(--spacing-3xl);
+  background-color: var(--bg-container);
 }
 
 .header-content {
