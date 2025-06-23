@@ -1,5 +1,5 @@
 <template>
-  <div class="canvas-container">
+  <div class="canvas-container" ref="canvasContainer">
     <!-- Konva Canvas -->
     <v-stage
       ref="stageRef"
