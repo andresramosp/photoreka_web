@@ -1077,44 +1077,44 @@ const setExampleSearch = (
   flex-shrink: 0;
 }
 
-/* Search Mode Pills */
-.mode-pills {
+/* Search Type Pills */
+.type-pills {
   display: flex;
   gap: 6px;
+  flex-wrap: nowrap;
   justify-content: flex-start;
   overflow: visible;
 }
 
-.mode-pill {
+.type-pill {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  border: 1px solid #2c2c32;
+  padding: var(--spacing-sm) var(--spacing-base);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-color);
   background-color: transparent;
-  color: #ffffff73;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   white-space: nowrap;
+  transition: var(--transition-fast);
   flex-shrink: 0;
-  justify-content: center;
-  overflow: visible;
 }
 
-.mode-pill:hover {
-  border-color: #2563eb;
-  color: #ffffffd1;
+.type-pill:hover {
+  border-color: var(--primary-color);
+  color: var(--text-primary);
+  transform: translateY(-1px);
 }
 
-.mode-pill.active {
-  background-color: #2563eb;
-  border-color: #2563eb;
-  color: #ffffff;
+.type-pill.active {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--text-primary);
+  transform: translateY(-1px);
 }
-
 .mode-icon {
   flex-shrink: 0;
 }
