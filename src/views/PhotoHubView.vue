@@ -680,52 +680,48 @@ const setGridColumns = (columns: number) => {
 
 /* Tabs Section */
 .tabs-container {
-  background-color: #1a1a1f;
-  border-radius: 12px;
-  overflow: hidden;
-  margin-bottom: 24px;
+  @extend .section-container;
 }
 
 /* Custom Tab Navigation */
 .tab-navigation {
   display: flex;
-  background-color: #1a1a1f;
-  padding: 8px;
-  gap: 4px;
+  background-color: var(--bg-container);
+  padding: var(--spacing-sm);
+  gap: var(--spacing-xs);
 }
 
 .tab-button {
   flex: 1;
-  padding: 12px 24px;
+  padding: var(--spacing-md) var(--spacing-2xl);
   background-color: transparent;
   border: none;
-  border-radius: 8px;
-  color: #ffffff73;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition-fast);
   text-align: center;
 }
 
 .tab-button:hover {
-  background-color: #2c2c32;
-  color: #ffffff99;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
 }
 
 .tab-button.active {
-  background-color: #2c2c32;
-  color: #ffffffd1;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
 }
 
 /* Tab Content Container */
 .tab-content-container {
-  background-color: #1a1a1f;
+  background-color: var(--bg-container);
 }
 
 .tab-content {
-  padding: 32px;
-  background-color: #1a1a1f;
+  @extend .section-content;
 }
 
 .header-content {
