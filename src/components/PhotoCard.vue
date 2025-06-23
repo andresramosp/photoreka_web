@@ -239,15 +239,10 @@ const handleMouseLeave = () => {
   aspect-ratio: 1;
   cursor: pointer;
   border-radius: 12px;
-  overflow: visible;
+  overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 2px solid transparent;
   background-color: #2c2c32;
-}
-
-.photo-card .photo-image {
-  border-radius: 10px;
-  overflow: hidden;
 }
 
 .photo-card:hover {
@@ -267,7 +262,6 @@ const handleMouseLeave = () => {
   width: 100%;
   height: 100%;
   background-color: var(--bg-surface);
-  overflow: visible;
 }
 
 .photo-image {
@@ -345,23 +339,21 @@ const handleMouseLeave = () => {
 /* AI Reasoning Tooltip */
 .ai-reasoning-tooltip {
   position: absolute;
-  bottom: 110%;
-  left: 0;
-  right: 0;
-  background-color: rgba(0, 0, 0, 0.95);
+  bottom: 8px;
+  left: 8px;
+  right: 8px;
+  background-color: rgba(0, 0, 0, 0.85);
   color: white;
-  padding: 12px 16px;
-  border-radius: 8px;
-  font-size: 12px;
-  line-height: 1.5;
-  backdrop-filter: blur(12px);
-  z-index: 100;
-  margin-bottom: 4px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  backdrop-filter: blur(8px);
+  z-index: 5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   animation: fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-width: 280px;
-  text-align: center;
+  text-align: left;
 }
 
 .reasoning-text {

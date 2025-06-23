@@ -478,10 +478,10 @@ const showPhotoInfo = (photo: CurationPhoto) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-md) var(--spacing-2xl);
+  padding: var(--spacing-sm) var(--spacing-2xl);
   border-bottom: 1px solid var(--border-color);
   background-color: var(--bg-surface);
-  min-height: 48px;
+  min-height: 40px;
 }
 
 .area-title {
