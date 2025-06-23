@@ -677,7 +677,6 @@ const setGridColumns = (columns: number) => {
   display: flex;
   flex-direction: column;
 }
-}
 
 /* Header Section */
 .hub-header {
