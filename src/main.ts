@@ -77,5 +77,6 @@ const app = createApp(App);
 app.use(createPinia());
 app.use(router);
 app.use(naive);
+app.use(VueKonva);
 
 app.mount("#app");
