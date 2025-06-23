@@ -1304,7 +1304,7 @@ const setExampleSearch = (
 }
 
 .inspiration-icon {
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-lg); /* 16px instead of 24px */
 }
 
 .inspiration-title {
