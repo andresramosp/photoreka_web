@@ -1413,17 +1413,30 @@ const setExampleSearch = (
 }
 
 .results-placeholder {
-  @extend .empty-state;
-  @extend .section-container;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background-color: var(--bg-container);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
   padding: var(--spacing-5xl) var(--spacing-2xl);
+  gap: var(--spacing-md);
 }
 
 .placeholder-title {
-  @extend .empty-state-title;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0;
 }
 
 .placeholder-description {
-  @extend .empty-state-description;
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  margin: 0;
 }
 }
 
