@@ -156,12 +156,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from "vue";
-import { Stage, Layer } from "vue-konva";
 import { NButton, NButtonGroup, NIcon } from "naive-ui";
-
-// Konva imports (aliased to avoid conflicts with Naive UI)
-const VStage = Stage;
-const VLayer = Layer;
 
 // Refs
 const stageRef = ref<any>(null);
