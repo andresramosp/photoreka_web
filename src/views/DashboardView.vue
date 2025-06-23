@@ -351,16 +351,16 @@ const openProject = (projectId: string) => {
 
 .stats-grid {
   display: flex;
-  gap: 20px;
-  margin-bottom: 40px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-4xl);
+  transition: var(--transition-normal);
 }
 
 .stat-card {
-  background-color: #18181c !important;
-  border: 1px solid #2c2c32 !important;
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
   flex: 1;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition-normal);
   min-height: 120px;
 }
 
