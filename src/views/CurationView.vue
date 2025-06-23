@@ -601,7 +601,7 @@ const showPhotoInfo = (photo: CurationPhoto) => {
   }
 
   .photos-grid {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(3, 1fr) !important;
     gap: var(--spacing-md);
     padding: var(--spacing-lg);
   }

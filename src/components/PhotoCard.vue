@@ -19,12 +19,12 @@
         @error="onImageError"
       />
 
-      <!-- AI Comment Tooltip (for curation mode) -->
+      <!-- AI Reasoning Tooltip (for curation mode) -->
       <div
-        v-if="mode === 'curation' && photo.aiComment && showTooltip"
-        class="ai-comment-tooltip"
+        v-if="mode === 'curation' && photo.reasoning && showTooltip"
+        class="ai-reasoning-tooltip"
       >
-        <p class="comment-text">{{ photo.aiComment }}</p>
+        <p class="reasoning-text">{{ photo.reasoning }}</p>
       </div>
 
       <!-- Info Button (center overlay) -->
@@ -48,7 +48,7 @@
         </n-button>
       </div>
 
-      <!-- Top overlay with stars and score -->
+      <!-- Top overlay with stars -->
       <div class="top-overlay">
         <div class="stars">
           <n-icon
@@ -64,13 +64,6 @@
               />
             </svg>
           </n-icon>
-        </div>
-        <!-- Score display for curation mode -->
-        <div
-          v-if="mode === 'curation' && photo.score !== undefined"
-          class="score-badge"
-        >
-          <span class="score-value">{{ photo.score }}</span>
         </div>
       </div>
 
@@ -165,8 +158,7 @@ interface Photo {
   url: string;
   title: string;
   rating: number;
-  score?: number; // AI curation score (0-100)
-  aiComment?: string; // AI comment for curation
+  reasoning?: string; // AI reasoning for curation
   matchedTags?: string[];
   width?: number;
   height?: number;
@@ -223,7 +215,7 @@ const moveToCuration = () => {
 };
 
 const handleMouseEnter = () => {
-  if (props.mode === "curation" && props.photo.aiComment) {
+  if (props.mode === "curation" && props.photo.reasoning) {
     showTooltip.value = true;
   }
 };
@@ -331,20 +323,6 @@ const handleMouseLeave = () => {
   backdrop-filter: blur(4px);
 }
 
-.score-badge {
-  background-color: rgba(37, 99, 235, 0.9);
-  color: white;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: 600;
-  backdrop-filter: blur(4px);
-}
-
-.score-value {
-  font-family: "SF Mono", "Monaco", "Consolas", monospace;
-}
-
 .bottom-overlay {
   position: absolute;
   bottom: 8px;
@@ -353,8 +331,8 @@ const handleMouseLeave = () => {
   z-index: 2;
 }
 
-/* AI Comment Tooltip */
-.ai-comment-tooltip {
+/* AI Reasoning Tooltip */
+.ai-reasoning-tooltip {
   position: absolute;
   bottom: 100%;
   left: 8px;
@@ -371,7 +349,7 @@ const handleMouseLeave = () => {
   animation: fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.comment-text {
+.reasoning-text {
   margin: 0;
   font-style: italic;
 }
@@ -490,11 +468,6 @@ const handleMouseLeave = () => {
 
   .stars {
     padding: 3px 6px;
-  }
-
-  .score-badge {
-    padding: 1px 6px;
-    font-size: 10px;
   }
 
   .tag {
