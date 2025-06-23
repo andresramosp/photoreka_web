@@ -1360,8 +1360,11 @@ const setExampleSearch = (
 }
 
 .example-card {
-  @extend .card-base;
-  @extend .card-interactive;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: var(--transition-normal);
+  cursor: pointer;
   padding: var(--spacing-lg);
   display: flex;
   align-items: center;
@@ -1370,8 +1373,16 @@ const setExampleSearch = (
   width: 100%;
 }
 
+.example-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-primary);
+  transform: translateY(-2px);
+}
+
 .example-text {
-  @extend .text-body;
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  line-height: var(--line-height-normal);
   text-align: center;
 }
 
