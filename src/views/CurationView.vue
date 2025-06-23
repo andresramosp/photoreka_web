@@ -189,14 +189,6 @@
         </p>
       </div>
     </div>
-
-    <!-- Loading Overlay -->
-    <div v-if="isSearching" class="loading-overlay">
-      <div class="loading-content">
-        <n-spin size="large" />
-        <p class="loading-text">Searching for photos to curate...</p>
-      </div>
-    </div>
   </div>
 </template>
 
