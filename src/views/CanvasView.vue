@@ -474,16 +474,17 @@ const handleResize = () => {
   }
 };
 
-// Click outside handler to close dropdown
+// Click outside handler to close dropdown only
 const handleClickOutside = (event: MouseEvent) => {
   const target = event.target as HTMLElement;
 
   if (
-    isExpanded.value &&
+    isDropdownOpen.value &&
     expandableGroupRef.value &&
     !expandableGroupRef.value.contains(target)
   ) {
-    isExpanded.value = false;
+    isDropdownOpen.value = false;
+    // Keep the button expanded if in preview mode
   }
 };
 
