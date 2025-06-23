@@ -1,8 +1,14 @@
 <template>
   <div
     class="photo-card"
-    :class="{ selected: isSelected }"
+    :class="{
+      selected: isSelected,
+      'curation-mode': mode === 'curation',
+      'selection-mode': mode === 'selection',
+    }"
     @click="toggleSelection"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave"
   >
     <div class="photo-container">
       <img
@@ -12,6 +18,19 @@
         @load="onImageLoad"
         @error="onImageError"
       />
+
+      <!-- AI Reasoning Tooltip (for curation mode) -->
+      <div
+        v-if="mode === 'curation' && showTooltip"
+        class="ai-reasoning-tooltip"
+      >
+        <p class="reasoning-text">
+          {{
+            photo.reasoning ||
+            "This photo demonstrates excellent composition with balanced lighting and compelling subject matter that would work well for the intended purpose."
+          }}
+        </p>
+      </div>
 
       <!-- Info Button (center overlay) -->
       <div class="info-overlay">
@@ -53,12 +72,17 @@
         </div>
       </div>
 
-      <!-- Bottom overlay with matched tags -->
-      <div
-        class="bottom-overlay"
-        v-if="photo.matchedTags && photo.matchedTags.length > 0"
-      >
-        <div class="matched-tags">
+      <!-- Bottom overlay with matched tags or curation actions -->
+      <div class="bottom-overlay">
+        <!-- Matched tags for default mode -->
+        <div
+          v-if="
+            mode === 'default' &&
+            photo.matchedTags &&
+            photo.matchedTags.length > 0
+          "
+          class="matched-tags"
+        >
           <span
             v-for="tag in photo.matchedTags.slice(0, 3)"
             :key="tag"
@@ -69,6 +93,50 @@
           <span v-if="photo.matchedTags.length > 3" class="tag-more">
             +{{ photo.matchedTags.length - 3 }}
           </span>
+        </div>
+
+        <!-- Curation actions for curation mode -->
+        <div v-if="mode === 'curation'" class="curation-actions">
+          <n-button
+            size="small"
+            type="primary"
+            @click.stop="moveToSelection"
+            class="move-button"
+          >
+            <template #icon>
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6l-6 6l-1.41-1.41z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+            Curate
+          </n-button>
+        </div>
+
+        <!-- Selection actions for selection mode -->
+        <div v-if="mode === 'selection'" class="selection-actions">
+          <n-button
+            size="small"
+            type="warning"
+            @click.stop="moveToCuration"
+            class="move-button"
+          >
+            <template #icon>
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M15.41 16.59L10.83 12L15.41 7.41L14 6l-6 6l6 6l1.41-1.41z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+            Return
+          </n-button>
         </div>
       </div>
 
@@ -95,6 +163,7 @@ interface Photo {
   url: string;
   title: string;
   rating: number;
+  reasoning?: string; // AI reasoning for curation
   matchedTags?: string[];
   width?: number;
   height?: number;
@@ -103,15 +172,19 @@ interface Photo {
 interface Props {
   photo: Photo;
   selected?: boolean;
+  mode?: "default" | "curation" | "selection"; // Different modes for different contexts
 }
 
 interface Emits {
   (e: "select", photoId: string): void;
   (e: "info", photo: Photo): void;
+  (e: "move-to-selection", photoId: string): void; // For curation mode
+  (e: "move-to-curation", photoId: string): void; // For selection mode
 }
 
 const props = withDefaults(defineProps<Props>(), {
   selected: false,
+  mode: "default",
 });
 
 const emit = defineEmits<Emits>();
@@ -119,6 +192,7 @@ const emit = defineEmits<Emits>();
 const isSelected = ref(props.selected);
 const imageLoaded = ref(false);
 const imageError = ref(false);
+const showTooltip = ref(false);
 
 const toggleSelection = () => {
   isSelected.value = !isSelected.value;
@@ -135,6 +209,24 @@ const onImageLoad = () => {
 
 const onImageError = () => {
   imageError.value = true;
+};
+
+const moveToSelection = () => {
+  emit("move-to-selection", props.photo.id);
+};
+
+const moveToCuration = () => {
+  emit("move-to-curation", props.photo.id);
+};
+
+const handleMouseEnter = () => {
+  if (props.mode === "curation") {
+    showTooltip.value = true;
+  }
+};
+
+const handleMouseLeave = () => {
+  showTooltip.value = false;
 };
 </script>
 
@@ -169,7 +261,7 @@ const onImageError = () => {
   position: relative;
   width: 100%;
   height: 100%;
-  background-color: #2c2c32;
+  background-color: var(--bg-surface);
 }
 
 .photo-image {
@@ -200,6 +292,16 @@ const onImageError = () => {
   opacity: 1;
 }
 
+.photo-card.curation-mode .info-overlay,
+.photo-card.selection-mode .info-overlay {
+  opacity: 0;
+}
+
+.photo-card.curation-mode:hover .info-overlay,
+.photo-card.selection-mode:hover .info-overlay {
+  opacity: 0.7;
+}
+
 .info-button {
   background-color: rgba(0, 0, 0, 0.7) !important;
   border: none !important;
@@ -211,6 +313,10 @@ const onImageError = () => {
   top: 8px;
   right: 8px;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
 }
 
 .stars {
@@ -228,6 +334,82 @@ const onImageError = () => {
   left: 8px;
   right: 8px;
   z-index: 2;
+}
+
+/* AI Reasoning Tooltip */
+.ai-reasoning-tooltip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: transparent;
+  color: white;
+  padding: 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  z-index: 5;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  max-width: 90%;
+  font-weight: 500;
+}
+
+.reasoning-text {
+  margin: 0;
+  font-style: italic;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Curation Actions */
+.curation-actions,
+.selection-actions {
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.photo-card.curation-mode:hover .curation-actions,
+.photo-card.selection-mode:hover .selection-actions {
+  opacity: 1;
+}
+
+.move-button {
+  font-size: 11px;
+  height: 28px;
+  padding: 0 12px;
+  backdrop-filter: blur(4px);
+}
+
+/* Mode-specific styling */
+.photo-card.curation-mode {
+  border-color: rgba(37, 99, 235, 0.3);
+}
+
+.photo-card.curation-mode:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.photo-card.selection-mode {
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.photo-card.selection-mode:hover {
+  border-color: var(--success-color);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
 }
 
 .matched-tags {
@@ -303,6 +485,17 @@ const onImageError = () => {
   .tag-more {
     font-size: 9px;
     padding: 1px 4px;
+  }
+
+  .ai-comment-tooltip {
+    font-size: 11px;
+    padding: 8px;
+  }
+
+  .move-button {
+    font-size: 10px;
+    height: 24px;
+    padding: 0 8px;
   }
 }
 </style>
