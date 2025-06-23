@@ -95,6 +95,8 @@ interface Photo {
   url: string;
   title: string;
   rating: number;
+  score?: number; // AI curation score (0-100)
+  aiComment?: string; // AI comment for curation
   matchedTags?: string[];
   width?: number;
   height?: number;
@@ -103,11 +105,14 @@ interface Photo {
 interface Props {
   photo: Photo;
   selected?: boolean;
+  mode?: "default" | "curation" | "selection"; // Different modes for different contexts
 }
 
 interface Emits {
   (e: "select", photoId: string): void;
   (e: "info", photo: Photo): void;
+  (e: "move-to-selection", photoId: string): void; // For curation mode
+  (e: "move-to-curation", photoId: string): void; // For selection mode
 }
 
 const props = withDefaults(defineProps<Props>(), {
