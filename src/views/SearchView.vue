@@ -1413,6 +1413,7 @@ const setExampleSearch = (
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow-y: auto; /* Allow scrolling for the photo grid */
 }
 
 .results-placeholder {
