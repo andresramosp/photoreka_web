@@ -339,21 +339,21 @@ const handleMouseLeave = () => {
 /* AI Reasoning Tooltip */
 .ai-reasoning-tooltip {
   position: absolute;
-  bottom: 8px;
-  left: 8px;
-  right: 8px;
-  background-color: rgba(0, 0, 0, 0.85);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: transparent;
   color: white;
-  padding: 12px;
+  padding: 16px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
-  backdrop-filter: blur(8px);
   z-index: 5;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  animation: fadeInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  text-align: left;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  max-width: 90%;
+  font-weight: 500;
 }
 
 .reasoning-text {
@@ -361,14 +361,14 @@ const handleMouseLeave = () => {
   font-style: italic;
 }
 
-@keyframes fadeInUp {
+@keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translate(-50%, -50%) scale(0.9);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 

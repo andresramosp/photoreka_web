@@ -64,8 +64,30 @@
       <div class="curation-area">
         <div class="area-header">
           <h3 class="area-title">Curation Area</h3>
-          <div class="area-stats">
-            <span class="stats-text">{{ candidatePhotos.length }} photos</span>
+          <div class="star-filter">
+            <span class="filter-label">Rating:</span>
+            <div class="star-buttons">
+              <n-button
+                v-for="stars in [1, 2, 3]"
+                :key="stars"
+                size="small"
+                :type="selectedMinRating === stars ? 'primary' : 'default'"
+                @click="setMinRating(stars)"
+                class="star-filter-button"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14L2 9.27l6.91-1.01L12 2z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                {{ stars }}+
+              </n-button>
+            </div>
           </div>
         </div>
 
@@ -73,6 +95,16 @@
           class="photos-grid"
           v-if="candidatePhotos.length > 0 || isSearching"
         >
+          <!-- Show skeletons when loading more photos -->
+          <template v-if="isLoadingMore">
+            <div
+              v-for="n in 6"
+              :key="`loading-skeleton-${n}`"
+              class="photo-skeleton"
+            >
+              <n-skeleton height="100%" />
+            </div>
+          </template>
           <!-- Show skeletons while searching (only when no photos yet) -->
           <template v-if="isSearching && candidatePhotos.length === 0">
             <div v-for="n in 6" :key="`skeleton-${n}`" class="photo-skeleton">
@@ -219,6 +251,7 @@ const isLoadingMore = ref(false);
 const hasMoreResults = ref(true);
 const candidatePhotos = ref<CurationPhoto[]>([]);
 const curatedPhotos = ref<CurationPhoto[]>([]);
+const selectedMinRating = ref<number | null>(null);
 
 // Computed properties
 const hasSearchQuery = computed(() => searchQuery.value.trim().length > 0);
@@ -354,7 +387,7 @@ const searchMorePhotos = async () => {
 
   // Add 6 more photos at the beginning
   const morePhotos = generateMockPhotos(6);
-  candidatePhotos.value.unshift(...morePhotos);
+  candidatePhotos.value = [...morePhotos, ...candidatePhotos.value];
 
   // Simulate end of results after 3 loads
   if (candidatePhotos.value.length >= 18) {
@@ -406,6 +439,12 @@ const togglePhotoSelection = (photoId: string) => {
 
 const showPhotoInfo = (photo: CurationPhoto) => {
   console.log("Show photo info:", photo);
+};
+
+const setMinRating = (rating: number) => {
+  selectedMinRating.value = selectedMinRating.value === rating ? null : rating;
+  // Here you could filter photos by rating if needed
+  console.log("Min rating filter set to:", selectedMinRating.value);
 };
 </script>
 
@@ -489,6 +528,29 @@ const showPhotoInfo = (photo: CurationPhoto) => {
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   margin: 0;
+}
+
+.star-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.filter-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.star-buttons {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.star-filter-button {
+  font-size: var(--font-size-xs);
+  height: 28px;
+  padding: 0 8px;
 }
 
 .area-stats {
