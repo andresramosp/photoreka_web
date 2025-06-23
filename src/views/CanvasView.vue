@@ -418,11 +418,15 @@ const toggleInteractionMode = () => {
 };
 
 // Dropdown functions
-const toggleExpansion = () => {
+const handleRightButtonClick = (event: Event) => {
+  event.stopPropagation();
   if (!isExpanded.value) {
     canvasMode.value = "preview";
+    isExpanded.value = true;
+  } else {
+    // If already expanded, close it
+    isExpanded.value = false;
   }
-  isExpanded.value = !isExpanded.value;
 };
 
 const selectOption = (option: any) => {
