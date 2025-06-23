@@ -1287,26 +1287,35 @@ const setExampleSearch = (
 
 /* Search Inspiration */
 .search-inspiration {
-  @extend .empty-state;
   min-height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .inspiration-content {
-  @extend .empty-state-content;
   max-width: 600px;
 }
 
 .inspiration-icon {
-  @extend .empty-state-icon;
+  margin-bottom: var(--spacing-lg);
+  color: var(--icon-tertiary);
 }
 
 .inspiration-title {
-  @extend .title-primary;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+  line-height: var(--line-height-tight);
 }
 
 .inspiration-subtitle {
-  @extend .subtitle-primary;
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
   margin: 0 0 var(--spacing-4xl) 0;
+  line-height: var(--line-height-relaxed);
 }
 
 .search-examples {
