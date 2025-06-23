@@ -67,7 +67,17 @@
           </div>
         </div>
 
-        <div class="photos-grid" v-if="candidatePhotos.length > 0">
+        <div
+          class="photos-grid"
+          v-if="candidatePhotos.length > 0 || isSearching"
+        >
+          <!-- Show skeletons while searching -->
+          <template v-if="isSearching">
+            <div v-for="n in 6" :key="`skeleton-${n}`" class="photo-skeleton">
+              <n-skeleton height="100%" />
+            </div>
+          </template>
+          <!-- Show actual photos -->
           <PhotoCard
             v-for="photo in candidatePhotos"
             :key="photo.id"
