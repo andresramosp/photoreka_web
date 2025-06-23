@@ -341,10 +341,11 @@ const onSearchTypeChanged = (searchType: string) => {
 
 // Resize handling
 const handleResize = () => {
-  if (stageRef.value) {
+  if (stageRef.value && canvasContainer.value) {
     const stage = stageRef.value.getStage();
-    stage.width(window.innerWidth);
-    stage.height(window.innerHeight);
+    const container = canvasContainer.value;
+    stage.width(container.clientWidth);
+    stage.height(container.clientHeight);
   }
 };
 
