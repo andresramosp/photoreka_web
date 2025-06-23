@@ -1001,10 +1001,10 @@ const setExampleSearch = (
 .search-selector-section {
   display: flex;
   align-items: flex-start;
-  gap: 24px;
-  margin-bottom: 24px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #2c2c32;
+  gap: var(--spacing-2xl);
+  margin-bottom: var(--spacing-2xl);
+  padding-bottom: var(--spacing-xl);
+  border-bottom: 1px solid var(--border-color);
   overflow: visible;
 }
 
