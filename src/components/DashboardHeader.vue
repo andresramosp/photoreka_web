@@ -110,8 +110,11 @@ const userMenuOptions = [
   {
     label: () =>
       h("div", { class: "user-menu-header" }, [
-        h("div", { class: "user-name" }, userStore.user?.name || "User"),
-        h("div", { class: "user-email" }, userStore.user?.email || ""),
+        h(
+          "div",
+          { class: "user-email-main" },
+          userStore.user?.email || "user@trova.app",
+        ),
       ]),
     key: "user-info",
     disabled: true,
