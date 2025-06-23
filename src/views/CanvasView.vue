@@ -176,7 +176,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from "vue";
-import { NButton, NButtonGroup, NIcon } from "naive-ui";
+import { NButton, NButtonGroup, NIcon, NSpace } from "naive-ui";
 
 // Refs
 const stageRef = ref<any>(null);
