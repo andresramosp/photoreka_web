@@ -280,24 +280,16 @@ onUnmounted(() => {
 /* User menu styles */
 :deep(.user-menu-header) {
   padding: 12px 16px;
-  min-height: 60px;
+  min-height: 40px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 4px;
+  align-items: center;
+  justify-content: flex-start;
 }
 
-:deep(.user-name) {
-  font-weight: 600;
+:deep(.user-email-main) {
+  font-weight: 500;
   font-size: 14px;
   color: #ffffffd1;
-  line-height: 1.2;
-  margin: 0;
-}
-
-:deep(.user-email) {
-  font-size: 12px;
-  color: #ffffff73;
   line-height: 1.2;
   margin: 0;
   overflow: hidden;
