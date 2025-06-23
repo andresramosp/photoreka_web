@@ -71,11 +71,12 @@
     <!-- Top Center Mode Switch -->
     <div class="canvas-controls top-center">
       <div class="btn-group-pill">
-        <n-button-group>
+        <div class="expandable-button-group">
           <n-button
             :type="canvasMode === 'design' ? 'primary' : 'default'"
             @click="canvasMode = 'design'"
             title="Expand on catalog"
+            class="mode-button left-button"
           >
             <template #icon>
               <n-icon>
@@ -88,23 +89,52 @@
               </n-icon>
             </template>
           </n-button>
-          <n-button
-            :type="canvasMode === 'preview' ? 'primary' : 'default'"
-            @click="canvasMode = 'preview'"
-            title="Expand on canvas"
-          >
-            <template #icon>
-              <n-icon>
+
+          <div class="expandable-container" :class="{ expanded: isExpanded }">
+            <n-button
+              :type="canvasMode === 'preview' ? 'primary' : 'default'"
+              @click="toggleExpansion"
+              title="Expand on canvas"
+              class="mode-button right-button"
+            >
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M12,8L10.67,8.09C10.38,7.45 9.8,6.95 9.09,6.67L8,5L6.91,6.09C6.2,6.37 5.62,6.87 5.33,7.51L4,8L5.09,9.09C5.37,9.8 5.87,10.38 6.51,10.67L8,12L9.09,10.91C9.8,10.63 10.38,10.05 10.67,9.41L12,8M16,12L14.67,12.09C14.38,11.45 13.8,10.95 13.09,10.67L12,9L10.91,10.09C10.2,10.37 9.62,10.87 9.33,11.51L8,12L9.09,13.09C9.37,13.8 9.87,14.38 10.51,14.67L12,16L13.09,14.91C13.8,14.63 14.38,14.05 14.67,13.41L16,12M9,19H15V21H9V19Z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+              <span v-if="isExpanded" class="button-text">{{
+                selectedOption
+              }}</span>
+              <n-icon v-if="isExpanded" class="dropdown-arrow">
                 <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M12,8L10.67,8.09C10.38,7.45 9.8,6.95 9.09,6.67L8,5L6.91,6.09C6.2,6.37 5.62,6.87 5.33,7.51L4,8L5.09,9.09C5.37,9.8 5.87,10.38 6.51,10.67L8,12L9.09,10.91C9.8,10.63 10.38,10.05 10.67,9.41L12,8M16,12L14.67,12.09C14.38,11.45 13.8,10.95 13.09,10.67L12,9L10.91,10.09C10.2,10.37 9.62,10.87 9.33,11.51L8,12L9.09,13.09C9.37,13.8 9.87,14.38 10.51,14.67L12,16L13.09,14.91C13.8,14.63 14.38,14.05 14.67,13.41L16,12M9,19H15V21H9V19Z"
-                  />
+                  <path fill="currentColor" d="M7 10l5 5 5-5z" />
                 </svg>
               </n-icon>
-            </template>
-          </n-button>
-        </n-button-group>
+            </n-button>
+
+            <div v-if="isExpanded" class="dropdown-menu">
+              <div
+                v-for="option in dropdownOptions"
+                :key="option.value"
+                :class="[
+                  'dropdown-item',
+                  { active: selectedOption === option.label },
+                ]"
+                @click="selectOption(option)"
+              >
+                <n-icon class="option-icon">
+                  <component :is="option.icon" />
+                </n-icon>
+                <span>{{ option.label }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
