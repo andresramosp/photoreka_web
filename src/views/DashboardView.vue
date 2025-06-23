@@ -409,7 +409,11 @@ const openProject = (projectId: string) => {
 }
 
 .section-title {
-  @extend .title-secondary;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-2xl) 0;
+  line-height: var(--line-height-tight);
 }
 
 .actions-grid {
@@ -420,8 +424,11 @@ const openProject = (projectId: string) => {
 }
 
 .action-card {
-  @extend .card-base;
-  @extend .card-interactive;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: var(--transition-normal);
+  cursor: pointer;
   padding: var(--spacing-2xl);
   text-align: center;
   height: 160px;
@@ -431,6 +438,12 @@ const openProject = (projectId: string) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.action-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-primary);
+  transform: translateY(-2px);
 }
 
 .action-icon {
