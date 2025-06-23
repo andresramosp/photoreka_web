@@ -117,7 +117,7 @@
               </n-icon>
             </n-button>
 
-            <div v-if="isExpanded" class="dropdown-menu" @click.stop>
+            <div v-if="isDropdownOpen" class="dropdown-menu" @click.stop>
               <div
                 v-for="option in dropdownOptions"
                 :key="option.value"
