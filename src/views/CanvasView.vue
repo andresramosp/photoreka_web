@@ -437,7 +437,8 @@ const handleRightButtonClick = () => {
 
 const selectOption = (option: any) => {
   selectedOption.value = option.label;
-  isExpanded.value = false;
+  isDropdownOpen.value = false;
+  // Keep expanded and in preview mode
   // Here you can add logic to handle the selected option
   console.log("Selected option:", option);
 };
