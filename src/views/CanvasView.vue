@@ -93,7 +93,7 @@
           <div class="expandable-container" :class="{ expanded: isExpanded }">
             <n-button
               :type="canvasMode === 'preview' ? 'primary' : 'default'"
-              @click="toggleExpansion"
+              @click="handleRightButtonClick"
               title="Expand on canvas"
               class="mode-button right-button"
             >
@@ -117,7 +117,7 @@
               </n-icon>
             </n-button>
 
-            <div v-if="isExpanded" class="dropdown-menu">
+            <div v-if="isExpanded" class="dropdown-menu" @click.stop>
               <div
                 v-for="option in dropdownOptions"
                 :key="option.value"
