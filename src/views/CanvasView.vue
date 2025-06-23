@@ -214,7 +214,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, h } from "vue";
+import { ref, onMounted, onUnmounted, computed, h, nextTick } from "vue";
 import { NButton, NButtonGroup, NIcon, NSpace } from "naive-ui";
 import RelatedPhotosToolbar from "../components/RelatedPhotosToolbar.vue";
 
