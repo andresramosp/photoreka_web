@@ -1117,10 +1117,11 @@ const setGridColumns = (columns: number) => {
 /* Empty States */
 .empty-processing-state,
 .empty-catalog-state {
-  min-height: 300px;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 200px;
 }
 
 .empty-state-content {
