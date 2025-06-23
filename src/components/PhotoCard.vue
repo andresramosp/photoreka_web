@@ -74,12 +74,17 @@
         </div>
       </div>
 
-      <!-- Bottom overlay with matched tags -->
-      <div
-        class="bottom-overlay"
-        v-if="photo.matchedTags && photo.matchedTags.length > 0"
-      >
-        <div class="matched-tags">
+      <!-- Bottom overlay with matched tags or curation actions -->
+      <div class="bottom-overlay">
+        <!-- Matched tags for default mode -->
+        <div
+          v-if="
+            mode === 'default' &&
+            photo.matchedTags &&
+            photo.matchedTags.length > 0
+          "
+          class="matched-tags"
+        >
           <span
             v-for="tag in photo.matchedTags.slice(0, 3)"
             :key="tag"
@@ -90,6 +95,50 @@
           <span v-if="photo.matchedTags.length > 3" class="tag-more">
             +{{ photo.matchedTags.length - 3 }}
           </span>
+        </div>
+
+        <!-- Curation actions for curation mode -->
+        <div v-if="mode === 'curation'" class="curation-actions">
+          <n-button
+            size="small"
+            type="primary"
+            @click.stop="moveToSelection"
+            class="move-button"
+          >
+            <template #icon>
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6l-6 6l-1.41-1.41z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+            Curate
+          </n-button>
+        </div>
+
+        <!-- Selection actions for selection mode -->
+        <div v-if="mode === 'selection'" class="selection-actions">
+          <n-button
+            size="small"
+            type="warning"
+            @click.stop="moveToCuration"
+            class="move-button"
+          >
+            <template #icon>
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M15.41 16.59L10.83 12L15.41 7.41L14 6l-6 6l6 6l1.41-1.41z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+            Return
+          </n-button>
         </div>
       </div>
 
