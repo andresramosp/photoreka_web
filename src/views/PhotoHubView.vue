@@ -736,19 +736,28 @@ const setGridColumns = (columns: number) => {
 }
 
 .header-content {
-  @extend .view-content;
+  flex: 1;
 }
 
 .page-title {
-  @extend .title-primary;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+  line-height: var(--line-height-tight);
 }
 
 .page-subtitle {
-  @extend .subtitle-primary;
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
 }
 
 .header-actions {
-  @extend .view-actions;
+  display: flex;
+  gap: var(--spacing-md);
+  flex-shrink: 0;
 }
 
 .action-btn {
