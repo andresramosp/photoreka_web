@@ -1274,41 +1274,31 @@ const setExampleSearch = (
 }
 
 .selection-info span {
-  font-size: 14px;
+  font-size: var(--font-size-base);
 }
 
 /* Search Inspiration */
 .search-inspiration {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  @extend .empty-state;
   min-height: 500px;
-  text-align: center;
-  position: relative;
-  z-index: 1;
 }
 
 .inspiration-content {
+  @extend .empty-state-content;
   max-width: 600px;
-  position: relative;
-  z-index: 2;
 }
 
 .inspiration-icon {
-  margin-bottom: 24px;
+  @extend .empty-state-icon;
 }
 
 .inspiration-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: #ffffffd1;
-  margin: 0 0 12px 0;
+  @extend .title-primary;
 }
 
 .inspiration-subtitle {
-  font-size: 18px;
-  color: #ffffff73;
-  margin: 0 0 40px 0;
+  @extend .subtitle-primary;
+  margin: 0 0 var(--spacing-4xl) 0;
 }
 
 .search-examples {
