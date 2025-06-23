@@ -320,7 +320,7 @@
     <div class="search-results-container">
       <div v-if="!hasSearchQuery && !isSearching" class="search-inspiration">
         <div class="inspiration-content">
-          <n-icon size="80" color="#6b7280" class="inspiration-icon">
+          <n-icon size="64" color="#6b7280" class="inspiration-icon">
             <svg viewBox="0 0 24 24">
               <path
                 fill="currentColor"
@@ -593,7 +593,7 @@ onMounted(() => {
   resizeObserverErrorHandler = (e: ErrorEvent) => {
     if (
       e.message.includes(
-        "ResizeObserver loop completed with undelivered notifications"
+        "ResizeObserver loop completed with undelivered notifications",
       )
     ) {
       e.preventDefault();
@@ -966,7 +966,7 @@ const setExampleSearch = (
   excluded?: string[],
   left?: string,
   center?: string,
-  right?: string
+  right?: string,
 ) => {
   clearSearch();
   activeSearchType.value = type;
@@ -988,9 +988,13 @@ const setExampleSearch = (
 .search-container {
   margin: 0 auto;
   width: 100%;
-  height: 100%;
+  height: calc(100vh - 64px); /* Fixed height like canvas */
   display: flex;
   flex-direction: column;
+  overflow-y: auto; /* Restore general scroll */
+  padding: var(
+    --spacing-2xl
+  ); /* Add padding back since we removed view-container */
 }
 
 /* Search Toolbar */
@@ -1242,7 +1246,6 @@ const setExampleSearch = (
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 430px;
 }
 
 /* Load More */
@@ -1290,7 +1293,7 @@ const setExampleSearch = (
   text-align: center;
   position: relative;
   z-index: 1;
-  min-height: 300px;
+  padding: var(--spacing-2xl) 0; /* Add padding instead of min-height */
 }
 
 .inspiration-content {
@@ -1300,7 +1303,7 @@ const setExampleSearch = (
 }
 
 .inspiration-icon {
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-lg); /* 16px instead of 24px */
 }
 
 .inspiration-title {

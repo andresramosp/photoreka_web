@@ -1,5 +1,5 @@
 <template>
-  <div class="empty-view">
+  <div class="empty-view view-container">
     <div class="empty-content">
       <n-icon size="64" color="#6b7280">
         <svg viewBox="0 0 24 24">

@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-container">
+  <div class="dashboard-container view-container">
     <!-- Welcome Section -->
     <div class="welcome-section">
       <h1 class="welcome-title">Welcome back, John! 👋</h1>

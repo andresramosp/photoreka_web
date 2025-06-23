@@ -102,10 +102,9 @@ onUnmounted(() => {
 }
 
 .main-content {
-  padding: 24px;
   background-color: #101014;
-  min-height: calc(100vh - 64px);
-  overflow-x: auto;
+  height: calc(100vh - 64px);
+  overflow: hidden;
   transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -125,48 +124,12 @@ onUnmounted(() => {
 
 .mobile-main-content {
   flex: 1;
-  overflow-y: auto;
-  padding: 16px;
+  overflow: hidden;
   background-color: #101014;
+  height: calc(100vh - 64px);
 }
 
-/* Responsive styles */
-@media (max-width: 768px) {
-  .main-content {
-    padding: 16px;
-    background-color: #101014;
-    min-height: calc(100vh - 64px);
-    overflow-x: auto;
-  }
-}
-
-/* Tablet styles */
-@media (min-width: 768px) and (max-width: 1024px) {
-  .main-content {
-    padding: 20px;
-  }
-}
-
-/* Large desktop styles */
-@media (min-width: 1200px) {
-  .main-content {
-    padding: 32px;
-  }
-}
-
-/* Tablet styles */
-@media (min-width: 768px) and (max-width: 1024px) {
-  .main-content {
-    padding: 20px;
-  }
-}
-
-/* Large desktop styles */
-@media (min-width: 1200px) {
-  .main-content {
-    padding: 32px;
-  }
-}
+/* Responsive styles - padding removed for full canvas expansion */
 </style>
 
 <style>
