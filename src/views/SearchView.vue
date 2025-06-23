@@ -1294,7 +1294,7 @@ const setExampleSearch = (
   text-align: center;
   position: relative;
   z-index: 1;
-  min-height: 300px;
+  padding: var(--spacing-2xl) 0; /* Add padding instead of min-height */
 }
 
 .inspiration-content {
