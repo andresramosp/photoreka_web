@@ -1306,11 +1306,8 @@ const setExampleSearch = (
 }
 
 .examples-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #ffffffd1;
-  margin: 0 0 20px 0;
-  text-align: center;
+  @extend .title-tertiary;
+}
 }
 
 .examples-carousel {
