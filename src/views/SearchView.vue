@@ -1120,7 +1120,7 @@ const setExampleSearch = (
 }
 
 .search-content {
-  padding-top: 12px;
+  padding-top: var(--spacing-md);
 }
 
 /* Natural Language Search */
@@ -1130,12 +1130,12 @@ const setExampleSearch = (
 
 .search-input-row {
   display: flex;
-  gap: 16px;
+  gap: var(--spacing-lg);
   align-items: flex-start;
 }
 
 .natural-input {
-  font-size: 16px;
+  font-size: var(--font-size-md);
   flex: 1;
 }
 
@@ -1146,30 +1146,30 @@ const setExampleSearch = (
 
 .tags-input-row {
   display: flex;
-  gap: 16px;
+  gap: var(--spacing-lg);
   align-items: flex-start;
 }
 
 .tags-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: var(--spacing-xl);
   flex: 1;
 }
 
 .tags-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 
 .tags-label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #ffffffd1;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
 }
 
 .tags-select {
