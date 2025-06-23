@@ -424,39 +424,39 @@ const openProject = (projectId: string) => {
 }
 
 .action-icon {
-  margin-bottom: 16px;
-  color: #ffffffd1;
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-primary);
 }
 
 .new-project .action-icon {
-  color: #22c55e;
+  color: var(--success-color);
 }
 
 .upload-photos .action-icon {
-  color: #2563eb;
+  color: var(--primary-color);
 }
 
 .ai-search .action-icon {
-  color: #8b5cf6;
+  color: var(--secondary-color);
 }
 
 .collections .action-icon {
-  color: #f59e0b;
+  color: var(--warning-color);
 }
 
 .action-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #ffffffd1;
-  margin: 0 0 8px 0;
-  line-height: 1.2;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+  line-height: var(--line-height-tight);
 }
 
 .action-description {
-  font-size: 14px;
-  color: #ffffff73;
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
   margin: 0;
-  line-height: 1.4;
+  line-height: var(--line-height-normal);
 }
 
 /* Mobile devices - stack vertically when too narrow */
