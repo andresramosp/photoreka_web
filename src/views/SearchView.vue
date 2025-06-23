@@ -320,7 +320,7 @@
     <div class="search-results-container">
       <div v-if="!hasSearchQuery && !isSearching" class="search-inspiration">
         <div class="inspiration-content">
-          <n-icon size="80" color="#6b7280" class="inspiration-icon">
+          <n-icon size="64" color="#6b7280" class="inspiration-icon">
             <svg viewBox="0 0 24 24">
               <path
                 fill="currentColor"
