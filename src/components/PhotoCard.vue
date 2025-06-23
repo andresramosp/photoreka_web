@@ -252,9 +252,7 @@ const handleMouseLeave = () => {
 
 .photo-card.selected {
   border-color: #8b5cf6;
-  box-shadow:
-    0 0 0 1px #8b5cf640,
-    0 8px 24px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 0 0 1px #8b5cf640, 0 8px 24px rgba(139, 92, 246, 0.2);
 }
 
 .photo-container {
@@ -274,7 +272,7 @@ const handleMouseLeave = () => {
 }
 
 .photo-card:hover .photo-image {
-  transform: scale(1.05);
+  transform: scale(1.03);
 }
 
 /* Overlays */
@@ -352,13 +350,13 @@ const handleMouseLeave = () => {
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
   animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: center;
-  max-width: 90%;
+  width: 87%;
   font-weight: 500;
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .reasoning-text {
   margin: 0;
-  font-style: italic;
 }
 
 @keyframes fadeIn {

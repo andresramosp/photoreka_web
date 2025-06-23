@@ -1,5 +1,5 @@
 <template>
-  <div class="curation-container">
+  <div class="curation-container view-container">
     <!-- Search Input Section -->
     <div class="search-section">
       <div class="search-input-row">
@@ -138,13 +138,13 @@
           <p class="empty-text">No photos to review</p>
         </div>
 
-        <div class="area-actions" v-if="candidatePhotos.length > 0">
+        <div class="area-actions">
           <n-button
             :loading="isLoadingMore"
             @click="searchMorePhotos"
             class="search-more-button"
             size="large"
-            :disabled="!hasMoreResults"
+            :disabled="!hasMoreResults || candidatePhotos.length == 0"
           >
             <template #icon>
               <n-icon>
@@ -204,6 +204,45 @@
           <p class="empty-subtitle">
             Move photos from the left to start curating
           </p>
+        </div>
+
+        <div class="area-actions">
+          <n-button
+            :loading="isLoadingMore"
+            @click="() => {}"
+            size="large"
+            :disabled="curatedPhotos.length == 0"
+          >
+            <template #icon>
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+            Take to Canvas
+          </n-button>
+          <n-button
+            :loading="isLoadingMore"
+            @click="() => {}"
+            size="large"
+            :disabled="curatedPhotos.length == 0"
+          >
+            <template #icon>
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+            Add to Project
+          </n-button>
         </div>
       </div>
     </div>
@@ -450,12 +489,12 @@ const setMinRating = (rating: number) => {
 
 <style scoped>
 .curation-container {
-  height: calc(100vh - 64px);
+  /* height: calc(100vh - 112px); */
   display: flex;
   flex-direction: column;
-  padding: var(--spacing-2xl);
+  /* padding: var(--spacing-2xl);
   background-color: var(--bg-body);
-  position: relative;
+  position: relative; */
 }
 
 /* Search Section */
@@ -574,7 +613,7 @@ const setMinRating = (rating: number) => {
   grid-template-columns: repeat(3, 1fr) !important;
   grid-auto-rows: max-content !important;
   gap: var(--spacing-lg) !important;
-  padding: var(--spacing-2xl);
+  padding: 12px;
   overflow-y: auto;
   align-content: start;
   place-items: start;
@@ -613,6 +652,7 @@ const setMinRating = (rating: number) => {
   background-color: var(--bg-surface);
   display: flex;
   justify-content: center;
+  gap: 24px;
 }
 
 .search-more-button {

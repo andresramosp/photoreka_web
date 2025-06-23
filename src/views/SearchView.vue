@@ -1,5 +1,5 @@
 <template>
-  <div class="search-container">
+  <div class="search-container view-container">
     <!-- Search Toolbar -->
     <div class="search-toolbar">
       <!-- Search Type and Mode Selector -->
@@ -986,12 +986,8 @@ const setExampleSearch = (
 
 <style scoped>
 .search-container {
-  margin: 0 auto;
-  height: calc(100vh - 64px); /* Fixed height like canvas */
   display: flex;
   flex-direction: column;
-  overflow-y: auto; /* Restore general scroll */
-  padding: var(--spacing-2xl);
 }
 
 /* Search Toolbar */
