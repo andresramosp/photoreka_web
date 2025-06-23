@@ -212,14 +212,14 @@ onUnmounted(() => {
   justify-content: space-between;
   height: 100%;
   width: 100%;
-  gap: 24px;
+  gap: var(--spacing-2xl);
 }
 
 .header-left {
   display: flex;
   align-items: center;
   flex: 1;
-  gap: 16px;
+  gap: var(--spacing-lg);
   min-width: 0;
 }
 
