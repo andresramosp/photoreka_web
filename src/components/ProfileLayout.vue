@@ -4,7 +4,6 @@
       <div class="profile-content">
         <div class="profile-header">
           <TrovaLogo size="large" />
-          <p class="profile-subtitle">Your photo management platform</p>
         </div>
 
         <div class="profile-form-container">
@@ -33,7 +32,6 @@ import TrovaLogo from "./TrovaLogo.vue";
 .profile-layout {
   position: relative;
   width: 100vw;
-  height: 100vh;
   background-color: #101014;
   display: flex;
   align-items: center;
@@ -62,8 +60,8 @@ import TrovaLogo from "./TrovaLogo.vue";
   padding: 40px;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
   width: 100%;
-  max-height: calc(100vh - 40px);
-  overflow-y: auto;
+  /* max-height: calc(100vh - 40px);
+  overflow-y: auto; */
 }
 
 .profile-header {
@@ -110,8 +108,7 @@ import TrovaLogo from "./TrovaLogo.vue";
   left: 0;
   right: 0;
   bottom: 0;
-  background-image:
-    radial-gradient(
+  background-image: radial-gradient(
       circle at 25% 25%,
       rgba(37, 99, 235, 0.1) 0%,
       transparent 50%
@@ -121,12 +118,8 @@ import TrovaLogo from "./TrovaLogo.vue";
       rgba(139, 92, 246, 0.1) 0%,
       transparent 50%
     );
-  background-size:
-    800px 800px,
-    600px 600px;
-  background-position:
-    0 0,
-    200px 200px;
+  background-size: 800px 800px, 600px 600px;
+  background-position: 0 0, 200px 200px;
   animation: float 20s infinite ease-in-out;
 }
 
