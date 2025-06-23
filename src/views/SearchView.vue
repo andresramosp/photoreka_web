@@ -1,5 +1,5 @@
 <template>
-  <div class="search-container view-container">
+  <div class="search-container">
     <!-- Search Toolbar -->
     <div class="search-toolbar">
       <!-- Search Type and Mode Selector -->
