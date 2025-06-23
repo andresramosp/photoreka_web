@@ -295,6 +295,16 @@ const handleMouseLeave = () => {
   opacity: 1;
 }
 
+.photo-card.curation-mode .info-overlay,
+.photo-card.selection-mode .info-overlay {
+  opacity: 0;
+}
+
+.photo-card.curation-mode:hover .info-overlay,
+.photo-card.selection-mode:hover .info-overlay {
+  opacity: 0.7;
+}
+
 .info-button {
   background-color: rgba(0, 0, 0, 0.7) !important;
   border: none !important;
@@ -306,6 +316,10 @@ const handleMouseLeave = () => {
   top: 8px;
   right: 8px;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
 }
 
 .stars {
@@ -315,6 +329,20 @@ const handleMouseLeave = () => {
   background-color: rgba(0, 0, 0, 0.6);
   border-radius: 12px;
   backdrop-filter: blur(4px);
+}
+
+.score-badge {
+  background-color: rgba(37, 99, 235, 0.9);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+
+.score-value {
+  font-family: "SF Mono", "Monaco", "Consolas", monospace;
 }
 
 .bottom-overlay {
