@@ -362,7 +362,7 @@ onUnmounted(() => {
 .canvas-container {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: calc(100vh - 64px); /* Subtract header height */
   overflow: hidden;
   background: var(--bg-canvas, #1a1a1a);
 }
