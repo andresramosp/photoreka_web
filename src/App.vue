@@ -124,8 +124,9 @@ onUnmounted(() => {
 
 .mobile-main-content {
   flex: 1;
-  overflow-y: auto;
+  overflow: hidden;
   background-color: #101014;
+  height: calc(100vh - 64px);
 }
 
 /* Responsive styles - padding removed for full canvas expansion */
