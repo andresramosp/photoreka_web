@@ -457,12 +457,28 @@ const handleResize = () => {
   }
 };
 
+// Click outside handler to close dropdown
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  const expandableContainer = document.querySelector(".expandable-container");
+
+  if (
+    isExpanded.value &&
+    expandableContainer &&
+    !expandableContainer.contains(target)
+  ) {
+    isExpanded.value = false;
+  }
+};
+
 onMounted(() => {
   window.addEventListener("resize", handleResize);
+  document.addEventListener("click", handleClickOutside);
 });
 
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
+  document.removeEventListener("click", handleClickOutside);
 });
 </script>
 
