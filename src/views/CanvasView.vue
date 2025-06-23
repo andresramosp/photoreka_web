@@ -93,7 +93,7 @@
           <div class="expandable-container" :class="{ expanded: isExpanded }">
             <n-button
               :type="canvasMode === 'preview' ? 'primary' : 'default'"
-              @click="handleRightButtonClick"
+              @click.stop="handleRightButtonClick"
               title="Expand on canvas"
               class="mode-button right-button"
             >
