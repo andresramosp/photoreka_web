@@ -245,13 +245,18 @@ onUnmounted(() => {
 }
 
 .header-icon-btn {
-  @extend .btn-icon;
+  color: var(--icon-secondary);
+  transition: var(--transition-fast);
   flex-shrink: 0;
   height: 32px;
   width: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.header-icon-btn:hover {
+  color: var(--text-primary);
 }
 
 .user-avatar {
