@@ -71,11 +71,12 @@
     <!-- Top Center Mode Switch -->
     <div class="canvas-controls top-center">
       <div class="btn-group-pill">
-        <n-button-group>
+        <div class="expandable-button-group" ref="expandableGroupRef">
           <n-button
             :type="canvasMode === 'design' ? 'primary' : 'default'"
-            @click="canvasMode = 'design'"
+            @click="selectDesignMode"
             title="Expand on catalog"
+            class="mode-button left-button"
           >
             <template #icon>
               <n-icon>
@@ -88,23 +89,52 @@
               </n-icon>
             </template>
           </n-button>
-          <n-button
-            :type="canvasMode === 'preview' ? 'primary' : 'default'"
-            @click="canvasMode = 'preview'"
-            title="Expand on canvas"
-          >
-            <template #icon>
-              <n-icon>
+
+          <div class="expandable-container" :class="{ expanded: isExpanded }">
+            <n-button
+              :type="canvasMode === 'preview' ? 'primary' : 'default'"
+              @click.stop="handleRightButtonClick"
+              title="Expand on canvas"
+              class="mode-button right-button"
+            >
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M12,8L10.67,8.09C10.38,7.45 9.8,6.95 9.09,6.67L8,5L6.91,6.09C6.2,6.37 5.62,6.87 5.33,7.51L4,8L5.09,9.09C5.37,9.8 5.87,10.38 6.51,10.67L8,12L9.09,10.91C9.8,10.63 10.38,10.05 10.67,9.41L12,8M16,12L14.67,12.09C14.38,11.45 13.8,10.95 13.09,10.67L12,9L10.91,10.09C10.2,10.37 9.62,10.87 9.33,11.51L8,12L9.09,13.09C9.37,13.8 9.87,14.38 10.51,14.67L12,16L13.09,14.91C13.8,14.63 14.38,14.05 14.67,13.41L16,12M9,19H15V21H9V19Z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+              <span v-if="isExpanded" class="button-text">{{
+                selectedOption
+              }}</span>
+              <n-icon v-if="isExpanded" class="dropdown-arrow">
                 <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M12,8L10.67,8.09C10.38,7.45 9.8,6.95 9.09,6.67L8,5L6.91,6.09C6.2,6.37 5.62,6.87 5.33,7.51L4,8L5.09,9.09C5.37,9.8 5.87,10.38 6.51,10.67L8,12L9.09,10.91C9.8,10.63 10.38,10.05 10.67,9.41L12,8M16,12L14.67,12.09C14.38,11.45 13.8,10.95 13.09,10.67L12,9L10.91,10.09C10.2,10.37 9.62,10.87 9.33,11.51L8,12L9.09,13.09C9.37,13.8 9.87,14.38 10.51,14.67L12,16L13.09,14.91C13.8,14.63 14.38,14.05 14.67,13.41L16,12M9,19H15V21H9V19Z"
-                  />
+                  <path fill="currentColor" d="M7 10l5 5 5-5z" />
                 </svg>
               </n-icon>
-            </template>
-          </n-button>
-        </n-button-group>
+            </n-button>
+
+            <div v-if="isDropdownOpen" class="dropdown-menu" @click.stop>
+              <div
+                v-for="option in dropdownOptions"
+                :key="option.value"
+                :class="[
+                  'dropdown-item',
+                  { active: selectedOption === option.label },
+                ]"
+                @click="selectOption(option)"
+              >
+                <n-icon class="option-icon">
+                  <component :is="option.icon" />
+                </n-icon>
+                <span>{{ option.label }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -184,7 +214,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from "vue";
+import { ref, onMounted, onUnmounted, computed, h, nextTick } from "vue";
 import { NButton, NButtonGroup, NIcon, NSpace } from "naive-ui";
 import RelatedPhotosToolbar from "../components/RelatedPhotosToolbar.vue";
 
@@ -192,6 +222,7 @@ import RelatedPhotosToolbar from "../components/RelatedPhotosToolbar.vue";
 const stageRef = ref<any>(null);
 const layerRef = ref<any>(null);
 const canvasContainer = ref<HTMLElement>();
+const expandableGroupRef = ref<HTMLElement>();
 
 // State
 const canvasMode = ref<"design" | "preview">("design");
@@ -201,6 +232,70 @@ const stagePosition = ref({ x: 0, y: 0 });
 const isDragging = ref(false);
 const lastPointerPosition = ref({ x: 0, y: 0 });
 const showRelatedPhotos = ref(false);
+
+// Expandable dropdown state
+const isExpanded = ref(false);
+const isDropdownOpen = ref(false);
+const selectedOption = ref("General");
+
+// Dropdown options with SVG icons
+const dropdownOptions = [
+  {
+    value: "general",
+    label: "General",
+    icon: () =>
+      h("svg", { viewBox: "0 0 24 24" }, [
+        h("path", {
+          fill: "currentColor",
+          d: "M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z",
+        }),
+      ]),
+  },
+  {
+    value: "narrative",
+    label: "Narrative",
+    icon: () =>
+      h("svg", { viewBox: "0 0 24 24" }, [
+        h("path", {
+          fill: "currentColor",
+          d: "M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z",
+        }),
+      ]),
+  },
+  {
+    value: "context",
+    label: "Context",
+    icon: () =>
+      h("svg", { viewBox: "0 0 24 24" }, [
+        h("path", {
+          fill: "currentColor",
+          d: "M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17M11,9H13V7H11V9Z",
+        }),
+      ]),
+  },
+  {
+    value: "composition",
+    label: "Composition",
+    icon: () =>
+      h("svg", { viewBox: "0 0 24 24" }, [
+        h("path", {
+          fill: "currentColor",
+          d: "M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V18H11V8H9M13,8V18H15V8H13Z",
+        }),
+      ]),
+  },
+  {
+    value: "tags",
+    label: "Tags",
+    icon: () =>
+      h("svg", { viewBox: "0 0 24 24" }, [
+        h("path", {
+          fill: "currentColor",
+          d: "M5.5,7A1.5,1.5 0 0,1 4,5.5A1.5,1.5 0 0,1 5.5,4A1.5,1.5 0 0,1 7,5.5A1.5,1.5 0 0,1 5.5,7M21.41,11.58L12.41,2.58C12.05,2.22 11.55,2 11,2H4C2.89,2 2,2.89 2,4V11C2,11.55 2.22,12.05 2.59,12.41L11.58,21.41C11.95,21.78 12.45,22 13,22C13.55,22 14.05,21.78 14.41,21.41L21.41,14.41C21.78,14.05 22,13.55 22,13C22,12.45 21.78,11.95 21.41,11.58Z",
+        }),
+      ]),
+  },
+];
 
 // Stage configuration
 const stageConfig = computed(() => {
@@ -324,6 +419,36 @@ const toggleInteractionMode = () => {
   interactionMode.value = interactionMode.value === "pan" ? "select" : "pan";
 };
 
+// Mode selection functions
+const selectDesignMode = () => {
+  canvasMode.value = "design";
+  isExpanded.value = false;
+  isDropdownOpen.value = false;
+};
+
+const handleRightButtonClick = () => {
+  if (canvasMode.value !== "preview") {
+    // First click: switch to preview mode and expand button
+    canvasMode.value = "preview";
+    isExpanded.value = true;
+    isDropdownOpen.value = false;
+  } else if (!isDropdownOpen.value) {
+    // Second click: open dropdown (already in preview mode and expanded)
+    isDropdownOpen.value = true;
+  } else {
+    // Third click: close dropdown but keep expanded and in preview mode
+    isDropdownOpen.value = false;
+  }
+};
+
+const selectOption = (option: any) => {
+  selectedOption.value = option.label;
+  isDropdownOpen.value = false;
+  // Keep expanded and in preview mode
+  // Here you can add logic to handle the selected option
+  console.log("Selected option:", option);
+};
+
 // Toolbar functions
 const hideRelatedPhotos = () => {
   showRelatedPhotos.value = false;
@@ -349,12 +474,28 @@ const handleResize = () => {
   }
 };
 
+// Click outside handler to close dropdown only
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+
+  if (
+    isDropdownOpen.value &&
+    expandableGroupRef.value &&
+    !expandableGroupRef.value.contains(target)
+  ) {
+    isDropdownOpen.value = false;
+    // Keep the button expanded if in preview mode
+  }
+};
+
 onMounted(() => {
   window.addEventListener("resize", handleResize);
+  document.addEventListener("click", handleClickOutside);
 });
 
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
+  document.removeEventListener("click", handleClickOutside);
 });
 </script>
 
@@ -388,6 +529,130 @@ onUnmounted(() => {
   right: 16px;
 }
 
+/* Expandable button group styles */
+.expandable-button-group {
+  display: flex;
+  align-items: center;
+  border-radius: 18px;
+  background: var(--bg-container, rgba(255, 255, 255, 0.1));
+  backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 1;
+}
+
+.mode-button {
+  border-radius: 0 !important;
+  border: none !important;
+  height: 36px;
+}
+
+.left-button {
+  border-top-left-radius: 18px !important;
+  border-bottom-left-radius: 18px !important;
+  padding: 0 12px;
+}
+
+.expandable-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 40px; /* Initial width for just the icon */
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.expandable-container.expanded {
+  width: 140px; /* Expanded width to fit text and dropdown arrow */
+  overflow: visible; /* Allow dropdown to show outside container */
+}
+
+.right-button {
+  width: 100%;
+  border-top-right-radius: 18px !important;
+  border-bottom-right-radius: 18px !important;
+  justify-content: space-between;
+  white-space: nowrap;
+  padding: 0 12px;
+  overflow: hidden;
+}
+
+.button-text {
+  margin: 0 8px;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  animation: fadeIn 0.2s ease-in 0.1s forwards;
+}
+
+.dropdown-arrow {
+  opacity: 0;
+  animation: fadeIn 0.2s ease-in 0.1s forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-container, rgba(30, 30, 30, 0.95));
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  margin-top: 4px;
+  min-width: 140px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.8));
+  transition: all 0.2s ease;
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.05));
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: var(--bg-surface, rgba(255, 255, 255, 0.1));
+  color: var(--text-primary, #ffffff);
+}
+
+.dropdown-item.active {
+  background: var(--primary-color, #007bff);
+  color: #ffffff;
+}
+
+.option-icon {
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .canvas-controls {
@@ -407,6 +672,10 @@ onUnmounted(() => {
   .top-right {
     right: 12px;
   }
+
+  .expandable-container.expanded {
+    width: 120px; /* Slightly smaller on tablets */
+  }
 }
 
 @media (max-width: 480px) {
@@ -425,6 +694,14 @@ onUnmounted(() => {
 
   .top-right {
     right: 8px;
+  }
+
+  .expandable-container.expanded {
+    width: 100px; /* Even smaller on mobile */
+  }
+
+  .button-text {
+    font-size: 12px;
   }
 }
 </style>
