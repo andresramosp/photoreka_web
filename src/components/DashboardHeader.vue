@@ -328,6 +328,17 @@ onUnmounted(() => {
 
   .header-right :deep(.n-space) {
     gap: 8px !important;
+    align-items: center !important;
+  }
+
+  .header-icon-btn {
+    height: 28px;
+    width: 28px;
+  }
+
+  .user-avatar {
+    height: 28px !important;
+    width: 28px !important;
   }
 }
 </style>
