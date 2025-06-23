@@ -1323,7 +1323,11 @@ const setExampleSearch = (
 }
 
 .examples-title {
-  @extend .title-tertiary;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-lg) 0;
+  line-height: var(--line-height-tight);
 }
 }
 
