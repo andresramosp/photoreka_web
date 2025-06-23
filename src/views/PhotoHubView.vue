@@ -729,26 +729,19 @@ const setGridColumns = (columns: number) => {
 }
 
 .header-content {
-  flex: 1;
+  @extend .view-content;
 }
 
 .page-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: #ffffffd1;
-  margin: 0 0 8px 0;
+  @extend .title-primary;
 }
 
 .page-subtitle {
-  font-size: 16px;
-  color: #ffffff73;
-  margin: 0;
+  @extend .subtitle-primary;
 }
 
 .header-actions {
-  display: flex;
-  gap: 12px;
-  flex-shrink: 0;
+  @extend .view-actions;
 }
 
 .action-btn {
