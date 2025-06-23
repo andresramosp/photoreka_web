@@ -71,7 +71,7 @@
     <!-- Top Center Mode Switch -->
     <div class="canvas-controls top-center">
       <div class="btn-group-pill">
-        <div class="expandable-button-group">
+        <div class="expandable-button-group" ref="expandableGroupRef">
           <n-button
             :type="canvasMode === 'design' ? 'primary' : 'default'"
             @click="canvasMode = 'design'"
