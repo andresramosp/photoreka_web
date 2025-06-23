@@ -125,7 +125,6 @@ onUnmounted(() => {
 .mobile-main-content {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
   background-color: #101014;
 }
 
