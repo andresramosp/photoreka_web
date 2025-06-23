@@ -8,11 +8,20 @@
       @mousedown="handleMouseDown"
       @mousemove="handleMouseMove"
       @mouseup="handleMouseUp"
+      @click="handleStageClick"
     >
       <v-layer ref="layerRef">
         <!-- Canvas content will be added here -->
       </v-layer>
     </v-stage>
+
+    <!-- Related Photos Toolbar -->
+    <RelatedPhotosToolbar
+      :is-visible="showRelatedPhotos"
+      @close="hideRelatedPhotos"
+      @photos-selected="onPhotosSelected"
+      @search-type-changed="onSearchTypeChanged"
+    />
 
     <!-- Top Left Controls -->
     <div class="canvas-controls top-left">
