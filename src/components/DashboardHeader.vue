@@ -279,7 +279,7 @@ onUnmounted(() => {
 
 /* User menu styles */
 :deep(.user-menu-header) {
-  padding: 12px 16px;
+  padding: var(--spacing-md) var(--spacing-lg);
   min-height: 40px;
   display: flex;
   align-items: center;
@@ -287,10 +287,10 @@ onUnmounted(() => {
 }
 
 :deep(.user-email-main) {
-  font-weight: 500;
-  font-size: 14px;
-  color: #ffffffd1;
-  line-height: 1.2;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  line-height: var(--line-height-tight);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
