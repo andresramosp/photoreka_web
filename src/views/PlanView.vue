@@ -236,11 +236,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, h } from "vue";
 import { useMessage } from "naive-ui";
-import { CheckIcon, XIcon } from "@/components/icons";
 
-// Icons (using simple SVG components for now)
+// Icons (using simple SVG components)
 const CheckIcon = {
   render: () =>
     h("svg", { viewBox: "0 0 24 24", fill: "currentColor" }, [
