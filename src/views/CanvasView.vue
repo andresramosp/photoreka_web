@@ -350,6 +350,44 @@ async function handleAddPhotos(photoIds) {
   fitStageToPhotos(0.8);
 }
 
+const fitStageToPhotos = (padding = 0.8) => {
+  const stage = stageRef.value?.getStage();
+  if (!stage || photos.value.length === 0) return;
+
+  // Calculate bounding box of all photos
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  photos.value.forEach((photo) => {
+    const { x, y, width, height } = photo.config;
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x + width);
+    maxY = Math.max(maxY, y + height);
+  });
+
+  const photosWidth = maxX - minX;
+  const photosHeight = maxY - minY;
+  const photosCenterX = minX + photosWidth / 2;
+  const photosCenterY = minY + photosHeight / 2;
+
+  // Calculate scale to fit photos in stage with padding
+  const stageWidth = stage.width();
+  const stageHeight = stage.height();
+  const scaleX = (stageWidth * padding) / photosWidth;
+  const scaleY = (stageHeight * padding) / photosHeight;
+  const scale = Math.min(scaleX, scaleY, 5); // Max zoom of 5x
+
+  // Position stage to center photos
+  const newX = stageWidth / 2 - photosCenterX * scale;
+  const newY = stageHeight / 2 - photosCenterY * scale;
+
+  stageScale.value = scale;
+  stagePosition.value = { x: newX, y: newY };
+};
+
 const handleWheel = (e) => {
   e.evt.preventDefault();
 
