@@ -2,6 +2,19 @@
   <div class="settings-container">
     <n-grid :cols="1" :y-gap="24">
       <n-grid-item>
+        <n-card title="Account" class="settings-card">
+          <n-space vertical size="large">
+            <div class="setting-item">
+              <div class="setting-label">Subscription Plan</div>
+              <n-button type="primary" @click="goToPlan">
+                Manage Plan
+              </n-button>
+            </div>
+          </n-space>
+        </n-card>
+      </n-grid-item>
+
+      <n-grid-item>
         <n-card title="General Settings" class="settings-card">
           <n-space vertical size="large">
             <div class="setting-item">
@@ -73,6 +86,14 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+const goToPlan = () => {
+  router.push("/plan");
+};
+
 const themeOptions = [
   { label: "Dark", value: "dark" },
   { label: "Light", value: "light" },
