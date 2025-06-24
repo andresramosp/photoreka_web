@@ -458,16 +458,12 @@ onMounted(() => {
     gap: var(--spacing-sm);
   }
 
-  .header-content {
-    gap: var(--spacing-md);
-  }
-
   .dialog-title {
     font-size: var(--font-size-lg);
   }
 
-  .dialog-subtitle {
-    font-size: var(--font-size-sm);
+  .tag-search {
+    max-width: none;
   }
 }
 
