@@ -670,6 +670,75 @@ const handlePlanChange = (planId: string) => {
   border-bottom: none;
 }
 
+/* Usage Chart */
+.usage-chart {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-xs) 0;
+}
+
+.chart-description {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0 0 var(--spacing-xl) 0;
+  line-height: var(--line-height-relaxed);
+}
+
+.chart-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.line-chart {
+  width: 100%;
+  height: 200px;
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  flex-wrap: wrap;
+}
+
+.chart-legend .legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.legend-line {
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+.legend-line.primary {
+  background-color: var(--primary-color);
+}
+
+.legend-line.secondary {
+  background-color: var(--secondary-color);
+}
+
+.legend-line.success {
+  background-color: var(--success-color);
+}
+
 /* Subscription Plans */
 .subscription-plans {
   margin-top: var(--spacing-4xl);
