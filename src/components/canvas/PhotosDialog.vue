@@ -288,24 +288,7 @@ onMounted(() => {
 <style scoped>
 /* Dialog Header */
 .dialog-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-lg);
-  padding: 0;
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-  flex: 1;
-}
-
-.header-text {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
+  text-align: center;
 }
 
 .dialog-title {
@@ -314,13 +297,6 @@ onMounted(() => {
   color: var(--text-primary);
   margin: 0;
   line-height: var(--line-height-tight);
-}
-
-.dialog-subtitle {
-  font-size: var(--font-size-base);
-  color: var(--text-secondary);
-  margin: 0;
-  line-height: var(--line-height-normal);
 }
 
 /* Dialog Content */
