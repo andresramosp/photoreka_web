@@ -417,25 +417,29 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
-  .dialog-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-md);
-  }
-
-  .header-content {
-    width: 100%;
-  }
-
   .stats-bar {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: var(--spacing-md);
+  }
+
+  .search-section {
+    order: 1;
+  }
+
+  .stats-section {
+    order: 2;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-md);
+  }
+
+  .stats-info {
+    justify-content: center;
   }
 
   .stats-actions {
-    align-self: stretch;
-    justify-content: space-between;
+    justify-content: center;
   }
 
   .photos-grid {
