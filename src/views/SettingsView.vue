@@ -86,6 +86,14 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+const goToPlan = () => {
+  router.push("/plan");
+};
+
 const themeOptions = [
   { label: "Dark", value: "dark" },
   { label: "Light", value: "light" },
