@@ -6,15 +6,26 @@
         <h2 class="title-tertiary">Storage</h2>
       </div>
       <div class="section-content">
-        <n-grid :cols="2" :x-gap="32" :y-gap="24" responsive="screen" :collapsed-rows="2">
+        <n-grid
+          :cols="2"
+          :x-gap="32"
+          :y-gap="24"
+          responsive="screen"
+          :collapsed-rows="2"
+        >
           <!-- Storage Usage -->
           <n-grid-item>
             <div class="storage-usage">
               <div class="usage-header">
                 <h3 class="usage-title">Current Usage</h3>
                 <div class="usage-stats">
-                  <span class="photos-count">{{ storageData.used }} / {{ storageData.total }} photos</span>
-                  <span class="storage-percentage">{{ storagePercentage }}% used</span>
+                  <span class="photos-count"
+                    >{{ storageData.used }} /
+                    {{ storageData.total }} photos</span
+                  >
+                  <span class="storage-percentage"
+                    >{{ storagePercentage }}% used</span
+                  >
                 </div>
               </div>
 
@@ -55,7 +66,12 @@
                   </div>
                   <div class="legend-item">
                     <div class="legend-color free"></div>
-                    <span>Available ({{ storageData.total - storageData.used }} photos)</span>
+                    <span
+                      >Available ({{
+                        storageData.total - storageData.used
+                      }}
+                      photos)</span
+                    >
                   </div>
                 </div>
               </div>
@@ -67,7 +83,8 @@
             <div class="storage-expansion">
               <h3 class="usage-title">Expand Storage</h3>
               <p class="expansion-description">
-                Need more space? Purchase additional photo storage for your account.
+                Need more space? Purchase additional photo storage for your
+                account.
               </p>
 
               <div class="expansion-form">
@@ -82,7 +99,9 @@
 
                 <div class="expansion-price" v-if="selectedExpansion">
                   <span class="price-label">Price:</span>
-                  <span class="price-amount">${{ getExpansionPrice(selectedExpansion) }}/month</span>
+                  <span class="price-amount"
+                    >${{ getExpansionPrice(selectedExpansion) }}/month</span
+                  >
                 </div>
 
                 <n-button
@@ -112,8 +131,12 @@
           <h3 class="usage-title">Current Period Usage</h3>
           <div class="usage-metrics-grid">
             <!-- Usage Table -->
-            <n-grid-item>
-              <n-table :bordered="false" :single-line="false" class="usage-table">
+            <div class="usage-table-container">
+              <n-table
+                :bordered="false"
+                :single-line="false"
+                class="usage-table"
+              >
                 <thead>
                   <tr>
                     <th>Feature</th>
@@ -138,10 +161,10 @@
                   </tr>
                 </tbody>
               </n-table>
-            </n-grid-item>
+            </div>
 
             <!-- Usage Progression Chart -->
-            <n-grid-item>
+            <div class="usage-chart-container">
               <div class="usage-chart">
                 <h4 class="chart-title">Usage Progression</h4>
                 <p class="chart-description">
@@ -151,43 +174,196 @@
                 <div class="chart-container">
                   <svg class="line-chart" viewBox="0 0 450 280">
                     <!-- Chart background -->
-                    <rect x="60" y="20" width="360" height="200" fill="var(--bg-surface)" stroke="var(--border-color)" stroke-width="1" rx="4"/>
+                    <rect
+                      x="60"
+                      y="20"
+                      width="360"
+                      height="200"
+                      fill="var(--bg-surface)"
+                      stroke="var(--border-color)"
+                      stroke-width="1"
+                      rx="4"
+                    />
 
                     <!-- Grid lines -->
                     <defs>
-                      <pattern id="gridPattern" width="40" height="25" patternUnits="userSpaceOnUse">
-                        <path d="M 40 0 L 0 0 0 25" fill="none" stroke="var(--border-color)" stroke-width="0.5" opacity="0.2"/>
+                      <pattern
+                        id="gridPattern"
+                        width="40"
+                        height="25"
+                        patternUnits="userSpaceOnUse"
+                      >
+                        <path
+                          d="M 40 0 L 0 0 0 25"
+                          fill="none"
+                          stroke="var(--border-color)"
+                          stroke-width="0.5"
+                          opacity="0.2"
+                        />
                       </pattern>
                     </defs>
-                    <rect x="60" y="20" width="360" height="200" fill="url(#gridPattern)" />
+                    <rect
+                      x="60"
+                      y="20"
+                      width="360"
+                      height="200"
+                      fill="url(#gridPattern)"
+                    />
 
                     <!-- Y-axis -->
-                    <line x1="60" y1="20" x2="60" y2="220" stroke="var(--text-secondary)" stroke-width="2"/>
+                    <line
+                      x1="60"
+                      y1="20"
+                      x2="60"
+                      y2="220"
+                      stroke="var(--text-secondary)"
+                      stroke-width="2"
+                    />
 
                     <!-- X-axis -->
-                    <line x1="60" y1="220" x2="420" y2="220" stroke="var(--text-secondary)" stroke-width="2"/>
+                    <line
+                      x1="60"
+                      y1="220"
+                      x2="420"
+                      y2="220"
+                      stroke="var(--text-secondary)"
+                      stroke-width="2"
+                    />
 
                     <!-- Y-axis labels -->
-                    <text x="45" y="25" fill="var(--text-secondary)" font-size="11" text-anchor="end">20</text>
-                    <text x="45" y="70" fill="var(--text-secondary)" font-size="11" text-anchor="end">15</text>
-                    <text x="45" y="120" fill="var(--text-secondary)" font-size="11" text-anchor="end">10</text>
-                    <text x="45" y="170" fill="var(--text-secondary)" font-size="11" text-anchor="end">5</text>
-                    <text x="45" y="220" fill="var(--text-secondary)" font-size="11" text-anchor="end">0</text>
+                    <text
+                      x="45"
+                      y="25"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="end"
+                    >
+                      20
+                    </text>
+                    <text
+                      x="45"
+                      y="70"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="end"
+                    >
+                      15
+                    </text>
+                    <text
+                      x="45"
+                      y="120"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="end"
+                    >
+                      10
+                    </text>
+                    <text
+                      x="45"
+                      y="170"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="end"
+                    >
+                      5
+                    </text>
+                    <text
+                      x="45"
+                      y="220"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="end"
+                    >
+                      0
+                    </text>
 
                     <!-- X-axis labels -->
-                    <text x="80" y="240" fill="var(--text-secondary)" font-size="11" text-anchor="middle">Mon</text>
-                    <text x="140" y="240" fill="var(--text-secondary)" font-size="11" text-anchor="middle">Tue</text>
-                    <text x="200" y="240" fill="var(--text-secondary)" font-size="11" text-anchor="middle">Wed</text>
-                    <text x="260" y="240" fill="var(--text-secondary)" font-size="11" text-anchor="middle">Thu</text>
-                    <text x="320" y="240" fill="var(--text-secondary)" font-size="11" text-anchor="middle">Fri</text>
-                    <text x="380" y="240" fill="var(--text-secondary)" font-size="11" text-anchor="middle">Sat</text>
-                    <text x="400" y="240" fill="var(--text-secondary)" font-size="11" text-anchor="middle">Sun</text>
+                    <text
+                      x="80"
+                      y="240"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="middle"
+                    >
+                      Mon
+                    </text>
+                    <text
+                      x="140"
+                      y="240"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="middle"
+                    >
+                      Tue
+                    </text>
+                    <text
+                      x="200"
+                      y="240"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="middle"
+                    >
+                      Wed
+                    </text>
+                    <text
+                      x="260"
+                      y="240"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="middle"
+                    >
+                      Thu
+                    </text>
+                    <text
+                      x="320"
+                      y="240"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="middle"
+                    >
+                      Fri
+                    </text>
+                    <text
+                      x="380"
+                      y="240"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="middle"
+                    >
+                      Sat
+                    </text>
+                    <text
+                      x="400"
+                      y="240"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="middle"
+                    >
+                      Sun
+                    </text>
 
                     <!-- Y-axis title -->
-                    <text x="25" y="125" fill="var(--text-secondary)" font-size="12" text-anchor="middle" transform="rotate(-90, 25, 125)">Usage Count</text>
+                    <text
+                      x="25"
+                      y="125"
+                      fill="var(--text-secondary)"
+                      font-size="12"
+                      text-anchor="middle"
+                      transform="rotate(-90, 25, 125)"
+                    >
+                      Usage Count
+                    </text>
 
                     <!-- X-axis title -->
-                    <text x="240" y="265" fill="var(--text-secondary)" font-size="12" text-anchor="middle">Days of Week</text>
+                    <text
+                      x="240"
+                      y="265"
+                      fill="var(--text-secondary)"
+                      font-size="12"
+                      text-anchor="middle"
+                    >
+                      Days of Week
+                    </text>
 
                     <!-- Chart lines for different metrics -->
                     <polyline
@@ -207,7 +383,9 @@
                       stroke-linejoin="round"
                     />
                     <polyline
-                      :points="generateChartLine(descriptionsData, 'descriptions')"
+                      :points="
+                        generateChartLine(descriptionsData, 'descriptions')
+                      "
                       fill="none"
                       stroke="var(--success-color)"
                       stroke-width="3"
@@ -216,7 +394,10 @@
                     />
 
                     <!-- Data points -->
-                    <g v-for="(point, index) in heavyQueriesData" :key="`hq-${index}`">
+                    <g
+                      v-for="(point, index) in heavyQueriesData"
+                      :key="`hq-${index}`"
+                    >
                       <circle
                         :cx="80 + index * 60"
                         :cy="220 - (point / 20) * 200"
@@ -226,7 +407,10 @@
                         stroke-width="2"
                       />
                     </g>
-                    <g v-for="(point, index) in curationsData" :key="`cur-${index}`">
+                    <g
+                      v-for="(point, index) in curationsData"
+                      :key="`cur-${index}`"
+                    >
                       <circle
                         :cx="80 + index * 60"
                         :cy="220 - (point / 20) * 200"
@@ -236,7 +420,10 @@
                         stroke-width="2"
                       />
                     </g>
-                    <g v-for="(point, index) in descriptionsData" :key="`desc-${index}`">
+                    <g
+                      v-for="(point, index) in descriptionsData"
+                      :key="`desc-${index}`"
+                    >
                       <circle
                         :cx="80 + index * 60"
                         :cy="220 - (point / 20) * 200"
@@ -265,21 +452,34 @@
                   </div>
                 </div>
               </div>
-            </n-grid-item>
-          </n-grid>
+            </div>
+          </div>
         </div>
 
         <!-- Subscription Plans -->
         <div class="subscription-plans">
           <h3 class="usage-title">Subscription Plans</h3>
           <p class="plans-description">
-            Choose the plan that best fits your needs. Upgrade or downgrade anytime.
+            Choose the plan that best fits your needs. Upgrade or downgrade
+            anytime.
           </p>
 
-          <n-grid :cols="3" :x-gap="24" :y-gap="24" responsive="screen" :collapsed-rows="3">
+          <n-grid
+            :cols="3"
+            :x-gap="24"
+            :y-gap="24"
+            responsive="screen"
+            :collapsed-rows="3"
+          >
             <n-grid-item v-for="plan in subscriptionPlans" :key="plan.id">
               <n-card
-                :class="['plan-card', { 'plan-current': plan.id === currentPlan, 'plan-popular': plan.popular }]"
+                :class="[
+                  'plan-card',
+                  {
+                    'plan-current': plan.id === currentPlan,
+                    'plan-popular': plan.popular,
+                  },
+                ]"
                 hoverable
               >
                 <div class="plan-header">
@@ -300,7 +500,11 @@
                   >
                     <n-icon
                       :component="feature.included ? CheckIcon : XIcon"
-                      :color="feature.included ? 'var(--success-color)' : 'var(--text-tertiary)'"
+                      :color="
+                        feature.included
+                          ? 'var(--success-color)'
+                          : 'var(--text-tertiary)'
+                      "
                       size="16"
                     />
                     <span :class="{ 'feature-disabled': !feature.included }">
@@ -310,11 +514,7 @@
                 </div>
 
                 <div class="plan-actions">
-                  <n-button
-                    v-if="plan.id === currentPlan"
-                    block
-                    disabled
-                  >
+                  <n-button v-if="plan.id === currentPlan" block disabled>
                     Current Plan
                   </n-button>
                   <n-button
@@ -323,7 +523,7 @@
                     block
                     @click="handlePlanChange(plan.id)"
                   >
-                    {{ plan.id === 'free' ? 'Downgrade' : 'Upgrade' }}
+                    {{ plan.id === "free" ? "Downgrade" : "Upgrade" }}
                   </n-button>
                 </div>
               </n-card>
@@ -336,20 +536,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, h } from 'vue';
-import { useMessage } from 'naive-ui';
+import { ref, computed, h } from "vue";
+import { useMessage } from "naive-ui";
 
 // Icons (using simple SVG components)
 const CheckIcon = {
-  render: () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
-    h('path', { d: 'M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z' })
-  ])
+  render: () =>
+    h("svg", { viewBox: "0 0 24 24", fill: "currentColor" }, [
+      h("path", { d: "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" }),
+    ]),
 };
 
 const XIcon = {
-  render: () => h('svg', { viewBox: '0 0 24 24', fill: 'currentColor' }, [
-    h('path', { d: 'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z' })
-  ])
+  render: () =>
+    h("svg", { viewBox: "0 0 24 24", fill: "currentColor" }, [
+      h("path", {
+        d: "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
+      }),
+    ]),
 };
 
 const message = useMessage();
@@ -357,7 +561,7 @@ const message = useMessage();
 // Storage Data
 const storageData = ref({
   used: 1247,
-  total: 5000
+  total: 5000,
 });
 
 const storagePercentage = computed(() => {
@@ -367,10 +571,10 @@ const storagePercentage = computed(() => {
 // Expansion Options
 const selectedExpansion = ref<number | null>(null);
 const expansionOptions = [
-  { label: '100 additional photos', value: 100 },
-  { label: '500 additional photos', value: 500 },
-  { label: '1,000 additional photos', value: 1000 },
-  { label: '5,000 additional photos', value: 5000 }
+  { label: "100 additional photos", value: 100 },
+  { label: "500 additional photos", value: 500 },
+  { label: "1,000 additional photos", value: 1000 },
+  { label: "5,000 additional photos", value: 5000 },
 ];
 
 const getExpansionPrice = (photos: number) => {
@@ -378,27 +582,27 @@ const getExpansionPrice = (photos: number) => {
     100: 2.99,
     500: 9.99,
     1000: 17.99,
-    5000: 49.99
+    5000: 49.99,
   };
   return priceMap[photos] || 0;
 };
 
 // Usage Metrics
 const usageMetrics = ref([
-  { feature: 'Heavy Queries', used: 5, limit: 20 },
-  { feature: 'Curations', used: 4, limit: 10 },
-  { feature: 'AI Descriptions', used: 20, limit: 20 },
-  { feature: 'Canvas Exports', used: 2, limit: 5 },
-  { feature: 'Collection Syncs', used: 8, limit: 50 },
-  { feature: 'Advanced Search', used: 12, limit: 100 }
+  { feature: "Heavy Queries", used: 5, limit: 20 },
+  { feature: "Curations", used: 4, limit: 10 },
+  { feature: "AI Descriptions", used: 20, limit: 20 },
+  { feature: "Canvas Exports", used: 2, limit: 5 },
+  { feature: "Collection Syncs", used: 8, limit: 50 },
+  { feature: "Advanced Search", used: 12, limit: 100 },
 ]);
 
 const getUsageStatus = (used: number, limit: number) => {
   const percentage = (used / limit) * 100;
-  if (percentage >= 100) return { type: 'error', text: 'Limit Reached' };
-  if (percentage >= 80) return { type: 'warning', text: 'Almost Full' };
-  if (percentage >= 50) return { type: 'info', text: 'Moderate' };
-  return { type: 'success', text: 'Available' };
+  if (percentage >= 100) return { type: "error", text: "Limit Reached" };
+  if (percentage >= 80) return { type: "warning", text: "Almost Full" };
+  if (percentage >= 50) return { type: "info", text: "Moderate" };
+  return { type: "success", text: "Available" };
 };
 
 // Chart Data (last 7 days progression)
@@ -407,77 +611,83 @@ const curationsData = ref([0, 1, 1, 2, 3, 3, 4]);
 const descriptionsData = ref([15, 16, 17, 18, 19, 19, 20]);
 
 const generateChartLine = (data: number[]) => {
-  return data.map((value, index) => {
-    const x = 30 + index * 40; // Start at 30px, 40px spacing
-    const y = 200 - (value / 20) * 160 - 20; // Scale to chart height with padding
-    return `${x},${y}`;
-  }).join(' ');
+  return data
+    .map((value, index) => {
+      const x = 30 + index * 40; // Start at 30px, 40px spacing
+      const y = 200 - (value / 20) * 160 - 20; // Scale to chart height with padding
+      return `${x},${y}`;
+    })
+    .join(" ");
 };
 
 // Subscription Plans
-const currentPlan = ref('advanced');
+const currentPlan = ref("advanced");
 
 const subscriptionPlans = ref([
   {
-    id: 'free',
-    name: 'Free',
+    id: "free",
+    name: "Free",
     price: 0,
-    description: 'Perfect for getting started with basic photo management',
+    description: "Perfect for getting started with basic photo management",
     popular: false,
     features: [
-      { name: '1,000 photos storage', included: true },
-      { name: '5 heavy queries/month', included: true },
-      { name: '2 curations/month', included: true },
-      { name: 'Basic AI descriptions', included: true },
-      { name: 'Canvas access', included: false },
-      { name: 'Advanced search', included: false },
-      { name: 'Priority support', included: false },
-      { name: 'API access', included: false }
-    ]
+      { name: "1,000 photos storage", included: true },
+      { name: "5 heavy queries/month", included: true },
+      { name: "2 curations/month", included: true },
+      { name: "Basic AI descriptions", included: true },
+      { name: "Canvas access", included: false },
+      { name: "Advanced search", included: false },
+      { name: "Priority support", included: false },
+      { name: "API access", included: false },
+    ],
   },
   {
-    id: 'advanced',
-    name: 'Advanced',
+    id: "advanced",
+    name: "Advanced",
     price: 19.99,
-    description: 'Great for professional photographers and content creators',
+    description: "Great for professional photographers and content creators",
     popular: true,
     features: [
-      { name: '5,000 photos storage', included: true },
-      { name: '20 heavy queries/month', included: true },
-      { name: '10 curations/month', included: true },
-      { name: 'AI descriptions unlimited', included: true },
-      { name: 'Canvas access', included: true },
-      { name: 'Advanced search', included: true },
-      { name: 'Priority support', included: false },
-      { name: 'API access', included: false }
-    ]
+      { name: "5,000 photos storage", included: true },
+      { name: "20 heavy queries/month", included: true },
+      { name: "10 curations/month", included: true },
+      { name: "AI descriptions unlimited", included: true },
+      { name: "Canvas access", included: true },
+      { name: "Advanced search", included: true },
+      { name: "Priority support", included: false },
+      { name: "API access", included: false },
+    ],
   },
   {
-    id: 'pro',
-    name: 'Pro',
+    id: "pro",
+    name: "Pro",
     price: 49.99,
-    description: 'For teams and agencies who need unlimited access',
+    description: "For teams and agencies who need unlimited access",
     popular: false,
     features: [
-      { name: 'Unlimited photos storage', included: true },
-      { name: 'Unlimited heavy queries', included: true },
-      { name: 'Unlimited curations', included: true },
-      { name: 'AI descriptions unlimited', included: true },
-      { name: 'Canvas access', included: true },
-      { name: 'Advanced search', included: true },
-      { name: 'Priority support', included: true },
-      { name: 'API access', included: true }
-    ]
-  }
+      { name: "Unlimited photos storage", included: true },
+      { name: "Unlimited heavy queries", included: true },
+      { name: "Unlimited curations", included: true },
+      { name: "AI descriptions unlimited", included: true },
+      { name: "Canvas access", included: true },
+      { name: "Advanced search", included: true },
+      { name: "Priority support", included: true },
+      { name: "API access", included: true },
+    ],
+  },
 ]);
 
 // Actions
 const handlePurchase = () => {
-  message.info(`Purchase functionality would be implemented here for ${selectedExpansion.value} photos`);
+  message.info(
+    `Purchase functionality would be implemented here for ${selectedExpansion.value} photos`,
+  );
 };
 
 const handlePlanChange = (planId: string) => {
-  message.info(`Plan change functionality would be implemented here for ${planId} plan`);
+  message.info(
+    `Plan change functionality would be implemented here for ${planId} plan`,
+  );
 };
 </script>
 
@@ -748,7 +958,7 @@ const handlePlanChange = (planId: string) => {
 }
 
 .plan-card.plan-popular::before {
-  content: 'Most Popular';
+  content: "Most Popular";
   position: absolute;
   top: -1px;
   left: 50%;
@@ -764,7 +974,9 @@ const handlePlanChange = (planId: string) => {
 
 .plan-card.plan-current {
   border-color: var(--success-color);
-  box-shadow: 0 0 0 1px var(--success-color), var(--shadow-success);
+  box-shadow:
+    0 0 0 1px var(--success-color),
+    var(--shadow-success);
 }
 
 .plan-header {
