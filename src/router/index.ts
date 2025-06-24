@@ -8,6 +8,7 @@ import PhotoHubView from "../views/PhotoHubView.vue";
 import CurationView from "../views/CurationView.vue";
 import SettingsView from "../views/SettingsView.vue";
 import HelpView from "../views/HelpView.vue";
+import PlanView from "../views/PlanView.vue";
 import AuthView from "../views/AuthView.vue";
 import ProfileSelectionView from "../views/ProfileSelectionView.vue";
 
