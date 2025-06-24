@@ -879,5 +879,13 @@ const handlePlanChange = (planId: string) => {
     padding: var(--spacing-sm);
     font-size: var(--font-size-sm);
   }
+
+  .line-chart {
+    height: 150px;
+  }
+
+  .chart-legend {
+    gap: var(--spacing-md);
+  }
 }
 </style>
