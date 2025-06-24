@@ -151,7 +151,7 @@ import { ref, computed, onMounted, watch } from "vue";
 import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas";
 import PhotoCard from "@/components/PhotoCard.vue";
-import { NModal, NButton, NIcon } from "naive-ui";
+import { NModal, NButton, NIcon, NSelect } from "naive-ui";
 
 const props = defineProps({
   modelValue: {
