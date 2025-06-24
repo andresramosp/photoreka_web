@@ -1,9 +1,8 @@
 // composables/useTagDisplay.ts
 import { computed } from "vue";
 import { shortenTag } from "@/utils/utils";
-import { useTheme } from "vuetify";
 
-export function useTagDisplay(tagsSource: () => any[] | undefined) {
+export function useTagDisplay(tagsSource) {
   const allowedGroups = [
     "person",
     "animals",
