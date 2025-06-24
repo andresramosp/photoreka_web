@@ -50,7 +50,9 @@
                       fill="transparent"
                       stroke="var(--primary-color)"
                       stroke-width="3"
-                      :stroke-dasharray="`${storagePercentage} ${100 - storagePercentage}`"
+                      :stroke-dasharray="`${storagePercentage} ${
+                        100 - storagePercentage
+                      }`"
                       stroke-dashoffset="25"
                     ></circle>
                   </svg>
@@ -462,13 +464,7 @@
             anytime.
           </p>
 
-          <n-grid
-            :cols="3"
-            :x-gap="24"
-            :y-gap="24"
-            responsive="screen"
-            :collapsed-rows="3"
-          >
+          <n-grid :cols="3" :x-gap="24" :y-gap="24" class="subscription-grid">
             <n-grid-item v-for="plan in subscriptionPlans" :key="plan.id">
               <n-card
                 :class="[
@@ -678,13 +674,13 @@ const subscriptionPlans = ref([
 // Actions
 const handlePurchase = () => {
   message.info(
-    `Purchase functionality would be implemented here for ${selectedExpansion.value} photos`,
+    `Purchase functionality would be implemented here for ${selectedExpansion.value} photos`
   );
 };
 
 const handlePlanChange = (planId: string) => {
   message.info(
-    `Plan change functionality would be implemented here for ${planId} plan`,
+    `Plan change functionality would be implemented here for ${planId} plan`
   );
 };
 </script>
@@ -844,7 +840,6 @@ const handlePlanChange = (planId: string) => {
 .usage-metrics-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-3xl);
   align-items: start;
 }
 
@@ -987,9 +982,7 @@ const handlePlanChange = (planId: string) => {
 
 .plan-card.plan-current {
   border-color: var(--success-color);
-  box-shadow:
-    0 0 0 1px var(--success-color),
-    var(--shadow-success);
+  box-shadow: 0 0 0 1px var(--success-color), var(--shadow-success);
 }
 
 .plan-header {
@@ -1111,6 +1104,13 @@ const handlePlanChange = (planId: string) => {
 
   .chart-description {
     font-size: var(--font-size-xs);
+  }
+}
+
+@media (max-width: 768px) {
+  .subscription-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
   }
 }
 </style>

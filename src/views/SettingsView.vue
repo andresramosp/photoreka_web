@@ -44,27 +44,6 @@
       </n-grid-item>
 
       <n-grid-item>
-        <n-card title="Notifications" class="settings-card">
-          <n-space vertical size="large">
-            <div class="setting-item">
-              <div class="setting-label">Email Notifications</div>
-              <n-switch :default-value="true" />
-            </div>
-
-            <div class="setting-item">
-              <div class="setting-label">Push Notifications</div>
-              <n-switch :default-value="false" />
-            </div>
-
-            <div class="setting-item">
-              <div class="setting-label">SMS Notifications</div>
-              <n-switch :default-value="false" />
-            </div>
-          </n-space>
-        </n-card>
-      </n-grid-item>
-
-      <n-grid-item>
         <n-card title="Security" class="settings-card">
           <n-space vertical size="large">
             <div class="setting-item">

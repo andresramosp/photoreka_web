@@ -23,10 +23,12 @@
       @search-type-changed="onSearchTypeChanged"
     />
 
+    <PhotosDialog v-model="showPhotosDialog" @add-photos="handleAddPhotos" />
+
     <!-- Top Left Controls -->
     <div class="canvas-controls top-left">
       <n-space>
-        <n-button type="primary" @click="addPhotosToCanvas">
+        <n-button type="primary" @click="showPhotosDialog = true">
           <template #icon>
             <n-icon>
               <svg viewBox="0 0 24 24">
@@ -73,8 +75,8 @@
       <div class="btn-group-pill">
         <div class="expandable-button-group" ref="expandableGroupRef">
           <n-button
-            :type="canvasMode === 'design' ? 'primary' : 'default'"
-            @click="selectDesignMode"
+            :type="canvasMode === 'catalog' ? 'primary' : 'default'"
+            @click="selectCatalogMode"
             title="Expand on catalog"
             class="mode-button left-button"
           >
@@ -92,8 +94,8 @@
 
           <div class="expandable-container" :class="{ expanded: isExpanded }">
             <n-button
-              :type="canvasMode === 'preview' ? 'primary' : 'default'"
-              @click.stop="handleRightButtonClick"
+              :type="canvasMode === 'canvas' ? 'primary' : 'default'"
+              @click.stop="handleOnCanvasClick"
               title="Expand on canvas"
               class="mode-button right-button"
             >
@@ -213,25 +215,45 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, h, nextTick } from "vue";
+<script setup>
+import {
+  useCanvasStage,
+  TOOLBAR_WIDTH,
+  applyZoom,
+} from "@/composables/canvas/useCanvasStage";
+import { useCanvasPhoto } from "@/composables/canvas/useCanvasPhoto.js";
+import { usePhotoAnimations } from "@/composables/canvas/usePhotoAnimations";
+import { useCanvasStore } from "@/stores/canvas.js";
+// import TagPillsCanvas from "@/components/canvas/TagPills/TagPillsCanvas.vue";
+// import ExpandPhotoButtons from "@/components/canvas/PhotoControls/ExpandPhotoButtons.vue";
+// import PhotoDetectionAreas from "@/components/canvas/PhotoControls/PhotoDetectionAreas.vue";
+import { usePhotosStore } from "@/stores/photos";
+import { ref, onMounted, onUnmounted, computed, h } from "vue";
 import { NButton, NButtonGroup, NIcon, NSpace } from "naive-ui";
 import RelatedPhotosToolbar from "../components/RelatedPhotosToolbar.vue";
+import { storeToRefs } from "pinia";
+import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
+
+const canvasStore = useCanvasStore();
+const photosStore = usePhotosStore();
+// const photosStore = usePhotosStore();
+const { photos } = storeToRefs(canvasStore);
 
 // Refs
-const stageRef = ref<any>(null);
-const layerRef = ref<any>(null);
-const canvasContainer = ref<HTMLElement>();
-const expandableGroupRef = ref<HTMLElement>();
+const stageRef = ref(null);
+const layerRef = ref(null);
+const canvasContainer = ref();
+const expandableGroupRef = ref();
 
 // State
-const canvasMode = ref<"design" | "preview">("design");
-const interactionMode = ref<"pan" | "select">("select");
+const canvasMode = ref("catalog");
+const interactionMode = ref("pan");
 const stageScale = ref(1);
 const stagePosition = ref({ x: 0, y: 0 });
 const isDragging = ref(false);
 const lastPointerPosition = ref({ x: 0, y: 0 });
 const showRelatedPhotos = ref(false);
+const showPhotosDialog = ref(false);
 
 // Expandable dropdown state
 const isExpanded = ref(false);
@@ -316,7 +338,19 @@ const stageConfig = computed(() => {
 });
 
 // Event handlers
-const handleWheel = (e: any) => {
+
+async function handleAddPhotos(photoIds) {
+  // Fetch todas las fotos necesarias en paralelo
+  await Promise.all(photoIds.map((id) => photosStore.fetchPhoto(id)));
+
+  const photosToAdd = photoIds
+    .map((id) => photosStore.photos.find((p) => p.id == id))
+    .filter(Boolean);
+  canvasStore.addPhotos(photosToAdd);
+  fitStageToPhotos(0.8);
+}
+
+const handleWheel = (e) => {
   e.evt.preventDefault();
 
   const stage = stageRef.value?.getStage();
@@ -348,7 +382,7 @@ const handleWheel = (e: any) => {
   stagePosition.value = newPos;
 };
 
-const handleMouseDown = (e: any) => {
+const handleMouseDown = (e) => {
   if (interactionMode.value === "pan") {
     isDragging.value = true;
     const pos = e.target.getStage().getPointerPosition();
@@ -356,7 +390,7 @@ const handleMouseDown = (e: any) => {
   }
 };
 
-const handleMouseMove = (e: any) => {
+const handleMouseMove = (e) => {
   if (!isDragging.value || interactionMode.value !== "pan") return;
 
   const stage = e.target.getStage();
@@ -377,7 +411,7 @@ const handleMouseUp = () => {
   isDragging.value = false;
 };
 
-const handleStageClick = (e: any) => {
+const handleStageClick = (e) => {
   // Only show toolbar if clicking directly on the stage (not on objects)
   if (e.target === e.target.getStage()) {
     showRelatedPhotos.value = true;
@@ -420,31 +454,31 @@ const toggleInteractionMode = () => {
 };
 
 // Mode selection functions
-const selectDesignMode = () => {
-  canvasMode.value = "design";
+const selectCatalogMode = () => {
+  canvasMode.value = "catalog";
   isExpanded.value = false;
   isDropdownOpen.value = false;
 };
 
-const handleRightButtonClick = () => {
-  if (canvasMode.value !== "preview") {
-    // First click: switch to preview mode and expand button
-    canvasMode.value = "preview";
+const handleOnCanvasClick = () => {
+  if (canvasMode.value !== "canvas") {
+    // First click: switch to catalog mode and expand button
+    canvasMode.value = "canvas";
     isExpanded.value = true;
     isDropdownOpen.value = false;
   } else if (!isDropdownOpen.value) {
-    // Second click: open dropdown (already in preview mode and expanded)
+    // Second click: open dropdown (already in catalog mode and expanded)
     isDropdownOpen.value = true;
   } else {
-    // Third click: close dropdown but keep expanded and in preview mode
+    // Third click: close dropdown but keep expanded and in catalog mode
     isDropdownOpen.value = false;
   }
 };
 
-const selectOption = (option: any) => {
+const selectOption = (option) => {
   selectedOption.value = option.label;
   isDropdownOpen.value = false;
-  // Keep expanded and in preview mode
+  // Keep expanded and in catalog mode
   // Here you can add logic to handle the selected option
   console.log("Selected option:", option);
 };
@@ -454,12 +488,12 @@ const hideRelatedPhotos = () => {
   showRelatedPhotos.value = false;
 };
 
-const onPhotosSelected = (photoIds: string[]) => {
+const onPhotosSelected = (photoIds) => {
   console.log("Photos selected:", photoIds);
   // TODO: Handle selected photos
 };
 
-const onSearchTypeChanged = (searchType: string) => {
+const onSearchTypeChanged = (searchType) => {
   console.log("Search type changed:", searchType);
   // TODO: Update related photos based on search type
 };
@@ -475,8 +509,8 @@ const handleResize = () => {
 };
 
 // Click outside handler to close dropdown only
-const handleClickOutside = (event: MouseEvent) => {
-  const target = event.target as HTMLElement;
+const handleClickOutside = (event) => {
+  const target = event.target;
 
   if (
     isDropdownOpen.value &&
@@ -484,7 +518,7 @@ const handleClickOutside = (event: MouseEvent) => {
     !expandableGroupRef.value.contains(target)
   ) {
     isDropdownOpen.value = false;
-    // Keep the button expanded if in preview mode
+    // Keep the button expanded if in catalog mode
   }
 };
 

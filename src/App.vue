@@ -124,7 +124,7 @@ onUnmounted(() => {
 
 .mobile-main-content {
   flex: 1;
-  overflow: hidden;
+  overflow: auto;
   background-color: #101014;
   height: calc(100vh - 64px);
 }
@@ -135,9 +135,9 @@ onUnmounted(() => {
 <style>
 body {
   margin: 0;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
-    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #101014;
