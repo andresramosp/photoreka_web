@@ -703,7 +703,8 @@ const handlePlanChange = (planId: string) => {
   margin: 0 auto;
   max-width: 1200px;
   background-color: var(--bg-body);
-  min-height: calc(100vh - 112px);
+  min-height: 100vh;
+  overflow-y: auto;
 }
 
 /* Storage Section */
