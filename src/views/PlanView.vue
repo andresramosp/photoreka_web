@@ -408,6 +408,21 @@ const getUsageStatus = (used: number, limit: number) => {
   return { type: "success", text: "Available" };
 };
 
+// Chart Data (last 7 days progression)
+const heavyQueriesData = ref([1, 2, 3, 4, 4, 5, 5]);
+const curationsData = ref([0, 1, 1, 2, 3, 3, 4]);
+const descriptionsData = ref([15, 16, 17, 18, 19, 19, 20]);
+
+const generateChartLine = (data: number[]) => {
+  return data
+    .map((value, index) => {
+      const x = 30 + index * 40; // Start at 30px, 40px spacing
+      const y = 200 - (value / 20) * 160 - 20; // Scale to chart height with padding
+      return `${x},${y}`;
+    })
+    .join(" ");
+};
+
 // Subscription Plans
 const currentPlan = ref("advanced");
 
