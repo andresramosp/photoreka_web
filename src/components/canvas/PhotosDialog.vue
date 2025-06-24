@@ -308,15 +308,33 @@ onMounted(() => {
   overflow: hidden;
 }
 
-/* Stats Bar */
+/* Search and Stats Bar */
 .stats-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--spacing-lg);
   padding: var(--spacing-md) var(--spacing-lg);
   background-color: var(--bg-card);
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
+}
+
+.search-section {
+  flex: 1;
+  min-width: 200px;
+}
+
+.tag-search {
+  width: 100%;
+  max-width: 300px;
+}
+
+.stats-section {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  flex-shrink: 0;
 }
 
 .stats-info {
@@ -328,6 +346,7 @@ onMounted(() => {
 .stats-text {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .selected-count {
