@@ -9,46 +9,9 @@
   >
     <template #header>
       <div class="dialog-header">
-        <div class="header-content">
-          <n-icon size="24" :color="isTrash ? '#f59e0b' : '#2563eb'">
-            <svg v-if="isTrash" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"
-              />
-            </svg>
-            <svg v-else viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M19 7v2.99s-1.99.01-2 0V7h-3s.01-1.99 0-2h3V2h2v3h3v2h-3zm-3 4V9h-3V7H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-8h-3zM5 19l3-4l2 3l3-4l4 5H5z"
-              />
-            </svg>
-          </n-icon>
-          <div class="header-text">
-            <h2 class="dialog-title">
-              {{ isTrash ? "Restore Photos" : "Add Photos to Canvas" }}
-            </h2>
-            <p class="dialog-subtitle">
-              {{
-                isTrash
-                  ? "Select deleted photos to restore to canvas"
-                  : "Select photos from your collection to add to canvas"
-              }}
-            </p>
-          </div>
-        </div>
-        <n-button quaternary circle size="large" @click="close">
-          <template #icon>
-            <n-icon>
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z"
-                />
-              </svg>
-            </n-icon>
-          </template>
-        </n-button>
+        <h2 class="dialog-title">
+          {{ isTrash ? "Restore Photos" : "Add Photos to Canvas" }}
+        </h2>
       </div>
     </template>
 
