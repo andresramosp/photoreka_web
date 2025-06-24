@@ -126,34 +126,137 @@
         <h2 class="title-tertiary">Usage</h2>
       </div>
       <div class="section-content">
-        <!-- Usage Metrics Table -->
+        <!-- Usage Metrics -->
         <div class="usage-metrics">
           <h3 class="usage-title">Current Period Usage</h3>
-          <n-table :bordered="false" :single-line="false" class="usage-table">
-            <thead>
-              <tr>
-                <th>Feature</th>
-                <th>Used</th>
-                <th>Limit</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="metric in usageMetrics" :key="metric.feature">
-                <td>{{ metric.feature }}</td>
-                <td>{{ metric.used }}</td>
-                <td>{{ metric.limit }}</td>
-                <td>
-                  <n-tag
-                    :type="getUsageStatus(metric.used, metric.limit).type"
-                    size="small"
-                  >
-                    {{ getUsageStatus(metric.used, metric.limit).text }}
-                  </n-tag>
-                </td>
-              </tr>
-            </tbody>
-          </n-table>
+          <n-grid
+            :cols="2"
+            :x-gap="32"
+            :y-gap="24"
+            responsive="screen"
+            :collapsed-rows="2"
+          >
+            <!-- Usage Table -->
+            <n-grid-item>
+              <n-table
+                :bordered="false"
+                :single-line="false"
+                class="usage-table"
+              >
+                <thead>
+                  <tr>
+                    <th>Feature</th>
+                    <th>Used</th>
+                    <th>Limit</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="metric in usageMetrics" :key="metric.feature">
+                    <td>{{ metric.feature }}</td>
+                    <td>{{ metric.used }}</td>
+                    <td>{{ metric.limit }}</td>
+                    <td>
+                      <n-tag
+                        :type="getUsageStatus(metric.used, metric.limit).type"
+                        size="small"
+                      >
+                        {{ getUsageStatus(metric.used, metric.limit).text }}
+                      </n-tag>
+                    </td>
+                  </tr>
+                </tbody>
+              </n-table>
+            </n-grid-item>
+
+            <!-- Usage Progression Chart -->
+            <n-grid-item>
+              <div class="usage-chart">
+                <h4 class="chart-title">Usage Progression</h4>
+                <p class="chart-description">
+                  Weekly usage trends for your most active features
+                </p>
+
+                <div class="chart-container">
+                  <svg class="line-chart" viewBox="0 0 300 200">
+                    <!-- Grid lines -->
+                    <defs>
+                      <pattern
+                        id="grid"
+                        width="30"
+                        height="20"
+                        patternUnits="userSpaceOnUse"
+                      >
+                        <path
+                          d="M 30 0 L 0 0 0 20"
+                          fill="none"
+                          stroke="var(--border-color)"
+                          stroke-width="0.5"
+                          opacity="0.3"
+                        />
+                      </pattern>
+                    </defs>
+                    <rect width="300" height="200" fill="url(#grid)" />
+
+                    <!-- Chart lines for different metrics -->
+                    <polyline
+                      :points="generateChartLine(heavyQueriesData)"
+                      fill="none"
+                      stroke="var(--primary-color)"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <polyline
+                      :points="generateChartLine(curationsData)"
+                      fill="none"
+                      stroke="var(--secondary-color)"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <polyline
+                      :points="generateChartLine(descriptionsData)"
+                      fill="none"
+                      stroke="var(--success-color)"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+
+                    <!-- Data points -->
+                    <g
+                      v-for="(point, index) in heavyQueriesData"
+                      :key="`hq-${index}`"
+                    >
+                      <circle
+                        :cx="30 + index * 40"
+                        :cy="200 - (point / 20) * 160 - 20"
+                        r="3"
+                        fill="var(--primary-color)"
+                      />
+                    </g>
+                  </svg>
+
+                  <!-- Chart Legend -->
+                  <div class="chart-legend">
+                    <div class="legend-item">
+                      <div class="legend-line primary"></div>
+                      <span>Heavy Queries</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-line secondary"></div>
+                      <span>Curations</span>
+                    </div>
+                    <div class="legend-item">
+                      <div class="legend-line success"></div>
+                      <span>Descriptions</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </n-grid-item>
+          </n-grid>
         </div>
 
         <!-- Subscription Plans -->
