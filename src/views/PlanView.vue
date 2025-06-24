@@ -1075,6 +1075,7 @@ const handlePlanChange = (planId: string) => {
 @media (max-width: 768px) {
   .plan-container {
     padding: var(--spacing-md);
+    min-height: auto;
   }
 
   .section-content {
@@ -1087,6 +1088,11 @@ const handlePlanChange = (planId: string) => {
     gap: var(--spacing-lg);
   }
 
+  .usage-metrics-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2xl);
+  }
+
   .usage-table th,
   .usage-table td {
     padding: var(--spacing-sm);
@@ -1094,11 +1100,19 @@ const handlePlanChange = (planId: string) => {
   }
 
   .line-chart {
-    height: 150px;
+    height: 200px;
   }
 
   .chart-legend {
     gap: var(--spacing-md);
+  }
+
+  .chart-title {
+    font-size: var(--font-size-base);
+  }
+
+  .chart-description {
+    font-size: var(--font-size-xs);
   }
 }
 </style>
