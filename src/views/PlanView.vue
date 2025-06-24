@@ -613,8 +613,8 @@ const descriptionsData = ref([15, 16, 17, 18, 19, 19, 20]);
 const generateChartLine = (data: number[]) => {
   return data
     .map((value, index) => {
-      const x = 30 + index * 40; // Start at 30px, 40px spacing
-      const y = 200 - (value / 20) * 160 - 20; // Scale to chart height with padding
+      const x = 80 + index * 60; // Start at 80px, 60px spacing to match chart
+      const y = 220 - (value / 20) * 200; // Scale to chart height
       return `${x},${y}`;
     })
     .join(" ");
