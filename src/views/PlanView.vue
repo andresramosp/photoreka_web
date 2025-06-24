@@ -178,48 +178,223 @@
                 </p>
 
                 <div class="chart-container">
-                  <svg class="line-chart" viewBox="0 0 300 200">
+                  <svg class="line-chart" viewBox="0 0 450 280">
+                    <!-- Chart background -->
+                    <rect
+                      x="60"
+                      y="20"
+                      width="360"
+                      height="200"
+                      fill="var(--bg-surface)"
+                      stroke="var(--border-color)"
+                      stroke-width="1"
+                      rx="4"
+                    />
+
                     <!-- Grid lines -->
                     <defs>
                       <pattern
-                        id="grid"
-                        width="30"
-                        height="20"
+                        id="gridPattern"
+                        width="40"
+                        height="25"
                         patternUnits="userSpaceOnUse"
                       >
                         <path
-                          d="M 30 0 L 0 0 0 20"
+                          d="M 40 0 L 0 0 0 25"
                           fill="none"
                           stroke="var(--border-color)"
                           stroke-width="0.5"
-                          opacity="0.3"
+                          opacity="0.2"
                         />
                       </pattern>
                     </defs>
-                    <rect width="300" height="200" fill="url(#grid)" />
+                    <rect
+                      x="60"
+                      y="20"
+                      width="360"
+                      height="200"
+                      fill="url(#gridPattern)"
+                    />
+
+                    <!-- Y-axis -->
+                    <line
+                      x1="60"
+                      y1="20"
+                      x2="60"
+                      y2="220"
+                      stroke="var(--text-secondary)"
+                      stroke-width="2"
+                    />
+
+                    <!-- X-axis -->
+                    <line
+                      x1="60"
+                      y1="220"
+                      x2="420"
+                      y2="220"
+                      stroke="var(--text-secondary)"
+                      stroke-width="2"
+                    />
+
+                    <!-- Y-axis labels -->
+                    <text
+                      x="45"
+                      y="25"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="end"
+                    >
+                      20
+                    </text>
+                    <text
+                      x="45"
+                      y="70"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="end"
+                    >
+                      15
+                    </text>
+                    <text
+                      x="45"
+                      y="120"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="end"
+                    >
+                      10
+                    </text>
+                    <text
+                      x="45"
+                      y="170"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="end"
+                    >
+                      5
+                    </text>
+                    <text
+                      x="45"
+                      y="220"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="end"
+                    >
+                      0
+                    </text>
+
+                    <!-- X-axis labels -->
+                    <text
+                      x="80"
+                      y="240"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="middle"
+                    >
+                      Mon
+                    </text>
+                    <text
+                      x="140"
+                      y="240"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="middle"
+                    >
+                      Tue
+                    </text>
+                    <text
+                      x="200"
+                      y="240"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="middle"
+                    >
+                      Wed
+                    </text>
+                    <text
+                      x="260"
+                      y="240"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="middle"
+                    >
+                      Thu
+                    </text>
+                    <text
+                      x="320"
+                      y="240"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="middle"
+                    >
+                      Fri
+                    </text>
+                    <text
+                      x="380"
+                      y="240"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="middle"
+                    >
+                      Sat
+                    </text>
+                    <text
+                      x="400"
+                      y="240"
+                      fill="var(--text-secondary)"
+                      font-size="11"
+                      text-anchor="middle"
+                    >
+                      Sun
+                    </text>
+
+                    <!-- Y-axis title -->
+                    <text
+                      x="25"
+                      y="125"
+                      fill="var(--text-secondary)"
+                      font-size="12"
+                      text-anchor="middle"
+                      transform="rotate(-90, 25, 125)"
+                    >
+                      Usage Count
+                    </text>
+
+                    <!-- X-axis title -->
+                    <text
+                      x="240"
+                      y="265"
+                      fill="var(--text-secondary)"
+                      font-size="12"
+                      text-anchor="middle"
+                    >
+                      Days of Week
+                    </text>
 
                     <!-- Chart lines for different metrics -->
                     <polyline
-                      :points="generateChartLine(heavyQueriesData)"
+                      :points="generateChartLine(heavyQueriesData, 'heavy')"
                       fill="none"
                       stroke="var(--primary-color)"
-                      stroke-width="2"
+                      stroke-width="3"
                       stroke-linecap="round"
                       stroke-linejoin="round"
                     />
                     <polyline
-                      :points="generateChartLine(curationsData)"
+                      :points="generateChartLine(curationsData, 'curations')"
                       fill="none"
                       stroke="var(--secondary-color)"
-                      stroke-width="2"
+                      stroke-width="3"
                       stroke-linecap="round"
                       stroke-linejoin="round"
                     />
                     <polyline
-                      :points="generateChartLine(descriptionsData)"
+                      :points="
+                        generateChartLine(descriptionsData, 'descriptions')
+                      "
                       fill="none"
                       stroke="var(--success-color)"
-                      stroke-width="2"
+                      stroke-width="3"
                       stroke-linecap="round"
                       stroke-linejoin="round"
                     />
@@ -230,10 +405,38 @@
                       :key="`hq-${index}`"
                     >
                       <circle
-                        :cx="30 + index * 40"
-                        :cy="200 - (point / 20) * 160 - 20"
-                        r="3"
+                        :cx="80 + index * 60"
+                        :cy="220 - (point / 20) * 200"
+                        r="4"
                         fill="var(--primary-color)"
+                        stroke="var(--bg-surface)"
+                        stroke-width="2"
+                      />
+                    </g>
+                    <g
+                      v-for="(point, index) in curationsData"
+                      :key="`cur-${index}`"
+                    >
+                      <circle
+                        :cx="80 + index * 60"
+                        :cy="220 - (point / 20) * 200"
+                        r="4"
+                        fill="var(--secondary-color)"
+                        stroke="var(--bg-surface)"
+                        stroke-width="2"
+                      />
+                    </g>
+                    <g
+                      v-for="(point, index) in descriptionsData"
+                      :key="`desc-${index}`"
+                    >
+                      <circle
+                        :cx="80 + index * 60"
+                        :cy="220 - (point / 20) * 200"
+                        r="4"
+                        fill="var(--success-color)"
+                        stroke="var(--bg-surface)"
+                        stroke-width="2"
                       />
                     </g>
                   </svg>
