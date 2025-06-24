@@ -99,6 +99,14 @@ const router = createRouter({
         requiresAuth: true,
       },
     },
+    {
+      path: "/plan",
+      name: "plan",
+      component: PlanView,
+      meta: {
+        requiresAuth: true,
+      },
+    },
   ],
 });
 
