@@ -367,7 +367,7 @@
 
                     <!-- Chart lines for different metrics -->
                     <polyline
-                      :points="generateChartLine(heavyQueriesData, 'heavy')"
+                      :points="generateChartLine(heavyQueriesData)"
                       fill="none"
                       stroke="var(--primary-color)"
                       stroke-width="3"
@@ -375,7 +375,7 @@
                       stroke-linejoin="round"
                     />
                     <polyline
-                      :points="generateChartLine(curationsData, 'curations')"
+                      :points="generateChartLine(curationsData)"
                       fill="none"
                       stroke="var(--secondary-color)"
                       stroke-width="3"
@@ -383,9 +383,7 @@
                       stroke-linejoin="round"
                     />
                     <polyline
-                      :points="
-                        generateChartLine(descriptionsData, 'descriptions')
-                      "
+                      :points="generateChartLine(descriptionsData)"
                       fill="none"
                       stroke="var(--success-color)"
                       stroke-width="3"
