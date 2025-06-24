@@ -843,6 +843,21 @@ const handlePlanChange = (planId: string) => {
   margin-bottom: var(--spacing-4xl);
 }
 
+.usage-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3xl);
+  align-items: start;
+}
+
+.usage-table-container {
+  min-width: 0; /* Allows grid item to shrink */
+}
+
+.usage-chart-container {
+  min-width: 0; /* Allows grid item to shrink */
+}
+
 .usage-table {
   background-color: var(--bg-card);
   border-radius: var(--radius-md);
