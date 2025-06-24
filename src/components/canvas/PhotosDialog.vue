@@ -16,34 +16,49 @@
     </template>
 
     <div class="dialog-content">
-      <!-- Stats Bar -->
+      <!-- Search and Stats Bar -->
       <div class="stats-bar">
-        <div class="stats-info">
-          <span class="stats-text">
-            {{ photos.length }} {{ photos.length === 1 ? "photo" : "photos" }}
-            available
-            <span v-if="selectedIds.length > 0" class="selected-count">
-              • {{ selectedIds.length }} selected
-            </span>
-          </span>
+        <div class="search-section">
+          <n-select
+            v-model:value="selectedTags"
+            multiple
+            filterable
+            placeholder="Filter by tags..."
+            :options="tagOptions"
+            size="small"
+            clearable
+            :max-tag-count="3"
+            class="tag-search"
+          />
         </div>
-        <div class="stats-actions">
-          <n-button
-            v-if="selectedIds.length > 0"
-            text
-            type="primary"
-            @click="selectAll"
-          >
-            Select All
-          </n-button>
-          <n-button
-            v-if="selectedIds.length > 0"
-            text
-            type="warning"
-            @click="clearSelection"
-          >
-            Clear Selection
-          </n-button>
+        <div class="stats-section">
+          <div class="stats-info">
+            <span class="stats-text">
+              {{ photos.length }} {{ photos.length === 1 ? "photo" : "photos" }}
+              available
+              <span v-if="selectedIds.length > 0" class="selected-count">
+                • {{ selectedIds.length }} selected
+              </span>
+            </span>
+          </div>
+          <div class="stats-actions">
+            <n-button
+              v-if="selectedIds.length > 0"
+              text
+              type="primary"
+              @click="selectAll"
+            >
+              Select All
+            </n-button>
+            <n-button
+              v-if="selectedIds.length > 0"
+              text
+              type="warning"
+              @click="clearSelection"
+            >
+              Clear Selection
+            </n-button>
+          </div>
         </div>
       </div>
 
