@@ -127,12 +127,12 @@
 import { ref } from "vue";
 import { NIcon } from "naive-ui";
 
-// Import @vicons icons
+// Import @vicons icons from ionicons5 for reliability
 import {
-  Info20Regular as InfoIcon,
-  Warning20Regular as WarningIcon,
-  CheckmarkCircle20Filled as CheckCircleIcon,
-} from "@vicons/fluent";
+  InformationCircleOutline as InfoIcon,
+  WarningOutline as WarningIcon,
+  CheckmarkCircleOutline as CheckCircleIcon,
+} from "@vicons/ionicons5";
 
 interface PhotoInfo {
   id: string;
