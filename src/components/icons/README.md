@@ -88,6 +88,9 @@ const menuOptions = [
 - `ShareOutline` - Share
 - `DownloadOutline` - Download
 - `CloudUploadOutline` - Upload
+- `RefreshOutline` - Refresh/reset
+- `CloseOutline` - Close/remove
+- `SwapHorizontalOutline` - Replace/swap
 
 ### Interface
 
