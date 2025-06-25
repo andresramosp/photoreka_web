@@ -445,7 +445,7 @@ import PhotoCard from "../components/PhotoCard.vue";
 import {
   Document20Regular as DocumentIcon,
   Tag20Regular as TagIcon,
-  CalendarLtr20Regular as CalendarIcon,
+  Calendar20Regular as CalendarIcon,
   CheckmarkCircle20Filled as CheckIcon,
   Star20Regular as StarIcon,
   Search20Regular as SearchIcon,
