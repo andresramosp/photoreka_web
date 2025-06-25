@@ -6,8 +6,8 @@ This project now uses [@vicons](https://www.xicons.org/) for all icons instead o
 
 The following icon libraries are installed and available:
 
-- `@vicons/fluent` - Microsoft Fluent UI icons (Primary choice)
-- `@vicons/ionicons5` - Ionicons 5 icons
+- `@vicons/ionicons5` - Ionicons 5 icons (Primary choice)
+- `@vicons/fluent` - Microsoft Fluent UI icons
 - `@vicons/material` - Material Design icons
 - `@vicons/antd` - Ant Design icons
 - `@vicons/carbon` - IBM Carbon icons
@@ -19,12 +19,12 @@ The following icon libraries are installed and available:
 ```vue
 <template>
   <n-icon>
-    <Search20Regular />
+    <SearchOutline />
   </n-icon>
 </template>
 
 <script setup>
-import { Search20Regular } from "@vicons/fluent";
+import { SearchOutline } from "@vicons/ionicons5";
 </script>
 ```
 
@@ -33,12 +33,12 @@ import { Search20Regular } from "@vicons/fluent";
 ```vue
 <template>
   <n-icon size="24" color="#2563eb">
-    <Settings20Regular />
+    <SettingsOutline />
   </n-icon>
 </template>
 
 <script setup>
-import { Settings20Regular } from "@vicons/fluent";
+import { SettingsOutline } from "@vicons/ionicons5";
 </script>
 ```
 
@@ -48,13 +48,13 @@ import { Settings20Regular } from "@vicons/fluent";
 <script setup>
 import { h } from "vue";
 import { NIcon } from "naive-ui";
-import { Dashboard20Regular } from "@vicons/fluent";
+import { GridOutline } from "@vicons/ionicons5";
 
 const menuOptions = [
   {
     label: "Dashboard",
     key: "dashboard",
-    icon: () => h(NIcon, null, { default: () => h(Dashboard20Regular) }),
+    icon: () => h(NIcon, null, { default: () => h(GridOutline) }),
   },
 ];
 </script>
@@ -62,11 +62,11 @@ const menuOptions = [
 
 ## Icon Selection Guidelines
 
-1. **Primary Choice**: Use `@vicons/fluent` for consistency with the modern design
-2. **Naming Convention**: Most Fluent icons follow the pattern `[Name][Size][Variant]`
-   - Size: Usually `20Regular`, `24Regular`, etc.
-   - Variant: `Regular`, `Filled`, `Light`
-3. **Fallback**: If an icon doesn't exist in Fluent, use `@vicons/material` or `@vicons/ionicons5`
+1. **Primary Choice**: Use `@vicons/ionicons5` for consistency and reliability
+2. **Naming Convention**: Most Ionicons follow the pattern `[Name]Outline` or `[Name]`
+   - Outline: Line/stroke icons (recommended for UI)
+   - Filled: Solid icons (for emphasis)
+3. **Fallback**: If an icon doesn't exist in Ionicons5, use `@vicons/fluent` or `@vicons/material`
 
 ## Common Icons Used in FrameSaga
 
