@@ -219,9 +219,11 @@ import { ref, h, computed, onMounted, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { NIcon } from "naive-ui";
 import type { MenuOption } from "naive-ui";
+import { usePhotosStore } from "@/stores/photos.js";
 
 const router = useRouter();
 const route = useRoute();
+const photosStore = usePhotosStore();
 const collapsed = ref(true); // Default collapsed (showing only icons)
 const isMobile = ref(window.innerWidth < 768); // Initialize immediately
 
@@ -232,9 +234,10 @@ const props = defineProps<{
 const emit = defineEmits(["close-mobile-menu"]);
 
 const activeKey = computed(() => route.name as string);
+const canUseApp = computed(() => photosStore.canUseApp);
 
 // First section: Dashboard, Photo Hub, Collections
-const firstSectionOptions: MenuOption[] = [
+const firstSectionOptions = computed(() => [
   {
     label: "Dashboard",
     key: "dashboard",
@@ -253,19 +256,42 @@ const firstSectionOptions: MenuOption[] = [
     label: "Photo Hub",
     key: "photo-hub",
     icon: () =>
-      h(NIcon, null, {
-        default: () =>
-          h("svg", { viewBox: "0 0 24 24" }, [
-            h("path", {
-              fill: "currentColor",
-              d: "M9 12l2 2l4-4m6 2a9 9 0 11-18 0a9 9 0 0118 0z",
-            }),
-          ]),
-      }),
+      h(
+        "div",
+        {
+          style:
+            "position: relative; display: flex; align-items: center; justify-content: center;",
+        },
+        [
+          h(NIcon, null, {
+            default: () =>
+              h("svg", { viewBox: "0 0 24 24" }, [
+                h("path", {
+                  fill: "currentColor",
+                  d: "M9 12l2 2l4-4m6 2a9 9 0 11-18 0a9 9 0 0118 0z",
+                }),
+              ]),
+          }),
+          // Visual indicator when can't use app (visible in both collapsed and expanded states)
+          !canUseApp.value
+            ? h("div", {
+                class: "photo-hub-indicator",
+                style:
+                  "position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 6px #22c55e; animation: pulse 2s infinite;",
+              })
+            : null,
+        ],
+      ),
   },
   {
     label: "Collections",
     key: "collections",
+    disabled: !canUseApp.value,
+    props: !canUseApp.value
+      ? {
+          title: "Add photos to your catalog",
+        }
+      : {},
     icon: () =>
       h(NIcon, null, {
         default: () =>
@@ -277,13 +303,19 @@ const firstSectionOptions: MenuOption[] = [
           ]),
       }),
   },
-];
+]);
 
 // Second section: Search, Canvas, Curation
-const secondSectionOptions: MenuOption[] = [
+const secondSectionOptions = computed(() => [
   {
     label: "Search",
     key: "search",
+    disabled: !canUseApp.value,
+    props: !canUseApp.value
+      ? {
+          title: "Add photos to your catalog",
+        }
+      : {},
     icon: () =>
       h(NIcon, null, {
         default: () =>
@@ -298,6 +330,12 @@ const secondSectionOptions: MenuOption[] = [
   {
     label: "Canvas",
     key: "canvas",
+    disabled: !canUseApp.value,
+    props: !canUseApp.value
+      ? {
+          title: "Add photos to your catalog",
+        }
+      : {},
     icon: () =>
       h(NIcon, null, {
         default: () =>
@@ -312,6 +350,12 @@ const secondSectionOptions: MenuOption[] = [
   {
     label: "Curation",
     key: "curation",
+    disabled: !canUseApp.value,
+    props: !canUseApp.value
+      ? {
+          title: "Add photos to your catalog",
+        }
+      : {},
     icon: () =>
       h(NIcon, null, {
         default: () =>
@@ -323,9 +367,9 @@ const secondSectionOptions: MenuOption[] = [
           ]),
       }),
   },
-];
+]);
 
-// Third section: Settings, Help
+// Third section: Settings, Help (always enabled)
 const thirdSectionOptions: MenuOption[] = [
   {
     label: "Settings",
@@ -606,6 +650,23 @@ onUnmounted(() => {
   }
   to {
     left: 0;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
   }
 }
 </style>

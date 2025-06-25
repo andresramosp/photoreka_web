@@ -13,7 +13,7 @@
       <h2 class="section-title">Quick Actions</h2>
 
       <div class="actions-grid">
-        <div class="action-card upload-photos">
+        <div class="action-card upload-photos" :class="{ disabled: false }">
           <div class="action-icon">
             <n-icon size="32">
               <svg viewBox="0 0 24 24">
@@ -28,7 +28,7 @@
           <p class="action-description">Add to your library</p>
         </div>
 
-        <div class="action-card new-project">
+        <div class="action-card new-project" :class="{ disabled: !canUseApp }">
           <div class="action-icon">
             <n-icon size="32">
               <svg viewBox="0 0 24 24">
@@ -43,7 +43,7 @@
           <p class="action-description">Start a fresh project</p>
         </div>
 
-        <div class="action-card collections">
+        <div class="action-card collections" :class="{ disabled: !canUseApp }">
           <div class="action-icon">
             <n-icon size="32">
               <svg viewBox="0 0 24 24">
@@ -58,7 +58,7 @@
           <p class="action-description">Browse organized photos</p>
         </div>
 
-        <div class="action-card ai-search">
+        <div class="action-card ai-search" :class="{ disabled: false }">
           <div class="action-icon">
             <n-icon size="32">
               <svg viewBox="0 0 24 24">
@@ -79,7 +79,26 @@
     <div class="recent-projects-section">
       <h2 class="section-title">Recent projects and series</h2>
 
-      <div class="projects-grid">
+      <!-- Empty state when can't use app OR no projects available -->
+      <div v-if="!canUseApp" class="empty-state">
+        <div class="empty-state-icon">
+          <n-icon size="64" color="var(--text-tertiary)">
+            <svg viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11.5-6L9 12.5l1.5 2L13 11l3 4H8l2.5-3zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"
+              />
+            </svg>
+          </n-icon>
+        </div>
+        <h3 class="empty-state-title">Nothing here yet</h3>
+        <p class="empty-state-description">
+          Upload and process more photos to start creating collections and
+          projects.
+        </p>
+      </div>
+
+      <div v-else class="projects-grid">
         <div class="project-card" @click="openProject('summer-vacation')">
           <div class="project-preview">
             <div class="photo-stack">
@@ -321,9 +340,14 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { useRouter } from "vue-router";
+import { usePhotosStore } from "@/stores/photos.js";
 
 const router = useRouter();
+const photosStore = usePhotosStore();
+
+const canUseApp = computed(() => photosStore.canUseApp);
 
 const openProject = (projectId: string) => {
   // Navigate to project view with the specific project ID
@@ -444,6 +468,18 @@ const openProject = (projectId: string) => {
   border-color: var(--primary-color);
   box-shadow: var(--shadow-primary);
   transform: translateY(-2px);
+}
+
+.action-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.action-card.disabled:hover {
+  border-color: var(--border-color);
+  box-shadow: none;
+  transform: none;
 }
 
 .action-icon {
@@ -736,11 +772,47 @@ const openProject = (projectId: string) => {
   }
 }
 
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4xl) var(--spacing-2xl);
+  text-align: center;
+  min-height: 300px;
+}
+
+.empty-state-icon {
+  margin-bottom: var(--spacing-xl);
+}
+
+.empty-state-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-md) 0;
+  line-height: var(--line-height-tight);
+}
+
+.empty-state-description {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+  max-width: 400px;
+}
+
 /* Large devices - hover effects */
 @media (min-width: 1024px) {
   .action-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+  }
+
+  .action-card.disabled:hover {
+    transform: none;
+    box-shadow: none;
   }
 
   .projects-grid {
