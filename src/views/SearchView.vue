@@ -24,12 +24,7 @@
               @click="setSearchType('tags')"
             >
               <n-icon size="16" class="type-icon">
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M5.5 7A1.5 1.5 0 1 0 7 5.5A1.5 1.5 0 0 0 5.5 7zm6.5 4.5c0-.83-.67-1.5-1.5-1.5S9 10.67 9 11.5s.67 1.5 1.5 1.5s1.5-.67 1.5-1.5zM12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14L2 9.27l6.91-1.01L12 2z"
-                  />
-                </svg>
+                <TagIcon />
               </n-icon>
               Tags
             </div>
