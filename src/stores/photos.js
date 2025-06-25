@@ -13,8 +13,17 @@ export const usePhotosStore = defineStore("photos", {
   getters: {
     selectedPhotoIds: (state) =>
       Object.keys(state.selectedPhotosRecord).filter(
-        (photoId) => !!state.selectedPhotosRecord[photoId]
+        (photoId) => !!state.selectedPhotosRecord[photoId],
       ),
+
+    canUseApp: (state) => {
+      // Hardcoded to false for testing purposes
+      return false;
+
+      // Real logic: return true if has at least 50 photos without .needProcess
+      // const processedPhotos = state.photos.filter(photo => !photo.needProcess);
+      // return processedPhotos.length >= 50;
+    },
   },
 
   actions: {
@@ -23,7 +32,7 @@ export const usePhotosStore = defineStore("photos", {
         this.isLoading = true;
         try {
           const response = await axios.get(
-            `${import.meta.env.VITE_API_BASE_URL}/api/catalog`
+            `${import.meta.env.VITE_API_BASE_URL}/api/catalog`,
           );
 
           const photos = response.data.photos.map((photo) => ({
@@ -59,7 +68,7 @@ export const usePhotosStore = defineStore("photos", {
     async fetchPhoto(photoId) {
       try {
         const { data: photo } = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/api/catalog/${photoId}`
+          `${import.meta.env.VITE_API_BASE_URL}/api/catalog/${photoId}`,
         );
         const updatedPhoto = photo;
         const index = this.photos.findIndex((p) => p.id == photoId);
@@ -76,7 +85,7 @@ export const usePhotosStore = defineStore("photos", {
     async deletePhoto(photoId) {
       try {
         await axios.delete(
-          `${import.meta.env.VITE_API_BASE_URL}/api/catalog/${photoId}`
+          `${import.meta.env.VITE_API_BASE_URL}/api/catalog/${photoId}`,
         );
         this.photos = this.photos.filter((photo) => photo.id !== photoId);
       } catch (error) {
@@ -88,7 +97,7 @@ export const usePhotosStore = defineStore("photos", {
       try {
         const res = await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/api/catalog/deleteDuplicates`,
-          { duplicates: photosIds }
+          { duplicates: photosIds },
         );
 
         const { deleted } = res.data;
@@ -109,7 +118,7 @@ export const usePhotosStore = defineStore("photos", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
-          }
+          },
         );
 
         if (!res.ok) throw new Error("Error al consultar duplicados");
