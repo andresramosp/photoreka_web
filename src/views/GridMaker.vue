@@ -188,6 +188,8 @@
     <PhotosDialog
       v-model="showPhotoDialog"
       :is-trash="false"
+      :single-selection="true"
+      title="Select Photo for Grid"
       @add-photos="handlePhotoSelection"
     />
   </div>
