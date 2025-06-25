@@ -83,7 +83,7 @@ import {
   Search20Regular as SearchIcon,
   Alert20Regular as NotificationsIcon,
   Settings20Regular as SettingsIcon,
-  Navigation20Regular as MenuOutline,
+  TextBulletListSquare20Regular as MenuOutline,
   Person20Regular as PersonIcon,
   SignOut20Regular as LogOutIcon,
 } from "@vicons/fluent";
