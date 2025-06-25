@@ -78,15 +78,15 @@ import { useRoute, useRouter } from "vue-router";
 import { NIcon, useMessage } from "naive-ui";
 import { useUserStore } from "../stores/userStore";
 
-// Import @vicons icons
+// Import @vicons icons from ionicons5 for reliability
 import {
-  Search20Regular as SearchIcon,
-  Alert20Regular as NotificationsIcon,
-  Settings20Regular as SettingsIcon,
-  List20Regular as MenuOutline,
-  Person20Regular as PersonIcon,
-  SignOut20Regular as LogOutIcon,
-} from "@vicons/fluent";
+  SearchOutline as SearchIcon,
+  NotificationsOutline as NotificationsIcon,
+  SettingsOutline as SettingsIcon,
+  MenuOutline,
+  PersonOutline as PersonIcon,
+  LogOutOutline as LogOutIcon,
+} from "@vicons/ionicons5";
 
 const route = useRoute();
 const router = useRouter();
