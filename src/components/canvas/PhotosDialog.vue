@@ -155,6 +155,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  singleSelection: {
+    type: Boolean,
+    default: false,
+  },
+  title: {
+    type: String,
+    default: "",
+  },
 });
 
 const emit = defineEmits(["update:modelValue", "add-photos"]);
