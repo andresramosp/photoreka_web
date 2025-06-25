@@ -121,9 +121,11 @@
               ? `Restore ${selectedIds.length} ${
                   selectedIds.length === 1 ? "Photo" : "Photos"
                 }`
-              : `Add ${selectedIds.length} ${
-                  selectedIds.length === 1 ? "Photo" : "Photos"
-                } to Canvas`
+              : props.singleSelection
+                ? "Select Photo"
+                : `Add ${selectedIds.length} ${
+                    selectedIds.length === 1 ? "Photo" : "Photos"
+                  } to Canvas`
           }}
         </n-button>
       </div>
