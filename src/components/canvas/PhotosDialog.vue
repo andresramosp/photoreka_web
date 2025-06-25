@@ -138,6 +138,14 @@ import { useCanvasStore } from "@/stores/canvas";
 import PhotoCard from "@/components/PhotoCard.vue";
 import { NModal, NButton, NIcon, NSelect } from "naive-ui";
 
+// Import @vicons icons
+import {
+  Delete20Regular as DeleteIcon,
+  Image20Regular as ImageIcon,
+  ArrowUndo20Regular as ArrowUndoIcon,
+  Add20Regular as AddIcon,
+} from "@vicons/fluent";
+
 const props = defineProps({
   modelValue: {
     type: Boolean,
