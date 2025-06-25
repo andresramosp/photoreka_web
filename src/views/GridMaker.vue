@@ -381,7 +381,7 @@ const fillGaps = async () => {
   }
 
   message.info(
-    `Generating ${emptyCellIndices.length} photos (${fillType.value} mode)`,
+    `Generating ${emptyCellIndices.length} photos using ${fillType.value} mode...`,
   );
 
   // Set cells to generating state
