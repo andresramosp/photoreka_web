@@ -34,12 +34,7 @@
               @click="setSearchType('spatial')"
             >
               <n-icon size="16" class="type-icon">
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-2V2h-2v2H9V2H7v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM19 20H5V9h14v11z"
-                  />
-                </svg>
+                <CalendarIcon />
               </n-icon>
               Spatial
             </div>
