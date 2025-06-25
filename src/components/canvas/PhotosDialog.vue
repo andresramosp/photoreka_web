@@ -220,10 +220,16 @@ const photos = computed(() => {
 
 // Selection methods
 function toggleSelection(photoId) {
-  if (selectedIds.value.includes(photoId)) {
-    selectedIds.value = selectedIds.value.filter((id) => id !== photoId);
+  if (props.singleSelection) {
+    // For single selection mode, directly select or deselect
+    selectedIds.value = selectedIds.value.includes(photoId) ? [] : [photoId];
   } else {
-    selectedIds.value.push(photoId);
+    // Multi-selection mode
+    if (selectedIds.value.includes(photoId)) {
+      selectedIds.value = selectedIds.value.filter((id) => id !== photoId);
+    } else {
+      selectedIds.value.push(photoId);
+    }
   }
 }
 
