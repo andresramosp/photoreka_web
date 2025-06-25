@@ -72,37 +72,37 @@ const menuOptions = [
 
 ### Navigation
 
-- `Dashboard20Regular` - Dashboard/home
-- `Image20Regular` - Photo Hub
-- `FolderOpen20Regular` - Collections
-- `Search20Regular` - Search
-- `Canvas20Regular` - Canvas
-- `ImageMultiple20Regular` - Curation
-- `Grid320Regular` - Grids
+- `GridOutline` - Dashboard/home
+- `ImageOutline` - Photo Hub
+- `FolderOpenOutline` - Collections
+- `SearchOutline` - Search
+- `BrushOutline` - Canvas
+- `ImagesOutline` - Curation
+- `AppsOutline` - Grids
 
 ### Actions
 
-- `Add20Regular` - Add/plus
-- `Delete20Regular` - Delete/trash
-- `Edit20Regular` - Edit
-- `Share20Regular` - Share
-- `Download20Regular` - Download
-- `Upload20Regular` - Upload
+- `AddOutline` - Add/plus
+- `TrashOutline` - Delete/trash
+- `CreateOutline` - Edit
+- `ShareOutline` - Share
+- `DownloadOutline` - Download
+- `CloudUploadOutline` - Upload
 
 ### Interface
 
-- `Settings20Regular` - Settings
-- `QuestionCircle20Regular` - Help
-- `Alert20Regular` - Notifications
-- `CheckmarkCircle20Filled` - Success/check
-- `Warning20Regular` - Warning
-- `Info20Regular` - Information
+- `SettingsOutline` - Settings
+- `HelpCircleOutline` - Help
+- `NotificationsOutline` - Notifications
+- `CheckmarkCircleOutline` - Success/check
+- `WarningOutline` - Warning
+- `InformationCircleOutline` - Information
 
 ### User
 
-- `Person20Regular` - User/profile
-- `SignOut20Regular` - Logout
-- `Camera20Regular` - Camera/photos
+- `PersonOutline` - User/profile
+- `LogOutOutline` - Logout
+- `CameraOutline` - Camera/photos
 
 ## Migration Notes
 
