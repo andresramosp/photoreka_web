@@ -201,7 +201,7 @@ import {
   Images20Regular as CurationIcon,
   Grid20Regular as GridIcon,
   Settings20Regular as SettingsIcon,
-  QuestionCircle20Regular as HelpIcon,
+  Question20Regular as HelpIcon,
   Person20Regular as PersonOutline,
   SignOut20Regular as LogOutOutline,
   Camera20Regular as CameraOutline,
