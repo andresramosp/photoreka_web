@@ -441,18 +441,18 @@
 import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
 import PhotoCard from "../components/PhotoCard.vue";
 
-// Import @vicons icons
+// Import @vicons icons from ionicons5 for reliability
 import {
-  Document20Regular as DocumentIcon,
-  Tag20Regular as TagIcon,
-  Calendar20Regular as CalendarIcon,
-  CheckmarkCircle20Filled as CheckIcon,
-  Star20Regular as StarIcon,
-  Search20Regular as SearchIcon,
-  Play20Regular as PlayIcon,
-  Lightbulb20Regular as LightbulbIcon,
-  ArrowRight20Regular as ArrowRightIcon,
-} from "@vicons/fluent";
+  DocumentTextOutline as DocumentIcon,
+  PricetagOutline as TagIcon,
+  CalendarOutline as CalendarIcon,
+  CheckmarkCircleOutline as CheckIcon,
+  StarOutline as StarIcon,
+  SearchOutline as SearchIcon,
+  PlayOutline as PlayIcon,
+  BulbOutline as LightbulbIcon,
+  ArrowForwardOutline as ArrowRightIcon,
+} from "@vicons/ionicons5";
 
 // Search state
 const activeSearchType = ref<"natural" | "tags" | "spatial">("natural");
