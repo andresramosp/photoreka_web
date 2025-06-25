@@ -319,13 +319,13 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { usePhotosStore } from "@/stores/photos.js";
 
-// Import @vicons icons
+// Import @vicons icons from ionicons5 for reliability
 import {
-  ArrowUpload20Regular as ArrowUpIcon,
-  Add20Regular as AddIcon,
-  FolderOpen20Regular as CollectionsIcon,
-  Settings20Regular as SettingsIcon,
-} from "@vicons/fluent";
+  CloudUploadOutline as ArrowUpIcon,
+  AddOutline as AddIcon,
+  FolderOpenOutline as CollectionsIcon,
+  SettingsOutline as SettingsIcon,
+} from "@vicons/ionicons5";
 
 const router = useRouter();
 const photosStore = usePhotosStore();
