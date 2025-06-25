@@ -142,7 +142,7 @@ import { NModal, NButton, NIcon, NSelect } from "naive-ui";
 import {
   Delete20Regular as DeleteIcon,
   Image20Regular as ImageIcon,
-  ArrowUndo20Regular as ArrowUndoIcon,
+  ArrowReply20Regular as ArrowUndoIcon,
   Add20Regular as AddIcon,
 } from "@vicons/fluent";
 
