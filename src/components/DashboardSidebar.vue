@@ -197,7 +197,7 @@ import {
   Image20Regular as PhotoHubIcon,
   FolderOpen20Regular as CollectionsIcon,
   Search20Regular as SearchIcon,
-  Canvas20Regular as CanvasIcon,
+  Paint20Regular as CanvasIcon,
   ImageMultiple20Regular as CurationIcon,
   Grid320Regular as GridIcon,
   Settings20Regular as SettingsIcon,
