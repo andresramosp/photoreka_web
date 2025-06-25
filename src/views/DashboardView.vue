@@ -319,6 +319,14 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { usePhotosStore } from "@/stores/photos.js";
 
+// Import @vicons icons
+import {
+  ArrowUp20Regular as ArrowUpIcon,
+  Add20Regular as AddIcon,
+  FolderOpen20Regular as CollectionsIcon,
+  Settings20Regular as SettingsIcon,
+} from "@vicons/fluent";
+
 const router = useRouter();
 const photosStore = usePhotosStore();
 
