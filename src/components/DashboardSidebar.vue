@@ -191,21 +191,21 @@ import { NIcon } from "naive-ui";
 import type { MenuOption } from "naive-ui";
 import { usePhotosStore } from "@/stores/photos.js";
 
-// Import @vicons icons
+// Import @vicons icons from ionicons5 for reliability
 import {
-  Dashboard20Regular as DashboardIcon,
-  Image20Regular as PhotoHubIcon,
-  FolderOpen20Regular as CollectionsIcon,
-  Search20Regular as SearchIcon,
-  Paint20Regular as CanvasIcon,
-  Images20Regular as CurationIcon,
-  Grid20Regular as GridIcon,
-  Settings20Regular as SettingsIcon,
-  Question20Regular as HelpIcon,
-  Person20Regular as PersonOutline,
-  SignOut20Regular as LogOutOutline,
-  Camera20Regular as CameraOutline,
-} from "@vicons/fluent";
+  GridOutline as DashboardIcon,
+  ImageOutline as PhotoHubIcon,
+  FolderOpenOutline as CollectionsIcon,
+  SearchOutline as SearchIcon,
+  BrushOutline as CanvasIcon,
+  ImagesOutline as CurationIcon,
+  AppsOutline as GridIcon,
+  SettingsOutline as SettingsIcon,
+  HelpCircleOutline as HelpIcon,
+  PersonOutline,
+  LogOutOutline,
+  CameraOutline,
+} from "@vicons/ionicons5";
 
 const router = useRouter();
 const route = useRoute();
