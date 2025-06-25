@@ -63,12 +63,7 @@
       <div v-if="!canUseApp" class="empty-state">
         <div class="empty-state-icon">
           <n-icon size="64" color="var(--text-tertiary)">
-            <svg viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11.5-6L9 12.5l1.5 2L13 11l3 4H8l2.5-3zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"
-              />
-            </svg>
+            <CollectionsIcon />
           </n-icon>
         </div>
         <h3 class="empty-state-title">Nothing here yet</h3>
