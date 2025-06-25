@@ -104,12 +104,12 @@
 import { ref } from "vue";
 import { NIcon } from "naive-ui";
 
-// Import @vicons icons
+// Import @vicons icons from ionicons5 for reliability
 import {
-  ChevronRight20Regular as ChevronRightIcon,
-  ChevronLeft20Regular as ChevronLeftIcon,
-  CheckmarkCircle20Filled as CheckCircleIcon,
-} from "@vicons/fluent";
+  ChevronForwardOutline as ChevronRightIcon,
+  ChevronBackOutline as ChevronLeftIcon,
+  CheckmarkCircleOutline as CheckCircleIcon,
+} from "@vicons/ionicons5";
 
 interface Photo {
   id: string;
