@@ -198,7 +198,7 @@ import {
   FolderOpen20Regular as CollectionsIcon,
   Search20Regular as SearchIcon,
   Paint20Regular as CanvasIcon,
-  ImageMultiple20Regular as CurationIcon,
+  Images20Regular as CurationIcon,
   Grid20Regular as GridIcon,
   Settings20Regular as SettingsIcon,
   QuestionCircle20Regular as HelpIcon,
