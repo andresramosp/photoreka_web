@@ -272,8 +272,8 @@ const firstSectionOptions = computed(() => [
                 }),
               ]),
           }),
-          // Visual indicator when collapsed and can't use app
-          !canUseApp.value && collapsed.value
+          // Visual indicator when can't use app (visible in both collapsed and expanded states)
+          !canUseApp.value
             ? h("div", {
                 class: "photo-hub-indicator",
                 style:
@@ -287,6 +287,11 @@ const firstSectionOptions = computed(() => [
     label: "Collections",
     key: "collections",
     disabled: !canUseApp.value,
+    props: !canUseApp.value
+      ? {
+          title: "Add photos to your catalog",
+        }
+      : {},
     icon: () =>
       h(NIcon, null, {
         default: () =>
@@ -306,6 +311,11 @@ const secondSectionOptions = computed(() => [
     label: "Search",
     key: "search",
     disabled: !canUseApp.value,
+    props: !canUseApp.value
+      ? {
+          title: "Add photos to your catalog",
+        }
+      : {},
     icon: () =>
       h(NIcon, null, {
         default: () =>
@@ -321,6 +331,11 @@ const secondSectionOptions = computed(() => [
     label: "Canvas",
     key: "canvas",
     disabled: !canUseApp.value,
+    props: !canUseApp.value
+      ? {
+          title: "Add photos to your catalog",
+        }
+      : {},
     icon: () =>
       h(NIcon, null, {
         default: () =>
@@ -336,6 +351,11 @@ const secondSectionOptions = computed(() => [
     label: "Curation",
     key: "curation",
     disabled: !canUseApp.value,
+    props: !canUseApp.value
+      ? {
+          title: "Add photos to your catalog",
+        }
+      : {},
     icon: () =>
       h(NIcon, null, {
         default: () =>
