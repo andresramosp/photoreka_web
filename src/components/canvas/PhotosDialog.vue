@@ -84,18 +84,8 @@
       <div v-else class="empty-state">
         <div class="empty-state-content">
           <n-icon size="64" class="empty-state-icon">
-            <svg v-if="isTrash" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"
-              />
-            </svg>
-            <svg v-else viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M9,2V8H7V2H9M17,2V8H15V2H17M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
-              />
-            </svg>
+            <DeleteIcon v-if="isTrash" />
+            <ImageIcon v-else />
           </n-icon>
           <h3 class="empty-state-title">
             {{ isTrash ? "No deleted photos" : "No photos available" }}
@@ -217,7 +207,7 @@ const photos = computed(() => {
     return photosStore.photos.filter(
       (p) =>
         !canvasStore.photos.find((photo) => photo.id === p.id) &&
-        !canvasStore.discardedPhotos.find((photo) => photo.id === p.id)
+        !canvasStore.discardedPhotos.find((photo) => photo.id === p.id),
     );
   }
 });
@@ -253,7 +243,7 @@ async function confirmSelection() {
     if (props.isTrash) {
       // Remove from discarded photos (restore)
       canvasStore.discardedPhotos = canvasStore.discardedPhotos.filter(
-        (dp) => !selectedIds.value.includes(dp.id)
+        (dp) => !selectedIds.value.includes(dp.id),
       );
     }
 
@@ -281,7 +271,7 @@ watch(
       // Ensure photos are loaded
       photosStore.getOrFetch();
     }
-  }
+  },
 );
 
 // Fetch photos on mount
