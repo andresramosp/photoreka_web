@@ -321,7 +321,7 @@ import { usePhotosStore } from "@/stores/photos.js";
 
 // Import @vicons icons
 import {
-  ArrowUp20Regular as ArrowUpIcon,
+  ArrowUpload20Regular as ArrowUpIcon,
   Add20Regular as AddIcon,
   FolderOpen20Regular as CollectionsIcon,
   Settings20Regular as SettingsIcon,
