@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { NIcon } from "naive-ui";
-import { Camera20Regular as CameraOutline } from "@vicons/fluent";
+import { CameraOutline } from "@vicons/ionicons5";
 
 interface Props {
   size?: "normal" | "large";
