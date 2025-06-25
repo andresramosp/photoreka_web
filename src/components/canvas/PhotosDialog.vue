@@ -10,7 +10,7 @@
     <template #header>
       <div class="dialog-header">
         <h2 class="dialog-title">
-          {{ isTrash ? "Restore Photos" : "Add Photos to Canvas" }}
+          {{ title || (isTrash ? "Restore Photos" : "Add Photos to Canvas") }}
         </h2>
       </div>
     </template>
