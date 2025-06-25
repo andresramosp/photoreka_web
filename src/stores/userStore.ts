@@ -17,14 +17,14 @@ export const useUserStore = defineStore("user", () => {
 
   // Check for existing token on store initialization
   const initAuth = () => {
-    const savedToken = localStorage.getItem("eyeforge_token");
+    const savedToken = localStorage.getItem("framesaga_token");
     if (savedToken) {
       token.value = savedToken;
       isAuthenticated.value = true;
       // Mock user data - in real app this would fetch from API
       user.value = {
         id: "mock-user-id",
-        email: "user@eyeforge.app",
+        email: "user@framesaga.app",
         name: "Usuario Demo",
         provider: "email",
       };
@@ -56,7 +56,7 @@ export const useUserStore = defineStore("user", () => {
           provider: "email",
         };
 
-        localStorage.setItem("eyeforge_token", mockToken);
+        localStorage.setItem("framesaga_token", mockToken);
 
         return { success: true };
       } else {
@@ -99,7 +99,7 @@ export const useUserStore = defineStore("user", () => {
           provider: "email",
         };
 
-        localStorage.setItem("eyeforge_token", mockToken);
+        localStorage.setItem("framesaga_token", mockToken);
 
         return { success: true };
       } else {
@@ -141,7 +141,7 @@ export const useUserStore = defineStore("user", () => {
         provider,
       };
 
-      localStorage.setItem("eyeforge_token", mockToken);
+      localStorage.setItem("framesaga_token", mockToken);
 
       return { success: true };
     } catch (error) {
@@ -158,7 +158,7 @@ export const useUserStore = defineStore("user", () => {
     token.value = null;
     isAuthenticated.value = false;
     user.value = null;
-    localStorage.removeItem("eyeforge_token");
+    localStorage.removeItem("framesaga_token");
   };
 
   // Initialize auth state

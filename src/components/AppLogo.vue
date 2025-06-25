@@ -1,5 +1,5 @@
 <template>
-  <div class="eyeforge-logo" :class="{ 'logo-large': size === 'large' }">
+  <div class="framesaga-logo" :class="{ 'logo-large': size === 'large' }">
     <div class="logo-icon">
       <svg
         :width="iconSize"
@@ -8,7 +8,7 @@
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <!-- Stylized camera/lens icon for EyeForge -->
+        <!-- Stylized camera/lens icon for FrameSaga -->
         <circle
           cx="24"
           cy="24"
@@ -35,7 +35,7 @@
         />
       </svg>
     </div>
-    <span class="logo-text" v-if="showText">EyeForge</span>
+    <span class="logo-text" v-if="showText">FrameSaga</span>
   </div>
 </template>
 
@@ -64,14 +64,14 @@ export default {
 </script>
 
 <style scoped>
-.eyeforge-logo {
+.framesaga-logo {
   display: flex;
   align-items: center;
   gap: 12px;
   color: #2563eb;
 }
 
-.eyeforge-logo.logo-large {
+.framesaga-logo.logo-large {
   gap: 16px;
 }
 
@@ -100,7 +100,7 @@ export default {
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.eyeforge-logo:hover .logo-icon svg {
+.framesaga-logo:hover .logo-icon svg {
   transform: scale(1.05);
 }
 

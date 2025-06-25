@@ -13,21 +13,6 @@
       <h2 class="section-title">Quick Actions</h2>
 
       <div class="actions-grid">
-        <div class="action-card new-project">
-          <div class="action-icon">
-            <n-icon size="32">
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-                />
-              </svg>
-            </n-icon>
-          </div>
-          <h3 class="action-title">New Project</h3>
-          <p class="action-description">Start a fresh project</p>
-        </div>
-
         <div class="action-card upload-photos">
           <div class="action-icon">
             <n-icon size="32">
@@ -43,19 +28,19 @@
           <p class="action-description">Add to your library</p>
         </div>
 
-        <div class="action-card ai-search">
+        <div class="action-card new-project">
           <div class="action-icon">
             <n-icon size="32">
               <svg viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
-                  d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+                  d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
                 />
               </svg>
             </n-icon>
           </div>
-          <h3 class="action-title">AI Search</h3>
-          <p class="action-description">Find photos instantly</p>
+          <h3 class="action-title">New Curation</h3>
+          <p class="action-description">Start a fresh project</p>
         </div>
 
         <div class="action-card collections">
@@ -71,6 +56,21 @@
           </div>
           <h3 class="action-title">Collections</h3>
           <p class="action-description">Browse organized photos</p>
+        </div>
+
+        <div class="action-card ai-search">
+          <div class="action-icon">
+            <n-icon size="32">
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+                />
+              </svg>
+            </n-icon>
+          </div>
+          <h3 class="action-title">Manage Plan</h3>
+          <p class="action-description">Get more space or usage</p>
         </div>
       </div>
     </div>

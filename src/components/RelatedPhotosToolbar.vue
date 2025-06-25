@@ -24,9 +24,9 @@
       <div class="related-photos-section">
         <div class="related-photos-header">
           <span class="section-title">Related Photos</span>
-          <span class="selection-count"
+          <!-- <span class="selection-count"
             >{{ selectedPhotos.length }} selected</span
-          >
+          > -->
         </div>
 
         <div

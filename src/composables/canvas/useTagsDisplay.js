@@ -1,7 +1,5 @@
 // composables/useTagDisplay.ts
 import { computed } from "vue";
-import { shortenTag } from "@/utils/utils";
-
 export function useTagDisplay(tagsSource) {
   const allowedGroups = [
     "person",
@@ -26,17 +24,19 @@ export function useTagDisplay(tagsSource) {
       }
     }
     return Array.from(seen.values()).sort(
-      (t1, t2) =>
-        shortenTag((t2.tag || t2).name).length -
-        shortenTag((t1.tag || t1).name).length
+      (t1, t2) => (t2.tag || t2).name.length - (t1.tag || t1).name.length
     );
   });
 
-  const theme = useTheme();
-  const selectedColor = theme.current.value.colors.secondary;
+  const selectedColor = getComputedStyle(document.documentElement)
+    .getPropertyValue("--secondary-color")
+    .trim();
+
   const hoverColor = "lightgray";
   const defaultColor = "gray";
-  const textColor = theme.current.value.colors.primary;
+  const textColor = getComputedStyle(document.documentElement)
+    .getPropertyValue("--primary-color")
+    .trim();
   const pillHeight = 18;
 
   return {

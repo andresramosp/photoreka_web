@@ -38,7 +38,7 @@ function createPhoto(
     showButton: false,
     tags: backendPhoto.tags,
     loading: false,
-    detectionAreas: backendPhoto.detectionAreas,
+    // detectionAreas: backendPhoto.detectionAreas,
   };
 }
 

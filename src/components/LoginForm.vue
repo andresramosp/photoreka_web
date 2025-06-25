@@ -1,6 +1,6 @@
 <template>
   <div class="login-form">
-    <div class="form-header">Access your EyeForge account</div>
+    <div class="form-header">Access your FrameSaga account</div>
 
     <AuthProviders mode="login" />
 

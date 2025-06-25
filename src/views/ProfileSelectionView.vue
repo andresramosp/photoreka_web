@@ -4,7 +4,7 @@
       <div class="profile-header">
         <h1 class="profile-title">What is your preferred style?</h1>
         <p class="profile-subtitle">
-          Help us customize your EyeForge experience
+          Help us customize your FrameSaga experience
         </p>
       </div>
 
@@ -297,7 +297,7 @@ const completeProfile = () => {
   console.log("Selected Categories:", selectedCategories.value);
   console.log("Selected Tags:", selectedTags.value);
 
-  message.success("Profile setup completed! Welcome to EyeForge.");
+  message.success("Profile setup completed! Welcome to FrameSaga.");
   router.push("/dashboard");
 };
 

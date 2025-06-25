@@ -1,6 +1,6 @@
 <template>
   <div class="register-form">
-    <div class="form-header">Join the EyeForge community</div>
+    <div class="form-header">Join the FrameSaga community</div>
 
     <AuthProviders mode="register" />
 

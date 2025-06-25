@@ -319,7 +319,6 @@ export function useCanvasPhoto(stageRef, photos, photoRefs, stageConfig) {
     handleDragEnd,
     handleMouseOver,
     handleMouseOut,
-    orderPhotos,
     autoAlignPhotos,
     isHoveringTrash,
   };

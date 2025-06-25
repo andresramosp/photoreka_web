@@ -2,7 +2,7 @@
   <n-modal
     v-model:show="dialog"
     preset="dialog"
-    :style="{ maxWidth: '90vw', width: '1200px', maxHeight: '90vh' }"
+    :style="{ maxWidth: '90vw', width: '1000px', maxHeight: '90vh' }"
     :on-mask-click="close"
     :closable="false"
     :bordered="false"
@@ -63,7 +63,12 @@
       </div>
 
       <!-- Photos Grid -->
-      <div v-if="photos.length > 0" class="photos-grid">
+      <!-- <div v-if="photos.length > 0" class="photos-grid"> -->
+      <div
+        v-if="photos.length > 0"
+        class="photos-grid photo-grid-base"
+        :class="`grid-cols-${6}`"
+      >
         <PhotoCard
           v-for="photo in photos"
           :key="photo.id"
@@ -212,7 +217,7 @@ const photos = computed(() => {
     return photosStore.photos.filter(
       (p) =>
         !canvasStore.photos.find((photo) => photo.id === p.id) &&
-        !canvasStore.discardedPhotos.find((photo) => photo.id === p.id),
+        !canvasStore.discardedPhotos.find((photo) => photo.id === p.id)
     );
   }
 });
@@ -248,7 +253,7 @@ async function confirmSelection() {
     if (props.isTrash) {
       // Remove from discarded photos (restore)
       canvasStore.discardedPhotos = canvasStore.discardedPhotos.filter(
-        (dp) => !selectedIds.value.includes(dp.id),
+        (dp) => !selectedIds.value.includes(dp.id)
       );
     }
 
@@ -276,7 +281,7 @@ watch(
       // Ensure photos are loaded
       photosStore.getOrFetch();
     }
-  },
+  }
 );
 
 // Fetch photos on mount
@@ -361,10 +366,8 @@ onMounted(() => {
 
 /* Photos Grid */
 .photos-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: var(--spacing-lg);
   overflow-y: auto;
+  grid-auto-rows: min-content;
   padding: var(--spacing-sm);
   max-height: calc(60vh - 80px);
 }

@@ -12,7 +12,7 @@
   >
     <div class="photo-container">
       <img
-        :src="photo.url"
+        :src="photo.thumbnailUrl || photo.url"
         :alt="photo.title"
         class="photo-image"
         @load="onImageLoad"
@@ -33,7 +33,7 @@
       </div>
 
       <!-- Info Button (center overlay) -->
-      <div class="info-overlay">
+      <!-- <div class="info-overlay">
         <n-button
           circle
           size="medium"
@@ -51,10 +51,10 @@
             </n-icon>
           </template>
         </n-button>
-      </div>
+      </div> -->
 
       <!-- Top overlay with stars -->
-      <div class="top-overlay">
+      <!-- <div class="top-overlay" >
         <div class="stars">
           <n-icon
             v-for="star in 5"
@@ -70,7 +70,7 @@
             </svg>
           </n-icon>
         </div>
-      </div>
+      </div> -->
 
       <!-- Bottom overlay with matched tags or curation actions -->
       <div class="bottom-overlay">
@@ -161,6 +161,7 @@ import { ref } from "vue";
 interface Photo {
   id: string;
   url: string;
+  thumbnailUrl: string;
   title: string;
   rating: number;
   reasoning?: string; // AI reasoning for curation

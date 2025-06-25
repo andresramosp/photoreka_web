@@ -1,19 +1,208 @@
 <template>
-  <div class="canvas-container" ref="canvasContainer">
-    <!-- Konva Canvas -->
-    <v-stage
-      ref="stageRef"
-      :config="stageConfig"
-      @wheel="handleWheel"
-      @mousedown="handleMouseDown"
-      @mousemove="handleMouseMove"
-      @mouseup="handleMouseUp"
-      @click="handleStageClick"
-    >
-      <v-layer ref="layerRef">
-        <!-- Canvas content will be added here -->
-      </v-layer>
-    </v-stage>
+  <div class="canvas-container">
+    <div ref="canvasContainer" @dragover.prevent @drop="handlePhotoDrop">
+      <!-- Konva Canvas -->
+      <v-stage
+        ref="stageRef"
+        :config="stageConfig"
+        @wheel="handleWheel"
+        @mousedown="handleMouseDown"
+        @mousemove="handleMouseMove"
+        @mouseup="handleMouseUp"
+        @click="handleStageClick"
+      >
+        <v-layer>
+          <!-- Rectángulo de selección -->
+          <v-rect
+            v-if="selectionRect.visible"
+            :config="{
+              x: selectionRect.x,
+              y: selectionRect.y,
+              width: selectionRect.width,
+              height: selectionRect.height,
+              stroke: secondaryColor,
+              dash: [4, 4],
+            }"
+          />
+          <!-- Fotos -->
+          <v-group
+            v-for="photo in photos"
+            :key="photo.id"
+            :ref="setPhotoRef(photo.id)"
+            :config="{
+              x: photo.config.x,
+              y: photo.config.y,
+              draggable: true,
+              zIndex: photo.config.zIndex,
+              opacity: photo.config.opacity ?? 1,
+              _isPhoto: true,
+            }"
+            @dragstart="handleDragStart(photo, $event)"
+            @dragend="
+              handleDragEnd(photo, $event, toolbarState.expansion.autoAlign)
+            "
+            @dragmove="handleDragMove(photo, $event)"
+            @dblclick="handleSelectPhoto(photo, $event)"
+          >
+            <v-group
+              :config="{}"
+              @mouseover="
+                handleMouseOver(photo);
+                stageRef.getStage().container().style.cursor = 'pointer';
+              "
+              @mouseout="
+                handleMouseOut(photo);
+                stageRef.getStage().container().style.cursor = '';
+              "
+            >
+              <!-- Área de hover con padding invisible -->
+              <v-rect
+                :config="{
+                  x: -10,
+                  y: -10,
+                  width: photo.config.width + 20,
+                  height: photo.config.height + 20,
+                  fill: 'transparent',
+                }"
+              />
+
+              <!-- Imagen -->
+              <v-image
+                :config="{
+                  x: 0,
+                  y: 0,
+                  width: photo.config.width,
+                  height: photo.config.height,
+                  image: photo.image,
+                  stroke: getPhotoStrokeColor(photo),
+                  strokeWidth: photo.selected ? 7 : 2.5,
+                }"
+              />
+              <!-- Info icon -->
+              <v-group
+                v-if="
+                  photo.hovered &&
+                  toolbarState.expansion.type.criteria !== 'tags' &&
+                  !toolbarState.expansion.type.criteria !== 'composition'
+                "
+                :config="{ x: 10, y: 10 }"
+                @click="() => {}"
+              >
+                <v-circle
+                  :config="{
+                    radius: 5.5,
+                    stroke: 'white',
+                    strokeWidth: 1,
+                  }"
+                />
+                <v-text
+                  :config="{
+                    text: 'i',
+                    fontSize: 10.5,
+                    fill: 'white',
+                    align: 'center',
+                    verticalAlign: 'middle',
+                    width: 20,
+                    height: 20,
+                    offsetX: 10,
+                    offsetY: 9,
+                  }"
+                />
+              </v-group>
+
+              <!-- Spinner de carga -->
+              <v-group
+                v-if="photo.loading && expansionMode == 'canvas'"
+                :config="{
+                  x: photo.config.width / 2,
+                  y: photo.config.height / 2,
+                  opacity: 0.7,
+                }"
+                ref="spinnerRefs"
+              >
+                <v-arc
+                  :config="{
+                    innerRadius: 15,
+                    outerRadius: 45,
+                    angle: 270,
+                    fill: 'transparent',
+                    stroke: 'white',
+                    strokeWidth: 3,
+                    rotation: photo.spinnerRotation || 0,
+                  }"
+                />
+              </v-group>
+              <!-- Filtro rojo pre-borrado -->
+              <v-rect
+                v-if="photo.inTrash"
+                :config="{
+                  x: 0,
+                  y: 0,
+                  width: photo.config.width,
+                  height: photo.config.height,
+                  fill: 'rgba(255, 0, 0, 0.3)',
+                }"
+              />
+              <!-- Tags y botones -->
+              <template>
+                <!-- <PhotoDetectionAreas
+                v-if="
+                  toolbarState.expansion.type.criteria === 'composition' &&
+                  toolbarState.expansion.onCanvas &&
+                  photo.hovered
+                "
+                :photo="photo"
+                :detectionAreas="photo.detectionAreas"
+                :visible="photo.hovered"
+                >/</PhotoDetectionAreas
+              > -->
+                <TagPillsCanvas
+                  v-if="
+                    toolbarState.expansion.type.value.criteria === 'tags' &&
+                    expansionMode == 'canvas' &&
+                    photo.hovered
+                  "
+                  :photo="photo"
+                  :tags="photo.tags"
+                  :visible="photo.hovered"
+                />
+                <ExpandPhotoButtons
+                  :photo="photo"
+                  :enableDiagonal="
+                    toolbarState.photoOptions.spreadMode === 'circular'
+                  "
+                  v-if="
+                    expansionMode == 'canvas' &&
+                    !photo.inTrash &&
+                    photo.hovered &&
+                    (toolbarState.expansion.type.value.criteria !== 'tags' ||
+                      photo.tags.some((t) => t.tag.selected)) &&
+                    (toolbarState.expansion.type.value.criteria !==
+                      'composition' ||
+                      photo.detectionAreas.some((dt) => dt.selected))
+                  "
+                  @click="handleAddPhotoFromPhoto"
+                  :sizeFactor="dynamicSizeFactor"
+                />
+                <PhotoCenterButton
+                  v-else-if="
+                    expansionMode !== 'canvas' &&
+                    !photo.inTrash &&
+                    photo.hovered
+                  "
+                  :photo="photo"
+                  :fill="secondaryColor"
+                  icon="+"
+                  font-size="30"
+                  @click="handleAddPhotoFromPhoto"
+                  :sizeFactor="1.3"
+                />
+              </template>
+            </v-group>
+          </v-group>
+        </v-layer>
+      </v-stage>
+    </div>
 
     <!-- Related Photos Toolbar -->
     <RelatedPhotosToolbar
@@ -42,7 +231,7 @@
           Add Photos
         </n-button>
 
-        <n-button @click="clearCanvas">
+        <n-button @click="handleClearCanvas">
           <template #icon>
             <n-icon>
               <svg viewBox="0 0 24 24">
@@ -75,7 +264,7 @@
       <div class="btn-group-pill">
         <div class="expandable-button-group" ref="expandableGroupRef">
           <n-button
-            :type="canvasMode === 'catalog' ? 'primary' : 'default'"
+            :type="expansionMode === 'catalog' ? 'primary' : 'default'"
             @click="selectCatalogMode"
             title="Expand on catalog"
             class="mode-button left-button"
@@ -92,9 +281,12 @@
             </template>
           </n-button>
 
-          <div class="expandable-container" :class="{ expanded: isExpanded }">
+          <div
+            class="expandable-container"
+            :class="{ expanded: canvasModeIsExpanded }"
+          >
             <n-button
-              :type="canvasMode === 'canvas' ? 'primary' : 'default'"
+              :type="expansionMode === 'canvas' ? 'primary' : 'default'"
               @click.stop="handleOnCanvasClick"
               title="Expand on canvas"
               class="mode-button right-button"
@@ -109,10 +301,10 @@
                   </svg>
                 </n-icon>
               </template>
-              <span v-if="isExpanded" class="button-text">{{
-                selectedOption
+              <span v-if="canvasModeIsExpanded" class="button-text">{{
+                toolbarState.expansion.type.label
               }}</span>
-              <n-icon v-if="isExpanded" class="dropdown-arrow">
+              <n-icon v-if="canvasModeIsExpanded" class="dropdown-arrow">
                 <svg viewBox="0 0 24 24">
                   <path fill="currentColor" d="M7 10l5 5 5-5z" />
                 </svg>
@@ -121,11 +313,13 @@
 
             <div v-if="isDropdownOpen" class="dropdown-menu" @click.stop>
               <div
-                v-for="option in dropdownOptions"
+                v-for="option in expansionTypeOptions"
                 :key="option.value"
                 :class="[
                   'dropdown-item',
-                  { active: selectedOption === option.label },
+                  {
+                    active: toolbarState.expansion.type.label === option.label,
+                  },
                 ]"
                 @click="selectOption(option)"
               >
@@ -143,7 +337,7 @@
     <!-- Top Right Controls -->
     <div class="canvas-controls top-right">
       <n-button-group vertical>
-        <n-button @click="zoomIn">
+        <n-button @click="zoomTick(1)">
           <template #icon>
             <n-icon>
               <svg viewBox="0 0 24 24">
@@ -160,7 +354,7 @@
           </template>
         </n-button>
 
-        <n-button @click="zoomOut">
+        <n-button @click="zoomTick(-1)">
           <template #icon>
             <n-icon>
               <svg viewBox="0 0 24 24">
@@ -174,7 +368,7 @@
           </template>
         </n-button>
 
-        <n-button @click="fitToView">
+        <n-button @click="fitStageToPhotos(0.1)">
           <template #icon>
             <n-icon>
               <svg viewBox="0 0 24 24">
@@ -228,11 +422,14 @@ import { useCanvasStore } from "@/stores/canvas.js";
 // import ExpandPhotoButtons from "@/components/canvas/PhotoControls/ExpandPhotoButtons.vue";
 // import PhotoDetectionAreas from "@/components/canvas/PhotoControls/PhotoDetectionAreas.vue";
 import { usePhotosStore } from "@/stores/photos";
-import { ref, onMounted, onUnmounted, computed, h } from "vue";
+import { ref, onMounted, onUnmounted, computed, h, watch } from "vue";
 import { NButton, NButtonGroup, NIcon, NSpace } from "naive-ui";
 import RelatedPhotosToolbar from "../components/RelatedPhotosToolbar.vue";
 import { storeToRefs } from "pinia";
 import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
+import ExpandPhotoButtons from "@/components/canvas/PhotoControls/ExpandPhotoButtons.vue";
+import PhotoCenterButton from "@/components/canvas/PhotoControls/PhotoCenterButton.vue";
+import TagPillsCanvas from "@/components/canvas/TagPills/TagPillsCanvas.vue";
 
 const canvasStore = useCanvasStore();
 const photosStore = usePhotosStore();
@@ -241,212 +438,250 @@ const { photos } = storeToRefs(canvasStore);
 
 // Refs
 const stageRef = ref(null);
-const layerRef = ref(null);
 const canvasContainer = ref();
 const expandableGroupRef = ref();
 
+const photoRefs = ref({});
+const setPhotoRef = (id) => (el) => {
+  if (el) photoRefs.value[id] = el;
+};
+
+const toolbarState = ref({
+  mouseMode: "move",
+  zoomLevel: 0,
+  expansion: {
+    type: { label: "General", value: { criteria: "embedding" } },
+    inverted: false,
+    opposite: false,
+    autoAlign: false,
+    onCanvas: false,
+  },
+  photoOptions: {
+    count: 1,
+    spreadMode: "perpendicular",
+  },
+});
+
 // State
-const canvasMode = ref("catalog");
+const expansionMode = ref("catalog");
 const interactionMode = ref("pan");
-const stageScale = ref(1);
-const stagePosition = ref({ x: 0, y: 0 });
-const isDragging = ref(false);
-const lastPointerPosition = ref({ x: 0, y: 0 });
 const showRelatedPhotos = ref(false);
 const showPhotosDialog = ref(false);
 
 // Expandable dropdown state
-const isExpanded = ref(false);
+const canvasModeIsExpanded = ref(false);
 const isDropdownOpen = ref(false);
-const selectedOption = ref("General");
 
 // Dropdown options with SVG icons
-const dropdownOptions = [
+const expansionTypeOptions = [
+  { label: "General", value: { criteria: "embedding" } },
+
   {
-    value: "general",
-    label: "General",
-    icon: () =>
-      h("svg", { viewBox: "0 0 24 24" }, [
-        h("path", {
-          fill: "currentColor",
-          d: "M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z",
-        }),
-      ]),
-  },
-  {
-    value: "narrative",
     label: "Narrative",
-    icon: () =>
-      h("svg", { viewBox: "0 0 24 24" }, [
-        h("path", {
-          fill: "currentColor",
-          d: "M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z",
-        }),
-      ]),
+    value: { criteria: "semantic", fields: ["story"] },
   },
   {
-    value: "context",
     label: "Context",
-    icon: () =>
-      h("svg", { viewBox: "0 0 24 24" }, [
-        h("path", {
-          fill: "currentColor",
-          d: "M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17M11,9H13V7H11V9Z",
-        }),
-      ]),
+    value: { criteria: "semantic", fields: ["context"] },
   },
-  {
-    value: "composition",
-    label: "Composition",
-    icon: () =>
-      h("svg", { viewBox: "0 0 24 24" }, [
-        h("path", {
-          fill: "currentColor",
-          d: "M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V18H11V8H9M13,8V18H15V8H13Z",
-        }),
-      ]),
-  },
-  {
-    value: "tags",
-    label: "Tags",
-    icon: () =>
-      h("svg", { viewBox: "0 0 24 24" }, [
-        h("path", {
-          fill: "currentColor",
-          d: "M5.5,7A1.5,1.5 0 0,1 4,5.5A1.5,1.5 0 0,1 5.5,4A1.5,1.5 0 0,1 7,5.5A1.5,1.5 0 0,1 5.5,7M21.41,11.58L12.41,2.58C12.05,2.22 11.55,2 11,2H4C2.89,2 2,2.89 2,4V11C2,11.55 2.22,12.05 2.59,12.41L11.58,21.41C11.95,21.78 12.45,22 13,22C13.55,22 14.05,21.78 14.41,21.41L21.41,14.41C21.78,14.05 22,13.55 22,13C22,12.45 21.78,11.95 21.41,11.58Z",
-        }),
-      ]),
-  },
+
+  // { label: 'Composition', value: { criteria: 'composition' } },
+  { label: "Tags", value: { criteria: "tags" } },
 ];
 
-// Stage configuration
-const stageConfig = computed(() => {
-  // Get the canvas container dimensions instead of full window
-  const container = canvasContainer.value;
-  const width = container?.clientWidth || window.innerWidth;
-  const height = container?.clientHeight || window.innerHeight;
+const secondaryColor = getComputedStyle(document.documentElement)
+  .getPropertyValue("--secondary-color")
+  .trim();
 
-  return {
-    width,
-    height,
-    scaleX: stageScale.value,
-    scaleY: stageScale.value,
-    x: stagePosition.value.x,
-    y: stagePosition.value.y,
-    draggable: interactionMode.value === "pan",
-  };
+const {
+  stageConfig,
+  stageOffset,
+  selectionRect,
+  updateStageOffset,
+  handleWheel,
+  handleMouseDown,
+  handleMouseMove,
+  handleMouseUp,
+} = useCanvasStage(stageRef, photos, toolbarState);
+
+const {
+  handleSelectPhoto,
+  handleDragStart,
+  handleDragMove,
+  handleDragEnd,
+  handleMouseOver,
+  handleMouseOut,
+  autoAlignPhotos,
+  isHoveringTrash,
+} = useCanvasPhoto(stageRef, photos, photoRefs, stageConfig);
+
+const { animatePhotoGroup, animatePhotoGroupExplosion } = usePhotoAnimations();
+
+const dynamicSizeFactor = computed(() => {
+  const baseSize = 1.25;
+  const zoom = toolbarState.value.zoomLevel || 100;
+  let newFactor = baseSize * (0.8 / zoom);
+  return Math.min(Math.max(newFactor, 1), 5);
 });
 
 // Event handlers
 
 async function handleAddPhotos(photoIds) {
   // Fetch todas las fotos necesarias en paralelo
+  debugger;
   await Promise.all(photoIds.map((id) => photosStore.fetchPhoto(id)));
 
   const photosToAdd = photoIds
     .map((id) => photosStore.photos.find((p) => p.id == id))
     .filter(Boolean);
   canvasStore.addPhotos(photosToAdd);
+
   fitStageToPhotos(0.8);
 }
 
-const fitStageToPhotos = (padding = 0.8) => {
-  const stage = stageRef.value?.getStage();
-  if (!stage || photos.value.length === 0) return;
+function handleAddPhotoFromPhoto(event) {
+  if (expansionMode.value == "canvas") {
+    handleAddPhotosToCanvas(event);
+  } else {
+    event.cancelBubble = true;
+    selectedPhotoForToolbar.value = event.photo;
+    isToolbarExpansionVisible.value = true;
+  }
+}
 
-  // Calculate bounding box of all photos
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
+const handleAddPhotosToCanvas = async (event) => {
+  const { photo, position } = event;
+  event.cancelBubble = true;
+  const basePosition = { x: photo.config.x, y: photo.config.y };
 
-  photos.value.forEach((photo) => {
-    const { x, y, width, height } = photo.config;
-    minX = Math.min(minX, x);
-    minY = Math.min(minY, y);
-    maxX = Math.max(maxX, x + width);
-    maxY = Math.max(maxY, y + height);
-  });
+  // Extraemos el margen y dimensiones para calcular offset
+  const margin = 35;
+  const photoWidth =
+    photos.value.length > 0 ? photos.value[0].config.width : 200;
+  const photoHeight =
+    photos.value.length > 0 ? photos.value[0].config.height : 200;
+  const offsetX = photoWidth + margin;
+  const offsetY = photoHeight + margin;
 
-  const photosWidth = maxX - minX;
-  const photosHeight = maxY - minY;
-  const photosCenterX = minX + photosWidth / 2;
-  const photosCenterY = minY + photosHeight / 2;
+  await canvasStore.addPhotosFromPhoto(
+    [photo],
+    toolbarState.value.expansion.type.value,
+    toolbarState.value.photoOptions.count,
+    basePosition,
+    toolbarState.value.expansion.opposite,
+    toolbarState.value.expansion.inverted,
+    true
+  );
 
-  // Calculate scale to fit photos in stage with padding
-  const stageWidth = stage.width();
-  const stageHeight = stage.height();
-  const scaleX = (stageWidth * padding) / photosWidth;
-  const scaleY = (stageHeight * padding) / photosHeight;
-  const scale = Math.min(scaleX, scaleY, 5); // Max zoom of 5x
-
-  // Position stage to center photos
-  const newX = stageWidth / 2 - photosCenterX * scale;
-  const newY = stageHeight / 2 - photosCenterY * scale;
-
-  stageScale.value = scale;
-  stagePosition.value = { x: newX, y: newY };
-};
-
-const handleWheel = (e) => {
-  e.evt.preventDefault();
-
-  const stage = stageRef.value?.getStage();
-  if (!stage) return;
-
-  const scaleBy = 1.1;
-  const pointer = stage.getPointerPosition();
-
-  if (!pointer) return;
-
-  const mousePointTo = {
-    x: (pointer.x - stage.x()) / stage.scaleX(),
-    y: (pointer.y - stage.y()) / stage.scaleY(),
-  };
-
-  const direction = e.evt.deltaY > 0 ? -1 : 1;
-  const newScale =
-    direction > 0 ? stageScale.value * scaleBy : stageScale.value / scaleBy;
-
-  // Limit zoom
-  const clampedScale = Math.max(0.1, Math.min(5, newScale));
-  stageScale.value = clampedScale;
-
-  const newPos = {
-    x: pointer.x - mousePointTo.x * clampedScale,
-    y: pointer.y - mousePointTo.y * clampedScale,
-  };
-
-  stagePosition.value = newPos;
-};
-
-const handleMouseDown = (e) => {
-  if (interactionMode.value === "pan") {
-    isDragging.value = true;
-    const pos = e.target.getStage().getPointerPosition();
-    lastPointerPosition.value = pos;
+  if (
+    toolbarState.value.photoOptions.spreadMode == "linear" ||
+    toolbarState.value.photoOptions.spreadMode == "perpendicular"
+  ) {
+    animatePhotoGroup(
+      photoRefs,
+      photos,
+      basePosition,
+      position,
+      offsetX,
+      offsetY,
+      toolbarState.value.photoOptions.spreadMode
+    );
+  } else {
+    animatePhotoGroupExplosion(photoRefs, photos, basePosition, position);
   }
 };
 
-const handleMouseMove = (e) => {
-  if (!isDragging.value || interactionMode.value !== "pan") return;
-
-  const stage = e.target.getStage();
-  const pos = stage.getPointerPosition();
-
-  const dx = pos.x - lastPointerPosition.value.x;
-  const dy = pos.y - lastPointerPosition.value.y;
-
-  stagePosition.value = {
-    x: stagePosition.value.x + dx,
-    y: stagePosition.value.y + dy,
-  };
-
-  lastPointerPosition.value = pos;
+const getPhotoStrokeColor = (photo) => {
+  if (photo.inTrash) return "rgba(250, 11, 11, 0.5)";
+  if (photo.selected) return secondaryColor;
+  // if (photo.hovered) return primaryColor;
+  return "gray";
 };
 
-const handleMouseUp = () => {
-  isDragging.value = false;
+const handleClearCanvas = () => {
+  // Limpiar fotos y descartados
+  canvasStore.$patch({ photos: [] });
+  canvasStore.$patch({ discardedPhotos: [] });
+
+  // Resetear zoom y posición del stage
+  const stage = stageRef.value.getStage();
+  stage.scale({ x: 1, y: 1 });
+  stage.position({ x: 0, y: 0 });
+  stage.batchDraw();
+
+  // Resetear el zoomLevel del estado
+  toolbarState.value.zoomLevel = 1;
+
+  // Resetear offset
+  updateStageOffset();
+};
+
+const fitStageToPhotos = (extraPaddingRatio = 0.1) => {
+  if (!photos.value.length) return;
+
+  const stage = stageRef.value.getStage();
+  const containerWidth = stage.width() - TOOLBAR_WIDTH; // Restamos el ancho de la toolbar
+  const containerHeight = stage.height();
+  const margin = 40;
+
+  // Bounding box de todas las fotos
+  const bounds = photos.value.reduce(
+    (acc, p) => {
+      const { x, y, width, height } = p.config;
+      acc.minX = Math.min(acc.minX, x);
+      acc.minY = Math.min(acc.minY, y);
+      acc.maxX = Math.max(acc.maxX, x + width);
+      acc.maxY = Math.max(acc.maxY, y + height);
+      return acc;
+    },
+    {
+      minX: Infinity,
+      minY: Infinity,
+      maxX: -Infinity,
+      maxY: -Infinity,
+    }
+  );
+
+  // Añadir padding adicional
+  const paddingX = (bounds.maxX - bounds.minX) * extraPaddingRatio;
+  const paddingY = (bounds.maxY - bounds.minY) * extraPaddingRatio;
+  bounds.minX -= paddingX;
+  bounds.maxX += paddingX;
+  bounds.minY -= paddingY;
+  bounds.maxY += paddingY;
+
+  const photosWidth = bounds.maxX - bounds.minX + margin * 2;
+  const photosHeight = bounds.maxY - bounds.minY + margin * 2;
+  const targetZoom = Math.min(
+    containerWidth / photosWidth,
+    containerHeight / photosHeight,
+    2
+  );
+
+  const targetX =
+    (containerWidth - photosWidth * targetZoom) / 2 -
+    bounds.minX * targetZoom +
+    margin * targetZoom +
+    TOOLBAR_WIDTH / 2; // Ajustamos el offset para centrar en el espacio disponible
+  const targetY =
+    (containerHeight - photosHeight * targetZoom) / 2 -
+    bounds.minY * targetZoom +
+    margin * targetZoom;
+
+  // Tween para animar el zoom y el desplazamiento
+  new Konva.Tween({
+    node: stage,
+    scaleX: targetZoom,
+    scaleY: targetZoom,
+    x: targetX,
+    y: targetY,
+    duration: 0.4,
+    easing: Konva.Easings.EaseInOut,
+    onFinish: () => {
+      toolbarState.value.zoomLevel = targetZoom;
+      updateStageOffset();
+    },
+  }).play();
 };
 
 const handleStageClick = (e) => {
@@ -456,35 +691,9 @@ const handleStageClick = (e) => {
   }
 };
 
-// Control functions
-const addPhotosToCanvas = () => {
-  console.log("Add photos to canvas");
-  // TODO: Implement photo addition logic
-};
-
-const clearCanvas = () => {
-  console.log("Clear canvas");
-  // TODO: Implement canvas clearing logic
-};
-
 const openConfig = () => {
   console.log("Open config");
   // TODO: Implement config dialog
-};
-
-const zoomIn = () => {
-  const newScale = Math.min(5, stageScale.value * 1.2);
-  stageScale.value = newScale;
-};
-
-const zoomOut = () => {
-  const newScale = Math.max(0.1, stageScale.value / 1.2);
-  stageScale.value = newScale;
-};
-
-const fitToView = () => {
-  stageScale.value = 1;
-  stagePosition.value = { x: 0, y: 0 };
 };
 
 const toggleInteractionMode = () => {
@@ -493,16 +702,16 @@ const toggleInteractionMode = () => {
 
 // Mode selection functions
 const selectCatalogMode = () => {
-  canvasMode.value = "catalog";
-  isExpanded.value = false;
+  expansionMode.value = "catalog";
+  canvasModeIsExpanded.value = false;
   isDropdownOpen.value = false;
 };
 
 const handleOnCanvasClick = () => {
-  if (canvasMode.value !== "canvas") {
+  if (expansionMode.value !== "canvas") {
     // First click: switch to catalog mode and expand button
-    canvasMode.value = "canvas";
-    isExpanded.value = true;
+    expansionMode.value = "canvas";
+    canvasModeIsExpanded.value = true;
     isDropdownOpen.value = false;
   } else if (!isDropdownOpen.value) {
     // Second click: open dropdown (already in catalog mode and expanded)
@@ -514,11 +723,8 @@ const handleOnCanvasClick = () => {
 };
 
 const selectOption = (option) => {
-  selectedOption.value = option.label;
+  toolbarState.value.expansion.type = option;
   isDropdownOpen.value = false;
-  // Keep expanded and in catalog mode
-  // Here you can add logic to handle the selected option
-  console.log("Selected option:", option);
 };
 
 // Toolbar functions
@@ -560,9 +766,41 @@ const handleClickOutside = (event) => {
   }
 };
 
+function zoomTick(direction = 1) {
+  const stage = stageRef.value.getStage();
+  const scaleBy = 1.11;
+
+  const oldScale = stage.scaleX();
+  const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+
+  const pointer = {
+    x: stage.width() / 2,
+    y: stage.height() / 2,
+  };
+
+  applyZoom(stage, newScale, updateStageOffset, pointer);
+}
+
+watch(
+  () => photos.value.map((p) => p.src),
+  () => {
+    photos.value.forEach((photo) => {
+      if (!photo.image) {
+        const img = new Image();
+        img.src = photo.src;
+        photo.image = img;
+      }
+    });
+  },
+  { immediate: true }
+);
+
 onMounted(() => {
   window.addEventListener("resize", handleResize);
   document.addEventListener("click", handleClickOutside);
+  const stage = stageRef.value.getStage();
+  stage.on("dragmove", updateStageOffset);
+  updateStageOffset();
 });
 
 onUnmounted(() => {
@@ -615,7 +853,6 @@ onUnmounted(() => {
 .mode-button {
   border-radius: 0 !important;
   border: none !important;
-  height: 36px;
 }
 
 .left-button {
@@ -634,7 +871,7 @@ onUnmounted(() => {
 }
 
 .expandable-container.expanded {
-  width: 140px; /* Expanded width to fit text and dropdown arrow */
+  width: 125px; /* Expanded width to fit text and dropdown arrow */
   overflow: visible; /* Allow dropdown to show outside container */
 }
 
@@ -649,7 +886,6 @@ onUnmounted(() => {
 }
 
 .button-text {
-  margin: 0 8px;
   font-size: 14px;
   font-weight: 500;
   opacity: 0;
@@ -775,5 +1011,10 @@ onUnmounted(() => {
   .button-text {
     font-size: 12px;
   }
+}
+</style>
+<style>
+.konvajs-content {
+  background: black !important;
 }
 </style>
