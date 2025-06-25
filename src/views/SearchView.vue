@@ -466,6 +466,19 @@
 import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
 import PhotoCard from "../components/PhotoCard.vue";
 
+// Import @vicons icons
+import {
+  Document20Regular as DocumentIcon,
+  Tag20Regular as TagIcon,
+  CalendarLtr20Regular as CalendarIcon,
+  CheckmarkCircle20Filled as CheckIcon,
+  Star20Regular as StarIcon,
+  Search20Regular as SearchIcon,
+  Play20Regular as PlayIcon,
+  Lightbulb20Regular as LightbulbIcon,
+  ArrowRight20Regular as ArrowRightIcon,
+} from "@vicons/fluent";
+
 // Search state
 const activeSearchType = ref<"natural" | "tags" | "spatial">("natural");
 const globalMode = ref<"strict" | "flexible">("flexible");
@@ -593,7 +606,7 @@ onMounted(() => {
   resizeObserverErrorHandler = (e: ErrorEvent) => {
     if (
       e.message.includes(
-        "ResizeObserver loop completed with undelivered notifications"
+        "ResizeObserver loop completed with undelivered notifications",
       )
     ) {
       e.preventDefault();
@@ -966,7 +979,7 @@ const setExampleSearch = (
   excluded?: string[],
   left?: string,
   center?: string,
-  right?: string
+  right?: string,
 ) => {
   clearSearch();
   activeSearchType.value = type;
