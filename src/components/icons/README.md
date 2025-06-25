@@ -100,6 +100,8 @@ const menuOptions = [
 - `CheckmarkCircleOutline` - Success/check
 - `WarningOutline` - Warning
 - `InformationCircleOutline` - Information
+- `BulbOutline` - AI/ideas/generation
+- `BookmarkOutline` - Save/bookmark
 
 ### User
 
