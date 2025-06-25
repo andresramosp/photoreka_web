@@ -280,7 +280,7 @@ const firstSectionOptions = computed(() => [
                   "position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 6px #22c55e; animation: pulse 2s infinite;",
               })
             : null,
-        ],
+        ]
       ),
   },
   {
@@ -350,6 +350,26 @@ const secondSectionOptions = computed(() => [
   {
     label: "Curation",
     key: "curation",
+    disabled: !canUseApp.value,
+    props: !canUseApp.value
+      ? {
+          title: "Add photos to your catalog",
+        }
+      : {},
+    icon: () =>
+      h(NIcon, null, {
+        default: () =>
+          h("svg", { viewBox: "0 0 24 24" }, [
+            h("path", {
+              fill: "currentColor",
+              d: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5 19l3.5-4.5l2.5 3.01L14.5 12l4.5 7H5zm9-12c.83 0 1.5-.67 1.5-1.5S14.83 4 14 4s-1.5.67-1.5 1.5S13.17 7 14 7z",
+            }),
+          ]),
+      }),
+  },
+  {
+    label: "Grids",
+    key: "grid-maker",
     disabled: !canUseApp.value,
     props: !canUseApp.value
       ? {

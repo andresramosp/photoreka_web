@@ -11,6 +11,7 @@ import HelpView from "../views/HelpView.vue";
 import PlanView from "../views/PlanView.vue";
 import AuthView from "../views/AuthView.vue";
 import ProfileSelectionView from "../views/ProfileSelectionView.vue";
+import GridMaker from "@/views/GridMaker.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -79,6 +80,14 @@ const router = createRouter({
       path: "/curation",
       name: "curation",
       component: CurationView,
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: "/grid-maker",
+      name: "grid-maker",
+      component: GridMaker,
       meta: {
         requiresAuth: true,
       },
