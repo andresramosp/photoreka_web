@@ -286,11 +286,11 @@ const mockPhotos = [
 const totalCells = computed(() => selectedRows.value * selectedCols.value);
 
 const filledCells = computed(
-  () => gridCells.value.filter((cell) => cell.photo !== null).length,
+  () => gridCells.value.filter((cell) => cell.photo !== null).length
 );
 
 const hasEmptyCells = computed(() =>
-  gridCells.value.some((cell) => !cell.photo && !cell.isGenerating),
+  gridCells.value.some((cell) => !cell.photo && !cell.isGenerating)
 );
 
 const gridStyle = computed(() => ({
@@ -381,7 +381,7 @@ const fillGaps = async () => {
   }
 
   message.info(
-    `Generating ${emptyCellIndices.length} photos using ${fillType.value} mode...`,
+    `Generating ${emptyCellIndices.length} photos using ${fillType.value} mode...`
   );
 
   // Set cells to generating state
@@ -453,7 +453,7 @@ const saveTemplate = () => {
 <style scoped>
 .grid-maker-container {
   padding: var(--spacing-2xl);
-  max-width: 1200px;
+
   margin: 0 auto;
 }
 

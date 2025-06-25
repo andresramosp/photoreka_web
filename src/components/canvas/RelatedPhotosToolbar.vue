@@ -2,23 +2,10 @@
   <div class="related-photos-toolbar" :class="{ 'toolbar-visible': isVisible }">
     <div class="toolbar-content">
       <!-- Base Image Section (Fixed Left) -->
-      <div class="base-image-section">
-        <div class="base-image-header">
-          <n-select
-            v-model:value="selectedSearchType"
-            size="small"
-            :options="searchOptions"
-            placeholder="Search type"
-            @update:value="onSearchTypeChange"
-          />
-        </div>
-        <div class="base-image-container">
-          <img :src="baseImage.url" :alt="baseImage.title" class="base-image" />
-          <div class="base-image-overlay">
-            <span class="base-image-label">Base</span>
-          </div>
-        </div>
-      </div>
+      <PhotoBase
+        :baseImage="props.baseImage"
+        @search-type-changed="onSearchTypeChange"
+      />
 
       <!-- Related Photos Section (Scrollable Right) -->
       <div class="related-photos-section">
@@ -63,9 +50,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { NSelect, NIcon } from "naive-ui";
-import PhotoCard from "./PhotoCard.vue";
+import { ref } from "vue";
+import { NIcon } from "naive-ui";
+import PhotoBase from "./PhotoBase.vue";
+import PhotoCard from "../PhotoCard.vue";
 
 interface Photo {
   id: string;
@@ -339,50 +327,6 @@ const handleHorizontalScroll = (e: WheelEvent) => {
 .toolbar-close:hover {
   background: var(--bg-surface-hover);
   color: var(--text-primary);
-}
-
-/* Base Image Section */
-.base-image-section {
-  flex-shrink: 0;
-  width: 160px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.base-image-header {
-  width: 100%;
-}
-
-.base-image-container {
-  position: relative;
-  width: 100%;
-  height: 160px;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  border: 2px solid var(--border-color);
-}
-
-.base-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-.base-image-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
-  padding: var(--spacing-sm);
-}
-
-.base-image-label {
-  color: var(--text-primary);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
 }
 
 /* Related Photos Section */

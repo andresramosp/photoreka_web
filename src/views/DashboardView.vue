@@ -759,11 +759,12 @@ const openProject = (projectId: string) => {
 .empty-state {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: var(--spacing-4xl) var(--spacing-2xl);
   text-align: center;
   min-height: 300px;
+  align-content: center;
+  align-items: center;
 }
 
 .empty-state-icon {

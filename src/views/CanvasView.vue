@@ -424,12 +424,12 @@ import { useCanvasStore } from "@/stores/canvas.js";
 import { usePhotosStore } from "@/stores/photos";
 import { ref, onMounted, onUnmounted, computed, h, watch } from "vue";
 import { NButton, NButtonGroup, NIcon, NSpace } from "naive-ui";
-import RelatedPhotosToolbar from "../components/RelatedPhotosToolbar.vue";
 import { storeToRefs } from "pinia";
 import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
 import ExpandPhotoButtons from "@/components/canvas/PhotoControls/ExpandPhotoButtons.vue";
 import PhotoCenterButton from "@/components/canvas/PhotoControls/PhotoCenterButton.vue";
 import TagPillsCanvas from "@/components/canvas/TagPills/TagPillsCanvas.vue";
+import RelatedPhotosToolbar from "@/components/canvas/RelatedPhotosToolbar.vue";
 
 const canvasStore = useCanvasStore();
 const photosStore = usePhotosStore();
