@@ -11,6 +11,11 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "@vicons/antd": "^0.13.0",
+    "@vicons/carbon": "^0.13.0",
+    "@vicons/fluent": "^0.13.0",
+    "@vicons/ionicons5": "^0.13.0",
+    "@vicons/material": "^0.13.0",
     "axios": "^1.10.0",
     "konva": "^9.3.20",
     "naive-ui": "^2.42.0",

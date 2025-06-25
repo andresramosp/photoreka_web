@@ -16,12 +16,7 @@
         <div class="action-card upload-photos" :class="{ disabled: false }">
           <div class="action-icon">
             <n-icon size="32">
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
-                />
-              </svg>
+              <ArrowUpIcon />
             </n-icon>
           </div>
           <h3 class="action-title">Upload Photos</h3>
@@ -31,12 +26,7 @@
         <div class="action-card new-project" :class="{ disabled: !canUseApp }">
           <div class="action-icon">
             <n-icon size="32">
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-                />
-              </svg>
+              <AddIcon />
             </n-icon>
           </div>
           <h3 class="action-title">New Curation</h3>
@@ -46,12 +36,7 @@
         <div class="action-card collections" :class="{ disabled: !canUseApp }">
           <div class="action-icon">
             <n-icon size="32">
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11.5-6L9 12.5l1.5 2L13 11l3 4H8l2.5-3zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"
-                />
-              </svg>
+              <CollectionsIcon />
             </n-icon>
           </div>
           <h3 class="action-title">Collections</h3>
@@ -61,12 +46,7 @@
         <div class="action-card ai-search" :class="{ disabled: false }">
           <div class="action-icon">
             <n-icon size="32">
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
-                />
-              </svg>
+              <SettingsIcon />
             </n-icon>
           </div>
           <h3 class="action-title">Manage Plan</h3>
@@ -83,12 +63,7 @@
       <div v-if="!canUseApp" class="empty-state">
         <div class="empty-state-icon">
           <n-icon size="64" color="var(--text-tertiary)">
-            <svg viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M22 16V4c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2zm-11.5-6L9 12.5l1.5 2L13 11l3 4H8l2.5-3zM2 6v14c0 1.1.9 2 2 2h14v-2H4V6H2z"
-              />
-            </svg>
+            <CollectionsIcon />
           </n-icon>
         </div>
         <h3 class="empty-state-title">Nothing here yet</h3>
@@ -343,6 +318,14 @@
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { usePhotosStore } from "@/stores/photos.js";
+
+// Import @vicons icons from ionicons5 for reliability
+import {
+  CloudUploadOutline as ArrowUpIcon,
+  AddOutline as AddIcon,
+  FolderOpenOutline as CollectionsIcon,
+  SettingsOutline as SettingsIcon,
+} from "@vicons/ionicons5";
 
 const router = useRouter();
 const photosStore = usePhotosStore();

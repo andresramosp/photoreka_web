@@ -1,45 +1,19 @@
 <template>
   <div class="framesaga-logo" :class="{ 'logo-large': size === 'large' }">
     <div class="logo-icon">
-      <svg
-        :width="iconSize"
-        :height="iconSize"
-        viewBox="0 0 48 48"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <!-- Stylized camera/lens icon for FrameSaga -->
-        <circle
-          cx="24"
-          cy="24"
-          r="20"
-          stroke="currentColor"
-          stroke-width="2"
-          fill="none"
-        />
-        <circle
-          cx="24"
-          cy="24"
-          r="12"
-          stroke="currentColor"
-          stroke-width="2"
-          fill="none"
-        />
-        <circle cx="24" cy="24" r="6" fill="currentColor" />
-        <!-- Flash/spark elements -->
-        <path
-          d="M8 24L12 20M8 24L12 28M40 24L36 20M40 24L36 28M24 8L20 12M24 8L28 12M24 40L20 36M24 40L28 36"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-        />
-      </svg>
+      <n-icon :size="iconSize" color="#2563eb">
+        <CameraOutline />
+      </n-icon>
     </div>
     <span class="logo-text" v-if="showText">FrameSaga</span>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
+import { NIcon } from "naive-ui";
+import { CameraOutline } from "@vicons/ionicons5";
+
 interface Props {
   size?: "normal" | "large";
   showText?: boolean;
@@ -56,8 +30,6 @@ const iconSize = computed(() => {
 </script>
 
 <script lang="ts">
-import { computed } from "vue";
-
 export default {
   name: "AppLogo",
 };
@@ -80,6 +52,7 @@ export default {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .logo-text {
@@ -87,8 +60,8 @@ export default {
   font-weight: 700;
   letter-spacing: -0.025em;
   color: #ffffffd1;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
 }
 
 .logo-large .logo-text {
@@ -96,16 +69,12 @@ export default {
 }
 
 /* Animation for the camera icon */
-.logo-icon svg {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.framesaga-logo:hover .logo-icon svg {
+.framesaga-logo:hover .logo-icon {
   transform: scale(1.05);
 }
 
 /* Subtle glow effect */
-.logo-icon svg circle:last-of-type {
+.logo-icon {
   filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.3));
 }
 </style>

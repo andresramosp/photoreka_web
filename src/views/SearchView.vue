@@ -14,12 +14,7 @@
               @click="setSearchType('natural')"
             >
               <n-icon size="14" class="type-icon">
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"
-                  />
-                </svg>
+                <DocumentIcon />
               </n-icon>
               Natural Language
             </div>
@@ -29,12 +24,7 @@
               @click="setSearchType('tags')"
             >
               <n-icon size="16" class="type-icon">
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M5.5 7A1.5 1.5 0 1 0 7 5.5A1.5 1.5 0 0 0 5.5 7zm6.5 4.5c0-.83-.67-1.5-1.5-1.5S9 10.67 9 11.5s.67 1.5 1.5 1.5s1.5-.67 1.5-1.5zM12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14L2 9.27l6.91-1.01L12 2z"
-                  />
-                </svg>
+                <TagIcon />
               </n-icon>
               Tags
             </div>
@@ -44,12 +34,7 @@
               @click="setSearchType('spatial')"
             >
               <n-icon size="16" class="type-icon">
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-2V2h-2v2H9V2H7v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM19 20H5V9h14v11z"
-                  />
-                </svg>
+                <CalendarIcon />
               </n-icon>
               Spatial
             </div>
@@ -66,12 +51,7 @@
               @click="globalMode = 'strict'"
             >
               <n-icon size="14" class="mode-icon">
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5l1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-                  />
-                </svg>
+                <CheckIcon />
               </n-icon>
               Strict
             </div>
@@ -81,12 +61,7 @@
               @click="globalMode = 'flexible'"
             >
               <n-icon size="16" class="mode-icon">
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14L2 9.27l6.91-1.01L12 2z"
-                  />
-                </svg>
+                <StarIcon />
               </n-icon>
               Flexible
             </div>
@@ -466,6 +441,19 @@
 import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
 import PhotoCard from "../components/PhotoCard.vue";
 
+// Import @vicons icons from ionicons5 for reliability
+import {
+  DocumentTextOutline as DocumentIcon,
+  PricetagOutline as TagIcon,
+  CalendarOutline as CalendarIcon,
+  CheckmarkCircleOutline as CheckIcon,
+  StarOutline as StarIcon,
+  SearchOutline as SearchIcon,
+  PlayOutline as PlayIcon,
+  BulbOutline as LightbulbIcon,
+  ArrowForwardOutline as ArrowRightIcon,
+} from "@vicons/ionicons5";
+
 // Search state
 const activeSearchType = ref<"natural" | "tags" | "spatial">("natural");
 const globalMode = ref<"strict" | "flexible">("flexible");
@@ -593,7 +581,7 @@ onMounted(() => {
   resizeObserverErrorHandler = (e: ErrorEvent) => {
     if (
       e.message.includes(
-        "ResizeObserver loop completed with undelivered notifications"
+        "ResizeObserver loop completed with undelivered notifications",
       )
     ) {
       e.preventDefault();
@@ -966,7 +954,7 @@ const setExampleSearch = (
   excluded?: string[],
   left?: string,
   center?: string,
-  right?: string
+  right?: string,
 ) => {
   clearSearch();
   activeSearchType.value = type;
