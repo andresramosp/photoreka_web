@@ -112,18 +112,8 @@
         >
           <template #icon>
             <n-icon>
-              <svg v-if="isTrash" viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M7,13H17V11H7"
-                />
-              </svg>
-              <svg v-else viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"
-                />
-              </svg>
+              <ArrowUndoIcon v-if="isTrash" />
+              <AddIcon v-else />
             </n-icon>
           </template>
           {{
