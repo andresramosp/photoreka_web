@@ -199,7 +199,7 @@ import {
   Search20Regular as SearchIcon,
   Paint20Regular as CanvasIcon,
   ImageMultiple20Regular as CurationIcon,
-  Grid320Regular as GridIcon,
+  Grid20Regular as GridIcon,
   Settings20Regular as SettingsIcon,
   QuestionCircle20Regular as HelpIcon,
   Person20Regular as PersonOutline,
