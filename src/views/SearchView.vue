@@ -61,12 +61,7 @@
               @click="globalMode = 'flexible'"
             >
               <n-icon size="16" class="mode-icon">
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14L2 9.27l6.91-1.01L12 2z"
-                  />
-                </svg>
+                <StarIcon />
               </n-icon>
               Flexible
             </div>
