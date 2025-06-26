@@ -99,6 +99,7 @@ const selectedPhotos = ref<string[]>([]);
 function handleGeneratedPhotos(photos: any) {
   relatedPhotos.value = photos;
   // visiblePhotos.value = photos.slice(0, pageSize);
+
   selectedPhotos.value = [];
   // nextTick(() => {
   //   scrollContainer.value?.scrollTo({ left: 0 });
