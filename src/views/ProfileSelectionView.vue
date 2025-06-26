@@ -304,8 +304,10 @@ const completeProfile = () => {
 };
 
 const skipProfile = () => {
-  message.info("You can set up your profile later in settings");
-  router.push("/dashboard");
+  message.info(
+    "Profile setup skipped. Now let's set up your storage and plan.",
+  );
+  router.push("/storage-plan-setup");
 };
 </script>
 
