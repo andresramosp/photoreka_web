@@ -5,7 +5,11 @@
       <router-view v-if="!userStore.isAuthenticated" />
 
       <!-- Profile Setup Layout (authenticated but special case) -->
-      <router-view v-else-if="route.name === 'profile-setup'" />
+      <router-view
+        v-else-if="
+          route.name === 'profile-setup' || route.name === 'storage-plan-setup'
+        "
+      />
 
       <!-- Authenticated App Layout -->
       <template v-else>
@@ -135,9 +139,9 @@ onUnmounted(() => {
 <style>
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #101014;

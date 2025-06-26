@@ -297,13 +297,17 @@ const completeProfile = () => {
   console.log("Selected Categories:", selectedCategories.value);
   console.log("Selected Tags:", selectedTags.value);
 
-  message.success("Profile setup completed! Welcome to FrameSaga.");
-  router.push("/dashboard");
+  message.success(
+    "Profile preferences saved! Now let's set up your storage and plan.",
+  );
+  router.push("/storage-plan-setup");
 };
 
 const skipProfile = () => {
-  message.info("You can set up your profile later in settings");
-  router.push("/dashboard");
+  message.info(
+    "Profile setup skipped. Now let's set up your storage and plan.",
+  );
+  router.push("/storage-plan-setup");
 };
 </script>
 

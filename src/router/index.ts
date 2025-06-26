@@ -11,6 +11,7 @@ import HelpView from "../views/HelpView.vue";
 import PlanView from "../views/PlanView.vue";
 import AuthView from "../views/AuthView.vue";
 import ProfileSelectionView from "../views/ProfileSelectionView.vue";
+import StoragePlanSelectionView from "../views/StoragePlanSelectionView.vue";
 import GridMaker from "@/views/GridMaker.vue";
 
 const router = createRouter({
@@ -32,6 +33,14 @@ const router = createRouter({
       path: "/profile-setup",
       name: "profile-setup",
       component: ProfileSelectionView,
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: "/storage-plan-setup",
+      name: "storage-plan-setup",
+      component: StoragePlanSelectionView,
       meta: {
         requiresAuth: true,
       },
