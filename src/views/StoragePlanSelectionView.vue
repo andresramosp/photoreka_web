@@ -196,7 +196,7 @@
           </div>
 
           <div
-            class="plan-card"
+            class="plan-card plan-advanced"
             :class="{ selected: selectedPlan === 'advanced' }"
             @click="selectPlan('advanced')"
           >
