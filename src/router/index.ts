@@ -38,6 +38,14 @@ const router = createRouter({
       },
     },
     {
+      path: "/storage-plan-setup",
+      name: "storage-plan-setup",
+      component: StoragePlanSelectionView,
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
       path: "/dashboard",
       name: "dashboard",
       component: DashboardView,
