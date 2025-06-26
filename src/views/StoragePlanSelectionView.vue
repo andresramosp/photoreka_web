@@ -496,10 +496,19 @@ const getPlanDetails = () => {
 const getTotalPrice = () => {
   const storagePrice = getStorageDetails().price;
   const planPrice = getPlanDetails().price;
-  const total = storagePrice + planPrice;
 
-  if (total === 0) return "Free";
-  return `$${total.toFixed(2)}`;
+  if (storagePrice === 0 && planPrice === 0) return "Free";
+
+  let result = "";
+  if (storagePrice > 0) {
+    result += `$${storagePrice.toFixed(2)} storage`;
+  }
+  if (planPrice > 0) {
+    if (result) result += " + ";
+    result += `$${planPrice.toFixed(2)}/month`;
+  }
+
+  return result;
 };
 
 const completeSetup = () => {
