@@ -660,6 +660,14 @@ const goBack = () => {
   color: #ffffffd1;
 }
 
+.storage-notes {
+  margin: 8px 0 0 0;
+  font-size: 11px;
+  color: #ffffff60;
+  line-height: 1.3;
+  font-style: italic;
+}
+
 /* Subscription Plans */
 .subscription-selection {
   margin-bottom: 40px;
