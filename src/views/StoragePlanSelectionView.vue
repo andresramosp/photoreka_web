@@ -91,7 +91,11 @@
             <p class="storage-description">
               Perfect for professional photographers and content creators
             </p>
-            <div class="storage-price">$24.99/month</div>
+            <div class="storage-price">$89.99</div>
+            <p class="storage-notes">
+              Includes 3,000 photos for batch upload and 200 for individual
+              uploads
+            </p>
           </div>
         </div>
       </div>
