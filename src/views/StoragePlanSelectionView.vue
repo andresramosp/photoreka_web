@@ -445,27 +445,10 @@ const selectedPlan = ref<string>("");
 
 const selectStorage = (storage: string) => {
   selectedStorage.value = storage;
-
-  // Auto-select compatible plan based on storage
-  if (storage === "free" && selectedPlan.value !== "free") {
-    selectedPlan.value = "free";
-  } else if (storage !== "free" && selectedPlan.value === "free") {
-    selectedPlan.value = "advanced"; // Default to advanced for paid storage
-  }
 };
 
 const selectPlan = (plan: string) => {
-  // If selecting free plan, must use free storage
-  if (plan === "free") {
-    selectedStorage.value = "free";
-    selectedPlan.value = "free";
-  } else {
-    // If selecting paid plan and current storage is free, upgrade storage
-    if (selectedStorage.value === "free" || selectedStorage.value === "") {
-      selectedStorage.value = "standard"; // Default to standard storage
-    }
-    selectedPlan.value = plan;
-  }
+  selectedPlan.value = plan;
 };
 
 const getStorageDetails = () => {
