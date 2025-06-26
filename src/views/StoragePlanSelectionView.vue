@@ -39,6 +39,9 @@
               Perfect to get started and explore FrameSaga features
             </p>
             <div class="storage-price">Free</div>
+            <p class="storage-notes">
+              Includes 100 photos for batch upload and 10 for individual uploads
+            </p>
           </div>
 
           <div
