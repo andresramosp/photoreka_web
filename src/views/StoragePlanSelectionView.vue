@@ -110,10 +110,7 @@
         <div class="subscription-plans-grid">
           <div
             class="plan-card plan-free"
-            :class="{
-              selected: selectedPlan === 'free',
-              disabled: selectedStorage !== 'free' && selectedPlan !== 'free',
-            }"
+            :class="{ selected: selectedPlan === 'free' }"
             @click="selectPlan('free')"
           >
             <div class="plan-header">
