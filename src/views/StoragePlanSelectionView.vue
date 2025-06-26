@@ -725,6 +725,56 @@ const goBack = () => {
   background-color: #f59e0b;
 }
 
+/* Tier-specific colors for subscription plans */
+.plan-free:hover:not(.disabled) {
+  border-color: #10b981;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
+}
+
+.plan-free.selected {
+  border-color: #10b981;
+  background-color: rgba(16, 185, 129, 0.1);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+}
+
+.plan-free.selected .price-amount {
+  color: #10b981;
+}
+
+.plan-advanced:hover:not(.disabled) {
+  border-color: #2563eb;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
+}
+
+.plan-advanced.selected {
+  border-color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.1);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
+}
+
+.plan-advanced.selected .price-amount {
+  color: #2563eb;
+}
+
+.plan-advanced .plan-badge {
+  background-color: #2563eb;
+}
+
+.plan-pro:hover:not(.disabled) {
+  border-color: #f59e0b;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2);
+}
+
+.plan-pro.selected {
+  border-color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.1);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
+}
+
+.plan-pro.selected .price-amount {
+  color: #f59e0b;
+}
+
 /* Subscription Plans */
 .subscription-selection {
   margin-bottom: 40px;
