@@ -668,6 +668,63 @@ const goBack = () => {
   font-style: italic;
 }
 
+/* Tier-specific colors for storage */
+.storage-free:hover {
+  border-color: #10b981;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
+}
+
+.storage-free.selected {
+  border-color: #10b981;
+  background-color: rgba(16, 185, 129, 0.1);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+}
+
+.storage-free.selected .storage-icon,
+.storage-free.selected .storage-photos {
+  color: #10b981;
+}
+
+.storage-free .storage-badge {
+  background-color: #10b981;
+}
+
+.storage-standard:hover {
+  border-color: #2563eb;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
+}
+
+.storage-standard.selected {
+  border-color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.1);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
+}
+
+.storage-standard.selected .storage-icon,
+.storage-standard.selected .storage-photos {
+  color: #2563eb;
+}
+
+.storage-premium:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2);
+}
+
+.storage-premium.selected {
+  border-color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.1);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
+}
+
+.storage-premium.selected .storage-icon,
+.storage-premium.selected .storage-photos {
+  color: #f59e0b;
+}
+
+.storage-premium .storage-badge {
+  background-color: #f59e0b;
+}
+
 /* Subscription Plans */
 .subscription-selection {
   margin-bottom: 40px;
