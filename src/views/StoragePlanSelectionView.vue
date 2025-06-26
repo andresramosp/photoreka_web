@@ -283,7 +283,7 @@
           </div>
 
           <div
-            class="plan-card"
+            class="plan-card plan-pro"
             :class="{ selected: selectedPlan === 'pro' }"
             @click="selectPlan('pro')"
           >
