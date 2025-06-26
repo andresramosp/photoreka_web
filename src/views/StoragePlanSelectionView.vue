@@ -474,9 +474,9 @@ const getStorageDetails = () => {
     standard: {
       title: "Standard Storage",
       photos: "1,000 photos",
-      price: 9.99,
+      price: 24.99,
     },
-    premium: { title: "Premium Storage", photos: "5,000 photos", price: 24.99 },
+    premium: { title: "Premium Storage", photos: "5,000 photos", price: 89.99 },
   };
   return (
     storageMap[selectedStorage.value as keyof typeof storageMap] ||
