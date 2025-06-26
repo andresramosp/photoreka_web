@@ -109,7 +109,7 @@
 
         <div class="subscription-plans-grid">
           <div
-            class="plan-card"
+            class="plan-card plan-free"
             :class="{
               selected: selectedPlan === 'free',
               disabled: selectedStorage !== 'free' && selectedPlan !== 'free',
