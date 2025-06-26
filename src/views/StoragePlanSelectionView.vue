@@ -18,7 +18,7 @@
 
         <div class="storage-options-grid">
           <div
-            class="storage-option-card"
+            class="storage-option-card storage-free"
             :class="{ selected: selectedStorage === 'free' }"
             @click="selectStorage('free')"
           >
