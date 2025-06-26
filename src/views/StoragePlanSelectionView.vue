@@ -705,7 +705,7 @@ const goBack = () => {
   background-color: #f59e0b;
 }
 
-/* Tier-specific colors for subscription plans */
+/* Tier-specific colors for subscription plans - matching storage exactly */
 .plan-free:hover:not(.disabled) {
   border-color: #10b981;
   box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
