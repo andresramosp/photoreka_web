@@ -71,7 +71,7 @@
           </div>
 
           <div
-            class="storage-option-card"
+            class="storage-option-card storage-premium"
             :class="{ selected: selectedStorage === 'premium' }"
             @click="selectStorage('premium')"
           >
