@@ -45,7 +45,7 @@
           </div>
 
           <div
-            class="storage-option-card"
+            class="storage-option-card storage-standard"
             :class="{ selected: selectedStorage === 'standard' }"
             @click="selectStorage('standard')"
           >
