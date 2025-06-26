@@ -278,7 +278,7 @@ interface CurationPhoto {
   title: string;
   rating: number;
   reasoning: string; // AI-generated reasoning for curation
-  matchedTags?: string[];
+  matchingTags?: string[];
   width?: number;
   height?: number;
 }
@@ -385,7 +385,7 @@ const generateMockPhotos = (count: number = 6): CurationPhoto[] => {
       title: basePhoto.title,
       rating,
       reasoning: reasoningOptions[index % reasoningOptions.length],
-      matchedTags: basePhoto.tags,
+      matchingTags: basePhoto.tags,
       width: 2000 + Math.floor(Math.random() * 2000),
       height: 1500 + Math.floor(Math.random() * 1500),
     };

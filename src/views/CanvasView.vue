@@ -82,8 +82,8 @@
               <v-group
                 v-if="
                   photo.hovered &&
-                  toolbarState.expansion.type.criteria !== 'tags' &&
-                  !toolbarState.expansion.type.criteria !== 'composition'
+                  toolbarState.expansion.type !== 'tags' &&
+                  !toolbarState.expansion.type !== 'composition'
                 "
                 :config="{ x: 10, y: 10 }"
                 @click="() => {}"
@@ -147,7 +147,7 @@
               <template>
                 <!-- <PhotoDetectionAreas
                 v-if="
-                  toolbarState.expansion.type.criteria === 'composition' &&
+                  toolbarState.expansion.type === 'composition' &&
                   toolbarState.expansion.onCanvas &&
                   photo.hovered
                 "
@@ -158,7 +158,7 @@
               > -->
                 <TagPillsCanvas
                   v-if="
-                    toolbarState.expansion.type.value.criteria === 'tags' &&
+                    toolbarState.expansion.type === 'tags' &&
                     expansionMode == 'canvas' &&
                     photo.hovered
                   "
@@ -175,10 +175,9 @@
                     expansionMode == 'canvas' &&
                     !photo.inTrash &&
                     photo.hovered &&
-                    (toolbarState.expansion.type.value.criteria !== 'tags' ||
+                    (toolbarState.expansion.type !== 'tags' ||
                       photo.tags.some((t) => t.tag.selected)) &&
-                    (toolbarState.expansion.type.value.criteria !==
-                      'composition' ||
+                    (toolbarState.expansion.type !== 'composition' ||
                       photo.detectionAreas.some((dt) => dt.selected))
                   "
                   @click="handleAddPhotoFromPhoto"
@@ -206,7 +205,10 @@
 
     <!-- Related Photos Toolbar -->
     <RelatedPhotosToolbar
+      v-if="showRelatedPhotos"
+      :base-image="selectedPhotoForToolbar"
       :is-visible="showRelatedPhotos"
+      :toolbar-state="toolbarState"
       @close="hideRelatedPhotos"
       @photos-selected="onPhotosSelected"
       @search-type-changed="onSearchTypeChanged"
@@ -302,7 +304,9 @@
                 </n-icon>
               </template>
               <span v-if="canvasModeIsExpanded" class="button-text">{{
-                toolbarState.expansion.type.label
+                expansionTypeOptions.find(
+                  (opt) => opt.value == toolbarState.expansion.type
+                ).label
               }}</span>
               <n-icon v-if="canvasModeIsExpanded" class="dropdown-arrow">
                 <svg viewBox="0 0 24 24">
@@ -318,7 +322,7 @@
                 :class="[
                   'dropdown-item',
                   {
-                    active: toolbarState.expansion.type.label === option.label,
+                    active: toolbarState.expansion.type === option.value,
                   },
                 ]"
                 @click="selectOption(option)"
@@ -417,9 +421,7 @@ import {
 } from "@/composables/canvas/useCanvasStage";
 import { useCanvasPhoto } from "@/composables/canvas/useCanvasPhoto.js";
 import { usePhotoAnimations } from "@/composables/canvas/usePhotoAnimations";
-import { useCanvasStore } from "@/stores/canvas.js";
-// import TagPillsCanvas from "@/components/canvas/TagPills/TagPillsCanvas.vue";
-// import ExpandPhotoButtons from "@/components/canvas/PhotoControls/ExpandPhotoButtons.vue";
+import { useCanvasStore, expansionTypeOptions } from "@/stores/canvas.js";
 // import PhotoDetectionAreas from "@/components/canvas/PhotoControls/PhotoDetectionAreas.vue";
 import { usePhotosStore } from "@/stores/photos";
 import { ref, onMounted, onUnmounted, computed, h, watch } from "vue";
@@ -450,7 +452,7 @@ const toolbarState = ref({
   mouseMode: "move",
   zoomLevel: 0,
   expansion: {
-    type: { label: "General", value: { criteria: "embedding" } },
+    type: "embedding",
     inverted: false,
     opposite: false,
     autoAlign: false,
@@ -467,27 +469,13 @@ const expansionMode = ref("catalog");
 const interactionMode = ref("pan");
 const showRelatedPhotos = ref(false);
 const showPhotosDialog = ref(false);
+const selectedPhotoForToolbar = ref(null);
 
 // Expandable dropdown state
 const canvasModeIsExpanded = ref(false);
 const isDropdownOpen = ref(false);
 
 // Dropdown options with SVG icons
-const expansionTypeOptions = [
-  { label: "General", value: { criteria: "embedding" } },
-
-  {
-    label: "Narrative",
-    value: { criteria: "semantic", fields: ["story"] },
-  },
-  {
-    label: "Context",
-    value: { criteria: "semantic", fields: ["context"] },
-  },
-
-  // { label: 'Composition', value: { criteria: 'composition' } },
-  { label: "Tags", value: { criteria: "tags" } },
-];
 
 const secondaryColor = getComputedStyle(document.documentElement)
   .getPropertyValue("--secondary-color")
@@ -528,7 +516,6 @@ const dynamicSizeFactor = computed(() => {
 
 async function handleAddPhotos(photoIds) {
   // Fetch todas las fotos necesarias en paralelo
-  debugger;
   await Promise.all(photoIds.map((id) => photosStore.fetchPhoto(id)));
 
   const photosToAdd = photoIds
@@ -545,7 +532,7 @@ function handleAddPhotoFromPhoto(event) {
   } else {
     event.cancelBubble = true;
     selectedPhotoForToolbar.value = event.photo;
-    isToolbarExpansionVisible.value = true;
+    showRelatedPhotos.value = true;
   }
 }
 
@@ -565,7 +552,7 @@ const handleAddPhotosToCanvas = async (event) => {
 
   await canvasStore.addPhotosFromPhoto(
     [photo],
-    toolbarState.value.expansion.type.value,
+    toolbarState.value.expansion.type,
     toolbarState.value.photoOptions.count,
     basePosition,
     toolbarState.value.expansion.opposite,
@@ -684,13 +671,6 @@ const fitStageToPhotos = (extraPaddingRatio = 0.1) => {
   }).play();
 };
 
-const handleStageClick = (e) => {
-  // Only show toolbar if clicking directly on the stage (not on objects)
-  if (e.target === e.target.getStage()) {
-    showRelatedPhotos.value = true;
-  }
-};
-
 const openConfig = () => {
   console.log("Open config");
   // TODO: Implement config dialog
@@ -723,7 +703,7 @@ const handleOnCanvasClick = () => {
 };
 
 const selectOption = (option) => {
-  toolbarState.value.expansion.type = option;
+  toolbarState.value.expansion.type = option.value;
   isDropdownOpen.value = false;
 };
 

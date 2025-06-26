@@ -38,20 +38,20 @@
         <div
           v-if="
             mode === 'default' &&
-            photo.matchedTags &&
-            photo.matchedTags.length > 0
+            photo.matchingTags &&
+            photo.matchingTags.length > 0
           "
           class="matched-tags"
         >
           <span
-            v-for="tag in photo.matchedTags.slice(0, 3)"
+            v-for="tag in photo.matchingTags.slice(0, 3)"
             :key="tag"
             class="tag"
           >
             {{ tag }}
           </span>
-          <span v-if="photo.matchedTags.length > 3" class="tag-more">
-            +{{ photo.matchedTags.length - 3 }}
+          <span v-if="photo.matchingTags.length > 3" class="tag-more">
+            +{{ photo.matchingTags.length - 3 }}
           </span>
         </div>
 
@@ -118,7 +118,7 @@ interface Photo {
   title: string;
   rating: number;
   reasoning?: string; // AI reasoning for curation
-  matchedTags?: string[];
+  matchingTags?: string[];
   width?: number;
   height?: number;
 }
@@ -206,9 +206,7 @@ const handleMouseLeave = () => {
 
 .photo-card.selected {
   border-color: #8b5cf6;
-  box-shadow:
-    0 0 0 1px #8b5cf640,
-    0 8px 24px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 0 0 1px #8b5cf640, 0 8px 24px rgba(139, 92, 246, 0.2);
 }
 
 .photo-container {
@@ -216,15 +214,6 @@ const handleMouseLeave = () => {
   width: 100%;
   height: 100%;
   background-color: var(--bg-surface);
-}
-
-.photo-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background-color: #2c2c32;
 }
 
 .photo-card:hover .photo-image {

@@ -473,7 +473,7 @@ interface Photo {
   url: string;
   title: string;
   rating: number;
-  matchedTags?: string[];
+  matchingTags?: string[];
   width?: number;
   height?: number;
 }
@@ -504,7 +504,7 @@ const mockPhotos: Photo[] = [
     url: "https://images.pexels.com/photos/32669076/pexels-photo-32669076.jpeg",
     title: "Iceland Mountains",
     rating: 5,
-    matchedTags: ["landscape", "mountains", "nature"],
+    matchingTags: ["landscape", "mountains", "nature"],
     width: 6000,
     height: 3376,
   },
@@ -513,7 +513,7 @@ const mockPhotos: Photo[] = [
     url: "https://images.pexels.com/photos/32657569/pexels-photo-32657569.jpeg",
     title: "Sisters in Dresses",
     rating: 4,
-    matchedTags: ["portrait", "people", "family"],
+    matchingTags: ["portrait", "people", "family"],
     width: 7107,
     height: 9600,
   },
@@ -522,7 +522,7 @@ const mockPhotos: Photo[] = [
     url: "https://images.pexels.com/photos/32666826/pexels-photo-32666826.jpeg",
     title: "Carballino España",
     rating: 3,
-    matchedTags: ["street", "urban", "architecture"],
+    matchingTags: ["street", "urban", "architecture"],
     width: 3648,
     height: 2432,
   },
@@ -531,7 +531,7 @@ const mockPhotos: Photo[] = [
     url: "https://images.pexels.com/photos/3117550/pexels-photo-3117550.jpeg",
     title: "Vintage Flowers",
     rating: 4,
-    matchedTags: ["flowers", "vintage", "art"],
+    matchingTags: ["flowers", "vintage", "art"],
     width: 2016,
     height: 2016,
   },
@@ -540,7 +540,7 @@ const mockPhotos: Photo[] = [
     url: "https://images.pexels.com/photos/32675858/pexels-photo-32675858.jpeg",
     title: "Beach Sunset",
     rating: 5,
-    matchedTags: ["sunset", "beach", "ocean"],
+    matchingTags: ["sunset", "beach", "ocean"],
     width: 3888,
     height: 2592,
   },
@@ -549,7 +549,7 @@ const mockPhotos: Photo[] = [
     url: "https://images.pexels.com/photos/32617822/pexels-photo-32617822.jpeg",
     title: "City River View",
     rating: 4,
-    matchedTags: ["city", "river", "sunset"],
+    matchingTags: ["city", "river", "sunset"],
     width: 2639,
     height: 3959,
   },
@@ -558,7 +558,7 @@ const mockPhotos: Photo[] = [
     url: "https://images.pexels.com/photos/983587/pexels-photo-983587.jpeg",
     title: "Italian Pasta",
     rating: 3,
-    matchedTags: ["food", "pasta", "wine"],
+    matchingTags: ["food", "pasta", "wine"],
     width: 2000,
     height: 2000,
   },
@@ -567,7 +567,7 @@ const mockPhotos: Photo[] = [
     url: "https://images.pexels.com/photos/32642185/pexels-photo-32642185.jpeg",
     title: "Scorpion Detail",
     rating: 2,
-    matchedTags: ["wildlife", "macro", "animal"],
+    matchingTags: ["wildlife", "macro", "animal"],
     width: 3560,
     height: 2608,
   },
@@ -581,7 +581,7 @@ onMounted(() => {
   resizeObserverErrorHandler = (e: ErrorEvent) => {
     if (
       e.message.includes(
-        "ResizeObserver loop completed with undelivered notifications",
+        "ResizeObserver loop completed with undelivered notifications"
       )
     ) {
       e.preventDefault();
@@ -954,7 +954,7 @@ const setExampleSearch = (
   excluded?: string[],
   left?: string,
   center?: string,
-  right?: string,
+  right?: string
 ) => {
   clearSearch();
   activeSearchType.value = type;

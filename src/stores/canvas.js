@@ -96,16 +96,16 @@ export const useCanvasStore = defineStore("canvas", {
             .map((dt) => dt.id);
           selectedBoxes = selectedBoxes.concat(selectedDetectionIds);
         }
-
+        debugger;
         const response = await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/api/search/byPhotos`,
           {
             anchorIds,
             currentPhotosIds: currentOrDiscardedPhotos,
-            criteria: similarityType.criteria,
+            criteria: similarityType,
             opposite,
             inverted,
-            descriptionCategories: similarityType.fields,
+            // descriptionCategories: similarityType.fields,
             resultLength,
             tagIds: selectedTags,
             boxesIds: selectedBoxes,
@@ -148,3 +148,10 @@ export const useCanvasStore = defineStore("canvas", {
     },
   },
 });
+
+export const expansionTypeOptions = [
+  { label: "General", value: "embedding" },
+  { label: "Narrative", value: "story" },
+  { label: "Context", value: "context" },
+  { label: "Tags", value: "tags" },
+];

@@ -4,7 +4,9 @@
       <!-- Base Image Section (Fixed Left) -->
       <PhotoBase
         :baseImage="props.baseImage"
-        @search-type-changed="onSearchTypeChange"
+        :toolbar-state="toolbarState"
+        @photos-generated="handleGeneratedPhotos"
+        @loading="(val) => {}"
       />
 
       <!-- Related Photos Section (Scrollable Right) -->
@@ -60,7 +62,7 @@ interface Photo {
   url: string;
   title: string;
   rating: number;
-  matchedTags?: string[];
+  matchingTags?: string[];
   width?: number;
   height?: number;
 }
@@ -68,6 +70,7 @@ interface Photo {
 interface Props {
   isVisible: boolean;
   baseImage?: Photo;
+  toolbarState: Object;
 }
 
 interface Emits {
@@ -88,162 +91,19 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>();
 
+const relatedPhotos = ref<Photo[]>([]);
+
 const scrollContainer = ref<HTMLElement>();
 const selectedPhotos = ref<string[]>([]);
-const selectedSearchType = ref("similar");
 
-const searchOptions = [
-  { label: "Similar", value: "similar" },
-  { label: "Same Subject", value: "subject" },
-  { label: "Same Style", value: "style" },
-  { label: "Same Colors", value: "colors" },
-  { label: "Same Location", value: "location" },
-  { label: "Same Person", value: "person" },
-];
-
-// Generate random related photos
-const relatedPhotos = ref<Photo[]>([
-  {
-    id: "related-1",
-    url: "https://images.unsplash.com/photo-1511593358241-7eea1f3c84e5?w=300&h=300&fit=crop",
-    title: "Mountain Landscape",
-    rating: 5,
-    matchedTags: ["landscape", "mountains", "nature"],
-  },
-  {
-    id: "related-2",
-    url: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=300&h=300&fit=crop",
-    title: "Ocean View",
-    rating: 4,
-    matchedTags: ["ocean", "blue", "horizon"],
-  },
-  {
-    id: "related-3",
-    url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=300&h=300&fit=crop",
-    title: "Forest Path",
-    rating: 4,
-    matchedTags: ["forest", "trees", "path"],
-  },
-  {
-    id: "related-4",
-    url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&h=300&fit=crop",
-    title: "Mountain Range",
-    rating: 5,
-    matchedTags: ["mountains", "peaks", "snow"],
-  },
-  {
-    id: "related-5",
-    url: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=300&h=300&fit=crop",
-    title: "Lake Reflection",
-    rating: 4,
-    matchedTags: ["lake", "reflection", "calm"],
-  },
-  {
-    id: "related-6",
-    url: "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=300&h=300&fit=crop",
-    title: "Desert Dunes",
-    rating: 3,
-    matchedTags: ["desert", "sand", "dunes"],
-  },
-  {
-    id: "related-7",
-    url: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=300&h=300&fit=crop",
-    title: "Waterfall",
-    rating: 5,
-    matchedTags: ["waterfall", "water", "rocks"],
-  },
-  {
-    id: "related-8",
-    url: "https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=300&h=300&fit=crop",
-    title: "Canyon View",
-    rating: 4,
-    matchedTags: ["canyon", "rocks", "red"],
-  },
-  {
-    id: "related-9",
-    url: "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=300&h=300&fit=crop",
-    title: "Valley Vista",
-    rating: 4,
-    matchedTags: ["valley", "green", "hills"],
-  },
-  {
-    id: "related-10",
-    url: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=300&h=300&fit=crop",
-    title: "Sunrise Mountain",
-    rating: 5,
-    matchedTags: ["sunrise", "mountain", "golden"],
-  },
-  {
-    id: "related-11",
-    url: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=300&h=300&fit=crop",
-    title: "Cliff Edge",
-    rating: 4,
-    matchedTags: ["cliff", "edge", "dramatic"],
-  },
-  {
-    id: "related-12",
-    url: "https://images.unsplash.com/photo-1502780402662-acc01917153e?w=300&h=300&fit=crop",
-    title: "River Valley",
-    rating: 4,
-    matchedTags: ["river", "valley", "flowing"],
-  },
-  {
-    id: "related-13",
-    url: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=300&h=300&fit=crop",
-    title: "Alpine Lake",
-    rating: 5,
-    matchedTags: ["alpine", "lake", "clear"],
-  },
-  {
-    id: "related-14",
-    url: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=300&h=300&fit=crop",
-    title: "Rolling Hills",
-    rating: 3,
-    matchedTags: ["hills", "rolling", "grass"],
-  },
-  {
-    id: "related-15",
-    url: "https://images.unsplash.com/photo-1444927714506-8492d94b5ba0?w=300&h=300&fit=crop",
-    title: "Coastal Rocks",
-    rating: 4,
-    matchedTags: ["coast", "rocks", "waves"],
-  },
-  {
-    id: "related-16",
-    url: "https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=300&h=300&fit=crop",
-    title: "Pine Forest",
-    rating: 4,
-    matchedTags: ["pine", "forest", "evergreen"],
-  },
-  {
-    id: "related-17",
-    url: "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=300&h=300&fit=crop",
-    title: "Sand Patterns",
-    rating: 3,
-    matchedTags: ["sand", "patterns", "texture"],
-  },
-  {
-    id: "related-18",
-    url: "https://images.unsplash.com/photo-1464822759844-d150ad6d1e77?w=300&h=300&fit=crop",
-    title: "Snow Peak",
-    rating: 5,
-    matchedTags: ["snow", "peak", "white"],
-  },
-  {
-    id: "related-19",
-    url: "https://images.unsplash.com/photo-1521336575822-6da63fb45455?w=300&h=300&fit=crop",
-    title: "Storm Clouds",
-    rating: 4,
-    matchedTags: ["clouds", "storm", "dramatic"],
-  },
-  {
-    id: "related-20",
-    url: "https://images.unsplash.com/photo-1436891620584-47fd0e565afb?w=300&h=300&fit=crop",
-    title: "Golden Hour",
-    rating: 5,
-    matchedTags: ["golden", "hour", "warm"],
-  },
-]);
+function handleGeneratedPhotos(photos: any) {
+  relatedPhotos.value = photos;
+  // visiblePhotos.value = photos.slice(0, pageSize);
+  selectedPhotos.value = [];
+  // nextTick(() => {
+  //   scrollContainer.value?.scrollTo({ left: 0 });
+  // });
+}
 
 const togglePhotoSelection = (photoId: string) => {
   const index = selectedPhotos.value.indexOf(photoId);
@@ -257,10 +117,6 @@ const togglePhotoSelection = (photoId: string) => {
 
 const onPhotoInfo = (photo: Photo) => {
   console.log("Photo info requested:", photo);
-};
-
-const onSearchTypeChange = (value: string) => {
-  emit("search-type-changed", value);
 };
 
 const closeToolbar = () => {
