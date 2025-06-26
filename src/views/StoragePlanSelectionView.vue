@@ -64,7 +64,10 @@
             <p class="storage-description">
               Great for hobbyist photographers with regular usage
             </p>
-            <div class="storage-price">$9.99/month</div>
+            <div class="storage-price">$24.99</div>
+            <p class="storage-notes">
+              Includes 500 photos for batch upload and 50 for individual uploads
+            </p>
           </div>
 
           <div
