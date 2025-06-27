@@ -574,7 +574,9 @@ const saveNotes = async () => {
 .dialog-content {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
+  max-height: calc(85vh - 120px);
+  overflow-y: auto;
 }
 
 .photo-display {
