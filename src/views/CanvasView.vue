@@ -693,8 +693,7 @@ const fitStageToPhotos = (extraPaddingRatio = 0.1) => {
 };
 
 const openConfig = () => {
-  console.log("Open config");
-  // TODO: Implement config dialog
+  showConfigMenu.value = !showConfigMenu.value;
 };
 
 const toggleInteractionMode = () => {
