@@ -540,20 +540,23 @@ const saveNotes = async () => {
 }
 
 .photo-display {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  max-height: 400px;
+  width: 100%;
+  height: 400px;
   background: var(--bg-surface);
   border-radius: var(--radius-md);
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 
 .main-photo {
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  border-radius: var(--radius-md);
+  object-position: center;
+  background-color: var(--bg-surface);
 }
 
 .info-sections {
