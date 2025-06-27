@@ -293,6 +293,11 @@ const handleHorizontalScroll = (e: WheelEvent) => {
     width: 120px;
     height: 120px;
   }
+
+  .related-photo-skeleton {
+    width: 120px;
+    height: 120px;
+  }
 }
 
 @media (max-width: 480px) {
