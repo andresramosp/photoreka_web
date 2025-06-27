@@ -634,7 +634,7 @@ const saveNotes = async () => {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  max-height: calc(85vh - 120px);
+  max-height: calc(90vh - 120px);
   overflow-y: auto;
 }
 
