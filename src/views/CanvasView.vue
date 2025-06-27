@@ -556,7 +556,9 @@ const interactionMode = ref("pan");
 const showRelatedPhotos = ref(false);
 const showPhotosDialog = ref(false);
 const showTrashDialog = ref(false);
+const showPhotoInfoDialog = ref(false);
 const selectedPhotoForToolbar = ref(null);
+const selectedDialogPhoto = ref(null);
 const isLoadingRelatedPhotos = ref(false);
 
 // Expandable dropdown state
