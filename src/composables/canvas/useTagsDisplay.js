@@ -35,7 +35,7 @@ export function useTagDisplay(tagsSource) {
   const hoverColor = "lightgray";
   const defaultColor = "gray";
   const textColor = getComputedStyle(document.documentElement)
-    .getPropertyValue("--primary-color")
+    .getPropertyValue("--text-primary")
     .trim();
   const pillHeight = 18;
 

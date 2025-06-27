@@ -215,6 +215,11 @@
     />
 
     <PhotosDialog v-model="showPhotosDialog" @add-photos="handleAddPhotos" />
+    <PhotosDialog
+      v-model="showTrashDialog"
+      :is-trash="true"
+      @add-photos="handleAddPhotos"
+    />
 
     <!-- Top Left Controls -->
     <div class="canvas-controls top-left">
@@ -410,6 +415,12 @@
         </n-button>
       </n-button-group>
     </div>
+    <div
+      @click="showTrashDialog = true"
+      :class="['trash-zone', { hovering: isHoveringTrash }]"
+    >
+      🗑️
+    </div>
   </div>
 </template>
 
@@ -469,6 +480,7 @@ const expansionMode = ref("catalog");
 const interactionMode = ref("pan");
 const showRelatedPhotos = ref(false);
 const showPhotosDialog = ref(false);
+const showTrashDialog = ref(false);
 const selectedPhotoForToolbar = ref(null);
 
 // Expandable dropdown state
@@ -693,6 +705,7 @@ const handleOnCanvasClick = () => {
     expansionMode.value = "canvas";
     canvasModeIsExpanded.value = true;
     isDropdownOpen.value = false;
+    showRelatedPhotos.value = false;
   } else if (!isDropdownOpen.value) {
     // Second click: open dropdown (already in catalog mode and expanded)
     isDropdownOpen.value = true;
@@ -991,6 +1004,35 @@ onUnmounted(() => {
   .button-text {
     font-size: 12px;
   }
+}
+.trash-zone {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  bottom: 0px;
+  display: flex;
+  right: 1px;
+  /* background-color: rgba(255, 0, 0, 0.1); */
+  /* border: 1px solid rgba(250, 11, 11, 0.5); */
+  border-radius: 8px;
+  font-size: 40px;
+  text-align: center;
+  align-items: center;
+  line-height: 90px;
+
+  transition: background-color 0.2s, border-color 0.2s, transform 0.2s ease;
+  transform: rotate(0deg) scale(1);
+  align-content: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.trash-zone.hovering {
+  background-color: rgba(255, 0, 0, 0.25);
+  border-color: darkred;
+  transform: rotate(8deg) scale(1.08);
+  transition: transform 0.2s ease, background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 </style>
 <style>

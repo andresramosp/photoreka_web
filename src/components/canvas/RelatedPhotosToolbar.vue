@@ -13,9 +13,6 @@
       <div class="related-photos-section">
         <div class="related-photos-header">
           <span class="section-title">Related Photos</span>
-          <!-- <span class="selection-count"
-            >{{ selectedPhotos.length }} selected</span
-          > -->
         </div>
 
         <div
@@ -52,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, nextTick } from "vue";
 import { NIcon } from "naive-ui";
 import PhotoBase from "./PhotoBase.vue";
 import PhotoCard from "../PhotoCard.vue";
@@ -92,18 +89,18 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>();
 
 const relatedPhotos = ref<Photo[]>([]);
-
 const scrollContainer = ref<HTMLElement>();
 const selectedPhotos = ref<string[]>([]);
 
 function handleGeneratedPhotos(photos: any) {
   relatedPhotos.value = photos;
-  // visiblePhotos.value = photos.slice(0, pageSize);
-
   selectedPhotos.value = [];
-  // nextTick(() => {
-  //   scrollContainer.value?.scrollTo({ left: 0 });
-  // });
+
+  nextTick(() => {
+    if (scrollContainer.value) {
+      scrollContainer.value.scrollLeft = 0;
+    }
+  });
 }
 
 const togglePhotoSelection = (photoId: string) => {
@@ -186,7 +183,6 @@ const handleHorizontalScroll = (e: WheelEvent) => {
   color: var(--text-primary);
 }
 
-/* Related Photos Section */
 .related-photos-section {
   flex: 1;
   display: flex;
@@ -207,20 +203,31 @@ const handleHorizontalScroll = (e: WheelEvent) => {
   font-weight: var(--font-weight-medium);
 }
 
-.selection-count {
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
-  background: var(--bg-surface);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
-}
-
 .related-photos-scroll {
   flex: 1;
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: var(--spacing-xs);
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: transparent transparent;
+}
+
+.related-photos-scroll:hover {
+  scrollbar-color: rgba(0, 0, 0, 0.4) transparent;
+}
+
+.related-photos-scroll::-webkit-scrollbar {
+  height: 8px;
+  background: transparent;
+}
+
+.related-photos-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.related-photos-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.4);
 }
 
 .related-photos-grid {
@@ -236,7 +243,6 @@ const handleHorizontalScroll = (e: WheelEvent) => {
   height: 160px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .related-photos-toolbar {
     height: 200px;

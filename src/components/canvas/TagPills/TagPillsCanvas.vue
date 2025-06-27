@@ -61,6 +61,7 @@ const clampScroll = (offset) => {
 
 const onWheel = (e) => {
   e.evt.preventDefault();
+  e.cancelBubble = true;
   e.evt.stopPropagation();
   const delta = e.evt.deltaY > 0 ? -itemHeight * 0.5 : itemHeight * 0.5;
   scrollOffset.value = clampScroll(scrollOffset.value + delta);
