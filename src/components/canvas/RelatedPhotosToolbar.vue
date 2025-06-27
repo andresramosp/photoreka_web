@@ -68,6 +68,7 @@ interface Props {
   isVisible: boolean;
   baseImage?: Photo;
   toolbarState: Object;
+  isLoading?: boolean;
 }
 
 interface Emits {
