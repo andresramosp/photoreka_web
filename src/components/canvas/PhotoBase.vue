@@ -10,12 +10,32 @@
       />
     </div>
     <div class="base-image-container">
+      <div
+        v-if="toolbarState.expansion.type === 'tags'"
+        class="tags-overlay"
+        ref="tagsOverlay"
+      >
+        <SelectableTagChip
+          v-for="tagPhoto in filteredTags"
+          :key="tagPhoto.tag.id"
+          :tag="tagPhoto.tag"
+          v-model="tagPhoto.tag.selected"
+          :selected-color="selectedColor"
+          :hover-color="hoverColor"
+          :default-color="defaultColor"
+          text-color="white"
+          :pill-height="pillHeight"
+        />
+      </div>
       <img
         :src="baseImage.thumbnailUrl"
         :alt="baseImage.title"
         class="photo-image"
       />
-      <div class="base-image-overlay">
+      <div
+        v-show="toolbarState.expansion.type !== 'tags'"
+        class="base-image-overlay"
+      >
         <span class="base-image-label">Source photo</span>
       </div>
     </div>
@@ -28,6 +48,7 @@ import { nextTick, onMounted, ref, watch } from "vue";
 import { useCanvasStore, expansionTypeOptions } from "@/stores/canvas.js";
 import { useTagDisplay } from "@/composables/canvas/useTagsDisplay";
 import { debounce } from "lodash";
+import SelectableTagChip from "../wrappers/SelectableTagChip.vue";
 
 const props = defineProps({
   baseImage: { type: Object, required: true },
@@ -92,27 +113,27 @@ const loadPhotosFromSelections = debounce(async () => {
   emit("photos-generated", result);
 }, 2000);
 
-const getBoxStyle = (detection) => {
-  const s = scale.value;
-  const x = detection.x1 * s;
-  const y = detection.y1 * s;
-  const width = (detection.x2 - detection.x1) * s;
-  const height = (detection.y2 - detection.y1) * s;
+// const getBoxStyle = (detection) => {
+//   const s = scale.value;
+//   const x = detection.x1 * s;
+//   const y = detection.y1 * s;
+//   const width = (detection.x2 - detection.x1) * s;
+//   const height = (detection.y2 - detection.y1) * s;
 
-  return {
-    position: "absolute",
-    left: `${x}px`,
-    top: `${y}px`,
-    width: `${width}px`,
-    height: `${height}px`,
-    border: "1.5px solid white",
-    backgroundColor: detection.selected
-      ? "rgba(var(--v-theme-secondary), 0.4)"
-      : "transparent",
-    pointerEvents: "auto",
-    zIndex: 3,
-  };
-};
+//   return {
+//     position: "absolute",
+//     left: `${x}px`,
+//     top: `${y}px`,
+//     width: `${width}px`,
+//     height: `${height}px`,
+//     border: "1.5px solid white",
+//     backgroundColor: detection.selected
+//       ? "rgba(var(--v-theme-secondary), 0.4)"
+//       : "transparent",
+//     pointerEvents: "auto",
+//     zIndex: 3,
+//   };
+// };
 
 // Watchers
 watch(
@@ -183,7 +204,7 @@ onMounted(() => {
 /* Base Image Section */
 .base-image-section {
   flex-shrink: 0;
-  width: 160px;
+  width: 230px;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
@@ -216,5 +237,22 @@ onMounted(() => {
   color: var(--text-primary);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
+}
+
+.tags-overlay {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 4px;
+  z-index: 2;
+  justify-content: center;
+  align-items: flex-start;
 }
 </style>

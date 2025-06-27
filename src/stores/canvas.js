@@ -96,7 +96,6 @@ export const useCanvasStore = defineStore("canvas", {
             .map((dt) => dt.id);
           selectedBoxes = selectedBoxes.concat(selectedDetectionIds);
         }
-        debugger;
         const response = await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/api/search/byPhotos`,
           {

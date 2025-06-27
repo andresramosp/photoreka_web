@@ -38,20 +38,20 @@
         <div
           v-if="
             mode === 'default' &&
-            photo.matchingTags &&
-            photo.matchingTags.length > 0
+            uniqueMatchingTags &&
+            uniqueMatchingTags.length > 0
           "
           class="matched-tags"
         >
           <span
-            v-for="tag in photo.matchingTags.slice(0, 3)"
+            v-for="tag in uniqueMatchingTags.slice(0, 3)"
             :key="tag"
             class="tag"
           >
             {{ tag }}
           </span>
-          <span v-if="photo.matchingTags.length > 3" class="tag-more">
-            +{{ photo.matchingTags.length - 3 }}
+          <span v-if="uniqueMatchingTags.length > 3" class="tag-more">
+            +{{ uniqueMatchingTags.length - 3 }}
           </span>
         </div>
 
@@ -101,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { NIcon } from "naive-ui";
 
 // Import @vicons icons from ionicons5 for reliability
@@ -147,6 +147,10 @@ const isSelected = ref(props.selected);
 const imageLoaded = ref(false);
 const imageError = ref(false);
 const showTooltip = ref(false);
+
+const uniqueMatchingTags = computed(() =>
+  Array.from(new Set(props.photo.matchingTags))
+);
 
 const toggleSelection = () => {
   isSelected.value = !isSelected.value;
@@ -223,8 +227,8 @@ const handleMouseLeave = () => {
 .bottom-overlay {
   position: absolute;
   bottom: 8px;
-  left: 8px;
-  right: 8px;
+  left: 5px;
+  right: 5px;
   z-index: 2;
 }
 
@@ -311,10 +315,11 @@ const handleMouseLeave = () => {
 }
 
 .tag {
-  background-color: #22c55e;
+  background-color: var(--secondary-color);
   color: #ffffff;
   font-size: 10px;
-  font-weight: 500;
+  /* font-weight: 500; */
+  opacity: 0.9;
   padding: 2px 6px;
   border-radius: 8px;
   text-transform: lowercase;
