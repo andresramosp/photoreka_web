@@ -219,7 +219,20 @@ onMounted(() => {
 }
 
 .base-image-header {
+  display: flex;
+  gap: var(--spacing-sm);
   width: 100%;
+}
+
+.expansion-type-select {
+  flex: 2;
+}
+
+.opposite-checkbox {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-size: var(--font-size-sm);
 }
 
 .base-image-container {
