@@ -228,6 +228,11 @@
       @add-photos="handleAddPhotos"
     />
 
+    <PhotoInfoDialog
+      v-model="showPhotoInfoDialog"
+      :selected-photo="selectedDialogPhoto"
+    />
+
     <!-- Top Left Controls -->
     <div class="canvas-controls top-left">
       <n-space>
