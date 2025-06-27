@@ -88,6 +88,7 @@ interface Emits {
   (e: "close"): void;
   (e: "photos-selected", photoIds: string[]): void;
   (e: "search-type-changed", searchType: string): void;
+  (e: "loading", isLoading: boolean): void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
