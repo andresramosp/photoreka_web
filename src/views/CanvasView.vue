@@ -490,6 +490,10 @@ const isLoadingRelatedPhotos = ref(false);
 const canvasModeIsExpanded = ref(false);
 const isDropdownOpen = ref(false);
 
+// Config menu state
+const showConfigMenu = ref(false);
+const configMenuRef = ref(null);
+
 // Dropdown options with SVG icons
 
 const secondaryColor = getComputedStyle(document.documentElement)
