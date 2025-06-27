@@ -6,7 +6,7 @@
         :baseImage="props.baseImage"
         :toolbar-state="toolbarState"
         @photos-generated="handleGeneratedPhotos"
-        @loading="(val) => {}"
+        @loading="handleLoadingState"
       />
 
       <!-- Related Photos Section (Scrollable Right) -->
