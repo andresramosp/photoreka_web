@@ -51,7 +51,7 @@
 </template>
 
 <script setup>
-import { NSelect } from "naive-ui";
+import { NSelect, NCheckbox } from "naive-ui";
 import { nextTick, onMounted, ref, watch } from "vue";
 import { useCanvasStore, expansionTypeOptions } from "@/stores/canvas.js";
 import { useTagDisplay } from "@/composables/canvas/useTagsDisplay";
