@@ -310,7 +310,7 @@
               </template>
               <span v-if="canvasModeIsExpanded" class="button-text">{{
                 expansionTypeOptions.find(
-                  (opt) => opt.value == toolbarState.expansion.type
+                  (opt) => opt.value == toolbarState.expansion.type,
                 ).label
               }}</span>
               <n-icon v-if="canvasModeIsExpanded" class="dropdown-arrow">
@@ -482,6 +482,7 @@ const showRelatedPhotos = ref(false);
 const showPhotosDialog = ref(false);
 const showTrashDialog = ref(false);
 const selectedPhotoForToolbar = ref(null);
+const isLoadingRelatedPhotos = ref(false);
 
 // Expandable dropdown state
 const canvasModeIsExpanded = ref(false);
@@ -569,7 +570,7 @@ const handleAddPhotosToCanvas = async (event) => {
     basePosition,
     toolbarState.value.expansion.opposite,
     toolbarState.value.expansion.inverted,
-    true
+    true,
   );
 
   if (
@@ -583,7 +584,7 @@ const handleAddPhotosToCanvas = async (event) => {
       position,
       offsetX,
       offsetY,
-      toolbarState.value.photoOptions.spreadMode
+      toolbarState.value.photoOptions.spreadMode,
     );
   } else {
     animatePhotoGroupExplosion(photoRefs, photos, basePosition, position);
@@ -638,7 +639,7 @@ const fitStageToPhotos = (extraPaddingRatio = 0.1) => {
       minY: Infinity,
       maxX: -Infinity,
       maxY: -Infinity,
-    }
+    },
   );
 
   // Añadir padding adicional
@@ -654,7 +655,7 @@ const fitStageToPhotos = (extraPaddingRatio = 0.1) => {
   const targetZoom = Math.min(
     containerWidth / photosWidth,
     containerHeight / photosHeight,
-    2
+    2,
   );
 
   const targetX =
@@ -785,7 +786,7 @@ watch(
       }
     });
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 onMounted(() => {
@@ -1020,7 +1021,10 @@ onUnmounted(() => {
   align-items: center;
   line-height: 90px;
 
-  transition: background-color 0.2s, border-color 0.2s, transform 0.2s ease;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    transform 0.2s ease;
   transform: rotate(0deg) scale(1);
   align-content: center;
   justify-content: center;
@@ -1031,7 +1035,9 @@ onUnmounted(() => {
   background-color: rgba(255, 0, 0, 0.25);
   border-color: darkred;
   transform: rotate(8deg) scale(1.08);
-  transition: transform 0.2s ease, background-color 0.2s ease,
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
     border-color 0.2s ease;
 }
 </style>
