@@ -211,6 +211,7 @@
       :is-loading="isLoadingRelatedPhotos"
       :toolbar-state="toolbarState"
       @close="hideRelatedPhotos"
+      @loading="isLoadingRelatedPhotos = $event"
       @photos-selected="onPhotosSelected"
       @search-type-changed="onSearchTypeChanged"
     />
