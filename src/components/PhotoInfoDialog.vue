@@ -46,7 +46,6 @@
           @error="handleImageError"
         />
       </div>
-
       <!-- Accordion Sections -->
       <div class="info-sections">
         <n-collapse :default-expanded-names="['metadata']">
