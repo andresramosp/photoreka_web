@@ -216,6 +216,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
+  align-self: flex-end;
 }
 
 .base-image-header {
