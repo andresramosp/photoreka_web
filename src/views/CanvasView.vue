@@ -47,6 +47,8 @@
             "
             @dragmove="handleDragMove(photo, $event)"
             @dblclick="handleSelectPhoto(photo, $event)"
+            @click="photo.hovered = !photo.hovered"
+            @touchstart="photo.hovered = !photo.hovered"
           >
             <v-group
               :config="{}"
@@ -297,16 +299,16 @@
                 <span class="config-label">Layout</span>
                 <div class="layout-pills">
                   <n-button
-                    v-for="layout in ['vertical', 'horizontal', 'circular']"
+                    v-for="layout in ['linear', 'perpendicular', 'circular']"
                     :key="layout"
                     :type="
-                      toolbarState.expansion.layout === layout
+                      toolbarState.photoOptions.spreadMode === layout
                         ? 'primary'
                         : 'default'
                     "
                     size="small"
                     class="layout-pill"
-                    @click="toolbarState.expansion.layout = layout"
+                    @click="toolbarState.photoOptions.spreadMode = layout"
                   >
                     {{ layout.charAt(0).toUpperCase() + layout.slice(1) }}
                   </n-button>
@@ -317,7 +319,7 @@
               <div class="config-item">
                 <span class="config-label">Photos</span>
                 <n-input-number
-                  v-model:value="toolbarState.expansion.photoCount"
+                  v-model:value="toolbarState.photoOptions.count"
                   :min="1"
                   :max="5"
                   size="small"
@@ -328,6 +330,19 @@
           </div>
         </div>
       </n-space>
+    </div>
+
+    <!-- Top Right Controls -->
+    <div class="canvas-controls top-right">
+      <n-space>
+        <n-button @click="() => {}">
+          <template #icon>
+            <n-icon size="20" color="#2563eb">
+              <SaveOutline />
+            </n-icon> </template
+          >Save
+        </n-button></n-space
+      >
     </div>
 
     <!-- Top Center Mode Switch -->
@@ -374,7 +389,7 @@
               </template>
               <span v-if="canvasModeIsExpanded" class="button-text">{{
                 expansionTypeOptions.find(
-                  (opt) => opt.value == toolbarState.expansion.type,
+                  (opt) => opt.value == toolbarState.expansion.type
                 ).label
               }}</span>
               <n-icon v-if="canvasModeIsExpanded" class="dropdown-arrow">
@@ -407,10 +422,10 @@
       </div>
     </div>
 
-    <!-- Top Right Controls -->
-    <div class="canvas-controls top-right">
+    <!-- Bottom Left Controls -->
+    <div class="canvas-controls bottom-left">
       <n-button-group vertical>
-        <n-button @click="zoomTick(1)">
+        <n-button @click="zoomTick(1)" size="small">
           <template #icon>
             <n-icon>
               <svg viewBox="0 0 24 24">
@@ -427,7 +442,7 @@
           </template>
         </n-button>
 
-        <n-button @click="zoomTick(-1)">
+        <n-button @click="zoomTick(-1)" size="small">
           <template #icon>
             <n-icon>
               <svg viewBox="0 0 24 24">
@@ -441,7 +456,7 @@
           </template>
         </n-button>
 
-        <n-button @click="fitStageToPhotos(0.1)">
+        <n-button @click="fitStageToPhotos(0.1)" size="small">
           <template #icon>
             <n-icon>
               <svg viewBox="0 0 24 24">
@@ -457,6 +472,7 @@
         <n-button
           :type="interactionMode === 'pan' ? 'primary' : 'default'"
           @click="toggleInteractionMode"
+          size="small"
         >
           <template #icon>
             <n-icon v-if="interactionMode === 'pan'">
@@ -515,6 +531,7 @@ import ExpandPhotoButtons from "@/components/canvas/PhotoControls/ExpandPhotoBut
 import PhotoCenterButton from "@/components/canvas/PhotoControls/PhotoCenterButton.vue";
 import TagPillsCanvas from "@/components/canvas/TagPills/TagPillsCanvas.vue";
 import RelatedPhotosToolbar from "@/components/canvas/RelatedPhotosToolbar.vue";
+import { CameraOutline, Save, SaveOutline } from "@vicons/ionicons5";
 
 const canvasStore = useCanvasStore();
 const photosStore = usePhotosStore();
@@ -541,8 +558,6 @@ const toolbarState = ref({
     opposite: false,
     autoAlign: false,
     onCanvas: false,
-    layout: "vertical", // vertical, horizontal, circular
-    photoCount: 3, // 1-5
   },
   photoOptions: {
     count: 1,
@@ -656,7 +671,7 @@ const handleAddPhotosToCanvas = async (event) => {
     basePosition,
     toolbarState.value.expansion.opposite,
     toolbarState.value.expansion.inverted,
-    true,
+    true
   );
 
   if (
@@ -670,7 +685,7 @@ const handleAddPhotosToCanvas = async (event) => {
       position,
       offsetX,
       offsetY,
-      toolbarState.value.photoOptions.spreadMode,
+      toolbarState.value.photoOptions.spreadMode
     );
   } else {
     animatePhotoGroupExplosion(photoRefs, photos, basePosition, position);
@@ -725,7 +740,7 @@ const fitStageToPhotos = (extraPaddingRatio = 0.1) => {
       minY: Infinity,
       maxX: -Infinity,
       maxY: -Infinity,
-    },
+    }
   );
 
   // Añadir padding adicional
@@ -741,7 +756,7 @@ const fitStageToPhotos = (extraPaddingRatio = 0.1) => {
   const targetZoom = Math.min(
     containerWidth / photosWidth,
     containerHeight / photosHeight,
-    2,
+    2
   );
 
   const targetX =
@@ -886,7 +901,7 @@ watch(
       }
     });
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 onMounted(() => {
@@ -931,6 +946,11 @@ onUnmounted(() => {
 .top-right {
   top: 16px;
   right: 16px;
+}
+
+.bottom-left {
+  left: 16px;
+  bottom: 16px;
 }
 
 /* Expandable button group styles */
@@ -1184,10 +1204,7 @@ onUnmounted(() => {
   align-items: center;
   line-height: 90px;
 
-  transition:
-    background-color 0.2s,
-    border-color 0.2s,
-    transform 0.2s ease;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.2s ease;
   transform: rotate(0deg) scale(1);
   align-content: center;
   justify-content: center;
@@ -1198,9 +1215,7 @@ onUnmounted(() => {
   background-color: rgba(255, 0, 0, 0.25);
   border-color: darkred;
   transform: rotate(8deg) scale(1.08);
-  transition:
-    transform 0.2s ease,
-    background-color 0.2s ease,
+  transition: transform 0.2s ease, background-color 0.2s ease,
     border-color 0.2s ease;
 }
 </style>

@@ -2,12 +2,12 @@
   <n-modal
     v-model:show="visible"
     preset="card"
-    :style="{ width: '95%', maxWidth: '1000px', maxHeight: '90vh' }"
+    :style="{ maxWidth: '90vw', width: '1000px', maxHeight: '90vh' }"
   >
     <template #header>
       <div class="dialog-header">
         <h3 class="photo-name">
-          {{ selectedPhoto?.filename || selectedPhoto?.name || "Untitled" }}
+          {{ selectedPhoto?.name || selectedPhoto?.filename || "Untitled" }}
         </h3>
         <div class="header-actions">
           <n-button
@@ -330,7 +330,7 @@ watch(
       // Add mock metadata if missing
       if (!newPhoto.created_at) {
         newPhoto.created_at = new Date(
-          Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000,
+          Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000
         ).toISOString();
       }
       if (!newPhoto.size) {
@@ -400,7 +400,7 @@ watch(
       }
     }
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 // Helper functions
@@ -469,7 +469,7 @@ const fallbackCopyTextToClipboard = (text) => {
       message.success("Photo name copied to clipboard");
     } else {
       message.warning(
-        "Unable to copy automatically. Please copy manually: " + text,
+        "Unable to copy automatically. Please copy manually: " + text
       );
     }
   } catch (err) {
@@ -563,7 +563,7 @@ const removeTag = async (tagToRemove) => {
   const index = photoTags.value.findIndex(
     (tag) =>
       (tag.id && tag.id === tagToRemove.id) ||
-      (tag.name || tag) === (tagToRemove.name || tagToRemove),
+      (tag.name || tag) === (tagToRemove.name || tagToRemove)
   );
 
   if (index === -1) return;
@@ -680,12 +680,13 @@ if (typeof window !== "undefined") {
   gap: var(--spacing-md);
   max-height: calc(90vh - 120px);
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .photo-display {
   width: 100%;
-  height: 450px;
-  min-height: 450px;
+  height: 400px;
+  min-height: 400px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
