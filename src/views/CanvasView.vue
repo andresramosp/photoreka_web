@@ -821,6 +821,12 @@ const onSearchTypeChanged = (searchType) => {
   // TODO: Update related photos based on search type
 };
 
+const openPhotoInfo = (photo, event) => {
+  event.cancelBubble = true;
+  selectedDialogPhoto.value = photo;
+  showPhotoInfoDialog.value = true;
+};
+
 // Resize handling
 const handleResize = () => {
   if (stageRef.value && canvasContainer.value) {
