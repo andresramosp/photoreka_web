@@ -443,7 +443,7 @@ const copyNameToClipboard = async () => {
   }
 };
 
-const downloadPhoto = () => {
+const downloadPhoto = async () => {
   const photo = props.selectedPhoto;
   if (!photo) return;
 
@@ -451,16 +451,41 @@ const downloadPhoto = () => {
   const filename =
     photo.filename || photo.name || `photo-${photo.id || Date.now()}.jpg`;
 
-  // Create temporary download link
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.target = "_blank";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  try {
+    // Try to fetch the image as blob for direct download
+    const response = await fetch(url);
+    const blob = await response.blob();
 
-  message.success("Download started");
+    // Create object URL for the blob
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    // Create temporary download link
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Clean up the object URL
+    window.URL.revokeObjectURL(blobUrl);
+
+    message.success("Download completed");
+  } catch (error) {
+    // Fallback to original method if fetch fails
+    console.warn("Direct download failed, falling back to link method:", error);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.target = "_blank";
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    message.success("Download started");
+  }
 };
 
 // Tags management
