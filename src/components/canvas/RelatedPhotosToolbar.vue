@@ -92,6 +92,7 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
   isVisible: false,
+  isLoading: false,
   baseImage: () => ({
     id: "base-1",
     url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop",
