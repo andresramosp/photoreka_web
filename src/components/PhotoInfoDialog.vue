@@ -541,14 +541,16 @@ const saveNotes = async () => {
 
 .photo-display {
   width: 100%;
-  height: 400px;
-  background: var(--bg-surface);
+  height: 300px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+  margin-bottom: var(--spacing-md);
 }
 
 .main-photo {
@@ -556,7 +558,7 @@ const saveNotes = async () => {
   height: 100%;
   object-fit: contain;
   object-position: center;
-  background-color: var(--bg-surface);
+  background-color: transparent;
 }
 
 .info-sections {
