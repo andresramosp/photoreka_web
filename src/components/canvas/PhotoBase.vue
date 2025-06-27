@@ -225,7 +225,7 @@ onMounted(() => {
 }
 
 .expansion-type-select {
-  flex: 2;
+  flex: 1.5;
 }
 
 .opposite-checkbox {
