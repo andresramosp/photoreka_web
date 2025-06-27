@@ -470,6 +470,8 @@ const toolbarState = ref({
     opposite: false,
     autoAlign: false,
     onCanvas: false,
+    layout: "vertical", // vertical, horizontal, circular
+    photoCount: 3, // 1-5
   },
   photoOptions: {
     count: 1,
