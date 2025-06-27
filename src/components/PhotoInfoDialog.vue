@@ -364,9 +364,6 @@ watch(() => props.selectedPhoto, (newPhoto) => {
     }
   }
 }, { immediate: true })
-    }
-  },
-  { immediate: true },
 );
 
 // Helper functions
