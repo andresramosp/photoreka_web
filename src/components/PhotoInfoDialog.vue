@@ -316,54 +316,91 @@ const photoNotes = ref("");
 const isSavingNotes = ref(false);
 
 // Watch for photo changes and reset data
-watch(() => props.selectedPhoto, (newPhoto) => {
-  if (newPhoto) {
-    // Initialize tags from photo data
-    photoTags.value = newPhoto.tags ? [...newPhoto.tags] : []
+watch(
+  () => props.selectedPhoto,
+  (newPhoto) => {
+    if (newPhoto) {
+      // Initialize tags from photo data
+      photoTags.value = newPhoto.tags ? [...newPhoto.tags] : [];
 
-    // Initialize description and notes if they exist
-    photoDescription.value = newPhoto.description || ''
-    photoNotes.value = newPhoto.notes || ''
+      // Initialize description and notes if they exist
+      photoDescription.value = newPhoto.description || "";
+      photoNotes.value = newPhoto.notes || "";
 
-    // Add mock metadata if missing
-    if (!newPhoto.created_at) {
-      newPhoto.created_at = new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString()
+      // Add mock metadata if missing
+      if (!newPhoto.created_at) {
+        newPhoto.created_at = new Date(
+          Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000,
+        ).toISOString();
+      }
+      if (!newPhoto.size) {
+        newPhoto.size = Math.floor(Math.random() * 8000000) + 1500000; // 1.5-8MB
+      }
+      if (!newPhoto.width || !newPhoto.height) {
+        newPhoto.width = 3000 + Math.floor(Math.random() * 3000);
+        newPhoto.height = 2000 + Math.floor(Math.random() * 2000);
+      }
+      if (!newPhoto.location) {
+        const locations = [
+          "San Francisco, CA",
+          "New York, NY",
+          "London, UK",
+          "Tokyo, Japan",
+          "Barcelona, Spain",
+          "Sydney, Australia",
+        ];
+        newPhoto.location =
+          Math.random() > 0.3
+            ? locations[Math.floor(Math.random() * locations.length)]
+            : null;
+      }
+      if (!newPhoto.camera) {
+        const cameras = [
+          "Canon EOS R5",
+          "Sony A7R IV",
+          "Nikon Z9",
+          "Fujifilm X-T5",
+          "Canon EOS R6 Mark II",
+        ];
+        newPhoto.camera = cameras[Math.floor(Math.random() * cameras.length)];
+      }
+      if (!newPhoto.lens) {
+        const lenses = [
+          "RF 24-70mm f/2.8L IS USM",
+          "FE 85mm f/1.4 GM",
+          "NIKKOR Z 50mm f/1.2 S",
+          "XF 35mm f/1.4 R",
+          "RF 16-35mm f/2.8L IS USM",
+        ];
+        newPhoto.lens = lenses[Math.floor(Math.random() * lenses.length)];
+      }
+      if (!newPhoto.focalLength) {
+        newPhoto.focalLength = 24 + Math.floor(Math.random() * 176); // 24-200mm
+      }
+      if (!newPhoto.aperture) {
+        newPhoto.aperture = (1.4 + Math.random() * 4).toFixed(1); // f/1.4 - f/5.4
+      }
+      if (!newPhoto.shutterSpeed) {
+        const speeds = [
+          "1/15",
+          "1/30",
+          "1/60",
+          "1/125",
+          "1/250",
+          "1/500",
+          "1/1000",
+          "1/2000",
+        ];
+        newPhoto.shutterSpeed =
+          speeds[Math.floor(Math.random() * speeds.length)];
+      }
+      if (!newPhoto.iso) {
+        const isos = [100, 200, 400, 800, 1600, 3200, 6400];
+        newPhoto.iso = isos[Math.floor(Math.random() * isos.length)];
+      }
     }
-    if (!newPhoto.size) {
-      newPhoto.size = Math.floor(Math.random() * 8000000) + 1500000 // 1.5-8MB
-    }
-    if (!newPhoto.width || !newPhoto.height) {
-      newPhoto.width = 3000 + Math.floor(Math.random() * 3000)
-      newPhoto.height = 2000 + Math.floor(Math.random() * 2000)
-    }
-    if (!newPhoto.location) {
-      const locations = ['San Francisco, CA', 'New York, NY', 'London, UK', 'Tokyo, Japan', 'Barcelona, Spain', 'Sydney, Australia']
-      newPhoto.location = Math.random() > 0.3 ? locations[Math.floor(Math.random() * locations.length)] : null
-    }
-    if (!newPhoto.camera) {
-      const cameras = ['Canon EOS R5', 'Sony A7R IV', 'Nikon Z9', 'Fujifilm X-T5', 'Canon EOS R6 Mark II']
-      newPhoto.camera = cameras[Math.floor(Math.random() * cameras.length)]
-    }
-    if (!newPhoto.lens) {
-      const lenses = ['RF 24-70mm f/2.8L IS USM', 'FE 85mm f/1.4 GM', 'NIKKOR Z 50mm f/1.2 S', 'XF 35mm f/1.4 R', 'RF 16-35mm f/2.8L IS USM']
-      newPhoto.lens = lenses[Math.floor(Math.random() * lenses.length)]
-    }
-    if (!newPhoto.focalLength) {
-      newPhoto.focalLength = 24 + Math.floor(Math.random() * 176) // 24-200mm
-    }
-    if (!newPhoto.aperture) {
-      newPhoto.aperture = (1.4 + Math.random() * 4).toFixed(1) // f/1.4 - f/5.4
-    }
-    if (!newPhoto.shutterSpeed) {
-      const speeds = ['1/15', '1/30', '1/60', '1/125', '1/250', '1/500', '1/1000', '1/2000']
-      newPhoto.shutterSpeed = speeds[Math.floor(Math.random() * speeds.length)]
-    }
-    if (!newPhoto.iso) {
-      const isos = [100, 200, 400, 800, 1600, 3200, 6400]
-      newPhoto.iso = isos[Math.floor(Math.random() * isos.length)]
-    }
-  }
-}, { immediate: true })
+  },
+  { immediate: true },
 );
 
 // Helper functions
