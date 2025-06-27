@@ -233,17 +233,18 @@ const handleLoadingState = (isLoading: boolean) => {
 }
 
 .related-photos-scroll::-webkit-scrollbar {
-  height: 8px;
-  background: rgba(0, 0, 0, 0.1);
+  height: 12px;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .related-photos-scroll::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .related-photos-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .related-photos-grid {
