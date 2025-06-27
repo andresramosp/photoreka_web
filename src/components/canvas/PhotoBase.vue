@@ -242,6 +242,7 @@ onMounted(() => {
   border-radius: var(--radius-md);
   overflow: hidden;
   border: 2px solid var(--border-color);
+  margin-top: auto;
 }
 
 .base-image-overlay {
