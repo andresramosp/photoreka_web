@@ -57,55 +57,75 @@
               </n-icon>
             </template>
             <div class="metadata-grid">
-              <div class="metadata-item" v-if="selectedPhoto?.created_at">
+              <div class="metadata-item">
                 <span class="label">Date Taken:</span>
                 <span class="value">{{
-                  formatDate(selectedPhoto.created_at)
+                  selectedPhoto?.created_at
+                    ? formatDate(selectedPhoto.created_at)
+                    : "Unknown"
                 }}</span>
               </div>
-              <div class="metadata-item" v-if="selectedPhoto?.size">
+              <div class="metadata-item">
                 <span class="label">File Size:</span>
                 <span class="value">{{
-                  formatFileSize(selectedPhoto.size)
+                  selectedPhoto?.size
+                    ? formatFileSize(selectedPhoto.size)
+                    : "Unknown"
                 }}</span>
               </div>
-              <div
-                class="metadata-item"
-                v-if="selectedPhoto?.width && selectedPhoto?.height"
-              >
+              <div class="metadata-item">
                 <span class="label">Dimensions:</span>
-                <span class="value"
-                  >{{ selectedPhoto.width }} ×
-                  {{ selectedPhoto.height }}px</span
-                >
+                <span class="value">{{
+                  selectedPhoto?.width && selectedPhoto?.height
+                    ? `${selectedPhoto.width} × ${selectedPhoto.height}px`
+                    : "Unknown"
+                }}</span>
               </div>
-              <div class="metadata-item" v-if="selectedPhoto?.location">
+              <div class="metadata-item">
                 <span class="label">Location:</span>
-                <span class="value">{{ selectedPhoto.location }}</span>
+                <span class="value">{{
+                  selectedPhoto?.location || "Unknown"
+                }}</span>
               </div>
-              <div class="metadata-item" v-if="selectedPhoto?.camera">
+              <div class="metadata-item">
                 <span class="label">Camera:</span>
-                <span class="value">{{ selectedPhoto.camera }}</span>
+                <span class="value">{{
+                  selectedPhoto?.camera || "Unknown"
+                }}</span>
               </div>
-              <div class="metadata-item" v-if="selectedPhoto?.lens">
+              <div class="metadata-item">
                 <span class="label">Lens:</span>
-                <span class="value">{{ selectedPhoto.lens }}</span>
+                <span class="value">{{
+                  selectedPhoto?.lens || "Unknown"
+                }}</span>
               </div>
-              <div class="metadata-item" v-if="selectedPhoto?.focalLength">
+              <div class="metadata-item">
                 <span class="label">Focal Length:</span>
-                <span class="value">{{ selectedPhoto.focalLength }}mm</span>
+                <span class="value">{{
+                  selectedPhoto?.focalLength
+                    ? `${selectedPhoto.focalLength}mm`
+                    : "Unknown"
+                }}</span>
               </div>
-              <div class="metadata-item" v-if="selectedPhoto?.aperture">
+              <div class="metadata-item">
                 <span class="label">Aperture:</span>
-                <span class="value">f/{{ selectedPhoto.aperture }}</span>
+                <span class="value">{{
+                  selectedPhoto?.aperture
+                    ? `f/${selectedPhoto.aperture}`
+                    : "Unknown"
+                }}</span>
               </div>
-              <div class="metadata-item" v-if="selectedPhoto?.shutterSpeed">
+              <div class="metadata-item">
                 <span class="label">Shutter Speed:</span>
-                <span class="value">{{ selectedPhoto.shutterSpeed }}s</span>
+                <span class="value">{{
+                  selectedPhoto?.shutterSpeed
+                    ? `${selectedPhoto.shutterSpeed}`
+                    : "Unknown"
+                }}</span>
               </div>
-              <div class="metadata-item" v-if="selectedPhoto?.iso">
+              <div class="metadata-item">
                 <span class="label">ISO:</span>
-                <span class="value">{{ selectedPhoto.iso }}</span>
+                <span class="value">{{ selectedPhoto?.iso || "Unknown" }}</span>
               </div>
             </div>
           </n-collapse-item>
