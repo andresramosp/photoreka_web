@@ -2,7 +2,7 @@
   <n-modal
     v-model:show="visible"
     preset="card"
-    style="width: 90%; max-width: 800px"
+    :style="{ width: '90%', maxWidth: '800px', maxHeight: '85vh' }"
   >
     <template #header>
       <div class="dialog-header">
