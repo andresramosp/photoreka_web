@@ -208,6 +208,7 @@
       v-if="showRelatedPhotos"
       :base-image="selectedPhotoForToolbar"
       :is-visible="showRelatedPhotos"
+      :is-loading="isLoadingRelatedPhotos"
       :toolbar-state="toolbarState"
       @close="hideRelatedPhotos"
       @photos-selected="onPhotosSelected"
