@@ -510,6 +510,7 @@ import {
 } from "naive-ui";
 import { storeToRefs } from "pinia";
 import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
+import PhotoInfoDialog from "@/components/PhotoInfoDialog.vue";
 import ExpandPhotoButtons from "@/components/canvas/PhotoControls/ExpandPhotoButtons.vue";
 import PhotoCenterButton from "@/components/canvas/PhotoControls/PhotoCenterButton.vue";
 import TagPillsCanvas from "@/components/canvas/TagPills/TagPillsCanvas.vue";
