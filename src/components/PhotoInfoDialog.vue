@@ -602,6 +602,8 @@ const saveNotes = async () => {
 
 .photo-tag {
   margin: 0;
+  background-color: var(--secondary-color) !important;
+  color: var(--text-primary) !important;
 }
 
 .add-tag-section {
