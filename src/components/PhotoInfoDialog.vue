@@ -639,22 +639,13 @@ const saveNotes = async () => {
   }
 };
 
-// Suppress ResizeObserver warnings that can occur in certain environments
+// Handle ResizeObserver errors gracefully
 if (typeof window !== "undefined") {
-  const originalError = console.error;
-  console.error = (...args) => {
-    if (
-      args.length > 0 &&
-      typeof args[0] === "string" &&
-      args[0].includes(
-        "ResizeObserver loop completed with undelivered notifications",
-      )
-    ) {
-      // Suppress this specific warning
-      return;
+  window.addEventListener("error", (e) => {
+    if (e.message && e.message.includes("ResizeObserver loop limit exceeded")) {
+      e.stopImmediatePropagation();
     }
-    originalError.apply(console, args);
-  };
+  });
 }
 </script>
 
