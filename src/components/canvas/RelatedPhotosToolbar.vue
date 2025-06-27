@@ -63,7 +63,7 @@
 
 <script setup lang="ts">
 import { ref, nextTick } from "vue";
-import { NIcon } from "naive-ui";
+import { NIcon, NSkeleton } from "naive-ui";
 import PhotoBase from "./PhotoBase.vue";
 import PhotoCard from "../PhotoCard.vue";
 
