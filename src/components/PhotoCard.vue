@@ -50,9 +50,9 @@
           >
             {{ tag }}
           </span>
-          <span v-if="uniqueMatchingTags.length > 3" class="tag-more">
+          <!-- <span v-if="uniqueMatchingTags.length > 3" class="tag-more">
             +{{ uniqueMatchingTags.length - 3 }}
-          </span>
+          </span> -->
         </div>
 
         <!-- Curation actions for curation mode -->
@@ -111,7 +111,7 @@ import {
   CheckmarkCircleOutline as CheckCircleIcon,
 } from "@vicons/ionicons5";
 
-interface Photo {
+export interface Photo {
   id: string;
   url: string;
   thumbnailUrl: string;
@@ -203,10 +203,10 @@ const handleMouseLeave = () => {
   background-color: #2c2c32;
 }
 
-.photo-card:hover {
+/* .photo-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-}
+} */
 
 .photo-card.selected {
   border-color: #8b5cf6;
@@ -220,9 +220,9 @@ const handleMouseLeave = () => {
   background-color: var(--bg-surface);
 }
 
-.photo-card:hover .photo-image {
+/* .photo-card:hover .photo-image {
   transform: scale(1.03);
-}
+} */
 
 .bottom-overlay {
   position: absolute;
@@ -315,7 +315,7 @@ const handleMouseLeave = () => {
 }
 
 .tag {
-  background-color: var(--secondary-color);
+  background-color: color-mix(in srgb, var(--secondary-color), transparent 50%);
   color: #ffffff;
   font-size: 10px;
   /* font-weight: 500; */

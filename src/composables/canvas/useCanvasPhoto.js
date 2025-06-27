@@ -312,6 +312,49 @@ export function useCanvasPhoto(stageRef, photos, photoRefs, stageConfig) {
     if (anyNode) anyNode.getLayer().batchDraw();
   };
 
+  function handlePhotoDrop(event, removePhotoFromToolbar) {
+    event.preventDefault();
+
+    const raw = event.dataTransfer.getData("application/json");
+    if (!raw) return;
+
+    const droppedPhotos = JSON.parse(raw);
+    if (!Array.isArray(droppedPhotos) || droppedPhotos.length === 0) return;
+
+    const stage = stageRef.value.getStage();
+    const containerRect = stage.container().getBoundingClientRect();
+    const transform = stage.getAbsoluteTransform().copy().invert();
+
+    const pointer = {
+      x: event.clientX - containerRect.left,
+      y: event.clientY - containerRect.top,
+    };
+
+    const stagePoint = transform.point(pointer);
+
+    const defaultWidth = 200;
+    const defaultHeight = 140;
+    const spreadOffset = 30; // distancia entre cada foto
+
+    droppedPhotos.forEach((photo, index) => {
+      const width = photo.config?.width || defaultWidth;
+      const height = photo.config?.height || defaultHeight;
+
+      const offsetX = spreadOffset * index;
+      const offsetY = spreadOffset * index;
+
+      photo.config = {
+        x: stagePoint.x - width / 2 + offsetX,
+        y: stagePoint.y - height / 2 + offsetY,
+        width,
+        height,
+      };
+
+      canvasStore.addPhotos([photo]);
+      removePhotoFromToolbar(photo.id);
+    });
+  }
+
   return {
     handleSelectPhoto,
     handleDragStart,
@@ -321,5 +364,6 @@ export function useCanvasPhoto(stageRef, photos, photoRefs, stageConfig) {
     handleMouseOut,
     autoAlignPhotos,
     isHoveringTrash,
+    handlePhotoDrop,
   };
 }

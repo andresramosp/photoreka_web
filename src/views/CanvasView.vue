@@ -1,6 +1,10 @@
 <template>
   <div class="canvas-container">
-    <div ref="canvasContainer" @dragover.prevent @drop="handlePhotoDrop">
+    <div
+      ref="canvasContainer"
+      @dragover.prevent
+      @drop="handlePhotoDropAndRemove"
+    >
       <!-- Konva Canvas -->
       <v-stage
         ref="stageRef"
@@ -205,6 +209,7 @@
 
     <!-- Related Photos Toolbar -->
     <RelatedPhotosToolbar
+      ref="relatedPhotosToolbarRef"
       v-if="showRelatedPhotos"
       :base-image="selectedPhotoForToolbar"
       :is-visible="showRelatedPhotos"
@@ -364,7 +369,7 @@
               </template>
               <span v-if="canvasModeIsExpanded" class="button-text">{{
                 expansionTypeOptions.find(
-                  (opt) => opt.value == toolbarState.expansion.type,
+                  (opt) => opt.value == toolbarState.expansion.type
                 ).label
               }}</span>
               <n-icon v-if="canvasModeIsExpanded" class="dropdown-arrow">
@@ -514,6 +519,7 @@ const { photos } = storeToRefs(canvasStore);
 const stageRef = ref(null);
 const canvasContainer = ref();
 const expandableGroupRef = ref();
+const relatedPhotosToolbarRef = ref();
 
 const photoRefs = ref({});
 const setPhotoRef = (id) => (el) => {
@@ -581,6 +587,7 @@ const {
   handleMouseOut,
   autoAlignPhotos,
   isHoveringTrash,
+  handlePhotoDrop,
 } = useCanvasPhoto(stageRef, photos, photoRefs, stageConfig);
 
 const { animatePhotoGroup, animatePhotoGroupExplosion } = usePhotoAnimations();
@@ -593,6 +600,10 @@ const dynamicSizeFactor = computed(() => {
 });
 
 // Event handlers
+
+function handlePhotoDropAndRemove(event) {
+  handlePhotoDrop(event, relatedPhotosToolbarRef.value.removePhotoFromList);
+}
 
 async function handleAddPhotos(photoIds) {
   // Fetch todas las fotos necesarias en paralelo
@@ -637,7 +648,7 @@ const handleAddPhotosToCanvas = async (event) => {
     basePosition,
     toolbarState.value.expansion.opposite,
     toolbarState.value.expansion.inverted,
-    true,
+    true
   );
 
   if (
@@ -651,7 +662,7 @@ const handleAddPhotosToCanvas = async (event) => {
       position,
       offsetX,
       offsetY,
-      toolbarState.value.photoOptions.spreadMode,
+      toolbarState.value.photoOptions.spreadMode
     );
   } else {
     animatePhotoGroupExplosion(photoRefs, photos, basePosition, position);
@@ -706,7 +717,7 @@ const fitStageToPhotos = (extraPaddingRatio = 0.1) => {
       minY: Infinity,
       maxX: -Infinity,
       maxY: -Infinity,
-    },
+    }
   );
 
   // Añadir padding adicional
@@ -722,7 +733,7 @@ const fitStageToPhotos = (extraPaddingRatio = 0.1) => {
   const targetZoom = Math.min(
     containerWidth / photosWidth,
     containerHeight / photosHeight,
-    2,
+    2
   );
 
   const targetX =
@@ -861,7 +872,7 @@ watch(
       }
     });
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 onMounted(() => {
@@ -1159,10 +1170,7 @@ onUnmounted(() => {
   align-items: center;
   line-height: 90px;
 
-  transition:
-    background-color 0.2s,
-    border-color 0.2s,
-    transform 0.2s ease;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.2s ease;
   transform: rotate(0deg) scale(1);
   align-content: center;
   justify-content: center;
@@ -1173,9 +1181,7 @@ onUnmounted(() => {
   background-color: rgba(255, 0, 0, 0.25);
   border-color: darkred;
   transform: rotate(8deg) scale(1.08);
-  transition:
-    transform 0.2s ease,
-    background-color 0.2s ease,
+  transition: transform 0.2s ease, background-color 0.2s ease,
     border-color 0.2s ease;
 }
 </style>

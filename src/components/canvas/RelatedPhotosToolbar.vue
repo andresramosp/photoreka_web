@@ -24,7 +24,7 @@
             <!-- Show skeletons when loading -->
             <template v-if="props.isLoading">
               <div
-                v-for="n in 6"
+                v-for="n in 10"
                 :key="`skeleton-${n}`"
                 class="related-photo-skeleton"
               >
@@ -40,6 +40,9 @@
                 :selected="selectedPhotos.includes(photo.id)"
                 @select="togglePhotoSelection"
                 @info="onPhotoInfo"
+                draggable="true"
+                @dragstart="(e: any) => onDragStart(e, photo)"
+                style="cursor: grab"
               />
             </template>
           </div>
@@ -65,17 +68,7 @@
 import { ref, nextTick } from "vue";
 import { NIcon, NSkeleton } from "naive-ui";
 import PhotoBase from "./PhotoBase.vue";
-import PhotoCard from "../PhotoCard.vue";
-
-interface Photo {
-  id: string;
-  url: string;
-  title: string;
-  rating: number;
-  matchingTags?: string[];
-  width?: number;
-  height?: number;
-}
+import PhotoCard, { type Photo } from "../PhotoCard.vue";
 
 interface Props {
   isVisible: boolean;
@@ -91,16 +84,7 @@ interface Emits {
   (e: "loading", isLoading: boolean): void;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  isVisible: false,
-  isLoading: false,
-  baseImage: () => ({
-    id: "base-1",
-    url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop",
-    title: "Base Image",
-    rating: 4,
-  }),
-});
+const props = defineProps<Props>();
 
 const emit = defineEmits<Emits>();
 
@@ -147,6 +131,23 @@ const handleHorizontalScroll = (e: WheelEvent) => {
 const handleLoadingState = (isLoading: boolean) => {
   emit("loading", isLoading);
 };
+
+function removePhotoFromList(photoId: string) {
+  selectedPhotos.value = selectedPhotos.value.filter((id) => id != photoId);
+  relatedPhotos.value = relatedPhotos.value.filter((p) => p.id !== photoId);
+}
+
+defineExpose({ removePhotoFromList });
+
+function onDragStart(ev: any, photo: Photo) {
+  const photosToDrag =
+    selectedPhotos.value.length > 0
+      ? relatedPhotos.value.filter((p) => selectedPhotos.value.includes(p.id))
+      : [photo];
+
+  const data = JSON.stringify(photosToDrag);
+  ev.dataTransfer?.setData("application/json", data);
+}
 </script>
 
 <style scoped>

@@ -38,7 +38,7 @@
       <img
         :src="baseImage.thumbnailUrl"
         :alt="baseImage.title"
-        class="photo-image"
+        class="photo-base-image"
       />
       <div
         v-show="toolbarState.expansion.type !== 'tags'"
@@ -84,7 +84,7 @@ const loadPhotosFromToolbar = async () => {
     100,
     basePosition,
     props.toolbarState.expansion.opposite,
-    props.toolbarState.expansion.inverted,
+    props.toolbarState.expansion.inverted
   );
 
   await nextTick();
@@ -113,7 +113,7 @@ const loadPhotosFromSelections = debounce(async () => {
     100,
     basePosition,
     props.toolbarState.expansion.opposite,
-    props.toolbarState.expansion.inverted,
+    props.toolbarState.expansion.inverted
   );
 
   await nextTick();
@@ -155,7 +155,7 @@ watch(
       loadPhotosFromSelections();
     }
   },
-  { deep: true },
+  { deep: true }
 );
 
 watch(
@@ -167,7 +167,7 @@ watch(
     if (!photo || skip) return;
     await loadPhotosFromToolbar();
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 watch(
@@ -185,7 +185,7 @@ watch(
     } else {
       loadPhotosFromToolbar();
     }
-  },
+  }
 );
 
 watch(
@@ -194,7 +194,7 @@ watch(
     if (newCriteria === "tags" || newCriteria === "composition") {
       emit("photos-generated", []);
     }
-  },
+  }
 );
 
 function resetAllTags() {
@@ -215,7 +215,7 @@ onMounted(() => {
   width: 230px;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 5px;
 }
 
 .base-image-header {
@@ -240,9 +240,7 @@ onMounted(() => {
   position: relative;
   width: 100%;
   height: 160px;
-  border-radius: var(--radius-md);
   overflow: hidden;
-  border: 2px solid var(--border-color);
 }
 
 .base-image-overlay {
@@ -276,5 +274,12 @@ onMounted(() => {
   z-index: 2;
   justify-content: center;
   align-items: flex-start;
+}
+
+.photo-base-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
 }
 </style>

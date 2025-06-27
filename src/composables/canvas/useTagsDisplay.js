@@ -33,7 +33,9 @@ export function useTagDisplay(tagsSource) {
     .trim();
 
   const hoverColor = "lightgray";
-  const defaultColor = "gray";
+  const defaultColor = getComputedStyle(document.documentElement)
+    .getPropertyValue("--bg-tag")
+    .trim();
   const textColor = getComputedStyle(document.documentElement)
     .getPropertyValue("--text-primary")
     .trim();

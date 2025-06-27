@@ -41,6 +41,7 @@
   --bg-surface-hover: #3c3c42;
   --bg-card: #18181c;
   --bg-overlay: rgba(0, 0, 0, 0.6);
+  --bg-tag: rgba(128, 128, 128, 0.7);
 
   /* ===== BORDER COLORS ===== */
   --border-color: #2c2c32;
