@@ -567,17 +567,18 @@ const saveNotes = async () => {
 
 .metadata-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-xs);
 }
 
 .metadata-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
   background: var(--bg-surface);
   border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
 }
 
 .metadata-item .label {
