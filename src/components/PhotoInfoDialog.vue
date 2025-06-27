@@ -435,11 +435,46 @@ const copyNameToClipboard = async () => {
     props.selectedPhoto?.filename || props.selectedPhoto?.name || "Untitled";
 
   try {
-    await navigator.clipboard.writeText(name);
-    message.success("Photo name copied to clipboard");
+    // Try modern clipboard API first
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(name);
+      message.success("Photo name copied to clipboard");
+    } else {
+      // Fallback for environments where clipboard API is not available
+      fallbackCopyTextToClipboard(name);
+    }
   } catch (error) {
-    message.error("Failed to copy to clipboard");
-    console.error("Copy failed:", error);
+    console.warn("Clipboard API failed, trying fallback method:", error);
+    fallbackCopyTextToClipboard(name);
+  }
+};
+
+const fallbackCopyTextToClipboard = (text) => {
+  try {
+    // Create a temporary textarea element
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    // Try to copy using the old execCommand method
+    const successful = document.execCommand("copy");
+    document.body.removeChild(textArea);
+
+    if (successful) {
+      message.success("Photo name copied to clipboard");
+    } else {
+      message.warning(
+        "Unable to copy automatically. Please copy manually: " + text,
+      );
+    }
+  } catch (err) {
+    console.warn("All copy methods failed:", err);
+    message.warning("Copy not supported. Photo name: " + text);
   }
 };
 
