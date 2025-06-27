@@ -615,7 +615,8 @@ const saveNotes = async () => {
 
 .photo-display {
   width: 100%;
-  height: 300px;
+  height: 450px;
+  min-height: 450px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
@@ -625,6 +626,7 @@ const saveNotes = async () => {
   justify-content: center;
   position: relative;
   margin-bottom: var(--spacing-md);
+  flex-shrink: 0;
 }
 
 .main-photo {
