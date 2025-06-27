@@ -1030,6 +1030,69 @@ onUnmounted(() => {
   height: 16px;
 }
 
+/* Config Menu Styles */
+.config-menu-container {
+  position: relative;
+}
+
+.config-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: var(--bg-container, rgba(30, 30, 30, 0.95));
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  margin-top: 8px;
+  min-width: 280px;
+  animation: slideDown 0.2s ease-out;
+}
+
+.config-section {
+  padding: var(--spacing-lg);
+}
+
+.config-section:not(:last-child) {
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+}
+
+.section-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+.config-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.config-item:last-child {
+  margin-bottom: 0;
+}
+
+.config-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.layout-pills {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.layout-pill {
+  padding: 4px 8px !important;
+  font-size: var(--font-size-xs) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .canvas-controls {
