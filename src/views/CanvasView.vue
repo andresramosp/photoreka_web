@@ -490,7 +490,14 @@ import { useCanvasStore, expansionTypeOptions } from "@/stores/canvas.js";
 // import PhotoDetectionAreas from "@/components/canvas/PhotoControls/PhotoDetectionAreas.vue";
 import { usePhotosStore } from "@/stores/photos";
 import { ref, onMounted, onUnmounted, computed, h, watch } from "vue";
-import { NButton, NButtonGroup, NIcon, NSpace } from "naive-ui";
+import {
+  NButton,
+  NButtonGroup,
+  NIcon,
+  NSpace,
+  NSwitch,
+  NInputNumber,
+} from "naive-ui";
 import { storeToRefs } from "pinia";
 import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
 import ExpandPhotoButtons from "@/components/canvas/PhotoControls/ExpandPhotoButtons.vue";
