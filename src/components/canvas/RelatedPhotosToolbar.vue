@@ -6,7 +6,7 @@
         :baseImage="props.baseImage"
         :toolbar-state="toolbarState"
         @photos-generated="handleGeneratedPhotos"
-        @loading="(val) => {}"
+        @loading="handleLoadingState"
       />
 
       <!-- Related Photos Section (Scrollable Right) -->
@@ -21,14 +21,27 @@
           ref="scrollContainer"
         >
           <div class="related-photos-grid">
-            <PhotoCard
-              v-for="photo in relatedPhotos"
-              :key="photo.id"
-              :photo="photo"
-              :selected="selectedPhotos.includes(photo.id)"
-              @select="togglePhotoSelection"
-              @info="onPhotoInfo"
-            />
+            <!-- Show skeletons when loading -->
+            <template v-if="props.isLoading">
+              <div
+                v-for="n in 6"
+                :key="`skeleton-${n}`"
+                class="related-photo-skeleton"
+              >
+                <n-skeleton height="100%" />
+              </div>
+            </template>
+            <!-- Show actual photos when loaded -->
+            <template v-else>
+              <PhotoCard
+                v-for="photo in relatedPhotos"
+                :key="photo.id"
+                :photo="photo"
+                :selected="selectedPhotos.includes(photo.id)"
+                @select="togglePhotoSelection"
+                @info="onPhotoInfo"
+              />
+            </template>
           </div>
         </div>
       </div>
@@ -50,7 +63,7 @@
 
 <script setup lang="ts">
 import { ref, nextTick } from "vue";
-import { NIcon } from "naive-ui";
+import { NIcon, NSkeleton } from "naive-ui";
 import PhotoBase from "./PhotoBase.vue";
 import PhotoCard from "../PhotoCard.vue";
 
@@ -68,16 +81,19 @@ interface Props {
   isVisible: boolean;
   baseImage?: Photo;
   toolbarState: Object;
+  isLoading?: boolean;
 }
 
 interface Emits {
   (e: "close"): void;
   (e: "photos-selected", photoIds: string[]): void;
   (e: "search-type-changed", searchType: string): void;
+  (e: "loading", isLoading: boolean): void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isVisible: false,
+  isLoading: false,
   baseImage: () => ({
     id: "base-1",
     url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop",
@@ -126,6 +142,10 @@ const handleHorizontalScroll = (e: WheelEvent) => {
 
   e.preventDefault();
   scrollContainer.value.scrollLeft += e.deltaY;
+};
+
+const handleLoadingState = (isLoading: boolean) => {
+  emit("loading", isLoading);
 };
 </script>
 
@@ -209,25 +229,22 @@ const handleHorizontalScroll = (e: WheelEvent) => {
   overflow-y: hidden;
   padding-bottom: var(--spacing-xs);
   scrollbar-width: thin; /* Firefox */
-  scrollbar-color: transparent transparent;
-}
-
-.related-photos-scroll:hover {
-  scrollbar-color: rgba(0, 0, 0, 0.4) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
 }
 
 .related-photos-scroll::-webkit-scrollbar {
-  height: 8px;
-  background: transparent;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .related-photos-scroll::-webkit-scrollbar-thumb {
-  background: transparent;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.related-photos-scroll:hover::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.4);
+.related-photos-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .related-photos-grid {
@@ -241,6 +258,15 @@ const handleHorizontalScroll = (e: WheelEvent) => {
   flex-shrink: 0;
   width: 160px;
   height: 160px;
+}
+
+.related-photo-skeleton {
+  flex-shrink: 0;
+  width: 160px;
+  height: 160px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background-color: var(--bg-surface);
 }
 
 @media (max-width: 768px) {
@@ -269,6 +295,11 @@ const handleHorizontalScroll = (e: WheelEvent) => {
     width: 120px;
     height: 120px;
   }
+
+  .related-photo-skeleton {
+    width: 120px;
+    height: 120px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -289,6 +320,11 @@ const handleHorizontalScroll = (e: WheelEvent) => {
   }
 
   .related-photos-grid .photo-card {
+    width: 100px;
+    height: 100px;
+  }
+
+  .related-photo-skeleton {
     width: 100px;
     height: 100px;
   }

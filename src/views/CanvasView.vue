@@ -208,8 +208,10 @@
       v-if="showRelatedPhotos"
       :base-image="selectedPhotoForToolbar"
       :is-visible="showRelatedPhotos"
+      :is-loading="isLoadingRelatedPhotos"
       :toolbar-state="toolbarState"
       @close="hideRelatedPhotos"
+      @loading="isLoadingRelatedPhotos = $event"
       @photos-selected="onPhotosSelected"
       @search-type-changed="onSearchTypeChanged"
     />
@@ -251,18 +253,70 @@
           </template>
         </n-button>
 
-        <n-button @click="openConfig">
-          <template #icon>
-            <n-icon>
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"
+        <div class="config-menu-container" ref="configMenuRef">
+          <n-button @click="openConfig">
+            <template #icon>
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+          </n-button>
+
+          <!-- Config Menu Dropdown -->
+          <div v-if="showConfigMenu" class="config-dropdown" @click.stop>
+            <!-- Canvas Section -->
+            <div class="config-section">
+              <h4 class="section-title">Canvas</h4>
+              <div class="config-item">
+                <span class="config-label">Auto Align</span>
+                <n-switch v-model:value="toolbarState.expansion.autoAlign" />
+              </div>
+            </div>
+
+            <!-- Expansion Section -->
+            <div class="config-section">
+              <h4 class="section-title">Expansion</h4>
+
+              <!-- Layout Pills -->
+              <div class="config-item">
+                <span class="config-label">Layout</span>
+                <div class="layout-pills">
+                  <n-button
+                    v-for="layout in ['vertical', 'horizontal', 'circular']"
+                    :key="layout"
+                    :type="
+                      toolbarState.expansion.layout === layout
+                        ? 'primary'
+                        : 'default'
+                    "
+                    size="small"
+                    class="layout-pill"
+                    @click="toolbarState.expansion.layout = layout"
+                  >
+                    {{ layout.charAt(0).toUpperCase() + layout.slice(1) }}
+                  </n-button>
+                </div>
+              </div>
+
+              <!-- Photo Count -->
+              <div class="config-item">
+                <span class="config-label">Photos</span>
+                <n-input-number
+                  v-model:value="toolbarState.expansion.photoCount"
+                  :min="1"
+                  :max="5"
+                  size="small"
+                  style="width: 80px"
                 />
-              </svg>
-            </n-icon>
-          </template>
-        </n-button>
+              </div>
+            </div>
+          </div>
+        </div>
       </n-space>
     </div>
 
@@ -310,7 +364,7 @@
               </template>
               <span v-if="canvasModeIsExpanded" class="button-text">{{
                 expansionTypeOptions.find(
-                  (opt) => opt.value == toolbarState.expansion.type
+                  (opt) => opt.value == toolbarState.expansion.type,
                 ).label
               }}</span>
               <n-icon v-if="canvasModeIsExpanded" class="dropdown-arrow">
@@ -436,7 +490,14 @@ import { useCanvasStore, expansionTypeOptions } from "@/stores/canvas.js";
 // import PhotoDetectionAreas from "@/components/canvas/PhotoControls/PhotoDetectionAreas.vue";
 import { usePhotosStore } from "@/stores/photos";
 import { ref, onMounted, onUnmounted, computed, h, watch } from "vue";
-import { NButton, NButtonGroup, NIcon, NSpace } from "naive-ui";
+import {
+  NButton,
+  NButtonGroup,
+  NIcon,
+  NSpace,
+  NSwitch,
+  NInputNumber,
+} from "naive-ui";
 import { storeToRefs } from "pinia";
 import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
 import ExpandPhotoButtons from "@/components/canvas/PhotoControls/ExpandPhotoButtons.vue";
@@ -468,6 +529,8 @@ const toolbarState = ref({
     opposite: false,
     autoAlign: false,
     onCanvas: false,
+    layout: "vertical", // vertical, horizontal, circular
+    photoCount: 3, // 1-5
   },
   photoOptions: {
     count: 1,
@@ -482,10 +545,15 @@ const showRelatedPhotos = ref(false);
 const showPhotosDialog = ref(false);
 const showTrashDialog = ref(false);
 const selectedPhotoForToolbar = ref(null);
+const isLoadingRelatedPhotos = ref(false);
 
 // Expandable dropdown state
 const canvasModeIsExpanded = ref(false);
 const isDropdownOpen = ref(false);
+
+// Config menu state
+const showConfigMenu = ref(false);
+const configMenuRef = ref(null);
 
 // Dropdown options with SVG icons
 
@@ -569,7 +637,7 @@ const handleAddPhotosToCanvas = async (event) => {
     basePosition,
     toolbarState.value.expansion.opposite,
     toolbarState.value.expansion.inverted,
-    true
+    true,
   );
 
   if (
@@ -583,7 +651,7 @@ const handleAddPhotosToCanvas = async (event) => {
       position,
       offsetX,
       offsetY,
-      toolbarState.value.photoOptions.spreadMode
+      toolbarState.value.photoOptions.spreadMode,
     );
   } else {
     animatePhotoGroupExplosion(photoRefs, photos, basePosition, position);
@@ -638,7 +706,7 @@ const fitStageToPhotos = (extraPaddingRatio = 0.1) => {
       minY: Infinity,
       maxX: -Infinity,
       maxY: -Infinity,
-    }
+    },
   );
 
   // Añadir padding adicional
@@ -654,7 +722,7 @@ const fitStageToPhotos = (extraPaddingRatio = 0.1) => {
   const targetZoom = Math.min(
     containerWidth / photosWidth,
     containerHeight / photosHeight,
-    2
+    2,
   );
 
   const targetX =
@@ -684,8 +752,7 @@ const fitStageToPhotos = (extraPaddingRatio = 0.1) => {
 };
 
 const openConfig = () => {
-  console.log("Open config");
-  // TODO: Implement config dialog
+  showConfigMenu.value = !showConfigMenu.value;
 };
 
 const toggleInteractionMode = () => {
@@ -745,8 +812,17 @@ const handleResize = () => {
   }
 };
 
+// Close config menu function
+const closeConfigMenu = () => {
+  showConfigMenu.value = false;
+};
+
 // Click outside handler to close dropdown only
 const handleClickOutside = (event) => {
+  // Close config menu if clicking outside
+  if (configMenuRef.value && !configMenuRef.value.contains(event.target)) {
+    closeConfigMenu();
+  }
   const target = event.target;
 
   if (
@@ -785,7 +861,7 @@ watch(
       }
     });
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 onMounted(() => {
@@ -954,6 +1030,69 @@ onUnmounted(() => {
   height: 16px;
 }
 
+/* Config Menu Styles */
+.config-menu-container {
+  position: relative;
+}
+
+.config-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: var(--bg-container, rgba(30, 30, 30, 0.95));
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  margin-top: 8px;
+  min-width: 280px;
+  animation: slideDown 0.2s ease-out;
+}
+
+.config-section {
+  padding: var(--spacing-lg);
+}
+
+.config-section:not(:last-child) {
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+}
+
+.section-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+.config-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.config-item:last-child {
+  margin-bottom: 0;
+}
+
+.config-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.layout-pills {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.layout-pill {
+  padding: 4px 8px !important;
+  font-size: var(--font-size-xs) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .canvas-controls {
@@ -1020,7 +1159,10 @@ onUnmounted(() => {
   align-items: center;
   line-height: 90px;
 
-  transition: background-color 0.2s, border-color 0.2s, transform 0.2s ease;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    transform 0.2s ease;
   transform: rotate(0deg) scale(1);
   align-content: center;
   justify-content: center;
@@ -1031,7 +1173,9 @@ onUnmounted(() => {
   background-color: rgba(255, 0, 0, 0.25);
   border-color: darkred;
   transform: rotate(8deg) scale(1.08);
-  transition: transform 0.2s ease, background-color 0.2s ease,
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
     border-color 0.2s ease;
 }
 </style>

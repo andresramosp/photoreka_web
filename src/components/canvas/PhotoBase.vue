@@ -7,7 +7,15 @@
         :options="expansionTypeOptions"
         placeholder="Search type"
         label-field="label"
+        class="expansion-type-select"
       />
+      <n-checkbox
+        v-model:checked="toolbarState.expansion.opposite"
+        size="small"
+        class="opposite-checkbox"
+      >
+        Opposite
+      </n-checkbox>
     </div>
     <div class="base-image-container">
       <div
@@ -43,7 +51,7 @@
 </template>
 
 <script setup>
-import { NSelect } from "naive-ui";
+import { NSelect, NCheckbox } from "naive-ui";
 import { nextTick, onMounted, ref, watch } from "vue";
 import { useCanvasStore, expansionTypeOptions } from "@/stores/canvas.js";
 import { useTagDisplay } from "@/composables/canvas/useTagsDisplay";
@@ -76,7 +84,7 @@ const loadPhotosFromToolbar = async () => {
     100,
     basePosition,
     props.toolbarState.expansion.opposite,
-    props.toolbarState.expansion.inverted
+    props.toolbarState.expansion.inverted,
   );
 
   await nextTick();
@@ -105,7 +113,7 @@ const loadPhotosFromSelections = debounce(async () => {
     100,
     basePosition,
     props.toolbarState.expansion.opposite,
-    props.toolbarState.expansion.inverted
+    props.toolbarState.expansion.inverted,
   );
 
   await nextTick();
@@ -147,7 +155,7 @@ watch(
       loadPhotosFromSelections();
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 watch(
@@ -159,7 +167,7 @@ watch(
     if (!photo || skip) return;
     await loadPhotosFromToolbar();
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 watch(
@@ -177,7 +185,7 @@ watch(
     } else {
       loadPhotosFromToolbar();
     }
-  }
+  },
 );
 
 watch(
@@ -186,7 +194,7 @@ watch(
     if (newCriteria === "tags" || newCriteria === "composition") {
       emit("photos-generated", []);
     }
-  }
+  },
 );
 
 function resetAllTags() {
@@ -211,7 +219,21 @@ onMounted(() => {
 }
 
 .base-image-header {
+  display: flex;
+  gap: var(--spacing-sm);
   width: 100%;
+  align-items: center;
+}
+
+.expansion-type-select {
+  flex: 1.5;
+}
+
+.opposite-checkbox {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-size: var(--font-size-sm);
 }
 
 .base-image-container {
