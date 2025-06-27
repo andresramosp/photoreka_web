@@ -7,7 +7,15 @@
         :options="expansionTypeOptions"
         placeholder="Search type"
         label-field="label"
+        class="expansion-type-select"
       />
+      <n-checkbox
+        v-model:checked="toolbarState.expansion.opposite"
+        size="small"
+        class="opposite-checkbox"
+      >
+        Opposite
+      </n-checkbox>
     </div>
     <div class="base-image-container">
       <div
@@ -76,7 +84,7 @@ const loadPhotosFromToolbar = async () => {
     100,
     basePosition,
     props.toolbarState.expansion.opposite,
-    props.toolbarState.expansion.inverted
+    props.toolbarState.expansion.inverted,
   );
 
   await nextTick();
@@ -105,7 +113,7 @@ const loadPhotosFromSelections = debounce(async () => {
     100,
     basePosition,
     props.toolbarState.expansion.opposite,
-    props.toolbarState.expansion.inverted
+    props.toolbarState.expansion.inverted,
   );
 
   await nextTick();
@@ -147,7 +155,7 @@ watch(
       loadPhotosFromSelections();
     }
   },
-  { deep: true }
+  { deep: true },
 );
 
 watch(
@@ -159,7 +167,7 @@ watch(
     if (!photo || skip) return;
     await loadPhotosFromToolbar();
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 watch(
@@ -177,7 +185,7 @@ watch(
     } else {
       loadPhotosFromToolbar();
     }
-  }
+  },
 );
 
 watch(
@@ -186,7 +194,7 @@ watch(
     if (newCriteria === "tags" || newCriteria === "composition") {
       emit("photos-generated", []);
     }
-  }
+  },
 );
 
 function resetAllTags() {
