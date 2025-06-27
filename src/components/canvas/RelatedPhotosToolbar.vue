@@ -258,6 +258,15 @@ const handleHorizontalScroll = (e: WheelEvent) => {
   height: 160px;
 }
 
+.related-photo-skeleton {
+  flex-shrink: 0;
+  width: 160px;
+  height: 160px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background-color: var(--bg-surface);
+}
+
 @media (max-width: 768px) {
   .related-photos-toolbar {
     height: 200px;
