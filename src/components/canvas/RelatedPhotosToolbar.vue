@@ -232,22 +232,18 @@ const handleLoadingState = (isLoading: boolean) => {
   scrollbar-color: rgba(0, 0, 0, 0.4) transparent;
 }
 
-.related-photos-scroll:hover {
-  scrollbar-color: rgba(0, 0, 0, 0.4) transparent;
-}
-
 .related-photos-scroll::-webkit-scrollbar {
   height: 8px;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .related-photos-scroll::-webkit-scrollbar-thumb {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.4);
   border-radius: 4px;
 }
 
-.related-photos-scroll:hover::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.4);
+.related-photos-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .related-photos-grid {
