@@ -21,14 +21,27 @@
           ref="scrollContainer"
         >
           <div class="related-photos-grid">
-            <PhotoCard
-              v-for="photo in relatedPhotos"
-              :key="photo.id"
-              :photo="photo"
-              :selected="selectedPhotos.includes(photo.id)"
-              @select="togglePhotoSelection"
-              @info="onPhotoInfo"
-            />
+            <!-- Show skeletons when loading -->
+            <template v-if="props.isLoading">
+              <div
+                v-for="n in 6"
+                :key="`skeleton-${n}`"
+                class="related-photo-skeleton"
+              >
+                <n-skeleton height="100%" />
+              </div>
+            </template>
+            <!-- Show actual photos when loaded -->
+            <template v-else>
+              <PhotoCard
+                v-for="photo in relatedPhotos"
+                :key="photo.id"
+                :photo="photo"
+                :selected="selectedPhotos.includes(photo.id)"
+                @select="togglePhotoSelection"
+                @info="onPhotoInfo"
+              />
+            </template>
           </div>
         </div>
       </div>
