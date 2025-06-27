@@ -531,7 +531,7 @@ import ExpandPhotoButtons from "@/components/canvas/PhotoControls/ExpandPhotoBut
 import PhotoCenterButton from "@/components/canvas/PhotoControls/PhotoCenterButton.vue";
 import TagPillsCanvas from "@/components/canvas/TagPills/TagPillsCanvas.vue";
 import RelatedPhotosToolbar from "@/components/canvas/RelatedPhotosToolbar.vue";
-import { CameraOutline, Save, SaveOutline } from "@vicons/ionicons5";
+import { SaveOutline } from "@vicons/ionicons5";
 
 const canvasStore = useCanvasStore();
 const photosStore = usePhotosStore();
@@ -556,7 +556,7 @@ const toolbarState = ref({
     type: "embedding",
     inverted: false,
     opposite: false,
-    autoAlign: false,
+    autoAlign: true,
     onCanvas: false,
   },
   photoOptions: {
