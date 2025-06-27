@@ -229,7 +229,7 @@ const handleLoadingState = (isLoading: boolean) => {
   overflow-y: hidden;
   padding-bottom: var(--spacing-xs);
   scrollbar-width: thin; /* Firefox */
-  scrollbar-color: transparent transparent;
+  scrollbar-color: rgba(0, 0, 0, 0.4) transparent;
 }
 
 .related-photos-scroll:hover {
