@@ -322,6 +322,11 @@ const handleHorizontalScroll = (e: WheelEvent) => {
     height: 100px;
   }
 
+  .related-photo-skeleton {
+    width: 100px;
+    height: 100px;
+  }
+
   .related-photos-header {
     flex-direction: column;
     align-items: flex-start;
