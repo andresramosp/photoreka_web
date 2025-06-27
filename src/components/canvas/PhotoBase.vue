@@ -222,6 +222,8 @@ onMounted(() => {
   display: flex;
   gap: var(--spacing-sm);
   width: 100%;
+  height: 32px;
+  align-items: center;
 }
 
 .expansion-type-select {
