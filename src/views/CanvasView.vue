@@ -812,8 +812,17 @@ const handleResize = () => {
   }
 };
 
+// Close config menu function
+const closeConfigMenu = () => {
+  showConfigMenu.value = false;
+};
+
 // Click outside handler to close dropdown only
 const handleClickOutside = (event) => {
+  // Close config menu if clicking outside
+  if (configMenuRef.value && !configMenuRef.value.contains(event.target)) {
+    closeConfigMenu();
+  }
   const target = event.target;
 
   if (
