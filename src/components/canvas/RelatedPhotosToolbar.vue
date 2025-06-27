@@ -143,6 +143,10 @@ const handleHorizontalScroll = (e: WheelEvent) => {
   e.preventDefault();
   scrollContainer.value.scrollLeft += e.deltaY;
 };
+
+const handleLoadingState = (isLoading: boolean) => {
+  emit("loading", isLoading);
+};
 </script>
 
 <style scoped>
