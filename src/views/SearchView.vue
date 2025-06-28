@@ -800,6 +800,17 @@ onUnmounted(() => {
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 32px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  transition:
+    padding 0.3s ease,
+    margin-bottom 0.3s ease;
+}
+
+.search-toolbar.is-collapsed {
+  padding: 16px 24px;
+  margin-bottom: 16px;
 }
 
 /* Combined Search Selector Section */
