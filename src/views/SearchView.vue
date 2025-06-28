@@ -743,7 +743,7 @@ async function ensureWarmUp() {
 
 function scrollToLast() {
   nextTick(() => {
-    const el = scrollContainer.value;
+    const el = resultsContainer.value;
     if (el) {
       el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
     }
