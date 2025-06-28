@@ -1388,6 +1388,23 @@ onUnmounted(() => {
     margin-bottom: 16px;
   }
 
+  .search-toolbar.collapsed {
+    padding: 8px 12px;
+    margin-bottom: 8px;
+  }
+
+  .collapsed-grid-controls {
+    padding: 6px 0;
+    margin-bottom: 8px;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .collapsed-results-count {
+    font-size: 12px;
+  }
+
   .type-pills {
     gap: 2px;
   }
