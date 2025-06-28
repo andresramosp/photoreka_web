@@ -682,6 +682,7 @@ async function performSearch() {
   Object.keys(iterationsRecord).forEach((k) => delete iterationsRecord[k]);
   maxPageAttempts.value = false;
   isSearching.value = true;
+  isToolbarCollapsed.value = false; // Reset collapsed state when searching
   await searchPhotos();
   isSearching.value = false;
 }
