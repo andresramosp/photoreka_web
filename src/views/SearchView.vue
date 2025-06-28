@@ -783,8 +783,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   // Remover scroll listener
-  if (resultsContainer.value) {
-    resultsContainer.value.removeEventListener("scroll", handleScroll);
+  if (scrollContainer.value) {
+    scrollContainer.value.removeEventListener("scroll", handleScroll);
   }
 
   socket.off("matches");
