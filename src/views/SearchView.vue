@@ -597,30 +597,19 @@ function handleScroll() {
   // Actualizar inmediatamente para no interferir con el scroll
   lastScrollY.value = currentScrollY;
 
-  // Clear timeout anterior
-  if (scrollTimeout.value) {
-    clearTimeout(scrollTimeout.value);
-  }
-
   // Solo aplicar lógica si hay resultados visibles
   if (searchResults.value.length > 0 && !isSearching.value) {
-    scrollTimeout.value = setTimeout(() => {
-      if (
-        scrollDirection === "down" &&
-        currentScrollY > 100 &&
-        !isToolbarCollapsed.value
-      ) {
-        // Ocultar toolbar cuando se hace scroll hacia abajo
-        isToolbarCollapsed.value = true;
-      } else if (
-        scrollDirection === "up" &&
-        currentScrollY <= 150 &&
-        isToolbarCollapsed.value
-      ) {
-        // Mostrar toolbar cuando se hace scroll hacia arriba
-        isToolbarCollapsed.value = false;
-      }
-    }, 100);
+    if (
+      scrollDirection === "down" &&
+      currentScrollY > 80 &&
+      !isToolbarCollapsed.value
+    ) {
+      // Ocultar toolbar instantáneamente cuando se hace scroll hacia abajo
+      isToolbarCollapsed.value = true;
+    } else if (scrollDirection === "up" && isToolbarCollapsed.value) {
+      // Mostrar toolbar inmediatamente cuando se hace scroll hacia arriba
+      isToolbarCollapsed.value = false;
+    }
   } else {
     // Resetear estado cuando no hay contenido
     if (isToolbarCollapsed.value) {
