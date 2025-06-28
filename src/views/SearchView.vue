@@ -787,11 +787,6 @@ onUnmounted(() => {
     scrollContainer.value.removeEventListener("scroll", handleScroll);
   }
 
-  // Limpiar timeout
-  if (scrollTimeout.value) {
-    clearTimeout(scrollTimeout.value);
-  }
-
   socket.off("matches");
   socket.off("maxPageAttempts");
 });
