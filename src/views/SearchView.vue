@@ -833,14 +833,14 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 10;
-  transition:
-    padding 0.3s ease,
-    margin-bottom 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .search-toolbar.is-collapsed {
-  padding: 16px 24px;
-  margin-bottom: 16px;
+  padding: 12px 24px;
+  transform: translateY(-8px);
 }
 
 /* Combined Search Selector Section */
