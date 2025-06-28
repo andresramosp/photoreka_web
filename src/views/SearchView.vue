@@ -577,36 +577,6 @@ function setGridColumns(n) {
   gridColumns.value = n;
 }
 
-// Scroll detection for toolbar collapse
-const isToolbarCollapsed = ref(false);
-const lastScrollTop = ref(0);
-const scrollThreshold = 50; // Minimum scroll distance to trigger collapse
-
-function handleScroll(event) {
-  const currentScrollTop = event.target.scrollTop;
-  const scrollDirection =
-    currentScrollTop > lastScrollTop.value ? "down" : "up";
-
-  // Only collapse if we've scrolled down past threshold and have search results
-  if (
-    scrollDirection === "down" &&
-    currentScrollTop > scrollThreshold &&
-    searchResults.value.length > 0
-  ) {
-    isToolbarCollapsed.value = true;
-  }
-  // Expand if scrolling up significantly or near top
-  else if (
-    scrollDirection === "up" &&
-    (currentScrollTop < scrollThreshold ||
-      Math.abs(currentScrollTop - lastScrollTop.value) > 20)
-  ) {
-    isToolbarCollapsed.value = false;
-  }
-
-  lastScrollTop.value = currentScrollTop;
-}
-
 // Obtiene texto de la consulta actual
 function getCurrentQuery() {
   if (activeSearchType.value === "semantic") return semanticQuery.value;
