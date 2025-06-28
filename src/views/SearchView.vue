@@ -851,12 +851,16 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 10;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   transform: translateY(0);
   opacity: 1;
   margin-bottom: 0;
   max-height: 500px;
   overflow: hidden;
+  /* Solo animar cuando reaparece */
+  transition:
+    transform 0.3s ease-out,
+    opacity 0.3s ease-out,
+    max-height 0.3s ease-out;
 }
 
 .search-toolbar.is-collapsed {
@@ -866,6 +870,8 @@ onUnmounted(() => {
   padding: 0;
   margin-bottom: 0;
   border: none;
+  /* Sin animación al desaparecer */
+  transition: none;
 }
 
 /* Combined Search Selector Section */
