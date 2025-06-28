@@ -842,26 +842,11 @@ onUnmounted(() => {
   top: 0;
   z-index: 10;
   transform: translateY(0);
-  opacity: 1;
-  margin-bottom: 0;
-  max-height: 500px;
-  overflow: hidden;
-  /* Solo animar cuando reaparece */
-  transition:
-    transform 0.3s ease-out,
-    opacity 0.3s ease-out,
-    max-height 0.3s ease-out;
+  transition: transform 0.3s ease;
 }
 
 .search-toolbar.is-collapsed {
   transform: translateY(-100%);
-  opacity: 0;
-  max-height: 0;
-  padding: 0;
-  margin-bottom: 0;
-  border: none;
-  /* Sin animación al desaparecer */
-  transition: none;
 }
 
 /* Combined Search Selector Section */
