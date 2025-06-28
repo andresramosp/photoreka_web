@@ -1339,9 +1339,23 @@ onUnmounted(() => {
     margin-bottom: 24px;
   }
 
+  .search-toolbar.collapsed {
+    padding: 12px 16px;
+    margin-bottom: 12px;
+  }
+
   .search-selector-section {
     flex-direction: column;
     gap: 16px;
+  }
+
+  .collapsed-grid-controls {
+    padding: 8px 0;
+    margin-bottom: 12px;
+  }
+
+  .collapsed-results-count {
+    font-size: 13px;
   }
 
   .selector-group:first-child,
