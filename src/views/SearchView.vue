@@ -7,7 +7,7 @@
     <!-- Search Toolbar -->
     <div class="search-toolbar" :class="{ 'is-collapsed': isCollapsed }">
       <!-- Search Type and Mode Selector -->
-      <div class="search-selector-section">
+      <div v-show="!isCollapsed" class="search-selector-section">
         <!-- Search Type -->
         <div class="selector-group">
           <div class="selector-label">Search Type:</div>
