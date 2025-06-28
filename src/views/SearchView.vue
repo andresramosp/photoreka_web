@@ -1314,6 +1314,11 @@ onUnmounted(() => {
     margin-bottom: 16px;
   }
 
+  .search-toolbar.is-collapsed {
+    padding: 8px 12px;
+    margin-bottom: 8px;
+  }
+
   .type-pills {
     gap: 2px;
   }
