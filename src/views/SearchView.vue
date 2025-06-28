@@ -583,36 +583,28 @@ function setGridColumns(n) {
 
 // Scroll-based collapse functionality
 const isCollapsed = ref(false);
-const lastScrollY = ref(0);
-const scrollTimeout = ref(null);
 
 function handleScroll(event) {
-  const currentScrollY = event.target.scrollTop;
+  const element = event.target;
+  const scrollTop = element.scrollTop;
+  const scrollHeight = element.scrollHeight;
+  const clientHeight = element.clientHeight;
 
-  // Clear any pending timeout
-  if (scrollTimeout.value) {
-    clearTimeout(scrollTimeout.value);
+  // Calculate scroll percentage
+  const maxScroll = scrollHeight - clientHeight;
+  if (maxScroll <= 0) return; // No scrollable content
+
+  const scrollPercentage = (scrollTop / maxScroll) * 100;
+
+  // Use hysteresis: different thresholds for collapsing vs expanding
+  // This prevents flickering by creating a "dead zone"
+  if (!isCollapsed.value && scrollPercentage > 15) {
+    // Collapse when scrolling down past 15%
+    isCollapsed.value = true;
+  } else if (isCollapsed.value && scrollPercentage < 5) {
+    // Expand when scrolling back up above 5%
+    isCollapsed.value = false;
   }
-
-  // Only trigger changes if we have meaningful scroll movement
-  const scrollDelta = Math.abs(currentScrollY - lastScrollY.value);
-  if (scrollDelta < 5) return; // Ignore very small movements
-
-  // Throttle the scroll updates to prevent flickering
-  scrollTimeout.value = setTimeout(() => {
-    const scrollDirection = currentScrollY > lastScrollY.value ? "down" : "up";
-
-    // Collapse when scrolling down and we're past a small threshold
-    if (scrollDirection === "down" && currentScrollY > 30) {
-      isCollapsed.value = true;
-    }
-    // Expand when scrolling up
-    else if (scrollDirection === "up") {
-      isCollapsed.value = false;
-    }
-
-    lastScrollY.value = currentScrollY;
-  }, 50); // 50ms throttle
 }
 
 // Obtiene texto de la consulta actual
