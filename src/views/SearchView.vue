@@ -5,9 +5,13 @@
     @scroll="handleScroll"
   >
     <!-- Search Toolbar -->
-    <div class="search-toolbar" :class="{ 'is-collapsed': isCollapsed }">
+    <div
+      v-show="!isCollapsed"
+      class="search-toolbar"
+      :class="{ 'is-collapsed_': isCollapsed }"
+    >
       <!-- Search Type and Mode Selector -->
-      <div v-show="!isCollapsed" class="search-selector-section">
+      <div class="search-selector-section">
         <!-- Search Type -->
         <div class="selector-group">
           <div class="selector-label">Search Type:</div>
@@ -147,11 +151,10 @@
                   filterable
                   tag
                   placeholder="Add tags to include..."
-                  :options="availableTags"
+                  :options="includedTagSuggestionsFormatted"
                   :max-tag-count="5"
                   class="tags-select include-tags"
-                  @update:value="onSearchChange"
-                  :key="`include-${activeSearchType}`"
+                  @search="onSearchInputIncluded"
                 />
               </div>
               <div class="tags-group">
@@ -161,10 +164,10 @@
                   filterable
                   tag
                   placeholder="Add tags to exclude..."
-                  :options="availableTags"
+                  :options="excludedTagSuggestionsFormatted"
                   :max-tag-count="5"
                   class="tags-select exclude-tags"
-                  @update:value="onSearchChange"
+                  @search="onSearchInputExcluded"
                   :key="`exclude-${activeSearchType}`"
                 />
               </div>
@@ -481,6 +484,14 @@ const searchMode = ref("logical"); // 'logical' | 'flexible'
 // Semantic language
 const semanticQuery = ref("");
 
+const mockedTags = ref([
+  { label: "young woman listening", value: "young woman listening" },
+  { label: "smiling man", value: "smiling man" },
+  { label: "child with balloon", value: "child with balloon" },
+  { label: "people walking", value: "people walking" },
+  { label: "crowd in a square", value: "crowd in a square" },
+]);
+
 // Tags
 const {
   includedTags,
@@ -516,6 +527,20 @@ let warmingInterval = null;
 
 const scrollContainer = ref(null);
 
+const includedTagSuggestionsFormatted = computed(() =>
+  includedTagSuggestions.value.map((tagName) => ({
+    label: tagName,
+    value: tagName,
+  }))
+);
+
+const excludedTagSuggestionsFormatted = computed(() =>
+  excludedTagSuggestions.value.map((tagName) => ({
+    label: tagName,
+    value: tagName,
+  }))
+);
+
 // Resultados consolidados
 const searchResults = computed(() => {
   const keys = Object.keys(iterationsRecord)
@@ -549,12 +574,6 @@ const searchResults = computed(() => {
 
 // Helpers
 const skeletonCount = computed(() => pageSize.value);
-const availableTags = computed(() => [
-  ...new Set([
-    ...includedTagSuggestions.value,
-    ...excludedTagSuggestions.value,
-  ]),
-]);
 
 // Habilitar/deshabilitar botón de búsqueda
 const hasSearchQuery = computed(() => {
@@ -572,9 +591,9 @@ const hasSearchQuery = computed(() => {
 });
 
 // Columnas del grid y paginación
-const gridColumns = ref(3);
+const gridColumns = ref(6);
 const hasMoreResults = computed(
-  () => searchResults.value.length > 0 && !maxPageAttempts.value,
+  () => searchResults.value.length > 0 && !maxPageAttempts.value
 );
 
 function setGridColumns(n) {
@@ -589,19 +608,16 @@ function handleScroll(event) {
   const scrollTop = element.scrollTop;
   const scrollHeight = element.scrollHeight;
   const clientHeight = element.clientHeight;
-
   // Calculate scroll percentage
   const maxScroll = scrollHeight - clientHeight;
   if (maxScroll <= 0) return; // No scrollable content
-
   const scrollPercentage = (scrollTop / maxScroll) * 100;
-
   // Use hysteresis: different thresholds for collapsing vs expanding
   // This prevents flickering by creating a "dead zone"
-  if (!isCollapsed.value && scrollPercentage > 15) {
+  if (!isCollapsed.value && scrollPercentage > 50) {
     // Collapse when scrolling down past 15%
     isCollapsed.value = true;
-  } else if (isCollapsed.value && scrollPercentage < 5) {
+  } else if (isCollapsed.value && scrollPercentage < 25) {
     // Expand when scrolling back up above 5%
     isCollapsed.value = false;
   }
@@ -612,7 +628,7 @@ function getCurrentQuery() {
   if (activeSearchType.value === "semantic") return semanticQuery.value;
   if (activeSearchType.value === "tags") {
     return `+${includedTags.value.join(", ")} -${excludedTags.value.join(
-      ", ",
+      ", "
     )}`;
   }
   return `${topological.left}|${topological.center}|${topological.right}`;
@@ -694,7 +710,7 @@ async function searchPhotos() {
       `${import.meta.env.VITE_API_BASE_URL}/api/search/${
         activeSearchType.value
       }`,
-      payload,
+      payload
     );
   } catch (err) {
     console.error("Error al buscar fotos:", err);
@@ -709,7 +725,7 @@ async function ensureWarmUp() {
   }, 5000);
 
   const { data } = await axios.get(
-    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`,
+    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`
   );
   warmedUp.value = data.result;
 
@@ -792,9 +808,7 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 10;
-  transition:
-    padding 0.3s ease,
-    margin-bottom 0.3s ease;
+  transition: padding 0.3s ease, margin-bottom 0.3s ease;
 }
 
 .search-toolbar.is-collapsed {
@@ -811,9 +825,7 @@ onUnmounted(() => {
   padding-bottom: 20px;
   border-bottom: 1px solid #2c2c32;
   overflow: visible;
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .selector-group {
