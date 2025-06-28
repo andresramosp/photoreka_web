@@ -621,10 +621,6 @@ function handleScroll() {
 
   lastScrollY.value = currentScrollY;
 }
-  }
-
-  lastScrollY.value = currentScrollY;
-}
 
 // Habilitar/deshabilitar botón de búsqueda
 const hasSearchQuery = computed(() => {
