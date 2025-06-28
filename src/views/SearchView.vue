@@ -3,7 +3,10 @@
     <!-- Search Toolbar -->
     <div class="search-toolbar" :class="{ 'is-collapsed': isToolbarCollapsed }">
       <!-- Search Type and Mode Selector -->
-      <div class="search-selector-section">
+      <div
+        class="search-selector-section"
+        :class="{ 'hidden-collapsed': isToolbarCollapsed }"
+      >
         <!-- Search Type -->
         <div class="selector-group">
           <div class="selector-label">Search Type:</div>
