@@ -593,23 +593,29 @@ function handleScroll() {
   if (!scrollContainer.value) return;
 
   const currentScrollY = scrollContainer.value.scrollTop;
-  const scrollDirection = currentScrollY > lastScrollY.value ? "down" : "up";
+  const scrollDirection = currentScrollY > lastScrollY.value ? 'down' : 'up';
   const scrollDistance = Math.abs(currentScrollY - lastScrollY.value);
 
-  // Solo aplicar lógica si hay resultados visibles
-  if (searchResults.value.length > 0 && !isSearching.value) {
-    if (
-      scrollDirection === "down" &&
-      scrollDistance > scrollThreshold &&
-      currentScrollY > 100
-    ) {
-      isToolbarCollapsed.value = true;
-    } else if (scrollDirection === "up" && scrollDistance > scrollThreshold) {
-      isToolbarCollapsed.value = false;
+  // Solo aplicar lógica si hay resultados visibles o se está mostrando contenido
+  if (hasSearchQuery.value || searchResults.value.length > 0) {
+    if (scrollDirection === 'down' && currentScrollY > 80) {
+      // Ocultar toolbar cuando se hace scroll hacia abajo
+      if (!isToolbarCollapsed.value) {
+        isToolbarCollapsed.value = true;
+      }
+    } else if (scrollDirection === 'up' || currentScrollY <= 50) {
+      // Mostrar toolbar cuando se hace scroll hacia arriba o se está cerca del top
+      if (isToolbarCollapsed.value) {
+        isToolbarCollapsed.value = false;
+      }
     }
   } else {
-    // Resetear estado cuando no hay resultados
+    // Resetear estado cuando no hay contenido
     isToolbarCollapsed.value = false;
+  }
+
+  lastScrollY.value = currentScrollY;
+}
   }
 
   lastScrollY.value = currentScrollY;
