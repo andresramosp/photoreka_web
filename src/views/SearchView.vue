@@ -869,13 +869,17 @@ onUnmounted(() => {
   transform: translateY(0);
   opacity: 1;
   margin-bottom: 0;
+  max-height: 500px;
+  overflow: hidden;
 }
 
 .search-toolbar.is-collapsed {
-  padding: 8px 24px;
-  transform: translateY(-12px);
-  opacity: 0.95;
-  border-radius: 12px;
+  transform: translateY(-100%);
+  opacity: 0;
+  max-height: 0;
+  padding: 0;
+  margin-bottom: 0;
+  border: none;
 }
 
 /* Combined Search Selector Section */
