@@ -1361,8 +1361,8 @@ onUnmounted(() => {
   }
 
   .search-toolbar.is-collapsed {
-    padding: 8px 12px;
-    margin-bottom: 8px;
+    padding: 6px 12px;
+    transform: translateY(-2px);
   }
 
   .type-pills {
