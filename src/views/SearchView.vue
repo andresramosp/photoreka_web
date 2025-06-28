@@ -822,6 +822,9 @@ onUnmounted(() => {
   padding-bottom: 20px;
   border-bottom: 1px solid #2c2c32;
   overflow: visible;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .selector-group {
