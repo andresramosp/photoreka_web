@@ -587,9 +587,9 @@ const skeletonCount = computed(() => pageSize.value);
 
 // Función simple para manejar el scroll del toolbar
 function handleScroll() {
-  if (!scrollContainer.value) return;
+  if (!resultsContainer.value) return;
 
-  const currentScrollY = scrollContainer.value.scrollTop;
+  const currentScrollY = resultsContainer.value.scrollTop;
 
   // Solo aplicar si hay contenido de búsqueda
   if (searchResults.value.length > 0 && !isSearching.value) {
