@@ -590,7 +590,7 @@ const searchResults = computed(() => {
 // Helpers
 const skeletonCount = computed(() => pageSize.value);
 
-// Función para manejar el scroll del toolbar
+// Función para manejar el scroll del toolbar con debouncing
 function handleScroll() {
   if (!scrollContainer.value) return;
 
@@ -598,35 +598,41 @@ function handleScroll() {
   const scrollDirection = currentScrollY > lastScrollY.value ? "down" : "up";
   const scrollDistance = Math.abs(currentScrollY - lastScrollY.value);
 
-  // Console log temporal para debug
-  console.log("Scroll:", {
-    currentScrollY,
-    scrollDirection,
-    hasQuery: hasSearchQuery.value,
-    collapsed: isToolbarCollapsed.value,
-  });
+  // Solo procesar si hay un cambio significativo de scroll
+  if (scrollDistance < 5) return;
+
+  // Clear timeout anterior
+  if (scrollTimeout.value) {
+    clearTimeout(scrollTimeout.value);
+  }
 
   // Solo aplicar lógica si hay resultados visibles o se está mostrando contenido
   if (hasSearchQuery.value || searchResults.value.length > 0) {
-    if (scrollDirection === "down" && currentScrollY > 80) {
+    if (
+      scrollDirection === "down" &&
+      currentScrollY > 120 &&
+      !isToolbarCollapsed.value
+    ) {
       // Ocultar toolbar cuando se hace scroll hacia abajo
-      if (!isToolbarCollapsed.value) {
-        console.log("Collapsing toolbar");
-        isToolbarCollapsed.value = true;
-      }
-    } else if (scrollDirection === "up" || currentScrollY <= 50) {
+      isToolbarCollapsed.value = true;
+    } else if (
+      (scrollDirection === "up" || currentScrollY <= 80) &&
+      isToolbarCollapsed.value
+    ) {
       // Mostrar toolbar cuando se hace scroll hacia arriba o se está cerca del top
-      if (isToolbarCollapsed.value) {
-        console.log("Expanding toolbar");
-        isToolbarCollapsed.value = false;
-      }
+      isToolbarCollapsed.value = false;
     }
   } else {
     // Resetear estado cuando no hay contenido
-    isToolbarCollapsed.value = false;
+    if (isToolbarCollapsed.value) {
+      isToolbarCollapsed.value = false;
+    }
   }
 
-  lastScrollY.value = currentScrollY;
+  // Debounce para actualizar lastScrollY
+  scrollTimeout.value = setTimeout(() => {
+    lastScrollY.value = currentScrollY;
+  }, 50);
 }
 
 // Habilitar/deshabilitar botón de búsqueda
