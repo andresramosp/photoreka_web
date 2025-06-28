@@ -868,7 +868,8 @@ onUnmounted(() => {
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   opacity: 1;
   max-height: 200px;
-  transform: translateY(0);
+  transform: translateY(0) scaleY(1);
+  transform-origin: top;
 }
 
 .search-selector-section.hidden-collapsed {
@@ -876,7 +877,7 @@ onUnmounted(() => {
   max-height: 0;
   margin-bottom: 0;
   padding-bottom: 0;
-  transform: translateY(-10px);
+  transform: translateY(-15px) scaleY(0.8);
   border-bottom-color: transparent;
 }
 
