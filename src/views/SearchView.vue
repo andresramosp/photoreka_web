@@ -527,6 +527,7 @@ const warmingMessage = ref(warmingMessages[0]);
 let warmingInterval = null;
 
 const scrollContainer = ref(null);
+const resultsContainer = ref(null);
 
 const includedTagSuggestionsFormatted = computed(() =>
   includedTagSuggestions.value.map((tagName) => ({
