@@ -309,7 +309,7 @@
     </div>
 
     <!-- Search Results / Empty State -->
-    <div class="search-results-container">
+    <div ref="resultsContainer" class="search-results-container">
       <div v-if="!hasSearchQuery && !isSearching" class="search-inspiration">
         <div class="inspiration-content">
           <n-icon size="64" color="#6b7280" class="inspiration-icon">
