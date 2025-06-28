@@ -1104,8 +1104,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   padding: 16px;
-  /* height: 80vh;
-  overflow-y: auto; */
+  min-height: 0;
 }
 
 /* Load More */
