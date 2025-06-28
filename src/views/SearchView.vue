@@ -846,11 +846,14 @@ onUnmounted(() => {
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   transform: translateY(0);
   opacity: 1;
+  margin-bottom: 0;
 }
 
 .search-toolbar.is-collapsed {
-  padding: 12px 24px;
-  transform: translateY(-8px);
+  padding: 8px 24px;
+  transform: translateY(-12px);
+  opacity: 0.95;
+  border-radius: 12px;
 }
 
 /* Combined Search Selector Section */
