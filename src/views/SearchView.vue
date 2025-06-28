@@ -758,15 +758,6 @@ onUnmounted(() => {
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 32px;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.search-toolbar.collapsed {
-  padding: 16px 24px;
-  margin-bottom: 16px;
 }
 
 /* Combined Search Selector Section */
