@@ -980,6 +980,11 @@ onUnmounted(() => {
 
 .search-content {
   padding-top: 12px;
+  transition: padding-top 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.search-toolbar.is-collapsed .search-content {
+  padding-top: 0;
 }
 
 /* Semantic Language Search */
