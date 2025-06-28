@@ -396,7 +396,7 @@
             v-for="photo in searchResults"
             :key="photo.id"
             :photo="photo"
-            :selected="selectedPhotos.includes(photo.id)"
+            :selected="photoStore.selectedPhotoIds.includes(photo.id)"
             @select="togglePhotoSelection"
             @info="showPhotoInfo"
           />
@@ -411,6 +411,35 @@
               <n-skeleton height="100%" />
             </div>
           </template>
+        </div>
+
+        <!-- Selection Info -->
+        <div
+          v-if="photoStore.selectedPhotoIds.length > 0 && selectInfoVisible"
+          class="selection-info"
+        >
+          <n-button type="info" @click="moveToCanvas">
+            Take to Canvas
+          </n-button>
+          <n-button type="info"> Create Collection </n-button>
+
+          <span
+            >{{ photoStore.selectedPhotoIds.length }} photo{{
+              photoStore.selectedPhotoIds.length > 1 ? "s" : ""
+            }}
+          </span>
+          <n-button type="secondary" @click="clearSelection">
+            <template #icon>
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+          </n-button>
         </div>
 
         <!-- Load More Button -->
@@ -433,19 +462,6 @@
             </template>
             Load More Photos
           </n-button>
-        </div>
-
-        <!-- Selection Info -->
-        <div v-if="selectedPhotos.length > 0" class="selection-info">
-          <span
-            >{{ selectedPhotos.length }} photo{{
-              selectedPhotos.length > 1 ? "s" : ""
-            }}
-            selected</span
-          >
-          <n-button size="small" @click="clearSelection"
-            >Clear Selection</n-button
-          >
         </div>
       </div>
     </div>
@@ -477,12 +493,20 @@ import { useSearchTags } from "@/composables/useSearchTags";
 import queryExamples from "@/assets/query_examples.json";
 import { DocumentOutline, MapOutline, PencilOutline } from "@vicons/ionicons5";
 import { CheckOutlined, TagOutlined } from "@vicons/antd";
+import { usePhotosStore } from "@/stores/photos";
+import { useCanvasStore } from "@/stores/canvas.js";
+import { useRouter } from "vue-router";
 
 // Conexión real-time para resultados incrementales
 const socket = io(import.meta.env.VITE_API_WS_URL);
 
+const photoStore = usePhotosStore();
+const canvasStore = useCanvasStore();
+const router = useRouter();
+
 // Estado del toolbar colapsable
 const isToolbarCollapsed = ref(false);
+const selectInfoVisible = ref(true);
 const lastScrollY = ref(0);
 
 // Estado de búsqueda
@@ -532,14 +556,14 @@ const includedTagSuggestionsFormatted = computed(() =>
   includedTagSuggestions.value.map((tagName) => ({
     label: tagName,
     value: tagName,
-  })),
+  }))
 );
 
 const excludedTagSuggestionsFormatted = computed(() =>
   excludedTagSuggestions.value.map((tagName) => ({
     label: tagName,
     value: tagName,
-  })),
+  }))
 );
 
 const tagIncSelect = ref(null);
@@ -597,7 +621,7 @@ function handleScroll() {
       isToolbarCollapsed.value = true;
     }
     // Si hacemos scroll hacia arriba, mostrar
-    else if (currentScrollY < lastScrollY.value) {
+    else if (currentScrollY < lastScrollY.value && currentScrollY < 500) {
       isToolbarCollapsed.value = false;
     }
   } else {
@@ -630,17 +654,25 @@ function setGridColumns(n) {
   gridColumns.value = n;
 }
 
-// Selección de fotos
-const selectedPhotos = ref([]);
 function togglePhotoSelection(id) {
-  const idx = selectedPhotos.value.indexOf(id);
-  if (idx >= 0) selectedPhotos.value.splice(idx, 1);
-  else selectedPhotos.value.push(id);
+  photoStore.togglePhotoSelection(id);
 }
 function clearSelection() {
-  selectedPhotos.value = [];
+  // selectedPhotos.value = [];
 }
+async function moveToCanvas() {
+  await Promise.all(
+    photoStore.selectedPhotoIds.map((id) => photoStore.fetchPhoto(id))
+  );
+  const photosToAdd = photoStore.selectedPhotoIds
+    .map((id) => photoStore.photos.find((p) => p.id == id))
+    .filter(Boolean);
 
+  photoStore.selectedPhotosRecord = {};
+  canvasStore.addPhotos(photosToAdd);
+
+  router.push("/canvas");
+}
 // Cambio de tipo de búsqueda
 function setSearchType(type) {
   activeSearchType.value = type;
@@ -692,7 +724,7 @@ async function searchPhotos() {
     const options = {
       iteration: iteration.value,
       pageSize: pageSize.value,
-      searchMode: "low_precision", //searchMode.value,
+      searchMode: searchMode.value,
     };
     let payload;
     if (activeSearchType.value === "semantic") {
@@ -715,7 +747,7 @@ async function searchPhotos() {
       `${import.meta.env.VITE_API_BASE_URL}/api/search/${
         activeSearchType.value
       }`,
-      payload,
+      payload
     );
   } catch (err) {
     console.error("Error al buscar fotos:", err);
@@ -730,7 +762,7 @@ async function ensureWarmUp() {
   }, 5000);
 
   const { data } = await axios.get(
-    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`,
+    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`
   );
   warmedUp.value = data.result;
 
@@ -768,7 +800,6 @@ onMounted(() => {
         photos: items.map((i) => i.photo),
       };
     });
-    debugger;
     hasMoreIterations.value = data.hasMore;
     iteration.value = data.iteration + 1;
     setTimeout(() => {
@@ -817,7 +848,6 @@ onUnmounted(() => {
 .search-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
   overflow-y: auto;
 }
 
@@ -835,7 +865,7 @@ onUnmounted(() => {
 }
 
 .search-toolbar.is-collapsed {
-  transform: translateY(-100%);
+  transform: translateY(-120%);
 }
 
 /* Combined Search Selector Section */
@@ -1086,11 +1116,11 @@ onUnmounted(() => {
 .load-more-container {
   display: flex;
   justify-content: center;
-  margin: 32px 0;
+  margin-bottom: 32px;
 }
 
 .load-more-button {
-  min-width: 200px;
+  min-width: 100%;
   height: 48px;
   font-size: 16px;
   font-weight: 500;
@@ -1099,9 +1129,8 @@ onUnmounted(() => {
 /* Selection Info */
 .selection-info {
   position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 30px;
+  right: 41px;
   background-color: #2563eb;
   color: #ffffff;
   padding: 12px 24px;

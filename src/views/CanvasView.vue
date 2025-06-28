@@ -910,6 +910,7 @@ onMounted(() => {
   const stage = stageRef.value.getStage();
   stage.on("dragmove", updateStageOffset);
   updateStageOffset();
+  fitStageToPhotos();
 });
 
 onUnmounted(() => {

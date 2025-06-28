@@ -353,3 +353,9 @@
   background-color: var(--secondary-color);
   height: 25px;
 }
+
+.n-layout .n-layout-scroll-container {
+  overflow: hidden;
+  box-sizing: border-box;
+  height: 100%;
+}
