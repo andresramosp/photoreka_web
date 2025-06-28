@@ -1,7 +1,7 @@
 <template>
   <div ref="scrollContainer" class="search-container view-container">
     <!-- Search Toolbar -->
-    <div class="search-toolbar">
+    <div class="search-toolbar" :class="{ 'is-collapsed': isToolbarCollapsed }">
       <!-- Search Type and Mode Selector -->
       <div class="search-selector-section">
         <!-- Search Type -->
@@ -481,6 +481,10 @@ import { CheckOutlined, TagOutlined } from "@vicons/antd";
 // Conexión real-time para resultados incrementales
 const socket = io(import.meta.env.VITE_API_WS_URL);
 
+// Estado del toolbar colapsable
+const isToolbarCollapsed = ref(false);
+const lastScrollY = ref(0);
+
 // Estado de búsqueda
 const activeSearchType = ref("semantic"); // 'semantic' | 'tags' | 'topological'
 const searchMode = ref("logical"); // 'logical' | 'flexible'
@@ -528,14 +532,14 @@ const includedTagSuggestionsFormatted = computed(() =>
   includedTagSuggestions.value.map((tagName) => ({
     label: tagName,
     value: tagName,
-  }))
+  })),
 );
 
 const excludedTagSuggestionsFormatted = computed(() =>
   excludedTagSuggestions.value.map((tagName) => ({
     label: tagName,
     value: tagName,
-  }))
+  })),
 );
 
 const tagIncSelect = ref(null);
@@ -579,6 +583,30 @@ const searchResults = computed(() => {
 
 // Helpers
 const skeletonCount = computed(() => pageSize.value);
+
+// Función simple para manejar el scroll del toolbar
+function handleScroll() {
+  if (!scrollContainer.value) return;
+
+  const currentScrollY = scrollContainer.value.scrollTop;
+
+  // Solo aplicar si hay contenido de búsqueda
+  if (searchResults.value.length > 0 && !isSearching.value) {
+    // Si hacemos scroll hacia abajo y pasamos cierto punto, ocultar
+    if (currentScrollY > lastScrollY.value && currentScrollY > 100) {
+      isToolbarCollapsed.value = true;
+    }
+    // Si hacemos scroll hacia arriba, mostrar
+    else if (currentScrollY < lastScrollY.value) {
+      isToolbarCollapsed.value = false;
+    }
+  } else {
+    // Sin contenido, siempre mostrar
+    isToolbarCollapsed.value = false;
+  }
+
+  lastScrollY.value = currentScrollY;
+}
 
 // Habilitar/deshabilitar botón de búsqueda
 const hasSearchQuery = computed(() => {
@@ -632,6 +660,10 @@ function clearSearch() {
   iteration.value = 1;
   iterationsRecord = {};
   hasMoreIterations.value = false;
+
+  // Resetear estado del toolbar
+  isToolbarCollapsed.value = false;
+  lastScrollY.value = 0;
 }
 
 // Ejecución de búsqueda
@@ -683,7 +715,7 @@ async function searchPhotos() {
       `${import.meta.env.VITE_API_BASE_URL}/api/search/${
         activeSearchType.value
       }`,
-      payload
+      payload,
     );
   } catch (err) {
     console.error("Error al buscar fotos:", err);
@@ -698,7 +730,7 @@ async function ensureWarmUp() {
   }, 5000);
 
   const { data } = await axios.get(
-    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`
+    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`,
   );
   warmedUp.value = data.result;
 
@@ -720,6 +752,16 @@ function scrollToLast() {
 // Manejo de respuestas en tiempo real
 onMounted(() => {
   ensureWarmUp();
+
+  // Añadir scroll listener después de que el DOM esté completamente montado
+  nextTick(() => {
+    if (scrollContainer.value) {
+      scrollContainer.value.addEventListener("scroll", handleScroll, {
+        passive: true,
+      });
+    }
+  });
+
   socket.on("matches", (data) => {
     Object.entries(data.results).forEach(([iter, items]) => {
       iterationsRecord[iter] = {
@@ -740,6 +782,11 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  // Remover scroll listener
+  if (scrollContainer.value) {
+    scrollContainer.value.removeEventListener("scroll", handleScroll);
+  }
+
   socket.off("matches");
   socket.off("maxPageAttempts");
 });
@@ -770,6 +817,8 @@ onUnmounted(() => {
 .search-container {
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 /* Search Toolbar */
@@ -781,12 +830,12 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 10;
-  transition: padding 0.3s ease, margin-bottom 0.3s ease;
+  transform: translateY(0);
+  transition: transform 0.3s ease;
 }
 
 .search-toolbar.is-collapsed {
-  padding: 16px 24px;
-  margin-bottom: 16px;
+  transform: translateY(-100%);
 }
 
 /* Combined Search Selector Section */
@@ -798,7 +847,6 @@ onUnmounted(() => {
   padding-bottom: 20px;
   border-bottom: 1px solid #2c2c32;
   overflow: visible;
-  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .selector-group {
@@ -1031,8 +1079,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   padding: 16px;
-  /* height: 80vh;
-  overflow-y: auto; */
+  min-height: 0;
 }
 
 /* Load More */
@@ -1249,8 +1296,8 @@ onUnmounted(() => {
   }
 
   .search-toolbar.is-collapsed {
-    padding: 12px 16px;
-    margin-bottom: 12px;
+    padding: 8px 16px;
+    transform: translateY(-4px);
   }
 
   .search-selector-section {
@@ -1289,8 +1336,8 @@ onUnmounted(() => {
   }
 
   .search-toolbar.is-collapsed {
-    padding: 8px 12px;
-    margin-bottom: 8px;
+    padding: 6px 12px;
+    transform: translateY(-2px);
   }
 
   .type-pills {
