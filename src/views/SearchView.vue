@@ -585,6 +585,33 @@ const searchResults = computed(() => {
 // Helpers
 const skeletonCount = computed(() => pageSize.value);
 
+// Función para manejar el scroll del toolbar
+function handleScroll() {
+  if (!scrollContainer.value) return;
+
+  const currentScrollY = scrollContainer.value.scrollTop;
+  const scrollDirection = currentScrollY > lastScrollY.value ? "down" : "up";
+  const scrollDistance = Math.abs(currentScrollY - lastScrollY.value);
+
+  // Solo aplicar lógica si hay resultados visibles
+  if (searchResults.value.length > 0 && !isSearching.value) {
+    if (
+      scrollDirection === "down" &&
+      scrollDistance > scrollThreshold &&
+      currentScrollY > 100
+    ) {
+      isToolbarCollapsed.value = true;
+    } else if (scrollDirection === "up" && scrollDistance > scrollThreshold) {
+      isToolbarCollapsed.value = false;
+    }
+  } else {
+    // Resetear estado cuando no hay resultados
+    isToolbarCollapsed.value = false;
+  }
+
+  lastScrollY.value = currentScrollY;
+}
+
 // Habilitar/deshabilitar botón de búsqueda
 const hasSearchQuery = computed(() => {
   if (activeSearchType.value === "semantic")
