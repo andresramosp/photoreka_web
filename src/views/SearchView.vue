@@ -1,9 +1,16 @@
 <template>
-  <div ref="scrollContainer" class="search-container view-container">
+  <div
+    ref="scrollContainer"
+    class="search-container view-container"
+    @scroll="handleScroll"
+  >
     <!-- Search Toolbar -->
-    <div class="search-toolbar">
+    <div class="search-toolbar" :class="{ collapsed: isToolbarCollapsed }">
       <!-- Search Type and Mode Selector -->
-      <div class="search-selector-section">
+      <div
+        class="search-selector-section"
+        :class="{ collapsed: isToolbarCollapsed }"
+      >
         <!-- Search Type -->
         <div class="selector-group">
           <div class="selector-label">Search Type:</div>
@@ -570,7 +577,7 @@ const hasSearchQuery = computed(() => {
 // Columnas del grid y paginación
 const gridColumns = ref(3);
 const hasMoreResults = computed(
-  () => searchResults.value.length > 0 && !maxPageAttempts.value
+  () => searchResults.value.length > 0 && !maxPageAttempts.value,
 );
 
 function setGridColumns(n) {
@@ -582,7 +589,7 @@ function getCurrentQuery() {
   if (activeSearchType.value === "semantic") return semanticQuery.value;
   if (activeSearchType.value === "tags") {
     return `+${includedTags.value.join(", ")} -${excludedTags.value.join(
-      ", "
+      ", ",
     )}`;
   }
   return `${topological.left}|${topological.center}|${topological.right}`;
@@ -663,7 +670,7 @@ async function searchPhotos() {
       `${import.meta.env.VITE_API_BASE_URL}/api/search/${
         activeSearchType.value
       }`,
-      payload
+      payload,
     );
   } catch (err) {
     console.error("Error al buscar fotos:", err);
@@ -678,7 +685,7 @@ async function ensureWarmUp() {
   }, 5000);
 
   const { data } = await axios.get(
-    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`
+    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`,
   );
   warmedUp.value = data.result;
 
@@ -1000,7 +1007,7 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  /* height: 80vh; 
+  /* height: 80vh;
   overflow-y: auto; */
 }
 
