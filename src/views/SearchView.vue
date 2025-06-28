@@ -1,5 +1,5 @@
 <template>
-  <div class="search-container view-container">
+  <div ref="scrollContainer" class="search-container view-container">
     <!-- Search Toolbar -->
     <div class="search-toolbar">
       <!-- Search Type and Mode Selector -->
@@ -10,11 +10,11 @@
           <div class="type-pills">
             <div
               class="type-pill"
-              :class="{ active: activeSearchType === 'natural' }"
-              @click="setSearchType('natural')"
+              :class="{ active: activeSearchType === 'semantic' }"
+              @click="setSearchType('semantic')"
             >
               <n-icon size="14" class="type-icon">
-                <DocumentIcon />
+                <DocumentOutline />
               </n-icon>
               Natural Language
             </div>
@@ -24,17 +24,17 @@
               @click="setSearchType('tags')"
             >
               <n-icon size="16" class="type-icon">
-                <TagIcon />
+                <TagOutlined />
               </n-icon>
               Tags
             </div>
             <div
               class="type-pill"
-              :class="{ active: activeSearchType === 'spatial' }"
-              @click="setSearchType('spatial')"
+              :class="{ active: activeSearchType === 'topological' }"
+              @click="setSearchType('topological')"
             >
               <n-icon size="16" class="type-icon">
-                <CalendarIcon />
+                <MapOutline />
               </n-icon>
               Spatial
             </div>
@@ -47,21 +47,21 @@
           <div class="mode-pills">
             <div
               class="mode-pill"
-              :class="{ active: globalMode === 'strict' }"
-              @click="globalMode = 'strict'"
+              :class="{ active: searchMode === 'logical' }"
+              @click="searchMode = 'logical'"
             >
               <n-icon size="14" class="mode-icon">
-                <CheckIcon />
+                <CheckOutlined />
               </n-icon>
               Strict
             </div>
             <div
               class="mode-pill"
-              :class="{ active: globalMode === 'flexible' }"
-              @click="globalMode = 'flexible'"
+              :class="{ active: searchMode === 'flexible' }"
+              @click="searchMode = 'flexible'"
             >
               <n-icon size="16" class="mode-icon">
-                <StarIcon />
+                <PencilOutline />
               </n-icon>
               Flexible
             </div>
@@ -71,21 +71,21 @@
 
       <!-- Conditional Search Content -->
       <div class="search-content">
-        <!-- Natural Language Search -->
+        <!-- Semantic Language Search -->
         <div
-          v-if="activeSearchType === 'natural'"
-          key="natural-search"
-          class="natural-search-section"
+          v-if="activeSearchType === 'semantic'"
+          key="semantic-search"
+          class="semantic-search-section"
         >
           <div class="search-input-row">
             <n-input
-              v-model:value="naturalQuery"
+              v-model:value="semanticQuery"
               type="textarea"
               placeholder="Describe what you're looking for... e.g., 'sunset photos with people on the beach' or 'close-up portraits with red background'"
               :autosize="{ minRows: 1, maxRows: 2 }"
-              class="natural-input"
+              class="semantic-input"
               @input="onSearchChange"
-              :key="`natural-${activeSearchType}`"
+              :key="`semantic-${activeSearchType}`"
             />
             <div class="search-actions-inline">
               <n-button
@@ -206,45 +206,45 @@
           </div>
         </div>
 
-        <!-- Spatial Search -->
+        <!-- Topological Search -->
         <div
-          v-else-if="activeSearchType === 'spatial'"
-          key="spatial-search"
-          class="spatial-search-section"
+          v-else-if="activeSearchType === 'topological'"
+          key="topological-search"
+          class="topological-search-section"
         >
-          <div class="spatial-input-row">
-            <div class="spatial-grid">
-              <div class="spatial-area">
+          <div class="topological-input-row">
+            <div class="topological-grid">
+              <div class="topological-area">
                 <n-input
-                  v-model:value="spatialLeft"
+                  v-model:value="topological.left"
                   type="textarea"
                   placeholder="Left side objects..."
                   :autosize="{ minRows: 1, maxRows: 2 }"
-                  class="spatial-input"
+                  class="topological-input"
                   @input="onSearchChange"
-                  :key="`spatial-left-${activeSearchType}`"
+                  :key="`topological-left-${activeSearchType}`"
                 />
               </div>
-              <div class="spatial-area">
+              <div class="topological-area">
                 <n-input
-                  v-model:value="spatialCenter"
+                  v-model:value="topological.center"
                   type="textarea"
                   placeholder="Center objects..."
                   :autosize="{ minRows: 1, maxRows: 2 }"
-                  class="spatial-input center-input"
+                  class="topological-input center-input"
                   @input="onSearchChange"
-                  :key="`spatial-center-${activeSearchType}`"
+                  :key="`topological-center-${activeSearchType}`"
                 />
               </div>
-              <div class="spatial-area">
+              <div class="topological-area">
                 <n-input
-                  v-model:value="spatialRight"
+                  v-model:value="topological.right"
                   type="textarea"
                   placeholder="Right side objects..."
                   :autosize="{ minRows: 1, maxRows: 2 }"
-                  class="spatial-input"
+                  class="topological-input"
                   @input="onSearchChange"
-                  :key="`spatial-right-${activeSearchType}`"
+                  :key="`topological-right-${activeSearchType}`"
                 />
               </div>
             </div>
@@ -389,7 +389,11 @@
 
           <!-- Skeleton Loading for Load More -->
           <template v-if="isLoadingMore">
-            <div v-for="n in 4" :key="`skeleton-${n}`" class="photo-skeleton">
+            <div
+              v-for="n in pageSize"
+              :key="`skeleton-${n}`"
+              class="photo-skeleton"
+            >
               <n-skeleton height="100%" />
             </div>
           </template>
@@ -437,539 +441,308 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
-import PhotoCard from "../components/PhotoCard.vue";
+<script setup>
+// Nombre del componente
+defineOptions({ name: "SearchPage" });
 
-// Import @vicons icons from ionicons5 for reliability
+// Imports básicos
 import {
-  DocumentTextOutline as DocumentIcon,
-  PricetagOutline as TagIcon,
-  CalendarOutline as CalendarIcon,
-  CheckmarkCircleOutline as CheckIcon,
-  StarOutline as StarIcon,
-  SearchOutline as SearchIcon,
-  PlayOutline as PlayIcon,
-  BulbOutline as LightbulbIcon,
-  ArrowForwardOutline as ArrowRightIcon,
-} from "@vicons/ionicons5";
+  ref,
+  reactive,
+  computed,
+  onMounted,
+  onUnmounted,
+  watch,
+  nextTick,
+} from "vue";
+import axios from "axios";
+import { io } from "socket.io-client";
 
-// Search state
-const activeSearchType = ref<"natural" | "tags" | "spatial">("natural");
-const globalMode = ref<"strict" | "flexible">("flexible");
+// Componentes e íconos
+import PhotoCard from "@/components/PhotoCard.vue";
+
+// Composable de tags y ejemplos
+import { useSearchTags } from "@/composables/useSearchTags";
+import queryExamples from "@/assets/query_examples.json";
+import { DocumentOutline, MapOutline, PencilOutline } from "@vicons/ionicons5";
+import { CheckOutlined, TagOutlined } from "@vicons/antd";
+
+// Conexión real-time para resultados incrementales
+const socket = io(import.meta.env.VITE_API_WS_URL);
+
+// Estado de búsqueda
+const activeSearchType = ref("semantic"); // 'semantic' | 'tags' | 'topological'
+const searchMode = ref("logical"); // 'logical' | 'flexible'
+
+// Semantic language
+const semanticQuery = ref("");
+
+// Tags
+const {
+  includedTags,
+  excludedTags,
+  includedTagSuggestions,
+  excludedTagSuggestions,
+  onSearchInputIncluded,
+  onSearchInputExcluded,
+} = useSearchTags();
+
+// Topological (izquierda, centro, derecha)
+const topological = reactive({ left: "", center: "", right: "" });
+
+// Control de carga y paginación
 const isSearching = ref(false);
-
-// Photo grid state
-const searchResults = ref<Photo[]>([]);
-const selectedPhotos = ref<string[]>([]);
-const gridColumns = ref(4);
 const isLoadingMore = ref(false);
-const hasMoreResults = ref(true);
-const skeletonCount = computed(() => gridColumns.value * 2);
+const maxPageAttempts = ref(false);
+const iteration = ref(1);
+const iterationsRecord = reactive({});
+const pageSize = ref(12);
 
-// Photo interface
-interface Photo {
-  id: string;
-  url: string;
-  title: string;
-  rating: number;
-  matchingTags?: string[];
-  width?: number;
-  height?: number;
-}
+const warmedUp = ref(false);
 
-// Example interfaces for carousel
-interface NaturalExample {
-  text: string;
-  query: string;
-}
-
-interface TagExample {
-  text: string;
-  included: string[];
-  excluded: string[];
-}
-
-interface SpatialExample {
-  text: string;
-  left: string;
-  center: string;
-  right: string;
-}
-
-// Mock photo data
-const mockPhotos: Photo[] = [
-  {
-    id: "1",
-    url: "https://images.pexels.com/photos/32669076/pexels-photo-32669076.jpeg",
-    title: "Iceland Mountains",
-    rating: 5,
-    matchingTags: ["landscape", "mountains", "nature"],
-    width: 6000,
-    height: 3376,
-  },
-  {
-    id: "2",
-    url: "https://images.pexels.com/photos/32657569/pexels-photo-32657569.jpeg",
-    title: "Sisters in Dresses",
-    rating: 4,
-    matchingTags: ["portrait", "people", "family"],
-    width: 7107,
-    height: 9600,
-  },
-  {
-    id: "3",
-    url: "https://images.pexels.com/photos/32666826/pexels-photo-32666826.jpeg",
-    title: "Carballino España",
-    rating: 3,
-    matchingTags: ["street", "urban", "architecture"],
-    width: 3648,
-    height: 2432,
-  },
-  {
-    id: "4",
-    url: "https://images.pexels.com/photos/3117550/pexels-photo-3117550.jpeg",
-    title: "Vintage Flowers",
-    rating: 4,
-    matchingTags: ["flowers", "vintage", "art"],
-    width: 2016,
-    height: 2016,
-  },
-  {
-    id: "5",
-    url: "https://images.pexels.com/photos/32675858/pexels-photo-32675858.jpeg",
-    title: "Beach Sunset",
-    rating: 5,
-    matchingTags: ["sunset", "beach", "ocean"],
-    width: 3888,
-    height: 2592,
-  },
-  {
-    id: "6",
-    url: "https://images.pexels.com/photos/32617822/pexels-photo-32617822.jpeg",
-    title: "City River View",
-    rating: 4,
-    matchingTags: ["city", "river", "sunset"],
-    width: 2639,
-    height: 3959,
-  },
-  {
-    id: "7",
-    url: "https://images.pexels.com/photos/983587/pexels-photo-983587.jpeg",
-    title: "Italian Pasta",
-    rating: 3,
-    matchingTags: ["food", "pasta", "wine"],
-    width: 2000,
-    height: 2000,
-  },
-  {
-    id: "8",
-    url: "https://images.pexels.com/photos/32642185/pexels-photo-32642185.jpeg",
-    title: "Scorpion Detail",
-    rating: 2,
-    matchingTags: ["wildlife", "macro", "animal"],
-    width: 3560,
-    height: 2608,
-  },
+const warmingMessages = [
+  "Warming up the engines...",
+  "Preparing the stage...",
+  "Just a few seconds more...",
+  "Aligning the neurons...",
+  "Summoning the muses...",
 ];
+const warmingMessage = ref(warmingMessages[0]);
+let warmingInterval = null;
 
-// ResizeObserver error handling
-let resizeObserverErrorHandler: ((event: ErrorEvent) => void) | null = null;
+const scrollContainer = ref(null);
 
-onMounted(() => {
-  // Suppress ResizeObserver errors
-  resizeObserverErrorHandler = (e: ErrorEvent) => {
-    if (
-      e.message.includes(
-        "ResizeObserver loop completed with undelivered notifications"
-      )
-    ) {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
+// Resultados consolidados
+const searchResults = computed(() => {
+  const keys = Object.keys(iterationsRecord)
+    .map(Number)
+    .sort((a, b) => a - b);
+  let all = [];
+  for (let i = 0; i < iteration.value; i++) {
+    const k = keys[i];
+    if (k !== undefined && iterationsRecord[k]?.photos) {
+      all.push(...iterationsRecord[k].photos);
     }
-  };
-  window.addEventListener("error", resizeObserverErrorHandler);
+  }
+  // Mostrar esqueletos si está cargando inicial
+  if (isSearching.value) {
+    return Array.from({ length: pageSize.value }).map((_, i) => ({
+      id: `skeleton-${i}`,
+      isSkeleton: true,
+      src: null,
+    }));
+  }
+  // Esqueletos sólo en la primera iteración de "cargar más"
+  if (isLoadingMore.value && iteration.value === 1) {
+    return Array.from({ length: pageSize.value }).map((_, i) => ({
+      id: `skeleton-${i}`,
+      isSkeleton: true,
+      src: null,
+    }));
+  }
+  return all;
+});
 
-  // Start carousel rotation
-  startCarousel();
+// Helpers
+const skeletonCount = computed(() => pageSize.value);
+const availableTags = computed(() => [
+  ...new Set([
+    ...includedTagSuggestions.value,
+    ...excludedTagSuggestions.value,
+  ]),
+]);
+
+// Habilitar/deshabilitar botón de búsqueda
+const hasSearchQuery = computed(() => {
+  if (activeSearchType.value === "semantic")
+    return semanticQuery.value.trim().length > 0;
+  if (activeSearchType.value === "tags")
+    return includedTags.value.length > 0 || excludedTags.value.length > 0;
+  if (activeSearchType.value === "topological")
+    return (
+      topological.left.trim().length > 0 ||
+      topological.center.trim().length > 0 ||
+      topological.right.trim().length > 0
+    );
+  return false;
+});
+
+// Columnas del grid y paginación
+const gridColumns = ref(3);
+const hasMoreResults = computed(
+  () => searchResults.value.length > 0 && !maxPageAttempts.value
+);
+
+function setGridColumns(n) {
+  gridColumns.value = n;
+}
+
+// Obtiene texto de la consulta actual
+function getCurrentQuery() {
+  if (activeSearchType.value === "semantic") return semanticQuery.value;
+  if (activeSearchType.value === "tags") {
+    return `+${includedTags.value.join(", ")} -${excludedTags.value.join(
+      ", "
+    )}`;
+  }
+  return `${topological.left}|${topological.center}|${topological.right}`;
+}
+
+// Selección de fotos
+const selectedPhotos = ref([]);
+function togglePhotoSelection(id) {
+  const idx = selectedPhotos.value.indexOf(id);
+  if (idx >= 0) selectedPhotos.value.splice(idx, 1);
+  else selectedPhotos.value.push(id);
+}
+function clearSelection() {
+  selectedPhotos.value = [];
+}
+
+// Cambio de tipo de búsqueda
+function setSearchType(type) {
+  activeSearchType.value = type;
+  clearSearch();
+}
+watch(activeSearchType, clearSearch);
+
+// Limpia inputs de búsqueda
+function clearSearch() {
+  semanticQuery.value = "";
+  includedTags.value = [];
+  excludedTags.value = [];
+  topological.left = "";
+  topological.center = "";
+  topological.right = "";
+}
+
+// Ejecución de búsqueda
+async function performSearch() {
+  clearSelection();
+  iteration.value = 1;
+  Object.keys(iterationsRecord).forEach((k) => delete iterationsRecord[k]);
+  maxPageAttempts.value = false;
+  isSearching.value = true;
+  await searchPhotos();
+  isSearching.value = false;
+}
+
+// Cargar más resultados
+async function loadMorePhotos() {
+  isLoadingMore.value = true;
+  await searchPhotos();
+  isLoadingMore.value = false;
+}
+
+// Llamada a la API
+async function searchPhotos() {
+  try {
+    const options = {
+      iteration: iteration.value,
+      pageSize: pageSize.value,
+      searchMode: searchMode.value,
+    };
+    let payload;
+    if (activeSearchType.value === "semantic") {
+      payload = { description: semanticQuery.value, options };
+    } else if (activeSearchType.value === "tags") {
+      payload = {
+        included: includedTags.value,
+        excluded: excludedTags.value,
+        options,
+      };
+    } else {
+      payload = {
+        left: topological.left,
+        center: topological.center,
+        right: topological.right,
+        options,
+      };
+    }
+    await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/api/search/${
+        activeSearchType.value
+      }`,
+      payload
+    );
+  } catch (err) {
+    console.error("Error al buscar fotos:", err);
+  }
+}
+
+async function ensureWarmUp() {
+  let i = 0;
+  warmingInterval = setInterval(() => {
+    i = (i + 1) % warmingMessages.length;
+    warmingMessage.value = warmingMessages[i];
+  }, 5000);
+
+  const { data } = await axios.get(
+    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`
+  );
+  warmedUp.value = data.result;
+
+  if (data.result && warmingInterval) {
+    clearInterval(warmingInterval);
+    warmingInterval = null;
+  }
+}
+
+function scrollToLast() {
+  nextTick(() => {
+    const el = scrollContainer.value;
+    if (el) {
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    }
+  });
+}
+
+// Manejo de respuestas en tiempo real
+onMounted(() => {
+  ensureWarmUp();
+  socket.on("matches", (data) => {
+    Object.entries(data.results).forEach(([iter, items]) => {
+      iterationsRecord[iter] = {
+        photos: items.map((i) => i.photo),
+      };
+    });
+    iteration.value = data.iteration + 1;
+    // Scroll al tope al traer fotos
+    setTimeout(() => {
+      scrollToLast();
+    }, 0);
+    () => {};
+  });
+  socket.on("maxPageAttempts", () => {
+    maxPageAttempts.value = true;
+  });
 });
 
 onUnmounted(() => {
-  if (resizeObserverErrorHandler) {
-    window.removeEventListener("error", resizeObserverErrorHandler);
-  }
-
-  // Clean up carousel
-  stopCarousel();
+  socket.off("matches");
+  socket.off("maxPageAttempts");
 });
 
-// Natural language search
-const naturalQuery = ref("");
-
-// Tags search
-const includedTags = ref<string[]>([]);
-const excludedTags = ref<string[]>([]);
-const availableTags = [
-  { label: "landscape", value: "landscape" },
-  { label: "portrait", value: "portrait" },
-  { label: "nature", value: "nature" },
-  { label: "people", value: "people" },
-  { label: "sunset", value: "sunset" },
-  { label: "mountains", value: "mountains" },
-  { label: "beach", value: "beach" },
-  { label: "city", value: "city" },
-  { label: "street", value: "street" },
-  { label: "indoor", value: "indoor" },
-  { label: "outdoor", value: "outdoor" },
-  { label: "black-white", value: "black-white" },
-  { label: "color", value: "color" },
-  { label: "vintage", value: "vintage" },
-  { label: "modern", value: "modern" },
-];
-
-// Spatial search
-const spatialLeft = ref("");
-const spatialCenter = ref("");
-const spatialRight = ref("");
-
-// Carousel state
-const currentExampleIndex = ref(0);
+// Carousel de ejemplos
+const examples = queryExamples.logical || [];
+const exampleIndex = ref(0);
+const currentExampleText = computed(() => examples[exampleIndex.value] || "");
 const isSliding = ref(false);
-let carouselInterval: number | null = null;
-
-// Example data for carousel
-const naturalExamples: NaturalExample[] = [
-  {
-    text: '"sunset photos with people on the beach"',
-    query: "sunset photos with people on the beach",
-  },
-  {
-    text: '"close-up portraits with red background"',
-    query: "close-up portraits with red background",
-  },
-  {
-    text: '"landscape photos with mountains and snow"',
-    query: "landscape photos with mountains and snow",
-  },
-  {
-    text: '"street photography with urban architecture"',
-    query: "street photography with urban architecture",
-  },
-  {
-    text: '"vintage flowers with warm lighting"',
-    query: "vintage flowers with warm lighting",
-  },
-];
-
-const tagExamples: TagExample[] = [
-  {
-    text: "Include: landscape, mountains • Exclude: people",
-    included: ["landscape", "mountains"],
-    excluded: ["people"],
-  },
-  {
-    text: "Include: portrait, indoor • Exclude: black-white",
-    included: ["portrait", "indoor"],
-    excluded: ["black-white"],
-  },
-  {
-    text: "Include: sunset, beach, outdoor",
-    included: ["sunset", "beach", "outdoor"],
-    excluded: [],
-  },
-  {
-    text: "Include: vintage, color • Exclude: modern",
-    included: ["vintage", "color"],
-    excluded: ["modern"],
-  },
-];
-
-const spatialExamples: SpatialExample[] = [
-  {
-    text: "Left: tree • Center: person • Right: building",
-    left: "tree",
-    center: "person",
-    right: "building",
-  },
-  {
-    text: "Left: mountains • Center: lake • Right: forest",
-    left: "mountains",
-    center: "lake",
-    right: "forest",
-  },
-  {
-    text: "Center: face",
-    left: "",
-    center: "face",
-    right: "",
-  },
-  {
-    text: "Left: sky • Right: ocean",
-    left: "sky",
-    center: "",
-    right: "ocean",
-  },
-];
-
-// Computed properties
-const hasSearchQuery = computed(() => {
-  switch (activeSearchType.value) {
-    case "natural":
-      return naturalQuery.value.trim().length > 0;
-    case "tags":
-      return includedTags.value.length > 0 || excludedTags.value.length > 0;
-    case "spatial":
-      return (
-        spatialLeft.value.trim().length > 0 ||
-        spatialCenter.value.trim().length > 0 ||
-        spatialRight.value.trim().length > 0
-      );
-    default:
-      return false;
-  }
+let exampleInterval;
+function handleExampleClick() {
+  semanticQuery.value = currentExampleText.value;
+  performSearch();
+}
+onMounted(() => {
+  exampleInterval = setInterval(() => {
+    isSliding.value = true;
+    setTimeout(() => (isSliding.value = false), 300);
+    exampleIndex.value = (exampleIndex.value + 1) % examples.length;
+  }, 5000);
 });
-
-const getCurrentExamples = () => {
-  switch (activeSearchType.value) {
-    case "natural":
-      return naturalExamples;
-    case "tags":
-      return tagExamples;
-    case "spatial":
-      return spatialExamples;
-    default:
-      return [];
-  }
-};
-
-const currentExampleText = computed(() => {
-  const examples = getCurrentExamples();
-  if (examples.length === 0) return "";
-  return examples[currentExampleIndex.value]?.text || "";
+onUnmounted(() => {
+  clearInterval(exampleInterval);
 });
-
-const currentExample = computed(() => {
-  const examples = getCurrentExamples();
-  if (examples.length === 0) return null;
-  return examples[currentExampleIndex.value] || null;
-});
-
-// Debouncing for search type changes
-let searchTypeTimeout: number | null = null;
-
-// Carousel methods
-const startCarousel = () => {
-  stopCarousel(); // Clear any existing interval
-  carouselInterval = window.setInterval(() => {
-    rotateCarousel();
-  }, 3500); // 3.5 seconds interval
-};
-
-const stopCarousel = () => {
-  if (carouselInterval) {
-    clearInterval(carouselInterval);
-    carouselInterval = null;
-  }
-};
-
-const rotateCarousel = () => {
-  const examples = getCurrentExamples();
-  if (examples.length === 0) return;
-
-  // Trigger slide out animation
-  isSliding.value = true;
-
-  // After slide out, change content and slide in
-  setTimeout(() => {
-    currentExampleIndex.value =
-      (currentExampleIndex.value + 1) % examples.length;
-    isSliding.value = false;
-  }, 300); // Half of transition time
-};
-
-const resetCarouselIndex = () => {
-  currentExampleIndex.value = 0;
-};
-
-// Methods
-const setSearchType = (type: "natural" | "tags" | "spatial") => {
-  // Clear any pending type change
-  if (searchTypeTimeout) {
-    clearTimeout(searchTypeTimeout);
-  }
-
-  // Debounce the search type change to prevent ResizeObserver issues
-  searchTypeTimeout = window.setTimeout(async () => {
-    activeSearchType.value = type;
-    resetCarouselIndex(); // Reset carousel when switching search types
-    await nextTick(); // Wait for DOM updates
-    console.log("Search type changed to:", type);
-    searchTypeTimeout = null;
-  }, 50);
-};
-
-const onSearchTypeChange = (type: string) => {
-  console.log("Search type changed to:", type);
-};
-
-const onSearchChange = () => {
-  console.log("Search parameters changed");
-};
-
-const performSearch = async () => {
-  if (!hasSearchQuery.value) return;
-
-  isSearching.value = true;
-  selectedPhotos.value = [];
-  console.log("Performing search:", {
-    type: activeSearchType.value,
-    mode: globalMode.value,
-    query: getCurrentQuery(),
-  });
-
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 2000));
-
-  // Simulate search results based on current search type
-  const results = [...mockPhotos].sort(() => Math.random() - 0.5);
-  searchResults.value = results.slice(0, Math.min(8, results.length));
-  hasMoreResults.value = results.length > 8;
-
-  isSearching.value = false;
-};
-
-const clearSearch = () => {
-  naturalQuery.value = "";
-  includedTags.value = [];
-  excludedTags.value = [];
-  spatialLeft.value = "";
-  spatialCenter.value = "";
-  spatialRight.value = "";
-  searchResults.value = [];
-  selectedPhotos.value = [];
-  hasMoreResults.value = true;
-};
-
-// Photo grid functions
-const setGridColumns = (columns: number) => {
-  gridColumns.value = columns;
-};
-
-const togglePhotoSelection = (photoId: string) => {
-  const index = selectedPhotos.value.indexOf(photoId);
-  if (index > -1) {
-    selectedPhotos.value.splice(index, 1);
-  } else {
-    selectedPhotos.value.push(photoId);
-  }
-};
-
-const showPhotoInfo = (photo: Photo) => {
-  console.log("Show photo info:", photo);
-  // Here you would implement the photo info modal/panel
-};
-
-const loadMorePhotos = async () => {
-  if (isLoadingMore.value || !hasMoreResults.value) return;
-
-  isLoadingMore.value = true;
-
-  // Simulate loading more photos
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-
-  // Add more mock photos (shuffled)
-  const morePhotos = [...mockPhotos]
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 4)
-    .map((photo, index) => ({
-      ...photo,
-      id: `${photo.id}-${Date.now()}-${index}`, // Make unique IDs
-    }));
-
-  searchResults.value.push(...morePhotos);
-
-  // Simulate end of results after 3 loads
-  if (searchResults.value.length > 16) {
-    hasMoreResults.value = false;
-  }
-
-  isLoadingMore.value = false;
-};
-
-const clearSelection = () => {
-  selectedPhotos.value = [];
-};
-
-const getCurrentQuery = () => {
-  switch (activeSearchType.value) {
-    case "natural":
-      return naturalQuery.value;
-    case "tags":
-      const included =
-        includedTags.value.length > 0
-          ? `Include: ${includedTags.value.join(", ")}`
-          : "";
-      const excluded =
-        excludedTags.value.length > 0
-          ? `Exclude: ${excludedTags.value.join(", ")}`
-          : "";
-      return [included, excluded].filter(Boolean).join(" • ");
-    case "spatial":
-      const parts = [];
-      if (spatialLeft.value) parts.push(`Left: ${spatialLeft.value}`);
-      if (spatialCenter.value) parts.push(`Center: ${spatialCenter.value}`);
-      if (spatialRight.value) parts.push(`Right: ${spatialRight.value}`);
-      return parts.join(" • ");
-    default:
-      return "";
-  }
-};
-
-const handleExampleClick = () => {
-  const example = currentExample.value;
-  if (!example) return;
-
-  clearSearch();
-
-  if (activeSearchType.value === "natural") {
-    const natExample = example as NaturalExample;
-    naturalQuery.value = natExample.query;
-  } else if (activeSearchType.value === "tags") {
-    const tagExample = example as TagExample;
-    includedTags.value = tagExample.included;
-    excludedTags.value = tagExample.excluded;
-  } else if (activeSearchType.value === "spatial") {
-    const spatExample = example as SpatialExample;
-    spatialLeft.value = spatExample.left;
-    spatialCenter.value = spatExample.center;
-    spatialRight.value = spatExample.right;
-  }
-};
-
-const setExampleSearch = (
-  type: "natural" | "tags" | "spatial",
-  natural?: string,
-  included?: string[],
-  excluded?: string[],
-  left?: string,
-  center?: string,
-  right?: string
-) => {
-  clearSearch();
-  activeSearchType.value = type;
-
-  if (type === "natural" && natural) {
-    naturalQuery.value = natural;
-  } else if (type === "tags") {
-    if (included) includedTags.value = included;
-    if (excluded) excludedTags.value = excluded;
-  } else if (type === "spatial") {
-    if (left) spatialLeft.value = left;
-    if (center) spatialCenter.value = center;
-    if (right) spatialRight.value = right;
-  }
-};
 </script>
 
 <style scoped>
@@ -1113,8 +886,8 @@ const setExampleSearch = (
   padding-top: 12px;
 }
 
-/* Natural Language Search */
-.natural-search-section {
+/* Semantic Language Search */
+.semantic-search-section {
   max-width: 100%;
 }
 
@@ -1124,7 +897,7 @@ const setExampleSearch = (
   align-items: flex-start;
 }
 
-.natural-input {
+.semantic-input {
   font-size: 16px;
   flex: 1;
 }
@@ -1166,29 +939,29 @@ const setExampleSearch = (
   min-height: 40px;
 }
 
-/* Spatial Search */
-.spatial-search-section {
+/* Topological Search */
+.topological-search-section {
   width: 100%;
 }
 
-.spatial-input-row {
+.topological-input-row {
   display: flex;
   gap: 16px;
   align-items: flex-start;
 }
 
-.spatial-grid {
+.topological-grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 20px;
   flex: 1;
 }
 
-.spatial-area {
+.topological-area {
   width: 100%;
 }
 
-.spatial-input {
+.topological-input {
   text-align: center;
   width: 100%;
 }
@@ -1227,6 +1000,8 @@ const setExampleSearch = (
   flex: 1;
   display: flex;
   flex-direction: column;
+  /* height: 80vh; 
+  overflow-y: auto; */
 }
 
 /* Load More */
@@ -1501,7 +1276,7 @@ const setExampleSearch = (
 
   .search-input-row,
   .tags-input-row,
-  .spatial-input-row {
+  .topological-input-row {
     flex-direction: column;
     gap: 16px;
   }
@@ -1511,63 +1286,63 @@ const setExampleSearch = (
     gap: 16px;
   }
 
-  .spatial-input-row {
+  .topological-input-row {
     flex-direction: column;
     gap: 20px;
     width: 100%;
   }
 
-  .spatial-grid {
+  .topological-grid {
     display: grid;
     grid-template-columns: 1fr !important;
     gap: 20px;
     width: 100% !important;
   }
 
-  .spatial-area {
+  .topological-area {
     width: 100% !important;
   }
 
-  .spatial-input {
+  .topological-input {
     text-align: left;
     width: 100% !important;
   }
 
-  .spatial-search-section {
+  .topological-search-section {
     width: 100% !important;
   }
 
-  .spatial-search-section .spatial-input {
+  .topological-search-section .topological-input {
     width: 100% !important;
   }
 
-  .spatial-search-section .spatial-input-row {
+  .topological-search-section .topological-input-row {
     width: 100% !important;
   }
 
-  .spatial-search-section .spatial-grid {
+  .topological-search-section .topological-grid {
     width: 100% !important;
   }
 
-  .spatial-search-section .spatial-area {
+  .topological-search-section .topological-area {
     width: 100% !important;
   }
 
-  .spatial-search-section .n-input {
+  .topological-search-section .n-input {
     width: 100% !important;
   }
 
-  .spatial-search-section :deep(.n-input) {
-    width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  .spatial-search-section :deep(.n-input-wrapper) {
+  .topological-search-section :deep(.n-input) {
     width: 100% !important;
     box-sizing: border-box !important;
   }
 
-  .spatial-search-section :deep(.n-input__input-el) {
+  .topological-search-section :deep(.n-input-wrapper) {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .topological-search-section :deep(.n-input__input-el) {
     width: 100% !important;
     box-sizing: border-box !important;
   }
@@ -1641,11 +1416,11 @@ const setExampleSearch = (
 @media (min-width: 768px) and (max-width: 1024px) {
   .search-input-row,
   .tags-input-row,
-  .spatial-input-row {
+  .topological-input-row {
     gap: 12px;
   }
 
-  .spatial-grid {
+  .topological-grid {
     gap: 16px;
   }
 
