@@ -760,12 +760,12 @@ function scrollToLast() {
 onMounted(() => {
   ensureWarmUp();
 
-  // Añadir scroll listener
-  if (scrollContainer.value) {
-    scrollContainer.value.addEventListener("scroll", handleScroll, {
-      passive: true,
-    });
-  }
+  // Añadir scroll listener después de que el DOM esté completamente montado
+  nextTick(() => {
+    if (scrollContainer.value) {
+      scrollContainer.value.addEventListener('scroll', handleScroll, { passive: true });
+    }
+  });
 
   socket.on("matches", (data) => {
     Object.entries(data.results).forEach(([iter, items]) => {
@@ -783,6 +783,8 @@ onMounted(() => {
   });
   socket.on("maxPageAttempts", () => {
     maxPageAttempts.value = true;
+  });
+});
   });
 });
 
