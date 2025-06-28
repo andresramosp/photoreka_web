@@ -379,6 +379,28 @@
           </div>
         </div>
 
+        <!-- Collapsed Grid Controls (shown when toolbar is collapsed) -->
+        <div v-if="isToolbarCollapsed" class="collapsed-grid-controls">
+          <div class="collapsed-results-info">
+            <span class="collapsed-results-count"
+              >{{ searchResults.length }} photos</span
+            >
+          </div>
+          <div class="collapsed-grid-size-controls">
+            <n-button-group size="small">
+              <n-button
+                v-for="size in [3, 4, 5, 6]"
+                :key="size"
+                :type="gridColumns === size ? 'primary' : 'default'"
+                size="small"
+                @click="setGridColumns(size)"
+              >
+                {{ size }}
+              </n-button>
+            </n-button-group>
+          </div>
+        </div>
+
         <!-- Photo Grid -->
         <div
           class="photo-grid photo-grid-base"
