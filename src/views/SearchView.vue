@@ -817,8 +817,8 @@ onUnmounted(() => {
 .search-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow-y: auto;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* Search Toolbar */
