@@ -752,6 +752,14 @@ function scrollToLast() {
 // Manejo de respuestas en tiempo real
 onMounted(() => {
   ensureWarmUp();
+
+  // Añadir scroll listener
+  if (scrollContainer.value) {
+    scrollContainer.value.addEventListener("scroll", handleScroll, {
+      passive: true,
+    });
+  }
+
   socket.on("matches", (data) => {
     Object.entries(data.results).forEach(([iter, items]) => {
       iterationsRecord[iter] = {
@@ -772,6 +780,11 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  // Remover scroll listener
+  if (scrollContainer.value) {
+    scrollContainer.value.removeEventListener("scroll", handleScroll);
+  }
+
   socket.off("matches");
   socket.off("maxPageAttempts");
 });
