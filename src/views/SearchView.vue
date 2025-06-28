@@ -481,6 +481,11 @@ import { CheckOutlined, TagOutlined } from "@vicons/antd";
 // Conexión real-time para resultados incrementales
 const socket = io(import.meta.env.VITE_API_WS_URL);
 
+// Estado del toolbar colapsable
+const isToolbarCollapsed = ref(false);
+const lastScrollY = ref(0);
+const scrollThreshold = 50;
+
 // Estado de búsqueda
 const activeSearchType = ref("semantic"); // 'semantic' | 'tags' | 'topological'
 const searchMode = ref("logical"); // 'logical' | 'flexible'
@@ -528,14 +533,14 @@ const includedTagSuggestionsFormatted = computed(() =>
   includedTagSuggestions.value.map((tagName) => ({
     label: tagName,
     value: tagName,
-  }))
+  })),
 );
 
 const excludedTagSuggestionsFormatted = computed(() =>
   excludedTagSuggestions.value.map((tagName) => ({
     label: tagName,
     value: tagName,
-  }))
+  })),
 );
 
 const tagIncSelect = ref(null);
@@ -683,7 +688,7 @@ async function searchPhotos() {
       `${import.meta.env.VITE_API_BASE_URL}/api/search/${
         activeSearchType.value
       }`,
-      payload
+      payload,
     );
   } catch (err) {
     console.error("Error al buscar fotos:", err);
@@ -698,7 +703,7 @@ async function ensureWarmUp() {
   }, 5000);
 
   const { data } = await axios.get(
-    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`
+    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`,
   );
   warmedUp.value = data.result;
 
@@ -781,7 +786,9 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 10;
-  transition: padding 0.3s ease, margin-bottom 0.3s ease;
+  transition:
+    padding 0.3s ease,
+    margin-bottom 0.3s ease;
 }
 
 .search-toolbar.is-collapsed {
@@ -798,7 +805,9 @@ onUnmounted(() => {
   padding-bottom: 20px;
   border-bottom: 1px solid #2c2c32;
   overflow: visible;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .selector-group {
