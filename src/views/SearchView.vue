@@ -1274,6 +1274,11 @@ onUnmounted(() => {
     margin-bottom: 24px;
   }
 
+  .search-toolbar.is-collapsed {
+    padding: 12px 16px;
+    margin-bottom: 12px;
+  }
+
   .search-selector-section {
     flex-direction: column;
     gap: 16px;
