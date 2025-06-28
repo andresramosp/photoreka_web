@@ -596,16 +596,21 @@ function handleScroll() {
   const scrollDirection = currentScrollY > lastScrollY.value ? 'down' : 'up';
   const scrollDistance = Math.abs(currentScrollY - lastScrollY.value);
 
+  // Console log temporal para debug
+  console.log('Scroll:', { currentScrollY, scrollDirection, hasQuery: hasSearchQuery.value, collapsed: isToolbarCollapsed.value });
+
   // Solo aplicar lógica si hay resultados visibles o se está mostrando contenido
   if (hasSearchQuery.value || searchResults.value.length > 0) {
     if (scrollDirection === 'down' && currentScrollY > 80) {
       // Ocultar toolbar cuando se hace scroll hacia abajo
       if (!isToolbarCollapsed.value) {
+        console.log('Collapsing toolbar');
         isToolbarCollapsed.value = true;
       }
     } else if (scrollDirection === 'up' || currentScrollY <= 50) {
       // Mostrar toolbar cuando se hace scroll hacia arriba o se está cerca del top
       if (isToolbarCollapsed.value) {
+        console.log('Expanding toolbar');
         isToolbarCollapsed.value = false;
       }
     }
