@@ -1,15 +1,7 @@
 <template>
-  <div
-    ref="scrollContainer"
-    class="search-container view-container"
-    @scroll="handleScroll"
-  >
+  <div ref="scrollContainer" class="search-container view-container">
     <!-- Search Toolbar -->
-    <div
-      v-show="!isCollapsed"
-      class="search-toolbar"
-      :class="{ 'is-collapsed_': isCollapsed }"
-    >
+    <div class="search-toolbar">
       <!-- Search Type and Mode Selector -->
       <div class="search-selector-section">
         <!-- Search Type -->
@@ -610,40 +602,6 @@ function setGridColumns(n) {
   gridColumns.value = n;
 }
 
-// Scroll-based collapse functionality
-const isCollapsed = ref(false);
-
-function handleScroll(event) {
-  // const element = event.target;
-  // const scrollTop = element.scrollTop;
-  // const scrollHeight = element.scrollHeight;
-  // const clientHeight = element.clientHeight;
-  // // Calculate scroll percentage
-  // const maxScroll = scrollHeight - clientHeight;
-  // if (maxScroll <= 0) return; // No scrollable content
-  // const scrollPercentage = (scrollTop / maxScroll) * 100;
-  // // Use hysteresis: different thresholds for collapsing vs expanding
-  // // This prevents flickering by creating a "dead zone"
-  // if (!isCollapsed.value && scrollPercentage > 30) {
-  //   // Collapse when scrolling down past 15%
-  //   isCollapsed.value = true;
-  // } else if (isCollapsed.value && scrollPercentage < 25) {
-  //   // Expand when scrolling back up above 5%
-  //   isCollapsed.value = false;
-  // }
-}
-
-// Obtiene texto de la consulta actual
-function getCurrentQuery() {
-  if (activeSearchType.value === "semantic") return semanticQuery.value;
-  if (activeSearchType.value === "tags") {
-    return `+${includedTags.value.join(", ")} -${excludedTags.value.join(
-      ", "
-    )}`;
-  }
-  return `${topological.left}|${topological.center}|${topological.right}`;
-}
-
 // Selección de fotos
 const selectedPhotos = ref([]);
 function togglePhotoSelection(id) {
@@ -683,7 +641,6 @@ async function performSearch() {
   Object.keys(iterationsRecord).forEach((k) => delete iterationsRecord[k]);
   maxPageAttempts.value = false;
   isSearching.value = true;
-  isCollapsed.value = false; // Reset collapsed state
   hasMoreIterations.value = false;
 
   await searchPhotos();
