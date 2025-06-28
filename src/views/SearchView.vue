@@ -484,9 +484,6 @@ const socket = io(import.meta.env.VITE_API_WS_URL);
 // Estado del toolbar colapsable
 const isToolbarCollapsed = ref(false);
 const lastScrollY = ref(0);
-const scrollThreshold = 20;
-const scrollTimeout = ref(null);
-const isScrolling = ref(false);
 
 // Estado de búsqueda
 const activeSearchType = ref("semantic"); // 'semantic' | 'tags' | 'topological'
