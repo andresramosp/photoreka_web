@@ -1,7 +1,7 @@
 <template>
   <div ref="scrollContainer" class="search-container view-container">
     <!-- Search Toolbar -->
-    <div class="search-toolbar">
+    <div class="search-toolbar" :class="{ 'is-collapsed': isToolbarCollapsed }">
       <!-- Search Type and Mode Selector -->
       <div class="search-selector-section">
         <!-- Search Type -->
