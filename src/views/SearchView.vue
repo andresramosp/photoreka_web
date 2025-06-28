@@ -1244,6 +1244,46 @@ onUnmounted(() => {
   margin: 0;
 }
 
+/* Collapsed Grid Controls */
+.collapsed-grid-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #2c2c32;
+  margin-bottom: 16px;
+  animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.collapsed-results-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.collapsed-results-count {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffffd1;
+}
+
+.collapsed-grid-size-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Search Results */
 .search-results {
   flex: 1;
