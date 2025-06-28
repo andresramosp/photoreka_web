@@ -756,8 +756,8 @@ onMounted(() => {
 
   // Añadir scroll listener después de que el DOM esté completamente montado
   nextTick(() => {
-    if (scrollContainer.value) {
-      scrollContainer.value.addEventListener("scroll", handleScroll, {
+    if (resultsContainer.value) {
+      resultsContainer.value.addEventListener("scroll", handleScroll, {
         passive: true,
       });
     }
