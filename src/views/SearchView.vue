@@ -1,9 +1,13 @@
 <template>
-  <div ref="scrollContainer" class="search-container view-container">
+  <div
+    ref="scrollContainer"
+    class="search-container view-container"
+    @scroll="handleScroll"
+  >
     <!-- Search Toolbar -->
-    <div class="search-toolbar">
+    <div class="search-toolbar" :class="{ 'is-collapsed': isCollapsed }">
       <!-- Search Type and Mode Selector -->
-      <div class="search-selector-section">
+      <div v-show="!isCollapsed" class="search-selector-section">
         <!-- Search Type -->
         <div class="selector-group">
           <div class="selector-label">Search Type:</div>
@@ -570,11 +574,37 @@ const hasSearchQuery = computed(() => {
 // Columnas del grid y paginación
 const gridColumns = ref(3);
 const hasMoreResults = computed(
-  () => searchResults.value.length > 0 && !maxPageAttempts.value
+  () => searchResults.value.length > 0 && !maxPageAttempts.value,
 );
 
 function setGridColumns(n) {
   gridColumns.value = n;
+}
+
+// Scroll-based collapse functionality
+const isCollapsed = ref(false);
+
+function handleScroll(event) {
+  const element = event.target;
+  const scrollTop = element.scrollTop;
+  const scrollHeight = element.scrollHeight;
+  const clientHeight = element.clientHeight;
+
+  // Calculate scroll percentage
+  const maxScroll = scrollHeight - clientHeight;
+  if (maxScroll <= 0) return; // No scrollable content
+
+  const scrollPercentage = (scrollTop / maxScroll) * 100;
+
+  // Use hysteresis: different thresholds for collapsing vs expanding
+  // This prevents flickering by creating a "dead zone"
+  if (!isCollapsed.value && scrollPercentage > 15) {
+    // Collapse when scrolling down past 15%
+    isCollapsed.value = true;
+  } else if (isCollapsed.value && scrollPercentage < 5) {
+    // Expand when scrolling back up above 5%
+    isCollapsed.value = false;
+  }
 }
 
 // Obtiene texto de la consulta actual
@@ -582,7 +612,7 @@ function getCurrentQuery() {
   if (activeSearchType.value === "semantic") return semanticQuery.value;
   if (activeSearchType.value === "tags") {
     return `+${includedTags.value.join(", ")} -${excludedTags.value.join(
-      ", "
+      ", ",
     )}`;
   }
   return `${topological.left}|${topological.center}|${topological.right}`;
@@ -623,6 +653,7 @@ async function performSearch() {
   Object.keys(iterationsRecord).forEach((k) => delete iterationsRecord[k]);
   maxPageAttempts.value = false;
   isSearching.value = true;
+  isCollapsed.value = false; // Reset collapsed state
   await searchPhotos();
   isSearching.value = false;
 }
@@ -663,7 +694,7 @@ async function searchPhotos() {
       `${import.meta.env.VITE_API_BASE_URL}/api/search/${
         activeSearchType.value
       }`,
-      payload
+      payload,
     );
   } catch (err) {
     console.error("Error al buscar fotos:", err);
@@ -678,7 +709,7 @@ async function ensureWarmUp() {
   }, 5000);
 
   const { data } = await axios.get(
-    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`
+    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`,
   );
   warmedUp.value = data.result;
 
@@ -758,6 +789,17 @@ onUnmounted(() => {
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 32px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  transition:
+    padding 0.3s ease,
+    margin-bottom 0.3s ease;
+}
+
+.search-toolbar.is-collapsed {
+  padding: 16px 24px;
+  margin-bottom: 16px;
 }
 
 /* Combined Search Selector Section */
@@ -769,6 +811,9 @@ onUnmounted(() => {
   padding-bottom: 20px;
   border-bottom: 1px solid #2c2c32;
   overflow: visible;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .selector-group {
@@ -1000,7 +1045,7 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  /* height: 80vh; 
+  /* height: 80vh;
   overflow-y: auto; */
 }
 
@@ -1218,6 +1263,11 @@ onUnmounted(() => {
     margin-bottom: 24px;
   }
 
+  .search-toolbar.is-collapsed {
+    padding: 12px 16px;
+    margin-bottom: 12px;
+  }
+
   .search-selector-section {
     flex-direction: column;
     gap: 16px;
@@ -1251,6 +1301,11 @@ onUnmounted(() => {
   .search-toolbar {
     padding: 12px;
     margin-bottom: 16px;
+  }
+
+  .search-toolbar.is-collapsed {
+    padding: 8px 12px;
+    margin-bottom: 8px;
   }
 
   .type-pills {
