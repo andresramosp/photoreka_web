@@ -664,12 +664,6 @@ function clearSearch() {
   // Resetear estado del toolbar
   isToolbarCollapsed.value = false;
   lastScrollY.value = 0;
-
-  // Limpiar timeout si existe
-  if (scrollTimeout.value) {
-    clearTimeout(scrollTimeout.value);
-    scrollTimeout.value = null;
-  }
 }
 
 // Ejecución de búsqueda
