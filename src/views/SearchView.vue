@@ -584,35 +584,28 @@ const searchResults = computed(() => {
 // Helpers
 const skeletonCount = computed(() => pageSize.value);
 
-// Función para manejar el scroll del toolbar
+// Función simple para manejar el scroll del toolbar
 function handleScroll() {
   if (!scrollContainer.value) return;
 
   const currentScrollY = scrollContainer.value.scrollTop;
-  const scrollDirection = currentScrollY > lastScrollY.value ? "down" : "up";
 
-  // Actualizar inmediatamente para no interferir con el scroll
-  lastScrollY.value = currentScrollY;
-
-  // Solo aplicar lógica si hay resultados visibles
+  // Solo aplicar si hay contenido de búsqueda
   if (searchResults.value.length > 0 && !isSearching.value) {
-    if (
-      scrollDirection === "down" &&
-      currentScrollY > 80 &&
-      !isToolbarCollapsed.value
-    ) {
-      // Ocultar toolbar instantáneamente cuando se hace scroll hacia abajo
+    // Si hacemos scroll hacia abajo y pasamos cierto punto, ocultar
+    if (currentScrollY > lastScrollY.value && currentScrollY > 100) {
       isToolbarCollapsed.value = true;
-    } else if (scrollDirection === "up" && isToolbarCollapsed.value) {
-      // Mostrar toolbar inmediatamente cuando se hace scroll hacia arriba
+    }
+    // Si hacemos scroll hacia arriba, mostrar
+    else if (currentScrollY < lastScrollY.value) {
       isToolbarCollapsed.value = false;
     }
   } else {
-    // Resetear estado cuando no hay contenido
-    if (isToolbarCollapsed.value) {
-      isToolbarCollapsed.value = false;
-    }
+    // Sin contenido, siempre mostrar
+    isToolbarCollapsed.value = false;
   }
+
+  lastScrollY.value = currentScrollY;
 }
 
 // Habilitar/deshabilitar botón de búsqueda
