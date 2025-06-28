@@ -146,30 +146,48 @@
             <div class="tags-row">
               <div class="tags-group">
                 <n-select
+                  ref="tagIncSelect"
                   v-model:value="includedTags"
                   multiple
                   filterable
+                  clearable
                   tag
                   placeholder="Add tags to include..."
                   :options="includedTagSuggestionsFormatted"
+                  :clear-filter-after-select="true"
                   :max-tag-count="5"
                   class="tags-select include-tags"
                   @search="onSearchInputIncluded"
-                />
+                  @update:value="handleTagSelected"
+                >
+                  <template #empty>
+                    <div style="padding: 8px; color: #888">
+                      Start typing to search tags...
+                    </div>
+                  </template></n-select
+                >
               </div>
               <div class="tags-group">
                 <n-select
+                  ref="tagExcSelect"
                   v-model:value="excludedTags"
                   multiple
                   filterable
+                  clearable
                   tag
                   placeholder="Add tags to exclude..."
                   :options="excludedTagSuggestionsFormatted"
                   :max-tag-count="5"
                   class="tags-select exclude-tags"
                   @search="onSearchInputExcluded"
-                  :key="`exclude-${activeSearchType}`"
-                />
+                  @update:value="handleTagSelected"
+                >
+                  <template #empty>
+                    <div style="padding: 8px; color: #888">
+                      Start typing to search tags...
+                    </div>
+                  </template></n-select
+                >
               </div>
             </div>
             <div class="search-actions-inline">
@@ -359,9 +377,6 @@
             <span class="results-count results-count-base"
               >{{ searchResults.length }} photos found</span
             >
-            <span class="results-query results-query-base">{{
-              getCurrentQuery()
-            }}</span>
           </div>
           <div class="grid-size-controls grid-size-controls-base">
             <span class="grid-label grid-label-base">Columns:</span>
@@ -407,10 +422,7 @@
         </div>
 
         <!-- Load More Button -->
-        <div
-          class="load-more-container"
-          v-if="searchResults.length > 0 && hasMoreResults"
-        >
+        <div class="load-more-container" v-if="hasMoreIterations">
           <n-button
             size="large"
             :loading="isLoadingMore"
@@ -484,14 +496,6 @@ const searchMode = ref("logical"); // 'logical' | 'flexible'
 // Semantic language
 const semanticQuery = ref("");
 
-const mockedTags = ref([
-  { label: "young woman listening", value: "young woman listening" },
-  { label: "smiling man", value: "smiling man" },
-  { label: "child with balloon", value: "child with balloon" },
-  { label: "people walking", value: "people walking" },
-  { label: "crowd in a square", value: "crowd in a square" },
-]);
-
 // Tags
 const {
   includedTags,
@@ -509,8 +513,9 @@ const topological = reactive({ left: "", center: "", right: "" });
 const isSearching = ref(false);
 const isLoadingMore = ref(false);
 const maxPageAttempts = ref(false);
+const hasMoreIterations = ref(false);
 const iteration = ref(1);
-const iterationsRecord = reactive({});
+let iterationsRecord = reactive({});
 const pageSize = ref(12);
 
 const warmedUp = ref(false);
@@ -540,6 +545,14 @@ const excludedTagSuggestionsFormatted = computed(() =>
     value: tagName,
   }))
 );
+
+const tagIncSelect = ref(null);
+const tagExcSelect = ref(null);
+
+function handleTagSelected() {
+  tagIncSelect.value.blur();
+  tagExcSelect.value.blur();
+}
 
 // Resultados consolidados
 const searchResults = computed(() => {
@@ -592,9 +605,6 @@ const hasSearchQuery = computed(() => {
 
 // Columnas del grid y paginación
 const gridColumns = ref(6);
-const hasMoreResults = computed(
-  () => searchResults.value.length > 0 && !maxPageAttempts.value
-);
 
 function setGridColumns(n) {
   gridColumns.value = n;
@@ -604,23 +614,23 @@ function setGridColumns(n) {
 const isCollapsed = ref(false);
 
 function handleScroll(event) {
-  const element = event.target;
-  const scrollTop = element.scrollTop;
-  const scrollHeight = element.scrollHeight;
-  const clientHeight = element.clientHeight;
-  // Calculate scroll percentage
-  const maxScroll = scrollHeight - clientHeight;
-  if (maxScroll <= 0) return; // No scrollable content
-  const scrollPercentage = (scrollTop / maxScroll) * 100;
-  // Use hysteresis: different thresholds for collapsing vs expanding
-  // This prevents flickering by creating a "dead zone"
-  if (!isCollapsed.value && scrollPercentage > 50) {
-    // Collapse when scrolling down past 15%
-    isCollapsed.value = true;
-  } else if (isCollapsed.value && scrollPercentage < 25) {
-    // Expand when scrolling back up above 5%
-    isCollapsed.value = false;
-  }
+  // const element = event.target;
+  // const scrollTop = element.scrollTop;
+  // const scrollHeight = element.scrollHeight;
+  // const clientHeight = element.clientHeight;
+  // // Calculate scroll percentage
+  // const maxScroll = scrollHeight - clientHeight;
+  // if (maxScroll <= 0) return; // No scrollable content
+  // const scrollPercentage = (scrollTop / maxScroll) * 100;
+  // // Use hysteresis: different thresholds for collapsing vs expanding
+  // // This prevents flickering by creating a "dead zone"
+  // if (!isCollapsed.value && scrollPercentage > 30) {
+  //   // Collapse when scrolling down past 15%
+  //   isCollapsed.value = true;
+  // } else if (isCollapsed.value && scrollPercentage < 25) {
+  //   // Expand when scrolling back up above 5%
+  //   isCollapsed.value = false;
+  // }
 }
 
 // Obtiene texto de la consulta actual
@@ -660,6 +670,10 @@ function clearSearch() {
   topological.left = "";
   topological.center = "";
   topological.right = "";
+  hasMoreIterations.value = false;
+  iteration.value = 1;
+  iterationsRecord = {};
+  hasMoreIterations.value = false;
 }
 
 // Ejecución de búsqueda
@@ -670,6 +684,8 @@ async function performSearch() {
   maxPageAttempts.value = false;
   isSearching.value = true;
   isCollapsed.value = false; // Reset collapsed state
+  hasMoreIterations.value = false;
+
   await searchPhotos();
   isSearching.value = false;
 }
@@ -687,7 +703,7 @@ async function searchPhotos() {
     const options = {
       iteration: iteration.value,
       pageSize: pageSize.value,
-      searchMode: searchMode.value,
+      searchMode: "low_precision", //searchMode.value,
     };
     let payload;
     if (activeSearchType.value === "semantic") {
@@ -753,8 +769,9 @@ onMounted(() => {
         photos: items.map((i) => i.photo),
       };
     });
+    debugger;
+    hasMoreIterations.value = data.hasMore;
     iteration.value = data.iteration + 1;
-    // Scroll al tope al traer fotos
     setTimeout(() => {
       scrollToLast();
     }, 0);
@@ -804,7 +821,6 @@ onUnmounted(() => {
   border: 1px solid #2c2c32;
   border-radius: 16px;
   padding: 24px;
-  margin-bottom: 32px;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -1057,6 +1073,7 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
+  padding: 16px;
   /* height: 80vh;
   overflow-y: auto; */
 }
@@ -1272,7 +1289,6 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .search-toolbar {
     padding: 16px;
-    margin-bottom: 24px;
   }
 
   .search-toolbar.is-collapsed {

@@ -203,7 +203,7 @@
 }
 
 .results-count-base {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
 }
@@ -346,4 +346,10 @@
 
 .n-modal {
   background-color: var(--bg-container);
+}
+
+.n-tag {
+  border-radius: 8px;
+  background-color: var(--secondary-color);
+  height: 25px;
 }
