@@ -838,6 +838,18 @@ onUnmounted(() => {
   padding-bottom: 20px;
   border-bottom: 1px solid #2c2c32;
   overflow: visible;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 200px;
+  opacity: 1;
+}
+
+.search-selector-section.collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+  overflow: hidden;
 }
 
 .selector-group {
