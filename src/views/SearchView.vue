@@ -581,6 +581,40 @@ function setGridColumns(n) {
   gridColumns.value = n;
 }
 
+// Scroll-based collapse functionality
+const isCollapsed = ref(false);
+const lastScrollY = ref(0);
+const scrollTimeout = ref(null);
+
+function handleScroll(event) {
+  const currentScrollY = event.target.scrollTop;
+
+  // Clear any pending timeout
+  if (scrollTimeout.value) {
+    clearTimeout(scrollTimeout.value);
+  }
+
+  // Only trigger changes if we have meaningful scroll movement
+  const scrollDelta = Math.abs(currentScrollY - lastScrollY.value);
+  if (scrollDelta < 5) return; // Ignore very small movements
+
+  // Throttle the scroll updates to prevent flickering
+  scrollTimeout.value = setTimeout(() => {
+    const scrollDirection = currentScrollY > lastScrollY.value ? "down" : "up";
+
+    // Collapse when scrolling down and we're past a small threshold
+    if (scrollDirection === "down" && currentScrollY > 30) {
+      isCollapsed.value = true;
+    }
+    // Expand when scrolling up
+    else if (scrollDirection === "up") {
+      isCollapsed.value = false;
+    }
+
+    lastScrollY.value = currentScrollY;
+  }, 50); // 50ms throttle
+}
+
 // Obtiene texto de la consulta actual
 function getCurrentQuery() {
   if (activeSearchType.value === "semantic") return semanticQuery.value;
