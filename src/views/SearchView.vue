@@ -760,6 +760,9 @@ onMounted(() => {
 onUnmounted(() => {
   socket.off("matches");
   socket.off("maxPageAttempts");
+  if (scrollTimeout.value) {
+    clearTimeout(scrollTimeout.value);
+  }
 });
 
 // Carousel de ejemplos
