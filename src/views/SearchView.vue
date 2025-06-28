@@ -664,6 +664,10 @@ function clearSearch() {
   iteration.value = 1;
   iterationsRecord = {};
   hasMoreIterations.value = false;
+
+  // Resetear estado del toolbar
+  isToolbarCollapsed.value = false;
+  lastScrollY.value = 0;
 }
 
 // Ejecución de búsqueda
