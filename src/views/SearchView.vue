@@ -593,24 +593,29 @@ function handleScroll() {
   if (!scrollContainer.value) return;
 
   const currentScrollY = scrollContainer.value.scrollTop;
-  const scrollDirection = currentScrollY > lastScrollY.value ? 'down' : 'up';
+  const scrollDirection = currentScrollY > lastScrollY.value ? "down" : "up";
   const scrollDistance = Math.abs(currentScrollY - lastScrollY.value);
 
   // Console log temporal para debug
-  console.log('Scroll:', { currentScrollY, scrollDirection, hasQuery: hasSearchQuery.value, collapsed: isToolbarCollapsed.value });
+  console.log("Scroll:", {
+    currentScrollY,
+    scrollDirection,
+    hasQuery: hasSearchQuery.value,
+    collapsed: isToolbarCollapsed.value,
+  });
 
   // Solo aplicar lógica si hay resultados visibles o se está mostrando contenido
   if (hasSearchQuery.value || searchResults.value.length > 0) {
-    if (scrollDirection === 'down' && currentScrollY > 80) {
+    if (scrollDirection === "down" && currentScrollY > 80) {
       // Ocultar toolbar cuando se hace scroll hacia abajo
       if (!isToolbarCollapsed.value) {
-        console.log('Collapsing toolbar');
+        console.log("Collapsing toolbar");
         isToolbarCollapsed.value = true;
       }
-    } else if (scrollDirection === 'up' || currentScrollY <= 50) {
+    } else if (scrollDirection === "up" || currentScrollY <= 50) {
       // Mostrar toolbar cuando se hace scroll hacia arriba o se está cerca del top
       if (isToolbarCollapsed.value) {
-        console.log('Expanding toolbar');
+        console.log("Expanding toolbar");
         isToolbarCollapsed.value = false;
       }
     }
@@ -770,7 +775,9 @@ onMounted(() => {
   // Añadir scroll listener después de que el DOM esté completamente montado
   nextTick(() => {
     if (scrollContainer.value) {
-      scrollContainer.value.addEventListener('scroll', handleScroll, { passive: true });
+      scrollContainer.value.addEventListener("scroll", handleScroll, {
+        passive: true,
+      });
     }
   });
 
@@ -790,8 +797,6 @@ onMounted(() => {
   });
   socket.on("maxPageAttempts", () => {
     maxPageAttempts.value = true;
-  });
-});
   });
 });
 
