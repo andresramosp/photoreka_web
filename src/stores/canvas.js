@@ -153,4 +153,5 @@ export const expansionTypeOptions = [
   { label: "Narrative", value: "story" },
   { label: "Context", value: "context" },
   { label: "Tags", value: "tags" },
+  { label: "Chromatic", value: "chromatic" },
 ];
