@@ -152,7 +152,7 @@ export const expansionTypeOptions = [
   { label: "General", value: "embedding" },
   { label: "Narrative", value: "story" },
   { label: "Context", value: "context" },
+  { label: "Chromatic", value: "chromatic" },
   { label: "Selected Tags", value: "tags" },
-  { label: "Color Palette", value: "chromatic" },
-  { label: "Dominant Colors", value: "chromatic_dominant" },
+  // { label: "Dominant Colors", value: "chromatic_dominant" },
 ];
