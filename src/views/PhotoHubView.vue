@@ -328,11 +328,6 @@
                         :type="job.status === 'processing' ? 'info' : 'success'"
                         class="status-tag"
                       >
-                        <n-spin
-                          v-if="job.status === 'processing'"
-                          size="small"
-                          style="margin-right: 4px"
-                        />
                         {{
                           job.status === "processing"
                             ? "Processing"
