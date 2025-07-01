@@ -423,6 +423,13 @@
           <div class="catalog-section">
             <!-- Static Example Photos -->
             <div class="catalog-photos">
+              <!-- Catalog Title -->
+              <div class="catalog-header">
+                <h3 class="catalog-title">
+                  Here are all your processed photos.
+                </h3>
+              </div>
+
               <!-- Grid Controls -->
               <div class="grid-controls grid-controls-base">
                 <div class="results-info results-info-base">
@@ -457,9 +464,6 @@
                   :photo="{
                     ...photo,
                     size: parseFloat(photo.size) * 1024 * 1024, // Convert MB to bytes
-                    status: 'analyzed',
-                    aiTags: Math.floor(Math.random() * 20) + 10,
-                    faces: Math.floor(Math.random() * 6),
                   }"
                   @select="togglePhotoSelection"
                   @info="showPhotoInfo"
