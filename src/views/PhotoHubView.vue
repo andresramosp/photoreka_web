@@ -1750,39 +1750,10 @@ const toggleJobExpansion = (jobId: string) => {
   border-color: #8b5cf6;
 }
 
-.mini-photo.processed {
-  border-color: #10b981;
-}
-
 .mini-photo-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.mini-photo-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.mini-photo-check {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  background-color: #10b981;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .upload-queue {
