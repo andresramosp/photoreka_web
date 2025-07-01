@@ -85,8 +85,8 @@
       <div class="tab-content-container">
         <!-- Tab 1: Upload -->
         <div v-show="activeTab === 'upload'" class="tab-content">
-          <!-- Upload Dropzone -->
-          <div class="upload-section">
+          <!-- Full Upload Dropzone (show when no photos) -->
+          <div v-if="uploadedPhotos.length === 0" class="upload-section">
             <div
               class="upload-dropzone"
               :class="{ 'drag-over': isDragOver }"
@@ -149,6 +149,47 @@
                   >
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- Compact Upload Section (show when photos exist) -->
+          <div v-else class="compact-upload-section">
+            <div class="compact-upload-buttons">
+              <n-button
+                type="primary"
+                size="medium"
+                class="compact-upload-btn"
+                @click="triggerFileInput"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Choose Files
+              </n-button>
+              <n-button
+                type="default"
+                size="medium"
+                class="compact-google-photos-btn"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 13L13.5 11.5C12.1 10.1 9.9 10.1 8.5 11.5L3 17V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V9ZM5 19L8.5 15.5C9.3 14.7 10.7 14.7 11.5 15.5L13 17L19 11V19H5Z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Import Google Photos
+              </n-button>
             </div>
           </div>
 
@@ -222,8 +263,8 @@
                   status: photo.isUploading
                     ? 'processing'
                     : photo.isDuplicate
-                    ? 'uploaded'
-                    : 'uploaded',
+                      ? 'uploaded'
+                      : 'uploaded',
                   aiTags: photo.isUploading
                     ? undefined
                     : Math.floor(Math.random() * 15) + 5,
@@ -241,70 +282,110 @@
         <!-- Tab 2: Processing -->
         <div v-show="activeTab === 'processing'" class="tab-content">
           <div class="processing-section">
-            <!-- Photos being uploaded (skeletons) -->
-            <div v-if="skeletonCount > 0" class="upload-queue">
+            <!-- Processing Jobs Table -->
+            <div
+              v-if="processingJobs.length > 0"
+              class="processing-table-container"
+            >
               <div class="section-header">
-                <h3 class="section-title">Uploading Photos</h3>
+                <h3 class="section-title">Analysis Processes</h3>
                 <span class="photo-count"
-                  >{{ skeletonCount }} photos uploading</span
+                  >{{ processingJobs.length }} processes</span
                 >
               </div>
-              <div class="photos-grid">
-                <div
-                  v-for="skeleton in skeletonCount"
-                  :key="`skeleton-${skeleton}`"
-                  class="photo-card skeleton-card"
-                >
-                  <div class="photo-skeleton">
-                    <n-skeleton height="100%" />
-                  </div>
-                  <div class="photo-info">
-                    <n-skeleton text :repeat="1" width="60%" />
-                    <n-skeleton text :repeat="1" width="40%" />
-                  </div>
-                  <div class="upload-progress-indicator">
-                    <n-spin size="small" />
-                    <span class="upload-text">Uploading...</span>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <!-- Processing Queue for analysis -->
-            <div v-if="processingPhotos.length > 0" class="processing-queue">
-              <div class="section-header">
-                <h3 class="section-title">AI Analysis in Progress</h3>
-                <span class="photo-count"
-                  >{{ processingPhotos.length }} photos being analyzed</span
-                >
-              </div>
-              <div class="processing-list">
+              <div class="processing-table">
                 <div
-                  v-for="photo in processingPhotos"
-                  :key="photo.id"
-                  class="processing-item"
+                  v-for="job in processingJobs"
+                  :key="job.id"
+                  class="processing-row"
+                  :class="{
+                    expanded: job.expanded,
+                    finished: job.status === 'finished',
+                  }"
+                  @click="toggleJobExpansion(job.id)"
                 >
-                  <div class="processing-thumbnail">
-                    <img :src="photo.url" :alt="photo.name" />
-                    <div class="processing-overlay">
-                      <n-spin size="small" />
+                  <!-- Main Row -->
+                  <div class="row-main">
+                    <div class="row-cell date-cell">
+                      <span class="cell-label">Started</span>
+                      <span class="cell-value">{{
+                        formatDate(job.startDate)
+                      }}</span>
                     </div>
-                  </div>
-                  <div class="processing-info">
-                    <span class="processing-name">{{ photo.name }}</span>
-                    <div class="processing-progress">
-                      <n-progress
-                        type="line"
-                        :percentage="photo.progress"
-                        :show-indicator="false"
-                      />
-                      <span class="progress-text"
-                        >{{ photo.progress }}% - {{ photo.stage }}</span
+                    <div class="row-cell photos-cell">
+                      <span class="cell-label">Photos</span>
+                      <span class="cell-value">{{ job.photoCount }}</span>
+                    </div>
+                    <div class="row-cell type-cell">
+                      <span class="cell-label">Process</span>
+                      <span class="cell-value">{{ job.processType }}</span>
+                    </div>
+                    <div class="row-cell status-cell">
+                      <span class="cell-label">Status</span>
+                      <n-tag
+                        size="small"
+                        class="status-tag"
+                        :class="{
+                          'status-processing': job.status === 'processing',
+                          'status-finished': job.status === 'finished',
+                        }"
                       >
+                        {{
+                          job.status === "processing"
+                            ? "Processing"
+                            : "Finished"
+                        }}
+                      </n-tag>
+                    </div>
+                    <div class="row-cell expand-cell">
+                      <n-icon size="16" class="expand-icon">
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            fill="currentColor"
+                            d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6l-6-6l1.41-1.41z"
+                          />
+                        </svg>
+                      </n-icon>
                     </div>
                   </div>
-                  <div class="processing-status">
-                    <n-tag size="small" type="info">Analyzing</n-tag>
+
+                  <!-- Expanded Row Content -->
+                  <div v-if="job.expanded" class="row-expanded">
+                    <div class="expanded-content">
+                      <div class="expanded-header">
+                        <span class="expanded-title"
+                          >Processing Photos ({{ job.photos.length }})</span
+                        >
+                        <div
+                          v-if="job.status === 'processing'"
+                          class="progress-info"
+                        >
+                          <n-progress
+                            type="line"
+                            :percentage="job.progress"
+                            :show-indicator="false"
+                            class="job-progress"
+                          />
+                          <span class="progress-text"
+                            >{{ job.progress }}% complete</span
+                          >
+                        </div>
+                      </div>
+                      <div class="photos-grid-mini">
+                        <div
+                          v-for="photo in job.photos"
+                          :key="photo.id"
+                          class="mini-photo"
+                        >
+                          <img
+                            :src="photo.url"
+                            :alt="photo.name"
+                            class="mini-photo-image"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -312,7 +393,10 @@
 
             <!-- Empty Processing State -->
             <div
-              v-if="skeletonCount === 0 && processingPhotos.length === 0"
+              v-if="
+                processingJobs.length === 0 ||
+                processingJobs.every((job) => job.status === 'finished')
+              "
               class="empty-processing-state"
             >
               <div class="empty-state-content">
@@ -339,6 +423,13 @@
           <div class="catalog-section">
             <!-- Static Example Photos -->
             <div class="catalog-photos">
+              <!-- Catalog Title -->
+              <div class="catalog-header">
+                <h3 class="catalog-title">
+                  Here are all your processed photos.
+                </h3>
+              </div>
+
               <!-- Grid Controls -->
               <div class="grid-controls grid-controls-base">
                 <div class="results-info results-info-base">
@@ -373,9 +464,6 @@
                   :photo="{
                     ...photo,
                     size: parseFloat(photo.size) * 1024 * 1024, // Convert MB to bytes
-                    status: 'analyzed',
-                    aiTags: Math.floor(Math.random() * 20) + 10,
-                    faces: Math.floor(Math.random() * 6),
                   }"
                   @select="togglePhotoSelection"
                   @info="showPhotoInfo"
@@ -423,6 +511,22 @@ interface CatalogPhoto {
   isDuplicate: boolean;
 }
 
+interface ProcessingJob {
+  id: string;
+  startDate: Date;
+  photoCount: number;
+  processType: string;
+  status: "processing" | "finished";
+  progress: number;
+  expanded: boolean;
+  photos: {
+    id: string;
+    name: string;
+    url: string;
+    processed: boolean;
+  }[];
+}
+
 // Reactive state
 const activeTab = ref("upload");
 const isDragOver = ref(false);
@@ -440,8 +544,432 @@ const selectedPhotos = ref<string[]>([]);
 // Grid columns state
 const gridColumns = ref(4);
 
-// Mock processing photos for the Processing tab
-const processingPhotos = ref<any[]>([]);
+// Mock processing jobs for the Processing tab
+const processingJobs = ref<ProcessingJob[]>([
+  {
+    id: "job-1",
+    startDate: new Date("2024-11-20T14:30:00"),
+    photoCount: 12,
+    processType: "AI Object Detection",
+    status: "processing",
+    progress: 75,
+    expanded: false,
+    photos: [
+      {
+        id: "p1",
+        name: "IMG_001.jpg",
+        url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p2",
+        name: "IMG_002.jpg",
+        url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p3",
+        name: "IMG_003.jpg",
+        url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p4",
+        name: "IMG_004.jpg",
+        url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p5",
+        name: "IMG_005.jpg",
+        url: "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p6",
+        name: "IMG_006.jpg",
+        url: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p7",
+        name: "IMG_007.jpg",
+        url: "https://images.unsplash.com/photo-1540979388789-6cee28a1cdc9?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p8",
+        name: "IMG_008.jpg",
+        url: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p9",
+        name: "IMG_009.jpg",
+        url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p10",
+        name: "IMG_010.jpg",
+        url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p11",
+        name: "IMG_011.jpg",
+        url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p12",
+        name: "IMG_012.jpg",
+        url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=100&h=100",
+        processed: false,
+      },
+    ],
+  },
+  {
+    id: "job-2",
+    startDate: new Date("2024-11-20T13:15:00"),
+    photoCount: 8,
+    processType: "Face Recognition",
+    status: "finished",
+    progress: 100,
+    expanded: false,
+    photos: [
+      {
+        id: "p13",
+        name: "family_001.jpg",
+        url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p14",
+        name: "family_002.jpg",
+        url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p15",
+        name: "family_003.jpg",
+        url: "https://images.unsplash.com/photo-1494790108755-2616c4ce8394?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p16",
+        name: "family_004.jpg",
+        url: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p17",
+        name: "family_005.jpg",
+        url: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p18",
+        name: "family_006.jpg",
+        url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p19",
+        name: "family_007.jpg",
+        url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p20",
+        name: "family_008.jpg",
+        url: "https://images.unsplash.com/photo-1463453091185-61582044d556?w=100&h=100",
+        processed: true,
+      },
+    ],
+  },
+  {
+    id: "job-3",
+    startDate: new Date("2024-11-20T12:00:00"),
+    photoCount: 45,
+    processType: "Scene Classification",
+    status: "processing",
+    progress: 20,
+    expanded: false,
+    photos: [
+      {
+        id: "p21",
+        name: "nature_001.jpg",
+        url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p22",
+        name: "nature_002.jpg",
+        url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p23",
+        name: "nature_003.jpg",
+        url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=100&h=100",
+        processed: true,
+      },
+      {
+        id: "p24",
+        name: "nature_004.jpg",
+        url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p25",
+        name: "nature_005.jpg",
+        url: "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p26",
+        name: "nature_006.jpg",
+        url: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p27",
+        name: "nature_007.jpg",
+        url: "https://images.unsplash.com/photo-1540979388789-6cee28a1cdc9?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p28",
+        name: "nature_008.jpg",
+        url: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p29",
+        name: "nature_009.jpg",
+        url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p30",
+        name: "nature_010.jpg",
+        url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p31",
+        name: "nature_011.jpg",
+        url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p32",
+        name: "nature_012.jpg",
+        url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p33",
+        name: "nature_013.jpg",
+        url: "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p34",
+        name: "nature_014.jpg",
+        url: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p35",
+        name: "nature_015.jpg",
+        url: "https://images.unsplash.com/photo-1540979388789-6cee28a1cdc9?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p36",
+        name: "nature_016.jpg",
+        url: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p37",
+        name: "nature_017.jpg",
+        url: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p38",
+        name: "nature_018.jpg",
+        url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p39",
+        name: "nature_019.jpg",
+        url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p40",
+        name: "nature_020.jpg",
+        url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p41",
+        name: "nature_021.jpg",
+        url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p42",
+        name: "nature_022.jpg",
+        url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p43",
+        name: "nature_023.jpg",
+        url: "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p44",
+        name: "nature_024.jpg",
+        url: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p45",
+        name: "nature_025.jpg",
+        url: "https://images.unsplash.com/photo-1540979388789-6cee28a1cdc9?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p46",
+        name: "nature_026.jpg",
+        url: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p47",
+        name: "nature_027.jpg",
+        url: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p48",
+        name: "nature_028.jpg",
+        url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p49",
+        name: "nature_029.jpg",
+        url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p50",
+        name: "nature_030.jpg",
+        url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p51",
+        name: "nature_031.jpg",
+        url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p52",
+        name: "nature_032.jpg",
+        url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p53",
+        name: "nature_033.jpg",
+        url: "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p54",
+        name: "nature_034.jpg",
+        url: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p55",
+        name: "nature_035.jpg",
+        url: "https://images.unsplash.com/photo-1540979388789-6cee28a1cdc9?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p56",
+        name: "nature_036.jpg",
+        url: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p57",
+        name: "nature_037.jpg",
+        url: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p58",
+        name: "nature_038.jpg",
+        url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p59",
+        name: "nature_039.jpg",
+        url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p60",
+        name: "nature_040.jpg",
+        url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p61",
+        name: "nature_041.jpg",
+        url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p62",
+        name: "nature_042.jpg",
+        url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p63",
+        name: "nature_043.jpg",
+        url: "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p64",
+        name: "nature_044.jpg",
+        url: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=100&h=100",
+        processed: false,
+      },
+      {
+        id: "p65",
+        name: "nature_045.jpg",
+        url: "https://images.unsplash.com/photo-1540979388789-6cee28a1cdc9?w=100&h=100",
+        processed: false,
+      },
+    ],
+  },
+]);
 
 // Static catalog photos for demonstration
 const catalogPhotos = ref<CatalogPhoto[]>([
@@ -634,11 +1162,14 @@ const formatFileSize = (bytes: number): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
-const formatDate = (date: Date): string => {
-  return date.toLocaleDateString("en-US", {
+const formatDate = (date: Date | string): string => {
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  return dateObj.toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
@@ -660,6 +1191,14 @@ const showPhotoInfo = (photo: any) => {
 // Grid columns function
 const setGridColumns = (columns: number) => {
   gridColumns.value = columns;
+};
+
+// Processing jobs functions
+const toggleJobExpansion = (jobId: string) => {
+  const job = processingJobs.value.find((j) => j.id === jobId);
+  if (job) {
+    job.expanded = !job.expanded;
+  }
 };
 </script>
 
@@ -865,6 +1404,27 @@ const setGridColumns = (columns: number) => {
   font-size: 14px;
 }
 
+/* Compact Upload Section */
+.compact-upload-section {
+  margin-bottom: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid #2c2c32;
+}
+
+.compact-upload-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.compact-upload-btn {
+  min-width: 120px;
+}
+
+.compact-google-photos-btn {
+  min-width: 160px;
+}
+
 /* Photos Section */
 .photos-section,
 .uploaded-photos-section,
@@ -1037,6 +1597,172 @@ const setGridColumns = (columns: number) => {
   flex-direction: column;
 }
 
+/* Processing Table */
+.processing-table-container {
+  margin-bottom: 32px;
+}
+
+.processing-table {
+  background-color: #1a1a1f;
+  border-radius: 12px;
+  border: 1px solid #2c2c32;
+  overflow: hidden;
+}
+
+.processing-row {
+  border-bottom: 1px solid #2c2c32;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.processing-row:last-child {
+  border-bottom: none;
+}
+
+.processing-row:hover {
+  background-color: rgba(139, 92, 246, 0.05);
+}
+
+.processing-row.finished {
+  opacity: 0.7;
+}
+
+.processing-row.expanded {
+  background-color: rgba(139, 92, 246, 0.05);
+}
+
+.row-main {
+  display: grid;
+  grid-template-columns: 1fr 80px 1fr 120px 40px;
+  gap: 16px;
+  padding: 16px 20px;
+  align-items: center;
+}
+
+.row-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cell-label {
+  font-size: 12px;
+  color: #ffffff60;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cell-value {
+  font-size: 14px;
+  color: #ffffffd1;
+  font-weight: 500;
+}
+
+.photos-cell .cell-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #8b5cf6;
+}
+
+.status-cell {
+  align-items: flex-start;
+}
+
+.expand-cell {
+  justify-content: center;
+  align-items: center;
+}
+
+.expand-icon {
+  color: #ffffff73;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.processing-row.expanded .expand-icon {
+  transform: rotate(180deg);
+}
+
+/* Expanded Row Content */
+.row-expanded {
+  border-top: 1px solid #2c2c32;
+  background-color: #16161a;
+  animation: expandRow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes expandRow {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+.expanded-content {
+  padding: 20px;
+}
+
+.expanded-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.expanded-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffffd1;
+}
+
+.progress-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.job-progress {
+  width: 120px;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: #ffffff73;
+  min-width: 80px;
+}
+
+/* Mini Photos Grid */
+.photos-grid-mini {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.mini-photo {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #2c2c32;
+  transition: all 0.2s ease;
+}
+
+.mini-photo:hover {
+  transform: scale(1.05);
+  border-color: #8b5cf6;
+}
+
+.mini-photo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .upload-queue {
   margin-bottom: 32px;
 }
@@ -1104,6 +1830,19 @@ const setGridColumns = (columns: number) => {
 
 .processing-status {
   flex-shrink: 0;
+}
+
+/* Catalog Section */
+.catalog-header {
+  margin-bottom: 24px;
+}
+
+.catalog-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffffd1;
+  margin: 0;
+  text-align: left;
 }
 
 /* Empty States */
@@ -1179,5 +1918,62 @@ const setGridColumns = (columns: number) => {
     right: 16px;
     left: 16px;
   }
+
+  /* Processing Table Responsive */
+  .row-main {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .row-cell {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #2c2c32;
+  }
+
+  .row-cell:last-child {
+    border-bottom: none;
+  }
+
+  .expand-cell {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+  }
+
+  .photos-grid-mini {
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 6px;
+  }
+
+  .expanded-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .progress-info {
+    width: 100%;
+  }
+
+  .job-progress {
+    width: 100%;
+  }
+}
+
+/* Custom Status Badge Colors */
+.status-processing {
+  background-color: #f59e0b !important;
+  color: #ffffff !important;
+  border-color: #f59e0b !important;
+}
+
+.status-finished {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+  border-color: #10b981 !important;
 }
 </style>

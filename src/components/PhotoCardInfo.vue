@@ -81,7 +81,6 @@
           type="info"
           class="status-tag"
         >
-          <n-spin size="small" style="margin-right: 4px" />
           Uploading
         </n-tag>
         <n-tag
