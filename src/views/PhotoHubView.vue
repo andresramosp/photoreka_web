@@ -379,31 +379,12 @@
                           v-for="photo in job.photos"
                           :key="photo.id"
                           class="mini-photo"
-                          :class="{ processed: photo.processed }"
                         >
                           <img
                             :src="photo.url"
                             :alt="photo.name"
                             class="mini-photo-image"
                           />
-                          <div
-                            v-if="
-                              !photo.processed && job.status === 'processing'
-                            "
-                            class="mini-photo-overlay"
-                          >
-                            <n-spin size="small" />
-                          </div>
-                          <div v-if="photo.processed" class="mini-photo-check">
-                            <n-icon size="12" color="#ffffff">
-                              <svg viewBox="0 0 24 24">
-                                <path
-                                  fill="currentColor"
-                                  d="M9 16.17L4.83 12l-1.42 1.41L9 19L21 7l-1.41-1.41L9 16.17z"
-                                />
-                              </svg>
-                            </n-icon>
-                          </div>
                         </div>
                       </div>
                     </div>
