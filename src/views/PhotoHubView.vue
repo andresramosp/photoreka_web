@@ -325,7 +325,9 @@
                       <span class="cell-label">Status</span>
                       <n-tag
                         size="small"
-                        :type="job.status === 'processing' ? 'info' : 'success'"
+                        :type="
+                          job.status === 'processing' ? 'warning' : 'success'
+                        "
                         class="status-tag"
                       >
                         {{
