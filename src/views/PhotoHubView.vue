@@ -528,6 +528,22 @@ interface CatalogPhoto {
   isDuplicate: boolean;
 }
 
+interface ProcessingJob {
+  id: string;
+  startDate: Date;
+  photoCount: number;
+  processType: string;
+  status: "processing" | "finished";
+  progress: number;
+  expanded: boolean;
+  photos: {
+    id: string;
+    name: string;
+    url: string;
+    processed: boolean;
+  }[];
+}
+
 // Reactive state
 const activeTab = ref("upload");
 const isDragOver = ref(false);
