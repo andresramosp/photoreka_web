@@ -1026,6 +1026,14 @@ const showPhotoInfo = (photo: any) => {
 const setGridColumns = (columns: number) => {
   gridColumns.value = columns;
 };
+
+// Processing jobs functions
+const toggleJobExpansion = (jobId: string) => {
+  const job = processingJobs.value.find((j) => j.id === jobId);
+  if (job) {
+    job.expanded = !job.expanded;
+  }
+};
 </script>
 
 <style scoped>
