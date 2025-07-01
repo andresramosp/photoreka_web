@@ -1771,5 +1771,49 @@ const toggleJobExpansion = (jobId: string) => {
     right: 16px;
     left: 16px;
   }
+
+  /* Processing Table Responsive */
+  .row-main {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .row-cell {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #2c2c32;
+  }
+
+  .row-cell:last-child {
+    border-bottom: none;
+  }
+
+  .expand-cell {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+  }
+
+  .photos-grid-mini {
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 6px;
+  }
+
+  .expanded-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .progress-info {
+    width: 100%;
+  }
+
+  .job-progress {
+    width: 100%;
+  }
 }
 </style>
