@@ -1946,4 +1946,17 @@ const toggleJobExpansion = (jobId: string) => {
     width: 100%;
   }
 }
+
+/* Custom Status Badge Colors */
+.status-processing {
+  background-color: #f59e0b !important;
+  color: #ffffff !important;
+  border-color: #f59e0b !important;
+}
+
+.status-finished {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+  border-color: #10b981 !important;
+}
 </style>
