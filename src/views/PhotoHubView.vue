@@ -1832,6 +1832,19 @@ const toggleJobExpansion = (jobId: string) => {
   flex-shrink: 0;
 }
 
+/* Catalog Section */
+.catalog-header {
+  margin-bottom: 24px;
+}
+
+.catalog-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffffd1;
+  margin: 0;
+  text-align: left;
+}
+
 /* Empty States */
 .empty-processing-state,
 .empty-catalog-state {
