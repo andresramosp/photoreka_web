@@ -906,6 +906,27 @@ const setGridColumns = (columns: number) => {
   font-size: 14px;
 }
 
+/* Compact Upload Section */
+.compact-upload-section {
+  margin-bottom: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid #2c2c32;
+}
+
+.compact-upload-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.compact-upload-btn {
+  min-width: 120px;
+}
+
+.compact-google-photos-btn {
+  min-width: 160px;
+}
+
 /* Photos Section */
 .photos-section,
 .uploaded-photos-section,
