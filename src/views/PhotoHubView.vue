@@ -282,70 +282,131 @@
         <!-- Tab 2: Processing -->
         <div v-show="activeTab === 'processing'" class="tab-content">
           <div class="processing-section">
-            <!-- Photos being uploaded (skeletons) -->
-            <div v-if="skeletonCount > 0" class="upload-queue">
+            <!-- Processing Jobs Table -->
+            <div
+              v-if="processingJobs.length > 0"
+              class="processing-table-container"
+            >
               <div class="section-header">
-                <h3 class="section-title">Uploading Photos</h3>
+                <h3 class="section-title">Analysis Processes</h3>
                 <span class="photo-count"
-                  >{{ skeletonCount }} photos uploading</span
+                  >{{ processingJobs.length }} processes</span
                 >
               </div>
-              <div class="photos-grid">
-                <div
-                  v-for="skeleton in skeletonCount"
-                  :key="`skeleton-${skeleton}`"
-                  class="photo-card skeleton-card"
-                >
-                  <div class="photo-skeleton">
-                    <n-skeleton height="100%" />
-                  </div>
-                  <div class="photo-info">
-                    <n-skeleton text :repeat="1" width="60%" />
-                    <n-skeleton text :repeat="1" width="40%" />
-                  </div>
-                  <div class="upload-progress-indicator">
-                    <n-spin size="small" />
-                    <span class="upload-text">Uploading...</span>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <!-- Processing Queue for analysis -->
-            <div v-if="processingPhotos.length > 0" class="processing-queue">
-              <div class="section-header">
-                <h3 class="section-title">AI Analysis in Progress</h3>
-                <span class="photo-count"
-                  >{{ processingPhotos.length }} photos being analyzed</span
-                >
-              </div>
-              <div class="processing-list">
+              <div class="processing-table">
                 <div
-                  v-for="photo in processingPhotos"
-                  :key="photo.id"
-                  class="processing-item"
+                  v-for="job in processingJobs"
+                  :key="job.id"
+                  class="processing-row"
+                  :class="{
+                    expanded: job.expanded,
+                    finished: job.status === 'finished',
+                  }"
+                  @click="toggleJobExpansion(job.id)"
                 >
-                  <div class="processing-thumbnail">
-                    <img :src="photo.url" :alt="photo.name" />
-                    <div class="processing-overlay">
-                      <n-spin size="small" />
+                  <!-- Main Row -->
+                  <div class="row-main">
+                    <div class="row-cell date-cell">
+                      <span class="cell-label">Started</span>
+                      <span class="cell-value">{{
+                        formatDate(job.startDate)
+                      }}</span>
                     </div>
-                  </div>
-                  <div class="processing-info">
-                    <span class="processing-name">{{ photo.name }}</span>
-                    <div class="processing-progress">
-                      <n-progress
-                        type="line"
-                        :percentage="photo.progress"
-                        :show-indicator="false"
-                      />
-                      <span class="progress-text"
-                        >{{ photo.progress }}% - {{ photo.stage }}</span
+                    <div class="row-cell photos-cell">
+                      <span class="cell-label">Photos</span>
+                      <span class="cell-value">{{ job.photoCount }}</span>
+                    </div>
+                    <div class="row-cell type-cell">
+                      <span class="cell-label">Process</span>
+                      <span class="cell-value">{{ job.processType }}</span>
+                    </div>
+                    <div class="row-cell status-cell">
+                      <span class="cell-label">Status</span>
+                      <n-tag
+                        size="small"
+                        :type="job.status === 'processing' ? 'info' : 'success'"
+                        class="status-tag"
                       >
+                        <n-spin
+                          v-if="job.status === 'processing'"
+                          size="small"
+                          style="margin-right: 4px"
+                        />
+                        {{
+                          job.status === "processing"
+                            ? "Processing"
+                            : "Finished"
+                        }}
+                      </n-tag>
+                    </div>
+                    <div class="row-cell expand-cell">
+                      <n-icon size="16" class="expand-icon">
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            fill="currentColor"
+                            d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6l-6-6l1.41-1.41z"
+                          />
+                        </svg>
+                      </n-icon>
                     </div>
                   </div>
-                  <div class="processing-status">
-                    <n-tag size="small" type="info">Analyzing</n-tag>
+
+                  <!-- Expanded Row Content -->
+                  <div v-if="job.expanded" class="row-expanded">
+                    <div class="expanded-content">
+                      <div class="expanded-header">
+                        <span class="expanded-title"
+                          >Processing Photos ({{ job.photos.length }})</span
+                        >
+                        <div
+                          v-if="job.status === 'processing'"
+                          class="progress-info"
+                        >
+                          <n-progress
+                            type="line"
+                            :percentage="job.progress"
+                            :show-indicator="false"
+                            class="job-progress"
+                          />
+                          <span class="progress-text"
+                            >{{ job.progress }}% complete</span
+                          >
+                        </div>
+                      </div>
+                      <div class="photos-grid-mini">
+                        <div
+                          v-for="photo in job.photos"
+                          :key="photo.id"
+                          class="mini-photo"
+                          :class="{ processed: photo.processed }"
+                        >
+                          <img
+                            :src="photo.url"
+                            :alt="photo.name"
+                            class="mini-photo-image"
+                          />
+                          <div
+                            v-if="
+                              !photo.processed && job.status === 'processing'
+                            "
+                            class="mini-photo-overlay"
+                          >
+                            <n-spin size="small" />
+                          </div>
+                          <div v-if="photo.processed" class="mini-photo-check">
+                            <n-icon size="12" color="#ffffff">
+                              <svg viewBox="0 0 24 24">
+                                <path
+                                  fill="currentColor"
+                                  d="M9 16.17L4.83 12l-1.42 1.41L9 19L21 7l-1.41-1.41L9 16.17z"
+                                />
+                              </svg>
+                            </n-icon>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -353,7 +414,10 @@
 
             <!-- Empty Processing State -->
             <div
-              v-if="skeletonCount === 0 && processingPhotos.length === 0"
+              v-if="
+                processingJobs.length === 0 ||
+                processingJobs.every((job) => job.status === 'finished')
+              "
               class="empty-processing-state"
             >
               <div class="empty-state-content">
