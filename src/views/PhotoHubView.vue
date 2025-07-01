@@ -1434,6 +1434,201 @@ const toggleJobExpansion = (jobId: string) => {
   flex-direction: column;
 }
 
+/* Processing Table */
+.processing-table-container {
+  margin-bottom: 32px;
+}
+
+.processing-table {
+  background-color: #1a1a1f;
+  border-radius: 12px;
+  border: 1px solid #2c2c32;
+  overflow: hidden;
+}
+
+.processing-row {
+  border-bottom: 1px solid #2c2c32;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.processing-row:last-child {
+  border-bottom: none;
+}
+
+.processing-row:hover {
+  background-color: rgba(139, 92, 246, 0.05);
+}
+
+.processing-row.finished {
+  opacity: 0.7;
+}
+
+.processing-row.expanded {
+  background-color: rgba(139, 92, 246, 0.05);
+}
+
+.row-main {
+  display: grid;
+  grid-template-columns: 1fr 80px 1fr 120px 40px;
+  gap: 16px;
+  padding: 16px 20px;
+  align-items: center;
+}
+
+.row-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cell-label {
+  font-size: 12px;
+  color: #ffffff60;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cell-value {
+  font-size: 14px;
+  color: #ffffffd1;
+  font-weight: 500;
+}
+
+.photos-cell .cell-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #8b5cf6;
+}
+
+.status-cell {
+  align-items: flex-start;
+}
+
+.expand-cell {
+  justify-content: center;
+  align-items: center;
+}
+
+.expand-icon {
+  color: #ffffff73;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.processing-row.expanded .expand-icon {
+  transform: rotate(180deg);
+}
+
+/* Expanded Row Content */
+.row-expanded {
+  border-top: 1px solid #2c2c32;
+  background-color: #16161a;
+  animation: expandRow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes expandRow {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+.expanded-content {
+  padding: 20px;
+}
+
+.expanded-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.expanded-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffffd1;
+}
+
+.progress-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.job-progress {
+  width: 120px;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: #ffffff73;
+  min-width: 80px;
+}
+
+/* Mini Photos Grid */
+.photos-grid-mini {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.mini-photo {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #2c2c32;
+  transition: all 0.2s ease;
+}
+
+.mini-photo:hover {
+  transform: scale(1.05);
+  border-color: #8b5cf6;
+}
+
+.mini-photo.processed {
+  border-color: #10b981;
+}
+
+.mini-photo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mini-photo-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mini-photo-check {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background-color: #10b981;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .upload-queue {
   margin-bottom: 32px;
 }
