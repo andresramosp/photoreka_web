@@ -45,6 +45,7 @@ export const usePhotosStore = defineStore("photos", {
 
           const photos = response.data.photos.map((photo) => ({
             ...photo,
+            isDuplicate: false,
           }));
 
           this.photos = photos.map((photo) => ({ ...photo }));
@@ -144,7 +145,11 @@ export const usePhotosStore = defineStore("photos", {
 
         for (const photo of this.photos) {
           if (!photoIds || photoIds.includes(photo.id)) {
-            photo.duplicates = duplicatesMap[photo.id] || [];
+            const duplicates = duplicatesMap[photo.id] || [];
+            this.updatePhoto(photo.id, {
+              duplicates,
+              isDuplicate: duplicates.length > 0,
+            });
           }
         }
 
