@@ -217,7 +217,7 @@
       multiple
       accept="image/*"
       style="display: none"
-      @change="handleFileSelect"
+      @change="uploadLocalFiles"
     />
   </div>
 </template>
@@ -226,6 +226,8 @@
 import { computed, ref } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
 import PhotoCard from "../PhotoCard.vue";
+import pLimit from "p-limit";
+import pica from "pica";
 
 const emit = defineEmits(["on-analyze"]);
 
@@ -240,55 +242,108 @@ const totalFiles = ref(0);
 
 const uploadedPhotos = computed(() => photosStore.uploadedPhotos);
 
+const picaInstance = pica();
+const limit = pLimit(10);
+
 const overallProgress = computed(() => {
   if (totalFiles.value === 0) return 0;
   return (uploadedCount.value / totalFiles.value) * 100;
 });
 
 const triggerFileInput = () => {
-  console.log("entra");
   if (!isUploading.value) fileInput.value?.click();
 };
 
-const handleFileSelect = (e) => {
-  const target = e.target;
-  if (target.files) handleFiles(Array.from(target.files));
-  target.value = "";
-};
-
-const handleFiles = async (files) => {
-  const imageFiles = files.filter((file) => file.type.startsWith("image/"));
-  if (imageFiles.length === 0) return;
+async function uploadLocalFiles(event) {
+  const selectedLocalFiles = Array.from(event.target.files);
+  if (selectedLocalFiles.length === 0) return;
 
   isUploading.value = true;
-  totalFiles.value = imageFiles.length;
+  totalFiles.value = selectedLocalFiles.length;
   uploadedCount.value = 0;
 
-  const newPhotos = imageFiles.map((file) => ({
-    id: `photo-${Date.now()}-${Math.random()}`,
-    name: file.name,
-    size: file.size,
-    file,
-    isUploading: true,
-    status: "uploaded",
-  }));
+  const uploadedPhotos = [];
 
-  photosStore.addPhotos(newPhotos);
+  try {
+    await Promise.all(
+      selectedLocalFiles.map((file) =>
+        limit(() =>
+          processAndUploadFile(file).then((photo) => {
+            if (photo) uploadedPhotos.push(photo);
+          })
+        )
+      )
+    );
 
-  for (let i = 0; i < newPhotos.length; i++) {
-    const delay = Math.random() * 2000 + 1000;
-    await new Promise((resolve) => setTimeout(resolve, delay));
+    // await photosStore.getOrFetch(true);
 
-    photosStore.updatePhoto(newPhotos[i].id, {
-      url: URL.createObjectURL(newPhotos[i].file),
-      isUploading: false,
-    });
-
-    uploadedCount.value++;
+    // await checkDuplicates(uploadedPhotos.map((p) => p.id));
+  } catch (error) {
+    console.error("❌ Error en la subida:", error);
+  } finally {
+    isUploading.value = false;
+    event.target.value = "";
   }
+}
 
-  isUploading.value = false;
-};
+async function processAndUploadFile(file) {
+  const [resizedBlob, thumbnailBlob] = await Promise.all([
+    resizeImage(file, 1500),
+    resizeImage(file, 800),
+  ]);
+
+  const res = await fetch(
+    `${import.meta.env.VITE_API_BASE_URL}/api/catalog/uploadLocal`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fileType: resizedBlob.type }),
+    }
+  );
+
+  if (!res.ok) throw new Error("Error obteniendo URLs firmadas");
+  const { uploadUrl, thumbnailUploadUrl, photo } = await res.json();
+
+  await Promise.all([
+    fetch(uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": resizedBlob.type },
+      body: resizedBlob,
+    }),
+    fetch(thumbnailUploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": thumbnailBlob.type },
+      body: thumbnailBlob,
+    }),
+  ]);
+
+  photo.status = "uploaded";
+  photosStore.photos.unshift(photo);
+  uploadedCount.value++;
+
+  return photo;
+}
+
+async function resizeImage(file, targetWidth) {
+  const img = await loadImage(file);
+  const canvas = document.createElement("canvas");
+  const scale = targetWidth / img.width;
+  canvas.width = targetWidth;
+  canvas.height = img.height * scale;
+
+  await picaInstance.resize(img, canvas);
+  const blob = await picaInstance.toBlob(canvas, "image/jpeg", 0.9);
+  return blob;
+}
+
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
 
 const togglePhotoSelection = (photoId) => {
   photosStore.togglePhotoSelection(photoId);

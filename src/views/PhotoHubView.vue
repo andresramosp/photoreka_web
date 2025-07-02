@@ -326,7 +326,6 @@ const toggleJobExpansion = (jobId: string) => {
   padding: var(--spacing-2xl);
   margin: 0 auto;
   background-color: var(--bg-body);
-  min-height: 100vh;
 }
 
 /* Header Section */
@@ -412,7 +411,6 @@ const toggleJobExpansion = (jobId: string) => {
   gap: var(--spacing-md);
   flex-shrink: 0;
 }
-
 
 /* Duplicate Notification */
 .duplicate-notification {
