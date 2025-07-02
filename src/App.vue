@@ -69,6 +69,18 @@ const themeOverrides: GlobalThemeOverrides = {
     primaryColorPressed: "#1d4ed8",
     primaryColorSuppl: "#2563eb",
   },
+  Button: {
+    // colorWarning: "var(--secondary-color)",
+    // colorWarningHover: "var(--secondary-color-hover)",
+    // colorWarningPressed: "var(--secondary-color-pressed)",
+    // colorWarningSuppl: "var(--secondary-color)",
+    // textColorWarning: "#fff", // Asegura buen contraste
+    // textColorWarningHover: "#fff",
+    // textColorWarningPressed: "#fff",
+    // borderWarning: "var(--secondary-color)",
+    // borderWarningHover: "var(--secondary-color-hover)",
+    // borderWarningPressed: "var(--secondary-color-pressed)",
+  },
 };
 
 const mobileMenuOpen = ref(false);
@@ -139,9 +151,9 @@ onUnmounted(() => {
 <style>
 body {
   margin: 0;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
-    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #101014;

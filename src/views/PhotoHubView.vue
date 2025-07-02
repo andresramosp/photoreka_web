@@ -25,35 +25,6 @@
       </div>
     </div>
 
-    <!-- Upload Progress Section -->
-    <div v-if="isUploading" class="upload-progress-section">
-      <div class="progress-header">
-        <h3 class="progress-title">Uploading Photos</h3>
-        <span class="progress-count"
-          >{{ uploadedCount }}/{{ totalFiles }} photos uploaded</span
-        >
-      </div>
-      <n-progress
-        type="line"
-        :percentage="overallProgress"
-        :show-indicator="false"
-        class="overall-progress"
-      />
-      <div class="progress-text">
-        {{ Math.round(overallProgress) }}% complete
-      </div>
-    </div>
-
-    <!-- Duplicate Check Notification -->
-    <n-notification
-      v-if="showDuplicateNotification"
-      title="Checking for duplicates"
-      content="Analyzing uploaded photos to detect duplicates..."
-      type="info"
-      :duration="0"
-      class="duplicate-notification"
-    />
-
     <!-- Tabs Section -->
     <div class="tabs-container">
       <!-- Tab Navigation -->
@@ -84,194 +55,7 @@
       <!-- Tab Content -->
       <div class="tab-content-container">
         <!-- Tab 1: Upload -->
-        <div v-show="activeTab === 'upload'" class="tab-content">
-          <!-- Full Upload Dropzone (show when no photos) -->
-          <div v-if="uploadedPhotos.length === 0" class="upload-section">
-            <div
-              class="upload-dropzone"
-              :class="{ 'drag-over': isDragOver }"
-              @dragenter.prevent="handleDragEnter"
-              @dragover.prevent="handleDragOver"
-              @dragleave.prevent="handleDragLeave"
-              @drop.prevent="handleDrop"
-              @click="triggerFileInput"
-            >
-              <div class="dropzone-content">
-                <div class="upload-icon">
-                  <n-icon size="48" color="#8b5cf6">
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
-                      />
-                    </svg>
-                  </n-icon>
-                </div>
-                <h3 class="dropzone-title">Drop your photos here</h3>
-                <p class="dropzone-subtitle">
-                  Drag and drop your images, or click to browse
-                </p>
-                <div class="upload-buttons">
-                  <n-button type="primary" size="large" class="upload-btn">
-                    <template #icon>
-                      <n-icon>
-                        <svg viewBox="0 0 24 24">
-                          <path
-                            fill="currentColor"
-                            d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-                          />
-                        </svg>
-                      </n-icon>
-                    </template>
-                    Choose Files
-                  </n-button>
-                  <n-button
-                    type="default"
-                    size="large"
-                    class="google-photos-btn"
-                  >
-                    <template #icon>
-                      <n-icon>
-                        <svg viewBox="0 0 24 24">
-                          <path
-                            fill="currentColor"
-                            d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 13L13.5 11.5C12.1 10.1 9.9 10.1 8.5 11.5L3 17V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V9ZM5 19L8.5 15.5C9.3 14.7 10.7 14.7 11.5 15.5L13 17L19 11V19H5Z"
-                          />
-                        </svg>
-                      </n-icon>
-                    </template>
-                    Import from Google Photos
-                  </n-button>
-                </div>
-                <div class="file-formats">
-                  <span class="format-text"
-                    >Supports JPG, PNG, WebP up to 50MB per file</span
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Compact Upload Section (show when photos exist) -->
-          <div v-else class="compact-upload-section">
-            <div class="compact-upload-buttons">
-              <n-button
-                type="primary"
-                size="medium"
-                class="compact-upload-btn"
-                @click="triggerFileInput"
-              >
-                <template #icon>
-                  <n-icon>
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-                      />
-                    </svg>
-                  </n-icon>
-                </template>
-                Choose Files
-              </n-button>
-              <n-button
-                type="default"
-                size="medium"
-                class="compact-google-photos-btn"
-              >
-                <template #icon>
-                  <n-icon>
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 13L13.5 11.5C12.1 10.1 9.9 10.1 8.5 11.5L3 17V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V9ZM5 19L8.5 15.5C9.3 14.7 10.7 14.7 11.5 15.5L13 17L19 11V19H5Z"
-                      />
-                    </svg>
-                  </n-icon>
-                </template>
-                Import Google Photos
-              </n-button>
-            </div>
-          </div>
-
-          <!-- Unified Photos Section -->
-          <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-section">
-            <!-- Grid Controls -->
-            <div class="grid-controls grid-controls-base">
-              <div class="results-info results-info-base">
-                <span class="results-count results-count-base">
-                  {{ uploadedPhotos.filter((p) => !p.isUploading).length }}/{{
-                    uploadedPhotos.length
-                  }}
-                  photos
-                  <span v-if="isUploading">
-                    ({{
-                      uploadedPhotos.filter((p) => p.isUploading).length
-                    }}
-                    uploading)</span
-                  >
-                </span>
-              </div>
-              <div class="header-controls">
-                <div class="grid-size-controls grid-size-controls-base">
-                  <span class="grid-label grid-label-base">Columns:</span>
-                  <n-button-group>
-                    <n-button
-                      v-for="size in [3, 4, 5, 6]"
-                      :key="size"
-                      :type="gridColumns === size ? 'primary' : 'default'"
-                      size="small"
-                      @click="setGridColumns(size)"
-                    >
-                      {{ size }}
-                    </n-button>
-                  </n-button-group>
-                </div>
-                <n-button
-                  type="primary"
-                  size="medium"
-                  class="analyze-btn"
-                  @click="analyzePhotos"
-                  :disabled="
-                    uploadedPhotos.filter((p) => !p.isUploading).length === 0
-                  "
-                >
-                  <template #icon>
-                    <n-icon>
-                      <svg viewBox="0 0 24 24">
-                        <path
-                          fill="currentColor"
-                          d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                        />
-                      </svg>
-                    </n-icon>
-                  </template>
-                  Analyze Photos
-                </n-button>
-              </div>
-            </div>
-
-            <!-- Photo Grid -->
-            <div
-              class="photos-grid photo-grid-base"
-              :class="`grid-cols-${gridColumns}`"
-            >
-              <PhotoCardInfo
-                v-for="photo in uploadedPhotos"
-                :key="photo.id"
-                :photo="{
-                  ...photo,
-                  status: photo.isUploading
-                    ? 'processing'
-                    : photo.isDuplicate
-                    ? 'uploaded'
-                    : 'uploaded',
-                }"
-                @select="togglePhotoSelection"
-                @info="showPhotoInfo"
-              />
-            </div>
-          </div>
-        </div>
+        <PhotosUpload v-show="activeTab === 'upload'" @on-analyze="() => {}" />
 
         <!-- Tab 2: Processing -->
         <div v-show="activeTab === 'processing'" class="tab-content">
@@ -459,7 +243,6 @@
                     ...photo,
                     size: parseFloat(photo.size) * 1024 * 1024, // Convert MB to bytes
                   }"
-                  @select="togglePhotoSelection"
                   @info="showPhotoInfo"
                 />
               </div>
@@ -468,16 +251,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Hidden File Input -->
-    <input
-      ref="fileInput"
-      type="file"
-      multiple
-      accept="image/*"
-      style="display: none"
-      @change="handleFileSelect"
-    />
   </div>
 </template>
 
@@ -487,10 +260,10 @@ import PhotoCardInfo from "../components/PhotoCardInfo.vue";
 import {
   mockedJobs,
   mockedPhotos,
-  processingJobs,
   type CatalogPhoto,
   type ProcessingJob,
 } from "@/assets/mocked";
+import PhotosUpload from "@/components/photo-hub/PhotosUpload.vue";
 
 interface Photo {
   id: string;
@@ -505,17 +278,6 @@ interface Photo {
 
 // Reactive state
 const activeTab = ref("upload");
-const isDragOver = ref(false);
-const fileInput = ref<HTMLInputElement>();
-const uploadedPhotos = ref<Photo[]>([]);
-const isUploading = ref(false);
-const uploadedCount = ref(0);
-const totalFiles = ref(0);
-const skeletonCount = ref(0);
-const showDuplicateNotification = ref(false);
-
-// Photo selection state
-const selectedPhotos = ref<string[]>([]);
 
 // Grid columns state
 const gridColumns = ref(4);
@@ -526,134 +288,6 @@ const processingJobs = ref<ProcessingJob[]>(mockedJobs);
 const catalogPhotos = ref<CatalogPhoto[]>(mockedPhotos);
 
 // Computed properties
-const overallProgress = computed(() => {
-  if (totalFiles.value === 0) return 0;
-  return (uploadedCount.value / totalFiles.value) * 100;
-});
-
-// Drag and drop handlers
-const handleDragEnter = () => {
-  isDragOver.value = true;
-};
-
-const handleDragOver = () => {
-  isDragOver.value = true;
-};
-
-const handleDragLeave = (e: DragEvent) => {
-  if (
-    !e.relatedTarget ||
-    !(e.currentTarget as Element).contains(e.relatedTarget as Node)
-  ) {
-    isDragOver.value = false;
-  }
-};
-
-const handleDrop = (e: DragEvent) => {
-  isDragOver.value = false;
-  const files = e.dataTransfer?.files;
-  if (files) {
-    handleFiles(Array.from(files));
-  }
-};
-
-// File handling
-const triggerFileInput = () => {
-  if (!isUploading.value) {
-    fileInput.value?.click();
-  }
-};
-
-const handleFileSelect = (e: Event) => {
-  const target = e.target as HTMLInputElement;
-  if (target.files) {
-    handleFiles(Array.from(target.files));
-  }
-  // Reset the input so the same files can be selected again
-  target.value = "";
-};
-
-const handleFiles = async (files: File[]) => {
-  const imageFiles = files.filter((file) => file.type.startsWith("image/"));
-  if (imageFiles.length === 0) return;
-
-  isUploading.value = true;
-  totalFiles.value = imageFiles.length;
-  uploadedCount.value = 0;
-  skeletonCount.value = 0; // No longer needed
-
-  // Create placeholder photos immediately for all files
-  const uploadingPhotos: Photo[] = imageFiles.map((file) => ({
-    id: `photo-${Date.now()}-${Math.random()}`,
-    name: file.name,
-    size: file.size,
-    file: file,
-    isDuplicate: false,
-    isUploading: true, // Mark as uploading
-  }));
-
-  // Add all uploading photos to the list immediately
-  uploadedPhotos.value.push(...uploadingPhotos);
-
-  // Simulate uploading files one by one
-  for (let i = 0; i < uploadingPhotos.length; i++) {
-    const photo = uploadingPhotos[i];
-
-    // Simulate upload delay (1-3 seconds per file)
-    const uploadDelay = Math.random() * 2000 + 1000;
-    await new Promise((resolve) => setTimeout(resolve, uploadDelay));
-
-    // Find the photo in the uploaded list and update it
-    const photoIndex = uploadedPhotos.value.findIndex((p) => p.id === photo.id);
-    if (photoIndex !== -1) {
-      uploadedPhotos.value[photoIndex] = {
-        ...photo,
-        url: URL.createObjectURL(photo.file),
-        uploadDate: new Date(),
-        isUploading: false, // Mark as completed
-      };
-    }
-
-    uploadedCount.value++;
-  }
-
-  isUploading.value = false;
-
-  // Show duplicate checking notification after upload completes
-  showDuplicateNotification.value = true;
-
-  // Simulate duplicate checking process
-  setTimeout(() => {
-    // Randomly mark some photos as duplicates (20% chance)
-    uploadedPhotos.value.forEach((photo) => {
-      if (Math.random() < 0.2 && !photo.isUploading) {
-        photo.isDuplicate = true;
-      }
-    });
-
-    showDuplicateNotification.value = false;
-  }, 2000);
-};
-
-// Function to analyze photos manually
-const analyzePhotos = () => {
-  if (uploadedPhotos.value.length === 0) return;
-
-  // Show duplicate checking notification
-  showDuplicateNotification.value = true;
-
-  // Simulate duplicate checking process
-  setTimeout(() => {
-    // Randomly mark some photos as duplicates (20% chance)
-    uploadedPhotos.value.forEach((photo) => {
-      if (Math.random() < 0.2) {
-        photo.isDuplicate = true;
-      }
-    });
-
-    showDuplicateNotification.value = false;
-  }, 2000);
-};
 
 const formatDate = (date: Date | string): string => {
   const dateObj = typeof date === "string" ? new Date(date) : date;
@@ -667,14 +301,6 @@ const formatDate = (date: Date | string): string => {
 };
 
 // Photo selection functions
-const togglePhotoSelection = (photoId: string) => {
-  const index = selectedPhotos.value.indexOf(photoId);
-  if (index > -1) {
-    selectedPhotos.value.splice(index, 1);
-  } else {
-    selectedPhotos.value.push(photoId);
-  }
-};
 
 const showPhotoInfo = (photo: any) => {
   console.log("Show photo info:", photo);
@@ -787,43 +413,6 @@ const toggleJobExpansion = (jobId: string) => {
   flex-shrink: 0;
 }
 
-/* Upload Progress Section */
-.upload-progress-section {
-  background-color: #1a1a1f;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 24px;
-  border: 1px solid #2c2c32;
-}
-
-.progress-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.progress-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #ffffffd1;
-  margin: 0;
-}
-
-.progress-count {
-  font-size: 14px;
-  color: #ffffff73;
-}
-
-.overall-progress {
-  margin-bottom: 8px;
-}
-
-.progress-text {
-  font-size: 14px;
-  color: #ffffff73;
-  text-align: center;
-}
 
 /* Duplicate Notification */
 .duplicate-notification {
@@ -831,91 +420,6 @@ const toggleJobExpansion = (jobId: string) => {
   top: 24px;
   right: 24px;
   z-index: 1000;
-}
-
-/* Upload Section */
-.upload-section {
-  margin-bottom: 48px;
-}
-
-.upload-dropzone {
-  border: 2px dashed #2c2c32;
-  border-radius: 16px;
-  padding: 64px 32px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background-color: #1a1a1f;
-}
-
-.upload-dropzone:hover,
-.upload-dropzone.drag-over {
-  border-color: var(--secondary-color);
-  background-color: rgba(139, 92, 246, 0.05);
-}
-
-.dropzone-content {
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.upload-icon {
-  margin-bottom: 24px;
-}
-
-.dropzone-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #ffffffd1;
-  margin: 0 0 8px 0;
-}
-
-.dropzone-subtitle {
-  font-size: 16px;
-  color: #ffffff73;
-  margin: 0 0 32px 0;
-}
-
-.upload-buttons {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.upload-btn {
-  min-width: 180px;
-}
-
-.google-photos-btn {
-  min-width: 220px;
-}
-
-.file-formats {
-  color: #ffffff73;
-  font-size: 14px;
-}
-
-/* Compact Upload Section */
-.compact-upload-section {
-  margin-bottom: 24px;
-  padding: 16px 0;
-  border-bottom: 1px solid #2c2c32;
-}
-
-.compact-upload-buttons {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.compact-upload-btn {
-  min-width: 120px;
-}
-
-.compact-google-photos-btn {
-  min-width: 160px;
 }
 
 /* Photos Section */
