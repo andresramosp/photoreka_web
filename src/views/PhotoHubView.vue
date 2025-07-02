@@ -5,7 +5,7 @@
       <div class="header-content">
         <h1 class="page-title">Photo Hub</h1>
         <p class="page-subtitle">
-          Upload and analyze your photos with AI-powered insights
+          Upload, analyze, and view your photo catalog here.
         </p>
       </div>
       <div class="header-actions">
@@ -255,7 +255,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { computed, ref } from "vue";
 import PhotoCardInfo from "../components/PhotoCardInfo.vue";
 import {
   mockedJobs,
@@ -278,6 +278,15 @@ interface Photo {
 
 // Reactive state
 const activeTab = ref("upload");
+const tabText = computed(() => {
+  if (activeTab.value == "upload") {
+    return "Here you will find photos that have been uploaded to your catalog but havent yet been processed. You can accumulate photos and process them whenever you want.";
+  }
+  if (activeTab.value == "processing") {
+    return "Here you'll see photos being analyzed, as well as previously performed analyses.";
+  }
+  return "This is your catalog of already analyzed photos, ready to use in any tool.";
+});
 
 // Grid columns state
 const gridColumns = ref(4);

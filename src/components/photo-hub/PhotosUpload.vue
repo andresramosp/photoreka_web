@@ -19,7 +19,7 @@
     </div>
     <!-- Upload Progress Section -->
 
-    <!-- Full Upload Dropzone (show when no photos) -->
+    <!-- Full Upload Dasdaopzone (show when no photos) -->
     <div v-if="uploadedPhotos.length === 0" class="upload-section">
       <div class="upload-dropzone">
         <div class="dropzone-content">
@@ -37,6 +37,7 @@
           <p class="dropzone-subtitle">
             Drag and drop your images, or click to browse
           </p>
+
           <div class="upload-buttons">
             <n-button
               type="primary"
