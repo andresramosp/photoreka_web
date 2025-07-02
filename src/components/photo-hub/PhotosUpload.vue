@@ -21,14 +21,7 @@
 
     <!-- Full Upload Dropzone (show when no photos) -->
     <div v-if="uploadedPhotos.length === 0" class="upload-section">
-      <div
-        class="upload-dropzone"
-        :class="{ 'drag-over': isDragOver }"
-        @dragenter.prevent="handleDragEnter"
-        @dragover.prevent="handleDragOver"
-        @dragleave.prevent="handleDragLeave"
-        @drop.prevent="handleDrop"
-      >
+      <div class="upload-dropzone">
         <div class="dropzone-content">
           <div class="upload-icon">
             <n-icon size="48" color="#8b5cf6">
@@ -206,16 +199,11 @@
         class="photos-grid photo-grid-base"
         :class="`grid-cols-${gridColumns}`"
       >
-        <PhotoCardInfo
+        <PhotoCard
           v-for="photo in uploadedPhotos"
           :key="photo.id"
           :photo="{
             ...photo,
-            status: photo.isUploading
-              ? 'processing'
-              : photo.isDuplicate
-              ? 'uploaded'
-              : 'uploaded',
           }"
           @select="togglePhotoSelection"
         />
@@ -234,33 +222,19 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed, ref } from "vue";
-import PhotoCardInfo from "../PhotoCardInfo.vue";
+import PhotoCard from "../PhotoCard.vue";
 
 const emit = defineEmits(["on-analyze"]);
 
-interface Photo {
-  id: string;
-  name: string;
-  size: number;
-  url?: string;
-  file: File;
-  isUploading?: boolean;
-}
-
 // Photo selection state
-const selectedPhotos = ref<string[]>([]);
+const selectedPhotos = ref([]);
 
 const isUploading = ref(false);
-const uploadedPhotos = ref<Photo[]>([]);
+const uploadedPhotos = ref([]);
 const gridColumns = ref(4);
-const isDragOver = ref(false);
-const fileInput = ref<HTMLInputElement>();
-
-const handleDragEnter = () => (isDragOver.value = true);
-const handleDragOver = () => (isDragOver.value = true);
-const handleDragLeave = () => (isDragOver.value = false);
+const fileInput = ref(null);
 
 const uploadedCount = ref(0);
 const totalFiles = ref(0);
@@ -275,19 +249,13 @@ const triggerFileInput = () => {
   if (!isUploading.value) fileInput.value?.click();
 };
 
-const handleFileSelect = (e: Event) => {
-  const target = e.target as HTMLInputElement;
+const handleFileSelect = (e) => {
+  const target = e.target;
   if (target.files) handleFiles(Array.from(target.files));
   target.value = "";
 };
 
-const handleDrop = (e: DragEvent) => {
-  isDragOver.value = false;
-  const files = e.dataTransfer?.files;
-  if (files) handleFiles(Array.from(files));
-};
-
-const handleFiles = async (files: File[]) => {
+const handleFiles = async (files) => {
   const imageFiles = files.filter((file) => file.type.startsWith("image/"));
   if (imageFiles.length === 0) return;
 
@@ -295,7 +263,7 @@ const handleFiles = async (files: File[]) => {
   totalFiles.value = imageFiles.length;
   uploadedCount.value = 0;
 
-  const newPhotos: Photo[] = imageFiles.map((file) => ({
+  const newPhotos = imageFiles.map((file) => ({
     id: `photo-${Date.now()}-${Math.random()}`,
     name: file.name,
     size: file.size,
@@ -325,7 +293,7 @@ const handleFiles = async (files: File[]) => {
   isUploading.value = false;
 };
 
-const togglePhotoSelection = (photoId: string) => {
+const togglePhotoSelection = (photoId) => {
   const index = selectedPhotos.value.indexOf(photoId);
   if (index > -1) {
     selectedPhotos.value.splice(index, 1);

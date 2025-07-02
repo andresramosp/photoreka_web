@@ -117,10 +117,13 @@ export interface Photo {
   thumbnailUrl: string;
   title: string;
   rating: number;
-  reasoning?: string; // AI reasoning for curation
+  reasoning?: string;
   matchingTags?: string[];
   width?: number;
   height?: number;
+  isUploading: boolean;
+  file: any;
+  needProcess: boolean;
 }
 
 interface Props {
