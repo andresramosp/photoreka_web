@@ -122,7 +122,7 @@
         </div>
       </div>
       <div style="display: flex; gap: 15px">
-        <n-button
+        <!-- <n-button
           type="default"
           size="medium"
           class="analyze-btn"
@@ -140,13 +140,16 @@
             </n-icon>
           </template>
           Check duplicates
-        </n-button>
+        </n-button> -->
         <n-button
           type="info"
           size="medium"
           class="analyze-btn"
           @click="emit('on-analyze')"
-          :disabled="uploadedPhotos.filter((p) => !p.isUploading).length === 0"
+          :disabled="
+            uploadedPhotos.filter((p) => !p.isUploading).length === 0 ||
+            !duplicateChecked
+          "
         >
           <template #icon>
             <n-icon>
@@ -224,7 +227,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
 import PhotoCard from "../PhotoCard.vue";
 import pLimit from "p-limit";
@@ -235,6 +238,7 @@ const emit = defineEmits(["on-analyze"]);
 const photosStore = usePhotosStore();
 
 const isUploading = ref(false);
+const duplicateChecked = ref(false);
 const gridColumns = ref(6);
 const fileInput = ref(null);
 
@@ -277,8 +281,7 @@ async function uploadLocalFiles(event) {
     );
 
     // await photosStore.getOrFetch(true);
-
-    // await checkDuplicates(uploadedPhotos.map((p) => p.id));
+    await checkDuplicates(uploadedPhotos.map((p) => p.id));
   } catch (error) {
     console.error("❌ Error en la subida:", error);
   } finally {
@@ -346,9 +349,39 @@ function loadImage(file) {
   });
 }
 
+async function checkDuplicates(photoIds = null) {
+  try {
+    const payload = photoIds ? { newPhotoIds: photoIds } : {};
+    const res = await fetch(
+      `${import.meta.env.VITE_API_BASE_URL}/api/catalog/checkDuplicates`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    if (!res.ok) throw new Error("Error al consultar duplicados");
+    const duplicatesMap = await res.json();
+
+    for (const photo of photosStore.photos) {
+      photo.duplicates = duplicatesMap[photo.id] || [];
+      debugger;
+      photo.isDuplicate = photo.duplicates.length;
+    }
+    duplicateChecked.value = true;
+  } catch (error) {
+    console.error("❌ Error en checkDuplicates:", error);
+  }
+}
+
 const togglePhotoSelection = (photoId) => {
   photosStore.togglePhotoSelection(photoId);
 };
+
+onMounted(() => {
+  checkDuplicates();
+});
 </script>
 
 <style scoped>

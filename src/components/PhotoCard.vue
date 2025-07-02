@@ -3,6 +3,7 @@
     class="photo-card"
     :class="{
       selected: isSelected,
+      duplicate: photo.isDuplicate,
       'curation-mode': mode === 'curation',
       'selection-mode': mode === 'selection',
     }"
@@ -124,6 +125,7 @@ export interface Photo {
   isUploading: boolean;
   file: any;
   needProcess: boolean;
+  isDuplicate: boolean;
 }
 
 interface Props {
@@ -393,5 +395,9 @@ const handleMouseLeave = () => {
     height: 24px;
     padding: 0 8px;
   }
+}
+
+.photo-card.duplicate {
+  border-color: #f59e0b;
 }
 </style>
