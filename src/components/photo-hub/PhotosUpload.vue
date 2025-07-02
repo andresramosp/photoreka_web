@@ -224,20 +224,21 @@
 
 <script setup>
 import { computed, ref } from "vue";
+import { usePhotosStore } from "@/stores/photos.js";
 import PhotoCard from "../PhotoCard.vue";
 
 const emit = defineEmits(["on-analyze"]);
 
-// Photo selection state
-const selectedPhotos = ref([]);
+const photosStore = usePhotosStore();
 
 const isUploading = ref(false);
-const uploadedPhotos = ref([]);
-const gridColumns = ref(4);
+const gridColumns = ref(6);
 const fileInput = ref(null);
 
 const uploadedCount = ref(0);
 const totalFiles = ref(0);
+
+const uploadedPhotos = computed(() => photosStore.uploadedPhotos);
 
 const overallProgress = computed(() => {
   if (totalFiles.value === 0) return 0;
@@ -269,24 +270,20 @@ const handleFiles = async (files) => {
     size: file.size,
     file,
     isUploading: true,
+    status: "uploaded",
   }));
 
-  uploadedPhotos.value.push(...newPhotos);
+  photosStore.addPhotos(newPhotos);
 
   for (let i = 0; i < newPhotos.length; i++) {
     const delay = Math.random() * 2000 + 1000;
     await new Promise((resolve) => setTimeout(resolve, delay));
 
-    const index = uploadedPhotos.value.findIndex(
-      (p) => p.id === newPhotos[i].id
-    );
-    if (index !== -1) {
-      uploadedPhotos.value[index] = {
-        ...newPhotos[i],
-        url: URL.createObjectURL(newPhotos[i].file),
-        isUploading: false,
-      };
-    }
+    photosStore.updatePhoto(newPhotos[i].id, {
+      url: URL.createObjectURL(newPhotos[i].file),
+      isUploading: false,
+    });
+
     uploadedCount.value++;
   }
 
@@ -294,12 +291,7 @@ const handleFiles = async (files) => {
 };
 
 const togglePhotoSelection = (photoId) => {
-  const index = selectedPhotos.value.indexOf(photoId);
-  if (index > -1) {
-    selectedPhotos.value.splice(index, 1);
-  } else {
-    selectedPhotos.value.push(photoId);
-  }
+  photosStore.togglePhotoSelection(photoId);
 };
 </script>
 

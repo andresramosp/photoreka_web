@@ -50,19 +50,21 @@
   </n-config-provider>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { darkTheme } from "naive-ui";
-import type { GlobalThemeOverrides } from "naive-ui";
 import { useUserStore } from "./stores/userStore";
 import DashboardSidebar from "./components/DashboardSidebar.vue";
 import DashboardHeader from "./components/DashboardHeader.vue";
+import { usePhotosStore } from "@/stores/photos.js";
+
+const photosStore = usePhotosStore();
 
 const route = useRoute();
 const userStore = useUserStore();
 
-const themeOverrides: GlobalThemeOverrides = {
+const themeOverrides = {
   common: {
     primaryColor: "#2563eb",
     primaryColorHover: "#3b82f6",
@@ -98,6 +100,7 @@ const checkIsMobile = () => {
 };
 
 onMounted(() => {
+  photosStore.getOrFetch();
   checkIsMobile();
   window.addEventListener("resize", checkIsMobile);
 });
