@@ -61,58 +61,7 @@
         <ProcessingPhotos v-show="activeTab === 'processing'" />
 
         <!-- Tab 3: Catalog -->
-        <div v-show="activeTab === 'catalog'" class="tab-content">
-          <div class="catalog-section">
-            <!-- Static Example Photos -->
-            <div class="catalog-photos">
-              <!-- Catalog Title -->
-              <div class="catalog-header">
-                <h3 class="catalog-title">
-                  Here are all your processed photos.
-                </h3>
-              </div>
-
-              <!-- Grid Controls -->
-              <div class="grid-controls grid-controls-base">
-                <div class="results-info results-info-base">
-                  <span class="results-count results-count-base"
-                    >{{ catalogPhotos.length }} photos</span
-                  >
-                </div>
-                <div class="grid-size-controls grid-size-controls-base">
-                  <span class="grid-label grid-label-base">Columns:</span>
-                  <n-button-group>
-                    <n-button
-                      v-for="size in [3, 4, 5, 6]"
-                      :key="size"
-                      :type="gridColumns === size ? 'primary' : 'default'"
-                      size="small"
-                      @click="setGridColumns(size)"
-                    >
-                      {{ size }}
-                    </n-button>
-                  </n-button-group>
-                </div>
-              </div>
-
-              <!-- Photo Grid -->
-              <div
-                class="photos-grid photo-grid-base"
-                :class="`grid-cols-${gridColumns}`"
-              >
-                <PhotoCardInfo
-                  v-for="photo in catalogPhotos"
-                  :key="photo.id"
-                  :photo="{
-                    ...photo,
-                    size: parseFloat(photo.size) * 1024 * 1024, // Convert MB to bytes
-                  }"
-                  @info="showPhotoInfo"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+        <PhotosCatalog v-show="activeTab === 'catalog'" />
       </div>
     </div>
   </div>
