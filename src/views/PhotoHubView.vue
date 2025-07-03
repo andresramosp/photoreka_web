@@ -125,17 +125,6 @@ import { mockedPhotos, type CatalogPhoto } from "@/assets/mocked";
 import PhotosUpload from "@/components/photo-hub/PhotosUpload.vue";
 import ProcessingPhotos from "@/components/photo-hub/ProcessingPhotos.vue";
 
-interface Photo {
-  id: string;
-  name: string;
-  size: number;
-  url?: string;
-  file: File;
-  uploadDate?: Date;
-  isDuplicate: boolean;
-  isUploading?: boolean;
-}
-
 // Reactive state
 const activeTab = ref("upload");
 const tabText = computed(() => {
@@ -151,8 +140,6 @@ const tabText = computed(() => {
 // Grid columns state
 const gridColumns = ref(4);
 
-// Mock processing jobs for the Processing tab
-const processingJobs = ref<ProcessingJob[]>(mockedJobs);
 // Static catalog photos for demonstration
 const catalogPhotos = ref<CatalogPhoto[]>(mockedPhotos);
 
