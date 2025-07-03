@@ -3,9 +3,20 @@
     <div class="processing-section">
       <!-- Processing Jobs Table -->
       <div v-if="processingJobs.length > 0" class="processing-table-container">
-        <div class="section-header">
-          <h3 class="section-title">Analysis Processes</h3>
+        <!-- <div class="section-header">
+          <h3 class="photo-hub-title">Analysis Processes</h3>
           <span class="photo-count">{{ processingJobs.length }} processes</span>
+        </div> -->
+
+        <div class="photo-hub-header">
+          <n-icon :color="`var(--warning-color)`" size="18">
+            <BookInformation20Regular />
+          </n-icon>
+          <h3 class="photo-hub-title">
+            Here you can monitor the analysis process for your photos. It
+            usually takes between 2 and 6 hours, depending on the number of
+            photos.
+          </h3>
         </div>
 
         <div class="processing-table">
@@ -126,6 +137,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { mockedJobs, type ProcessingJob } from "@/assets/mocked";
+import {
+  Notifications,
+  NotificationsCircleOutline,
+  NotificationsOutline,
+} from "@vicons/ionicons5";
+import { BookInformation20Regular } from "@vicons/fluent";
 
 // Processing jobs state
 const processingJobs = ref<ProcessingJob[]>(mockedJobs);

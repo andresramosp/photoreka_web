@@ -248,6 +248,10 @@
   grid-template-columns: repeat(6, 1fr);
 }
 
+.photo-grid-base.grid-cols-8 {
+  grid-template-columns: repeat(8, 1fr);
+}
+
 /* Duplicate indicator styles */
 .duplicate-indicator-base {
   position: absolute;
@@ -362,4 +366,22 @@
 
 .n-base-select-option {
   font-size: 13px !important; /* O el tamaño que desees */
+}
+
+/* Catalog Section */
+.photo-hub-header {
+  margin-bottom: 24px;
+  display: flex;
+  gap: 5px;
+  align-content: center;
+  flex-direction: row;
+  align-items: center;
+}
+
+.photo-hub-title {
+  font-size: 15px;
+  font-weight: 200;
+  color: var(--text-primary);
+  margin: 0;
+  text-align: left;
 }

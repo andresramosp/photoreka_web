@@ -4,8 +4,14 @@
       <!-- Static Example Photos -->
       <div class="catalog-photos">
         <!-- Catalog Title -->
-        <div class="catalog-header">
-          <h3 class="catalog-title">Here are all your processed photos.</h3>
+        <div class="photo-hub-header">
+          <n-icon :color="`var(--warning-color)`" size="18">
+            <BookInformation20Regular />
+          </n-icon>
+          <h3 class="photo-hub-title">
+            Here's your catalog with all the photos processed and ready to be
+            used in the tools. You can edit and delete them.
+          </h3>
         </div>
 
         <!-- Grid Controls -->
@@ -19,7 +25,7 @@
             <span class="grid-label grid-label-base">Columns:</span>
             <n-button-group>
               <n-button
-                v-for="size in [3, 4, 5, 6]"
+                v-for="size in [4, 6, 8]"
                 :key="size"
                 :type="gridColumns === size ? 'primary' : 'default'"
                 size="small"
@@ -55,6 +61,7 @@
 import { ref } from "vue";
 import { mockedPhotos, type CatalogPhoto } from "@/assets/mocked";
 import PhotoCardInfo from "../PhotoCardInfo.vue";
+import { BookInformation20Regular } from "@vicons/fluent";
 
 // Grid columns state
 const gridColumns = ref(4);
@@ -78,19 +85,6 @@ const setGridColumns = (columns: number) => {
 .tab-content {
   padding: var(--spacing-3xl);
   background-color: var(--bg-container);
-}
-
-/* Catalog Section */
-.catalog-header {
-  margin-bottom: 24px;
-}
-
-.catalog-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #ffffffd1;
-  margin: 0;
-  text-align: left;
 }
 
 /* Grid Controls */

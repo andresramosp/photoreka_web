@@ -18,7 +18,15 @@
       </div>
     </div>
     <!-- Upload Progress Section -->
-
+    <div class="photo-hub-header">
+      <n-icon :color="`var(--warning-color)`" size="18">
+        <BookInformation20Regular />
+      </n-icon>
+      <h3 class="photo-hub-title">
+        This is where you upload your photos. You can store them until you want
+        to run the analysis.
+      </h3>
+    </div>
     <!-- Full Upload Dasdaopzone (show when no photos) -->
     <div v-if="uploadedPhotos.length === 0" class="upload-section">
       <div class="upload-dropzone">
@@ -100,7 +108,7 @@
                 </svg>
               </n-icon>
             </template>
-            Choose Files
+            Local Files
           </n-button>
           <n-button
             type="default"
@@ -186,7 +194,7 @@
             <span class="grid-label grid-label-base">Columns:</span>
             <n-button-group>
               <n-button
-                v-for="size in [3, 4, 5, 6]"
+                v-for="size in [4, 6, 8]"
                 :key="size"
                 :type="gridColumns === size ? 'primary' : 'default'"
                 size="small"
@@ -230,6 +238,7 @@ import { usePhotosStore } from "@/stores/photos.js";
 import PhotoCard from "../PhotoCard.vue";
 import pLimit from "p-limit";
 import pica from "pica";
+import { BookInformation20Regular } from "@vicons/fluent";
 
 const emit = defineEmits(["on-analyze"]);
 
@@ -237,7 +246,7 @@ const photosStore = usePhotosStore();
 
 const isUploading = ref(false);
 const duplicateChecked = ref(false);
-const gridColumns = ref(6);
+const gridColumns = ref(8);
 const fileInput = ref(null);
 
 const uploadedCount = ref(0);
@@ -273,9 +282,9 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) uploadedPhotos.push(photo);
-          }),
-        ),
-      ),
+          })
+        )
+      )
     );
 
     // await photosStore.getOrFetch(true);
@@ -300,7 +309,7 @@ async function processAndUploadFile(file) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fileType: resizedBlob.type }),
-    },
+    }
   );
 
   if (!res.ok) throw new Error("Error obteniendo URLs firmadas");
