@@ -228,7 +228,7 @@
 import { computed, onMounted, ref } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
 import PhotoCard from "../PhotoCard.vue";
-import pLimit from "p-limit";
+import { pLimit } from "p-limit";
 import pica from "pica";
 
 const emit = defineEmits(["on-analyze"]);
@@ -273,9 +273,9 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) uploadedPhotos.push(photo);
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
 
     // await photosStore.getOrFetch(true);
@@ -300,7 +300,7 @@ async function processAndUploadFile(file) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fileType: resizedBlob.type }),
-    }
+    },
   );
 
   if (!res.ok) throw new Error("Error obteniendo URLs firmadas");
