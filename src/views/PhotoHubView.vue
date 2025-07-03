@@ -433,7 +433,6 @@ const setGridColumns = (columns: number) => {
 }
 
 /* Empty States */
-.empty-processing-state,
 .empty-catalog-state {
   flex: 1;
   display: flex;
