@@ -350,27 +350,7 @@ const tabText = computed(() => {
   color: #ffffff73;
 }
 
-/* Catalog Section */
-.catalog-header {
-  margin-bottom: 24px;
-}
-
-.catalog-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #ffffffd1;
-  margin: 0;
-  text-align: left;
-}
-
 /* Empty States */
-.empty-catalog-state {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
-}
 
 .empty-state-content {
   text-align: center;
