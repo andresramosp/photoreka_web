@@ -85,6 +85,8 @@ export const usePhotosStore = defineStore("photos", {
         } else {
           this.photos.push(updatedPhoto);
         }
+        debugger;
+        return updatedPhoto;
       } catch (error) {
         console.warn("API not available for fetchPhoto:", error.message);
         // Mock behavior - just return existing photo

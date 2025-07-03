@@ -211,11 +211,12 @@
         class="photos-grid photo-grid-base"
         :class="`grid-cols-${gridColumns}`"
       >
-        <PhotoCard
+        <PhotoCardInfo
           v-for="photo in uploadedPhotos"
           :key="photo.id"
           :photo="photo"
           @select="togglePhotoSelection"
+          :show-footer="true"
         />
       </div>
     </div>
@@ -235,10 +236,11 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
-import PhotoCard from "../PhotoCard.vue";
+import PhotoCard from "../photoCards/PhotoCard.vue";
 import pLimit from "p-limit";
 import pica from "pica";
 import { BookInformation20Regular } from "@vicons/fluent";
+import PhotoCardInfo from "../photoCards/PhotoCardInfo.vue";
 
 const emit = defineEmits(["on-analyze"]);
 

@@ -3,7 +3,6 @@
     class="photo-card"
     :class="{
       selected: isSelected,
-      duplicate: photo.isDuplicate,
       'curation-mode': mode === 'curation',
       'selection-mode': mode === 'selection',
     }"

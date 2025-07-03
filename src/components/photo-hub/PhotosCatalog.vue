@@ -1,5 +1,10 @@
 <template>
   <div class="tab-content">
+    <PhotoInfoDialog
+      v-model="showPhotoInfoDialog"
+      :selected-photo="selectedDialogPhoto"
+    />
+
     <div class="catalog-section">
       <!-- Static Example Photos -->
       <div class="catalog-photos">
@@ -57,26 +62,36 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref } from "vue";
-import { mockedPhotos, type CatalogPhoto } from "@/assets/mocked";
-import PhotoCardInfo from "../PhotoCardInfo.vue";
+<script setup>
+import { computed, ref } from "vue";
+import PhotoCardInfo from "../photoCards/PhotoCardInfo.vue";
+import { usePhotosStore } from "@/stores/photos.js";
+
 import { BookInformation20Regular } from "@vicons/fluent";
+import PhotoCard from "../photoCards/PhotoCard.vue";
+import PhotoInfoDialog from "../PhotoInfoDialog.vue";
+
+const photosStore = usePhotosStore();
 
 // Grid columns state
-const gridColumns = ref(4);
+const gridColumns = ref(8);
+
+const showPhotoInfoDialog = ref(false);
+const selectedDialogPhoto = ref();
 
 // Static catalog photos for demonstration
-const catalogPhotos = ref<CatalogPhoto[]>(mockedPhotos);
+const catalogPhotos = computed(() => photosStore.catalogPhotos);
 
 // Photo selection functions
-const showPhotoInfo = (photo: any) => {
-  console.log("Show photo info:", photo);
-  // Here you would implement the photo info modal/panel
+const showPhotoInfo = async (photo) => {
+  const fullPhoto = await photosStore.fetchPhoto(photo.id);
+  debugger;
+  selectedDialogPhoto.value = fullPhoto;
+  showPhotoInfoDialog.value = true;
 };
 
 // Grid columns function
-const setGridColumns = (columns: number) => {
+const setGridColumns = (columns) => {
   gridColumns.value = columns;
 };
 </script>

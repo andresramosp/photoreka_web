@@ -68,7 +68,7 @@
 import { ref, nextTick } from "vue";
 import { NIcon, NSkeleton } from "naive-ui";
 import PhotoBase from "./PhotoBase.vue";
-import PhotoCard, { type Photo } from "../PhotoCard.vue";
+import PhotoCard, { type Photo } from "../photoCards/PhotoCard.vue";
 
 interface Props {
   isVisible: boolean;
