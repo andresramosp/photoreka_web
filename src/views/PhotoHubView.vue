@@ -120,10 +120,9 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import PhotoCardInfo from "../components/PhotoCardInfo.vue";
-import { mockedPhotos, type CatalogPhoto } from "@/assets/mocked";
 import PhotosUpload from "@/components/photo-hub/PhotosUpload.vue";
 import ProcessingPhotos from "@/components/photo-hub/ProcessingPhotos.vue";
+import PhotosCatalog from "@/components/photo-hub/PhotosCatalog.vue";
 
 // Reactive state
 const activeTab = ref("upload");
