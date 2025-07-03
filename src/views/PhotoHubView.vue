@@ -84,23 +84,6 @@ const tabText = computed(() => {
   }
   return "This is your catalog of already analyzed photos, ready to use in any tool.";
 });
-
-// Grid columns state
-const gridColumns = ref(4);
-
-// Static catalog photos for demonstration
-const catalogPhotos = ref<CatalogPhoto[]>(mockedPhotos);
-
-// Photo selection functions
-const showPhotoInfo = (photo: any) => {
-  console.log("Show photo info:", photo);
-  // Here you would implement the photo info modal/panel
-};
-
-// Grid columns function
-const setGridColumns = (columns: number) => {
-  gridColumns.value = columns;
-};
 </script>
 
 <style scoped>
