@@ -143,21 +143,7 @@ const gridColumns = ref(4);
 // Static catalog photos for demonstration
 const catalogPhotos = ref<CatalogPhoto[]>(mockedPhotos);
 
-// Computed properties
-
-const formatDate = (date: Date | string): string => {
-  const dateObj = typeof date === "string" ? new Date(date) : date;
-  return dateObj.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
 // Photo selection functions
-
 const showPhotoInfo = (photo: any) => {
   console.log("Show photo info:", photo);
   // Here you would implement the photo info modal/panel
@@ -166,14 +152,6 @@ const showPhotoInfo = (photo: any) => {
 // Grid columns function
 const setGridColumns = (columns: number) => {
   gridColumns.value = columns;
-};
-
-// Processing jobs functions
-const toggleJobExpansion = (jobId: string) => {
-  const job = processingJobs.value.find((j) => j.id === jobId);
-  if (job) {
-    job.expanded = !job.expanded;
-  }
 };
 </script>
 
