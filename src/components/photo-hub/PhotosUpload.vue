@@ -273,9 +273,9 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) uploadedPhotos.push(photo);
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
 
     // await photosStore.getOrFetch(true);
@@ -300,7 +300,7 @@ async function processAndUploadFile(file) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fileType: resizedBlob.type }),
-    }
+    },
   );
 
   if (!res.ok) throw new Error("Error obteniendo URLs firmadas");
