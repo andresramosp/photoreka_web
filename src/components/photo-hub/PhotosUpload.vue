@@ -308,7 +308,10 @@ async function processAndUploadFile(file) {
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fileType: resizedBlob.type }),
+      body: JSON.stringify({
+        fileType: resizedBlob.type,
+        originalName: file.name,
+      }),
     }
   );
 
