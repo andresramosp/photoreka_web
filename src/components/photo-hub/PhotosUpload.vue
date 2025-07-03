@@ -228,7 +228,7 @@
 import { computed, onMounted, ref } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
 import PhotoCard from "../PhotoCard.vue";
-import { pLimit } from "p-limit";
+import pLimit from "p-limit";
 import pica from "pica";
 
 const emit = defineEmits(["on-analyze"]);
