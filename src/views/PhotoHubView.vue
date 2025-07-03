@@ -257,13 +257,9 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import PhotoCardInfo from "../components/PhotoCardInfo.vue";
-import {
-  mockedJobs,
-  mockedPhotos,
-  type CatalogPhoto,
-  type ProcessingJob,
-} from "@/assets/mocked";
+import { mockedPhotos, type CatalogPhoto } from "@/assets/mocked";
 import PhotosUpload from "@/components/photo-hub/PhotosUpload.vue";
+import ProcessingPhotos from "@/components/photo-hub/ProcessingPhotos.vue";
 
 interface Photo {
   id: string;
