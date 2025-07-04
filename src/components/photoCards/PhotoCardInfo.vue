@@ -18,17 +18,27 @@
         @error="onImageError"
       />
 
-      <!-- Info Button (center overlay) - only show when not uploading -->
-      <div v-if="photo.status == 'processed'" class="info-overlay">
+      <!-- Action Buttons (center overlay) - only show when not uploading -->
+      <div v-if="photo.status == 'processed'" class="action-buttons-overlay">
         <n-button
-          circle
           size="medium"
-          class="info-button"
+          class="action-button info-button"
           @click.stop="showInfo"
         >
           <template #icon>
             <n-icon>
               <InfoIcon />
+            </n-icon>
+          </template>
+        </n-button>
+        <n-button
+          size="medium"
+          class="action-button delete-button"
+          @click.stop="deletePhoto"
+        >
+          <template #icon>
+            <n-icon>
+              <DeleteIcon />
             </n-icon>
           </template>
         </n-button>
@@ -42,6 +52,11 @@
         <n-icon size="16" color="#f59e0b">
           <WarningIcon />
         </n-icon>
+      </div>
+
+      <!-- Checking duplicates overlay with spinner -->
+      <div v-if="photo.isCheckingDuplicates" class="processing-overlay">
+        <n-spin size="medium" />
       </div>
 
       <!-- Selection indicator -->
@@ -70,6 +85,14 @@
           Duplicate
         </n-tag>
         <n-tag
+          v-else-if="photo.isCheckingDuplicates"
+          size="small"
+          type="info"
+          class="status-tag"
+        >
+          Processing
+        </n-tag>
+        <n-tag
           v-else-if="photo.status === 'uploaded'"
           size="small"
           type="default"
@@ -84,13 +107,14 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { NIcon } from "naive-ui";
+import { NIcon, NSpin } from "naive-ui";
 
 // Import @vicons icons from ionicons5 for reliability
 import {
   InformationCircleOutline as InfoIcon,
   WarningOutline as WarningIcon,
   CheckmarkCircleOutline as CheckCircleIcon,
+  TrashOutline as DeleteIcon,
 } from "@vicons/ionicons5";
 
 interface PhotoInfo {
@@ -119,6 +143,7 @@ interface Props {
 interface Emits {
   (e: "select", photoId: string): void;
   (e: "info", photo: PhotoInfo): void;
+  (e: "delete", photoId: string): void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -138,6 +163,10 @@ const toggleSelection = () => {
 
 const showInfo = () => {
   emit("info", props.photo);
+};
+
+const deletePhoto = () => {
+  emit("delete", props.photo.id);
 };
 
 const onImageLoad = () => {
@@ -177,7 +206,9 @@ const onImageError = () => {
 
 .photo-card-info.selected {
   border-color: #8b5cf6;
-  box-shadow: 0 0 0 1px #8b5cf640, 0 8px 24px rgba(139, 92, 246, 0.2);
+  box-shadow:
+    0 0 0 1px #8b5cf640,
+    0 8px 24px rgba(139, 92, 246, 0.2);
 }
 
 .photo-container {
@@ -199,8 +230,8 @@ const onImageError = () => {
 
 /* Note: Photo skeleton styles moved to global.scss */
 
-/* Info overlay */
-.info-overlay {
+/* Action buttons overlay */
+.action-buttons-overlay {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -208,9 +239,11 @@ const onImageError = () => {
   opacity: 0;
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 3;
+  display: flex;
+  gap: 8px;
 }
 
-.photo-card-info:hover .info-overlay {
+.photo-card-info:hover .action-buttons-overlay {
   opacity: 1;
 }
 
@@ -243,11 +276,29 @@ const onImageError = () => {
   z-index: 3;
 }
 
-/* Info button */
-.info-button {
-  background-color: rgba(0, 0, 0, 0.7) !important;
-  border: none !important;
+/* Action buttons */
+.action-button {
+  border-radius: 8px !important;
   backdrop-filter: blur(8px);
+  border: none !important;
+  width: 40px;
+  height: 40px;
+  opacity: 0.9;
+  transition: opacity 0.2s ease !important;
+}
+
+.action-button:hover {
+  opacity: 1 !important;
+}
+
+.info-button {
+  background-color: var(--info-color) !important;
+  color: white !important;
+}
+
+.delete-button {
+  background-color: var(--error-color) !important;
+  color: white !important;
 }
 
 /* Selection indicator */
