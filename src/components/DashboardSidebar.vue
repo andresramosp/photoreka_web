@@ -418,7 +418,7 @@ onUnmounted(() => {
   border-right: 1px solid #2c2c32 !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   z-index: 100 !important;
-  overflow: hidden !important;
+  overflow: visible !important;
 }
 
 .sidebar-content {
