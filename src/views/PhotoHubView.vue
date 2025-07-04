@@ -67,22 +67,37 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed, ref } from "vue";
+<script setup>
+import { ref, onMounted, watch } from "vue";
 import PhotosUpload from "@/components/photo-hub/PhotosUpload.vue";
 import ProcessingPhotos from "@/components/photo-hub/ProcessingPhotos.vue";
 import PhotosCatalog from "@/components/photo-hub/PhotosCatalog.vue";
 
 // Reactive state
 const activeTab = ref("upload");
-const tabText = computed(() => {
-  if (activeTab.value == "upload") {
-    return "Here you will find photos that have been uploaded to your catalog but havent yet been processed. You can accumulate photos and process them whenever you want.";
+
+const setActiveTab = (tab) => {
+  activeTab.value = tab;
+  window.location.hash = tab;
+};
+
+const updateTabFromHash = () => {
+  const hash = window.location.hash.replace("#", "");
+  if (["upload", "processing", "catalog"].includes(hash)) {
+    activeTab.value = hash;
   }
-  if (activeTab.value == "processing") {
-    return "Here you'll see photos being analyzed, as well as previously performed analyses.";
+};
+
+onMounted(() => {
+  updateTabFromHash();
+
+  window.addEventListener("hashchange", updateTabFromHash);
+});
+
+watch(activeTab, (newTab) => {
+  if (window.location.hash.replace("#", "") !== newTab) {
+    window.location.hash = newTab;
   }
-  return "This is your catalog of already analyzed photos, ready to use in any tool.";
 });
 </script>
 

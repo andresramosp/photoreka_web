@@ -13,7 +13,11 @@
       <h2 class="section-title">Quick Actions</h2>
 
       <div class="actions-grid">
-        <div class="action-card upload-photos" :class="{ disabled: false }">
+        <div
+          class="action-card upload-photos"
+          :class="{ disabled: false }"
+          @click="goToUpload"
+        >
           <div class="action-icon">
             <n-icon size="32">
               <ArrowUpIcon />
@@ -21,16 +25,6 @@
           </div>
           <h3 class="action-title">Upload Photos</h3>
           <p class="action-description">Add to your library</p>
-        </div>
-
-        <div class="action-card new-project" :class="{ disabled: !canUseApp }">
-          <div class="action-icon">
-            <n-icon size="32">
-              <AddIcon />
-            </n-icon>
-          </div>
-          <h3 class="action-title">New Curation</h3>
-          <p class="action-description">Start a fresh project</p>
         </div>
 
         <div
@@ -47,6 +41,15 @@
           <p class="action-description">Browse your photo catalog</p>
         </div>
 
+        <div class="action-card new-project" :class="{ disabled: !canUseApp }">
+          <div class="action-icon">
+            <n-icon size="32">
+              <AddIcon />
+            </n-icon>
+          </div>
+          <h3 class="action-title">New Curation</h3>
+          <p class="action-description">Start a fresh project</p>
+        </div>
         <div class="action-card ai-search" :class="{ disabled: false }">
           <div class="action-icon">
             <n-icon size="32">
@@ -346,6 +349,11 @@ const openProject = (projectId: string) => {
 const goToCatalog = () => {
   // Navigate to photo-hub with catalog tab active
   router.push({ name: "photo-hub", hash: "#catalog" });
+};
+
+const goToUpload = () => {
+  // Navigate to photo-hub with catalog tab active
+  router.push({ name: "photo-hub", hash: "#upload" });
 };
 </script>
 
