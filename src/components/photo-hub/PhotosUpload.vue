@@ -284,13 +284,24 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) uploadedPhotos.push(photo);
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
 
-    // await photosStore.getOrFetch(true);
-    photosStore.checkDuplicates(uploadedPhotos.map((p) => p.id));
+    // Set photos to processing state before checking duplicates
+    const photoIds = uploadedPhotos.map((p) => p.id);
+    photoIds.forEach((id) => {
+      photosStore.updatePhoto(id, { status: "processing" });
+    });
+
+    // Check duplicates and restore uploaded status
+    await photosStore.checkDuplicates(photoIds);
+
+    // Restore uploaded status after checking
+    photoIds.forEach((id) => {
+      photosStore.updatePhoto(id, { status: "uploaded" });
+    });
   } catch (error) {
     console.error("❌ Error en la subida:", error);
   } finally {
@@ -314,7 +325,7 @@ async function processAndUploadFile(file) {
         fileType: resizedBlob.type,
         originalName: file.name,
       }),
-    }
+    },
   );
 
   if (!res.ok) throw new Error("Error obteniendo URLs firmadas");

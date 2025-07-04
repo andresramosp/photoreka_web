@@ -44,6 +44,11 @@
         </n-icon>
       </div>
 
+      <!-- Processing overlay with spinner -->
+      <div v-if="photo.status === 'processing'" class="processing-overlay">
+        <n-spin size="medium" />
+      </div>
+
       <!-- Selection indicator -->
       <div v-if="isSelected" class="selection-indicator">
         <n-icon size="20" color="#ffffff">
@@ -70,6 +75,14 @@
           Duplicate
         </n-tag>
         <n-tag
+          v-else-if="photo.status === 'processing'"
+          size="small"
+          type="info"
+          class="status-tag"
+        >
+          Processing
+        </n-tag>
+        <n-tag
           v-else-if="photo.status === 'uploaded'"
           size="small"
           type="default"
@@ -84,7 +97,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { NIcon } from "naive-ui";
+import { NIcon, NSpin } from "naive-ui";
 
 // Import @vicons icons from ionicons5 for reliability
 import {
@@ -177,7 +190,9 @@ const onImageError = () => {
 
 .photo-card-info.selected {
   border-color: #8b5cf6;
-  box-shadow: 0 0 0 1px #8b5cf640, 0 8px 24px rgba(139, 92, 246, 0.2);
+  box-shadow:
+    0 0 0 1px #8b5cf640,
+    0 8px 24px rgba(139, 92, 246, 0.2);
 }
 
 .photo-container {
