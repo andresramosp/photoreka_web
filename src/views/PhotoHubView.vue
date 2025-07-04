@@ -55,7 +55,7 @@
       <!-- Tab Content -->
       <div class="tab-content-container">
         <!-- Tab 1: Upload -->
-        <PhotosUpload v-show="activeTab === 'upload'" @on-analyze="() => {}" />
+        <PhotosUpload v-show="activeTab === 'upload'" @on-analyze="analyze()" />
 
         <!-- Tab 2: Processing -->
         <ProcessingPhotos v-show="activeTab === 'processing'" />
@@ -72,6 +72,12 @@ import { ref, onMounted, watch } from "vue";
 import PhotosUpload from "@/components/photo-hub/PhotosUpload.vue";
 import ProcessingPhotos from "@/components/photo-hub/ProcessingPhotos.vue";
 import PhotosCatalog from "@/components/photo-hub/PhotosCatalog.vue";
+import { usePhotosStore } from "@/stores/photos.js";
+import axios from "axios";
+import { useMessage } from "naive-ui";
+
+const photosStore = usePhotosStore();
+const message = useMessage();
 
 // Reactive state
 const activeTab = ref("upload");
@@ -87,6 +93,24 @@ const updateTabFromHash = () => {
     activeTab.value = hash;
   }
 };
+
+async function analyze() {
+  try {
+    setActiveTab("processing");
+    message.success(
+      `The analysis of your photos has begun! You can close this window in the meantime.`,
+      { duration: 5000 }
+    );
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/analyzer`, {
+      userId: "1234",
+      packageId: "basic_1",
+      mode: "adding",
+    });
+    photosStore.getOrFetch(true);
+  } catch (error) {
+    console.error("❌ Error iniciando análisis:", error);
+  }
+}
 
 onMounted(() => {
   updateTabFromHash();

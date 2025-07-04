@@ -738,7 +738,7 @@ async function searchPhotos() {
     } else {
       payload = {
         left: topological.left,
-        center: topological.center,
+        middle: topological.center,
         right: topological.right,
         options,
       };

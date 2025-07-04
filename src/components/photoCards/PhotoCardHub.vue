@@ -19,7 +19,10 @@
       />
 
       <!-- Action Buttons (center overlay) - only show when not uploading -->
-      <div class="action-buttons-overlay">
+      <div
+        v-if="!photo.isCheckingDuplicates && !photo.isUploading"
+        class="action-buttons-overlay"
+      >
         <n-button
           v-if="photo.status == 'processed'"
           size="medium"
@@ -46,14 +49,20 @@
       </div>
 
       <!-- Duplicate indicator -->
-      <div
+      <n-tooltip
         v-if="photo.isDuplicate && photo.status == 'uploaded'"
-        class="duplicate-indicator"
+        trigger="hover"
+        placement="top"
       >
-        <n-icon size="16" color="#f59e0b">
-          <WarningIcon />
-        </n-icon>
-      </div>
+        <template #trigger>
+          <div class="duplicate-indicator">
+            <n-icon size="16">
+              <WarningIcon />
+            </n-icon>
+          </div>
+        </template>
+        Duplicate photo
+      </n-tooltip>
 
       <!-- Checking duplicates overlay with spinner -->
       <div v-if="photo.isCheckingDuplicates" class="processing-overlay">
@@ -77,28 +86,23 @@
       <div class="photo-status">
         <!-- Status tags -->
 
-        <n-tag
+        <!-- <n-tag
           v-if="photo.isDuplicate"
           size="small"
           type="warning"
           class="status-tag"
         >
           Duplicate
-        </n-tag>
+        </n-tag> -->
         <n-tag
-          v-else-if="photo.isCheckingDuplicates"
+          v-if="photo.isCheckingDuplicates"
           size="small"
           type="info"
           class="status-tag"
         >
-          Processing
+          Saving
         </n-tag>
-        <n-tag
-          v-else-if="photo.status === 'uploaded'"
-          size="small"
-          type="default"
-          class="status-tag"
-        >
+        <n-tag v-else size="small" type="default" class="status-tag">
           Uploaded
         </n-tag>
       </div>
@@ -108,7 +112,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { NIcon, NSpin } from "naive-ui";
+import { NIcon, NSpin, NTooltip } from "naive-ui";
 
 // Import @vicons icons from ionicons5 for reliability
 import {
@@ -133,6 +137,8 @@ interface PhotoInfo {
   width?: number;
   height?: number;
   originalFileName: string;
+  isCheckingDuplicates: boolean;
+  isUploading: boolean;
 }
 
 interface Props {

@@ -65,7 +65,7 @@
 
 <script setup>
 import { computed, ref } from "vue";
-import PhotoCardInfo from "../photoCards/PhotoCardInfo.vue";
+import PhotoCardInfo from "../photoCards/PhotoCardHub.vue";
 import { usePhotosStore } from "@/stores/photos.js";
 
 import { BookInformation20Regular } from "@vicons/fluent";

@@ -41,7 +41,7 @@
               </svg>
             </n-icon>
           </div>
-          <h3 class="dropzone-title">Drop your photos here</h3>
+          <h3 class="dropzone-title">Your upload storage is empty</h3>
           <p class="dropzone-subtitle">
             Drag and drop your images, or click to browse
           </p>
@@ -155,8 +155,9 @@
           class="analyze-btn"
           @click="emit('on-analyze')"
           :disabled="
-            uploadedPhotos.filter((p) => !p.isUploading).length === 0 ||
-            !duplicateChecked
+            uploadedPhotos.filter(
+              (p) => p.isUploading || p.isCheckingDuplicates
+            ).length > 0
           "
         >
           <template #icon>
@@ -237,18 +238,16 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
-import PhotoCard from "../photoCards/PhotoCard.vue";
 import pLimit from "p-limit";
 import pica from "pica";
 import { BookInformation20Regular } from "@vicons/fluent";
-import PhotoCardInfo from "../photoCards/PhotoCardInfo.vue";
+import PhotoCardInfo from "../photoCards/PhotoCardHub.vue";
 
 const emit = defineEmits(["on-analyze"]);
 
 const photosStore = usePhotosStore();
 
 const isUploading = ref(false);
-const duplicateChecked = ref(false);
 const gridColumns = ref(8);
 const fileInput = ref(null);
 
