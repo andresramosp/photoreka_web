@@ -186,7 +186,11 @@
         <div class="header-controls">
           <div class="filter-controls">
             <span class="filter-label">Filter duplicates:</span>
-            <n-switch v-model:value="filterDuplicates" size="small" />
+            <n-switch
+              v-model:value="filterDuplicates"
+              size="medium"
+              :rail-style="() => ({ backgroundColor: '#3f3f46' })"
+            />
           </div>
           <div class="grid-size-controls grid-size-controls-base">
             <span class="grid-label grid-label-base">Columns:</span>
@@ -488,13 +492,18 @@ onMounted(() => {
 .filter-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  padding: 8px 12px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border: 1px solid #2c2c32;
 }
 
 .filter-label {
   font-size: 14px;
-  color: #ffffff73;
+  color: #ffffffd1;
   white-space: nowrap;
+  font-weight: 500;
 }
 
 .header-buttons {
