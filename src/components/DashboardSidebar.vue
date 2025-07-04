@@ -24,7 +24,7 @@
         </div>
       </div>
 
-      <!-- First Menu Section: Dashboard, Photo Hub, Collections -->
+      <!-- First Menu Section: Photo Hub, Collections -->
       <n-menu
         :collapsed="false"
         :collapsed-width="64"
@@ -136,7 +136,7 @@
         </div>
       </div>
 
-      <!-- First Menu Section: Dashboard, Photo Hub, Collections -->
+      <!-- First Menu Section: Photo Hub, Collections -->
       <n-menu
         :collapsed="collapsed"
         :collapsed-width="64"
