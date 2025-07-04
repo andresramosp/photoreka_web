@@ -18,17 +18,27 @@
         @error="onImageError"
       />
 
-      <!-- Info Button (center overlay) - only show when not uploading -->
-      <div v-if="photo.status == 'processed'" class="info-overlay">
+      <!-- Action Buttons (center overlay) - only show when not uploading -->
+      <div v-if="photo.status == 'processed'" class="action-buttons-overlay">
         <n-button
-          circle
           size="medium"
-          class="info-button"
+          class="action-button info-button"
           @click.stop="showInfo"
         >
           <template #icon>
             <n-icon>
               <InfoIcon />
+            </n-icon>
+          </template>
+        </n-button>
+        <n-button
+          size="medium"
+          class="action-button delete-button"
+          @click.stop="deletePhoto"
+        >
+          <template #icon>
+            <n-icon>
+              <DeleteIcon />
             </n-icon>
           </template>
         </n-button>
@@ -104,6 +114,7 @@ import {
   InformationCircleOutline as InfoIcon,
   WarningOutline as WarningIcon,
   CheckmarkCircleOutline as CheckCircleIcon,
+  TrashOutline as DeleteIcon,
 } from "@vicons/ionicons5";
 
 interface PhotoInfo {
@@ -132,6 +143,7 @@ interface Props {
 interface Emits {
   (e: "select", photoId: string): void;
   (e: "info", photo: PhotoInfo): void;
+  (e: "delete", photoId: string): void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -151,6 +163,10 @@ const toggleSelection = () => {
 
 const showInfo = () => {
   emit("info", props.photo);
+};
+
+const deletePhoto = () => {
+  emit("delete", props.photo.id);
 };
 
 const onImageLoad = () => {
@@ -214,8 +230,8 @@ const onImageError = () => {
 
 /* Note: Photo skeleton styles moved to global.scss */
 
-/* Info overlay */
-.info-overlay {
+/* Action buttons overlay */
+.action-buttons-overlay {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -223,9 +239,11 @@ const onImageError = () => {
   opacity: 0;
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 3;
+  display: flex;
+  gap: 8px;
 }
 
-.photo-card-info:hover .info-overlay {
+.photo-card-info:hover .action-buttons-overlay {
   opacity: 1;
 }
 
@@ -258,11 +276,29 @@ const onImageError = () => {
   z-index: 3;
 }
 
-/* Info button */
-.info-button {
-  background-color: rgba(0, 0, 0, 0.7) !important;
-  border: none !important;
+/* Action buttons */
+.action-button {
+  border-radius: 8px !important;
   backdrop-filter: blur(8px);
+  border: none !important;
+  width: 40px;
+  height: 40px;
+}
+
+.info-button {
+  background-color: var(--info-color) !important;
+}
+
+.info-button:hover {
+  background-color: var(--info-color-hover) !important;
+}
+
+.delete-button {
+  background-color: var(--error-color) !important;
+}
+
+.delete-button:hover {
+  background-color: var(--error-color-hover) !important;
 }
 
 /* Selection indicator */
