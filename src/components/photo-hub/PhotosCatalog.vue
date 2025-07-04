@@ -55,6 +55,7 @@
               size: parseFloat(photo.size) * 1024 * 1024, // Convert MB to bytes
             }"
             @info="showPhotoInfo"
+            @delete="deletePhoto"
           />
         </div>
       </div>
@@ -68,7 +69,6 @@ import PhotoCardInfo from "../photoCards/PhotoCardInfo.vue";
 import { usePhotosStore } from "@/stores/photos.js";
 
 import { BookInformation20Regular } from "@vicons/fluent";
-import PhotoCard from "../photoCards/PhotoCard.vue";
 import PhotoInfoDialog from "../PhotoInfoDialog.vue";
 
 const photosStore = usePhotosStore();
@@ -85,9 +85,13 @@ const catalogPhotos = computed(() => photosStore.catalogPhotos);
 // Photo selection functions
 const showPhotoInfo = async (photo) => {
   const fullPhoto = await photosStore.fetchPhoto(photo.id);
-  debugger;
   selectedDialogPhoto.value = fullPhoto;
   showPhotoInfoDialog.value = true;
+};
+
+const deletePhoto = async (photoId) => {
+  await photosStore.deletePhoto(photoId);
+  // photosStore.checkDuplicates(photo.duplicates); // solo si lanzamos uno inicial
 };
 
 // Grid columns function

@@ -216,6 +216,7 @@
           :key="photo.id"
           :photo="photo"
           @select="togglePhotoSelection"
+          @delete="deletePhoto"
           :show-footer="true"
         />
       </div>
@@ -284,9 +285,9 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) uploadedPhotos.push(photo);
-          }),
-        ),
-      ),
+          })
+        )
+      )
     );
 
     // Set photos to checking duplicates state
@@ -325,7 +326,7 @@ async function processAndUploadFile(file) {
         fileType: resizedBlob.type,
         originalName: file.name,
       }),
-    },
+    }
   );
 
   if (!res.ok) throw new Error("Error obteniendo URLs firmadas");
@@ -372,6 +373,11 @@ function loadImage(file) {
     img.src = URL.createObjectURL(file);
   });
 }
+
+const deletePhoto = async (photoId) => {
+  await photosStore.deletePhoto(photoId);
+  // photosStore.checkDuplicates(photo.duplicates); // solo si lanzamos uno inicial
+};
 
 const togglePhotoSelection = (photoId) => {
   photosStore.togglePhotoSelection(photoId);

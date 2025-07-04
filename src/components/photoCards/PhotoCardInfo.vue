@@ -19,8 +19,9 @@
       />
 
       <!-- Action Buttons (center overlay) - only show when not uploading -->
-      <div v-if="photo.status == 'processed'" class="action-buttons-overlay">
+      <div class="action-buttons-overlay">
         <n-button
+          v-if="photo.status == 'processed'"
           size="medium"
           class="action-button info-button"
           @click.stop="showInfo"
@@ -206,9 +207,7 @@ const onImageError = () => {
 
 .photo-card-info.selected {
   border-color: #8b5cf6;
-  box-shadow:
-    0 0 0 1px #8b5cf640,
-    0 8px 24px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 0 0 1px #8b5cf640, 0 8px 24px rgba(139, 92, 246, 0.2);
 }
 
 .photo-container {
