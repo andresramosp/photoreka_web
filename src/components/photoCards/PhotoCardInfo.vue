@@ -283,22 +283,22 @@ const onImageError = () => {
   border: none !important;
   width: 40px;
   height: 40px;
+  opacity: 0.9;
+  transition: opacity 0.2s ease !important;
+}
+
+.action-button:hover {
+  opacity: 1 !important;
 }
 
 .info-button {
   background-color: var(--info-color) !important;
-}
-
-.info-button:hover {
-  background-color: var(--info-color-hover) !important;
+  color: white !important;
 }
 
 .delete-button {
   background-color: var(--error-color) !important;
-}
-
-.delete-button:hover {
-  background-color: var(--error-color-hover) !important;
+  color: white !important;
 }
 
 /* Selection indicator */
