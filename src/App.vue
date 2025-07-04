@@ -50,24 +50,38 @@
   </n-config-provider>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { darkTheme } from "naive-ui";
-import type { GlobalThemeOverrides } from "naive-ui";
 import { useUserStore } from "./stores/userStore";
 import DashboardSidebar from "./components/DashboardSidebar.vue";
 import DashboardHeader from "./components/DashboardHeader.vue";
+import { usePhotosStore } from "@/stores/photos.js";
+
+const photosStore = usePhotosStore();
 
 const route = useRoute();
 const userStore = useUserStore();
 
-const themeOverrides: GlobalThemeOverrides = {
+const themeOverrides = {
   common: {
     primaryColor: "#2563eb",
     primaryColorHover: "#3b82f6",
     primaryColorPressed: "#1d4ed8",
     primaryColorSuppl: "#2563eb",
+  },
+  Button: {
+    // colorWarning: "var(--secondary-color)",
+    // colorWarningHover: "var(--secondary-color-hover)",
+    // colorWarningPressed: "var(--secondary-color-pressed)",
+    // colorWarningSuppl: "var(--secondary-color)",
+    // textColorWarning: "#fff", // Asegura buen contraste
+    // textColorWarningHover: "#fff",
+    // textColorWarningPressed: "#fff",
+    // borderWarning: "var(--secondary-color)",
+    // borderWarningHover: "var(--secondary-color-hover)",
+    // borderWarningPressed: "var(--secondary-color-pressed)",
   },
 };
 
@@ -86,6 +100,7 @@ const checkIsMobile = () => {
 };
 
 onMounted(() => {
+  photosStore.getOrFetch();
   checkIsMobile();
   window.addEventListener("resize", checkIsMobile);
 });
@@ -139,9 +154,9 @@ onUnmounted(() => {
 <style>
 body {
   margin: 0;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
-    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #101014;

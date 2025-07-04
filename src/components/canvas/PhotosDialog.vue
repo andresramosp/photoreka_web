@@ -122,10 +122,10 @@
                   selectedIds.length === 1 ? "Photo" : "Photos"
                 }`
               : props.singleSelection
-                ? "Select Photo"
-                : `Add ${selectedIds.length} ${
-                    selectedIds.length === 1 ? "Photo" : "Photos"
-                  } to Canvas`
+              ? "Select Photo"
+              : `Add ${selectedIds.length} ${
+                  selectedIds.length === 1 ? "Photo" : "Photos"
+                } to Canvas`
           }}
         </n-button>
       </div>
@@ -137,7 +137,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas";
-import PhotoCard from "@/components/PhotoCard.vue";
+import PhotoCard from "@/components/photoCards/PhotoCard.vue";
 import { NModal, NButton, NIcon, NSelect } from "naive-ui";
 
 // Import @vicons icons from ionicons5 for reliability
@@ -208,14 +208,14 @@ const photos = computed(() => {
   if (props.isTrash) {
     // Return discarded photos that can be restored
     return canvasStore.discardedPhotos
-      .map((dp) => photosStore.photos.find((p) => p.id === dp.id))
+      .map((dp) => photosStore.catalogPhotos.find((p) => p.id === dp.id))
       .filter(Boolean);
   } else {
     // Return photos that are not on canvas and not discarded
-    return photosStore.photos.filter(
+    return photosStore.catalogPhotos.filter(
       (p) =>
         !canvasStore.photos.find((photo) => photo.id === p.id) &&
-        !canvasStore.discardedPhotos.find((photo) => photo.id === p.id),
+        !canvasStore.discardedPhotos.find((photo) => photo.id === p.id)
     );
   }
 });
@@ -257,7 +257,7 @@ async function confirmSelection() {
     if (props.isTrash) {
       // Remove from discarded photos (restore)
       canvasStore.discardedPhotos = canvasStore.discardedPhotos.filter(
-        (dp) => !selectedIds.value.includes(dp.id),
+        (dp) => !selectedIds.value.includes(dp.id)
       );
     }
 
@@ -285,7 +285,7 @@ watch(
       // Ensure photos are loaded
       photosStore.getOrFetch();
     }
-  },
+  }
 );
 
 // Fetch photos on mount

@@ -486,7 +486,7 @@ import axios from "axios";
 import { io } from "socket.io-client";
 
 // Componentes e íconos
-import PhotoCard from "@/components/PhotoCard.vue";
+import PhotoCard from "@/components/photoCards/PhotoCard.vue";
 
 // Composable de tags y ejemplos
 import { useSearchTags } from "@/composables/useSearchTags";

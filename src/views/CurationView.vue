@@ -269,7 +269,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import PhotoCard from "../components/PhotoCard.vue";
+import PhotoCard from "../components/photoCards/PhotoCard.vue";
 
 // Photo interface with curation-specific properties
 interface CurationPhoto {

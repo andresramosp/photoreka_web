@@ -1,19 +1,17 @@
 <template>
   <div
     class="photo-card-info"
-    :class="{ selected: isSelected, duplicate: photo.isDuplicate }"
+    :class="{
+      selected: isSelected,
+      duplicate: photo.isDuplicate && photo.status == 'uploaded',
+      'with-footer': showFooter,
+    }"
     @click="toggleSelection"
   >
     <div class="photo-container">
-      <!-- Show skeleton while uploading -->
-      <div v-if="photo.status === 'processing'" class="photo-skeleton">
-        <n-skeleton height="100%" />
-      </div>
-
       <!-- Show actual image when uploaded -->
       <img
-        v-else
-        :src="photo.url"
+        :src="photo.thumbnailUrl || photo.url"
         :alt="photo.name"
         class="photo-image"
         @load="onImageLoad"
@@ -21,7 +19,7 @@
       />
 
       <!-- Info Button (center overlay) - only show when not uploading -->
-      <div v-if="photo.status !== 'processing'" class="info-overlay">
+      <div v-if="photo.status == 'processed'" class="info-overlay">
         <n-button
           circle
           size="medium"
@@ -37,15 +35,13 @@
       </div>
 
       <!-- Duplicate indicator -->
-      <div v-if="photo.isDuplicate" class="duplicate-indicator">
+      <div
+        v-if="photo.isDuplicate && photo.status == 'uploaded'"
+        class="duplicate-indicator"
+      >
         <n-icon size="16" color="#f59e0b">
           <WarningIcon />
         </n-icon>
-      </div>
-
-      <!-- Processing overlay -->
-      <div v-if="photo.status === 'processing'" class="processing-overlay">
-        <n-spin size="medium" />
       </div>
 
       <!-- Selection indicator -->
@@ -57,34 +53,16 @@
     </div>
 
     <!-- Footer with detailed information -->
-    <div class="photo-footer">
-      <div class="photo-title" :title="photo.name">
-        {{ photo.name }}
-      </div>
-
-      <div v-if="photo.status === 'processing'" class="photo-details">
-        <n-skeleton text :repeat="1" width="60%" />
-        <n-skeleton text :repeat="1" width="40%" />
-      </div>
-      <div v-else class="photo-details">
-        <span class="photo-size">{{ formatFileSize(photo.size) }}</span>
-        <span class="photo-date">{{
-          formatDate(photo.uploadDate || photo.date)
-        }}</span>
+    <div v-if="showFooter" class="photo-footer">
+      <div class="photo-title" :title="photo.originalFileName">
+        {{ photo.originalFileName }}
       </div>
 
       <div class="photo-status">
         <!-- Status tags -->
+
         <n-tag
-          v-if="photo.status === 'processing'"
-          size="small"
-          type="info"
-          class="status-tag"
-        >
-          Uploading
-        </n-tag>
-        <n-tag
-          v-else-if="photo.isDuplicate"
+          v-if="photo.isDuplicate"
           size="small"
           type="warning"
           class="status-tag"
@@ -94,29 +72,11 @@
         <n-tag
           v-else-if="photo.status === 'uploaded'"
           size="small"
-          type="success"
+          type="default"
           class="status-tag"
         >
           Uploaded
         </n-tag>
-        <n-tag
-          v-else-if="photo.status === 'analyzed'"
-          size="small"
-          type="success"
-          class="status-tag"
-        >
-          Analyzed
-        </n-tag>
-
-        <!-- Additional info - only show when not uploading -->
-        <div v-if="photo.status !== 'processing'" class="additional-info">
-          <span v-if="photo.aiTags" class="ai-tags"
-            >{{ photo.aiTags }} AI tags</span
-          >
-          <span v-if="photo.faces" class="faces-count"
-            >{{ photo.faces }} faces</span
-          >
-        </div>
       </div>
     </div>
   </div>
@@ -138,19 +98,22 @@ interface PhotoInfo {
   name: string;
   size: number | string;
   url: string;
+  thumbnailUrl: string;
   uploadDate?: Date;
   date?: string;
   isDuplicate?: boolean;
-  status?: "uploaded" | "processing" | "analyzed" | "error";
+  status?: "uploaded" | "processing" | "processed";
   aiTags?: number;
   faces?: number;
   width?: number;
   height?: number;
+  originalFileName: string;
 }
 
 interface Props {
   photo: PhotoInfo;
   selected?: boolean;
+  showFooter: boolean;
 }
 
 interface Emits {
@@ -184,28 +147,6 @@ const onImageLoad = () => {
 const onImageError = () => {
   imageError.value = true;
 };
-
-const formatFileSize = (size: number | string): string => {
-  if (typeof size === "string") return size;
-
-  if (size === 0) return "0 Bytes";
-  const k = 1024;
-  const sizes = ["Bytes", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(size) / Math.log(k));
-  return parseFloat((size / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
-};
-
-const formatDate = (date: Date | string | undefined): string => {
-  if (!date) return "";
-
-  if (typeof date === "string") return date;
-
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-};
 </script>
 
 <style scoped>
@@ -214,7 +155,7 @@ const formatDate = (date: Date | string | undefined): string => {
 .photo-card-info {
   position: relative;
   width: 100%;
-  aspect-ratio: 3/4; /* Taller than square for more info space */
+  aspect-ratio: 1;
   cursor: pointer;
   border-radius: 12px;
   overflow: hidden;
@@ -225,6 +166,10 @@ const formatDate = (date: Date | string | undefined): string => {
   flex-direction: column;
 }
 
+.photo-card-info.with-footer {
+  aspect-ratio: 3/4 !important;
+}
+
 .photo-card-info:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
@@ -232,9 +177,7 @@ const formatDate = (date: Date | string | undefined): string => {
 
 .photo-card-info.selected {
   border-color: #8b5cf6;
-  box-shadow:
-    0 0 0 1px #8b5cf640,
-    0 8px 24px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 0 0 1px #8b5cf640, 0 8px 24px rgba(139, 92, 246, 0.2);
 }
 
 .photo-container {
@@ -324,14 +267,18 @@ const formatDate = (date: Date | string | undefined): string => {
 
 /* Photo footer */
 .photo-footer {
-  padding: 12px 16px;
+  padding: 9px;
   background-color: #1a1a1f;
+  display: flex;
   border-top: 1px solid #2c2c32;
+  align-items: center;
+  align-content: center;
+  justify-content: space-between;
 }
 
 .photo-title {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 12px;
+  /* font-weight: 500; */
   color: #ffffffd1;
   margin: 0 0 4px 0;
   overflow: hidden;
@@ -339,20 +286,10 @@ const formatDate = (date: Date | string | undefined): string => {
   white-space: nowrap;
 }
 
-.photo-details {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: #ffffff73;
-  margin: 4px 0;
-}
-
 .photo-status {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 8px;
 }
 
 /* Duplicate border styling */
@@ -365,36 +302,10 @@ const formatDate = (date: Date | string | undefined): string => {
   flex-shrink: 0;
 }
 
-.additional-info {
-  display: flex;
-  gap: 8px;
-  font-size: 11px;
-  color: #ffffff60;
-}
-
-.ai-tags,
-.faces-count {
-  background-color: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 500;
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .photo-card-info {
     aspect-ratio: 1; /* Square on mobile for space efficiency */
-  }
-
-  .additional-info {
-    font-size: 10px;
-    gap: 4px;
-  }
-
-  .ai-tags,
-  .faces-count {
-    padding: 1px 4px;
   }
 }
 </style>

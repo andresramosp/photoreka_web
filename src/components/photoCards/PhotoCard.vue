@@ -117,10 +117,14 @@ export interface Photo {
   thumbnailUrl: string;
   title: string;
   rating: number;
-  reasoning?: string; // AI reasoning for curation
+  reasoning?: string;
   matchingTags?: string[];
   width?: number;
   height?: number;
+  isUploading: boolean;
+  file: any;
+  needProcess: boolean;
+  isDuplicate: boolean;
 }
 
 interface Props {
@@ -390,5 +394,9 @@ const handleMouseLeave = () => {
     height: 24px;
     padding: 0 8px;
   }
+}
+
+.photo-card.duplicate {
+  border-color: #f59e0b;
 }
 </style>
