@@ -11,7 +11,7 @@
     <!-- Mobile sidebar -->
     <div v-if="props.mobileMenuOpen" class="mobile-sidebar">
       <div class="logo-container">
-        <div class="logo">
+        <div class="logo clickable-logo" @click="goToDashboard">
           <div class="logo-icon">
             <n-icon size="28" color="#2563eb">
               <CameraOutline />
@@ -123,7 +123,7 @@
       </div>
 
       <div class="logo-container">
-        <div class="logo">
+        <div class="logo clickable-logo" @click="goToDashboard">
           <div class="logo-icon">
             <n-icon size="28" color="#2563eb">
               <CameraOutline />
@@ -348,6 +348,14 @@ const handleMenuSelect = (key: string) => {
   }
 };
 
+const goToDashboard = () => {
+  router.push({ name: "dashboard" });
+  // On mobile, close menu after selection
+  if (isMobile.value) {
+    emit("close-mobile-menu");
+  }
+};
+
 const handleMouseEnter = () => {
   if (!isMobile.value && menuMode.value === "hover") {
     collapsed.value = false;
@@ -432,6 +440,17 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   transition: gap 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.clickable-logo {
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.clickable-logo:hover {
+  background-color: rgba(37, 99, 235, 0.1);
 }
 
 .logo-icon {
