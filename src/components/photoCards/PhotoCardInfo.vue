@@ -44,8 +44,8 @@
         </n-icon>
       </div>
 
-      <!-- Processing overlay with spinner -->
-      <div v-if="photo.status === 'processing'" class="processing-overlay">
+      <!-- Checking duplicates overlay with spinner -->
+      <div v-if="photo.isCheckingDuplicates" class="processing-overlay">
         <n-spin size="medium" />
       </div>
 
@@ -75,7 +75,7 @@
           Duplicate
         </n-tag>
         <n-tag
-          v-else-if="photo.status === 'processing'"
+          v-else-if="photo.isCheckingDuplicates"
           size="small"
           type="info"
           class="status-tag"

@@ -289,18 +289,18 @@ async function uploadLocalFiles(event) {
       ),
     );
 
-    // Set photos to processing state before checking duplicates
+    // Set photos to checking duplicates state
     const photoIds = uploadedPhotos.map((p) => p.id);
     photoIds.forEach((id) => {
-      photosStore.updatePhoto(id, { status: "processing" });
+      photosStore.updatePhoto(id, { isCheckingDuplicates: true });
     });
 
-    // Check duplicates and restore uploaded status
+    // Check duplicates and restore normal state
     await photosStore.checkDuplicates(photoIds);
 
-    // Restore uploaded status after checking
+    // Remove checking duplicates flag
     photoIds.forEach((id) => {
-      photosStore.updatePhoto(id, { status: "uploaded" });
+      photosStore.updatePhoto(id, { isCheckingDuplicates: false });
     });
   } catch (error) {
     console.error("❌ Error en la subida:", error);
