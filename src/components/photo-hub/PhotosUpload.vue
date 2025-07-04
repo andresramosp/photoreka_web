@@ -291,9 +291,9 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) uploadedPhotos.push(photo);
-          }),
-        ),
-      ),
+          })
+        )
+      )
     );
 
     // Set photos to checking duplicates state
@@ -332,7 +332,7 @@ async function processAndUploadFile(file) {
         fileType: resizedBlob.type,
         originalName: file.name,
       }),
-    },
+    }
   );
 
   if (!res.ok) throw new Error("Error obteniendo URLs firmadas");
@@ -490,9 +490,9 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 8px 12px;
-  background-color: rgba(255, 255, 255, 0.05);
+  /* background-color: rgba(255, 255, 255, 0.05);
   border-radius: 6px;
-  border: 1px solid #2c2c32;
+  border: 1px solid #2c2c32; */
 }
 
 .header-buttons {
