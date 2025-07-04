@@ -247,13 +247,8 @@ const emit = defineEmits(["close-mobile-menu"]);
 const activeKey = computed(() => route.name as string);
 const canUseApp = computed(() => photosStore.canUseApp);
 
-// First section: Dashboard, Photo Hub, Collections
+// First section: Photo Hub, Collections
 const firstSectionOptions = computed(() => [
-  {
-    label: "Dashboard",
-    key: "dashboard",
-    icon: () => h(NIcon, null, { default: () => h(DashboardIcon) }),
-  },
   {
     label: "Photo Hub",
     key: "photo-hub",
@@ -274,7 +269,7 @@ const firstSectionOptions = computed(() => [
                   "position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 6px #22c55e; animation: pulse 2s infinite;",
               })
             : null,
-        ]
+        ],
       ),
   },
 ]);

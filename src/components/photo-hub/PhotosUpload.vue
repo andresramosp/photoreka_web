@@ -179,11 +179,15 @@
       <div class="grid-controls grid-controls-base">
         <div class="results-info results-info-base">
           <span class="results-count results-count-base">
-            {{ uploadedPhotos.length }}
+            {{ filteredPhotos.length }}
             photos
           </span>
         </div>
         <div class="header-controls">
+          <div class="filter-controls">
+            <span class="filter-label">Filter duplicates:</span>
+            <n-switch v-model:value="filterDuplicates" size="small" />
+          </div>
           <div class="grid-size-controls grid-size-controls-base">
             <span class="grid-label grid-label-base">Columns:</span>
             <n-button-group>
@@ -206,7 +210,7 @@
         :class="`grid-cols-${gridColumns}`"
       >
         <PhotoCardHub
-          v-for="photo in uploadedPhotos"
+          v-for="photo in filteredPhotos"
           :key="photo.id"
           :photo="photo"
           @select="togglePhotoSelection"
@@ -244,11 +248,19 @@ const photosStore = usePhotosStore();
 const isUploading = ref(false);
 const gridColumns = ref(8);
 const fileInput = ref(null);
+const filterDuplicates = ref(false);
 
 const uploadedCount = ref(0);
 const totalFiles = ref(0);
 
 const uploadedPhotos = computed(() => photosStore.uploadedPhotos);
+
+const filteredPhotos = computed(() => {
+  if (!filterDuplicates.value) {
+    return uploadedPhotos.value;
+  }
+  return uploadedPhotos.value.filter((photo) => photo.isDuplicate);
+});
 
 const picaInstance = pica();
 const limit = pLimit(10);
@@ -278,9 +290,9 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) uploadedPhotos.push(photo);
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
 
     // Set photos to checking duplicates state
@@ -319,7 +331,7 @@ async function processAndUploadFile(file) {
         fileType: resizedBlob.type,
         originalName: file.name,
       }),
-    }
+    },
   );
 
   if (!res.ok) throw new Error("Error obteniendo URLs firmadas");
@@ -471,6 +483,18 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 14px;
+  color: #ffffff73;
+  white-space: nowrap;
 }
 
 .header-buttons {
