@@ -153,6 +153,28 @@
         class="sidebar-menu"
       />
 
+      <!-- Toggle Button (only visible in toggle mode) -->
+      <div
+        v-if="menuMode === 'toggle'"
+        class="toggle-section"
+        :class="{ collapsed }"
+      >
+        <n-button
+          quaternary
+          circle
+          size="small"
+          class="toggle-btn"
+          @click="toggleSidebar"
+        >
+          <template #icon>
+            <n-icon>
+              <ChevronRightIcon v-if="collapsed" />
+              <ChevronLeftIcon v-else />
+            </n-icon>
+          </template>
+        </n-button>
+      </div>
+
       <!-- User Profile Section -->
       <div class="user-profile-section" :class="{ collapsed }">
         <div class="user-profile">
@@ -179,28 +201,6 @@
             </template>
           </n-button>
         </div>
-      </div>
-
-      <!-- Toggle Button (only visible in toggle mode) -->
-      <div
-        v-if="menuMode === 'toggle'"
-        class="toggle-section"
-        :class="{ collapsed }"
-      >
-        <n-button
-          quaternary
-          circle
-          size="small"
-          class="toggle-btn"
-          @click="toggleSidebar"
-        >
-          <template #icon>
-            <n-icon>
-              <ChevronRightIcon v-if="collapsed" />
-              <ChevronLeftIcon v-else />
-            </n-icon>
-          </template>
-        </n-button>
       </div>
     </div>
   </n-layout-sider>
