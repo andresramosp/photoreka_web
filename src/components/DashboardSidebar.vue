@@ -579,15 +579,16 @@ onUnmounted(() => {
 }
 
 .toggle-section {
-  padding: 12px 16px 16px 16px;
+  padding: 8px 16px 4px 16px;
   display: flex;
   justify-content: flex-end;
   align-items: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-bottom: 1px solid #2c2c32;
 }
 
 .toggle-section.collapsed {
-  padding: 12px 0 16px 0;
+  padding: 8px 0 4px 0;
   justify-content: center;
 }
 
