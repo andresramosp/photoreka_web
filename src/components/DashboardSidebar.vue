@@ -278,15 +278,15 @@ const firstSectionOptions = computed(() => [
       ),
   },
   {
-    label: "Collections",
-    key: "collections",
+    label: "Catalog",
+    key: "catalog",
     disabled: !canUseApp.value,
     props: !canUseApp.value
       ? {
           title: "Add photos to your catalog",
         }
       : {},
-    icon: () => h(NIcon, null, { default: () => h(CollectionsIcon) }),
+    icon: () => h(NIcon, null, { default: () => h(PhotoHubIcon) }),
   },
 ]);
 
@@ -353,7 +353,11 @@ const thirdSectionOptions: MenuOption[] = [
 ];
 
 const handleMenuSelect = (key: string) => {
-  router.push({ name: key });
+  if (key === "catalog") {
+    router.push({ name: "photo-hub", hash: "#catalog" });
+  } else {
+    router.push({ name: key });
+  }
   // On mobile, close menu after selection
   if (isMobile.value) {
     emit("close-mobile-menu");

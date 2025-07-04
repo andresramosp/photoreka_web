@@ -61,21 +61,21 @@
         <button
           class="tab-button"
           :class="{ active: activeTab === 'upload' }"
-          @click="activeTab = 'upload'"
+          @click="setActiveTab('upload')"
         >
           Upload
         </button>
         <button
           class="tab-button"
           :class="{ active: activeTab === 'processing' }"
-          @click="activeTab = 'processing'"
+          @click="setActiveTab('processing')"
         >
           Processing
         </button>
         <button
           class="tab-button"
           :class="{ active: activeTab === 'catalog' }"
-          @click="activeTab = 'catalog'"
+          @click="setActiveTab('catalog')"
         >
           Catalog
         </button>
@@ -263,8 +263,8 @@
                   status: photo.isUploading
                     ? 'processing'
                     : photo.isDuplicate
-                    ? 'uploaded'
-                    : 'uploaded',
+                      ? 'uploaded'
+                      : 'uploaded',
                 }"
                 @select="togglePhotoSelection"
                 @info="showPhotoInfo"
@@ -482,7 +482,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import PhotoCardInfo from "../components/PhotoCardInfo.vue";
 import {
   mockedJobs,
@@ -502,6 +503,10 @@ interface Photo {
   isDuplicate: boolean;
   isUploading?: boolean;
 }
+
+// Router
+const route = useRoute();
+const router = useRouter();
 
 // Reactive state
 const activeTab = ref("upload");
@@ -693,6 +698,34 @@ const toggleJobExpansion = (jobId: string) => {
     job.expanded = !job.expanded;
   }
 };
+
+// Tab management with hash routing
+const setActiveTab = (tab: string) => {
+  activeTab.value = tab;
+  // Update URL hash without triggering navigation
+  router.replace({ name: "photo-hub", hash: `#${tab}` });
+};
+
+// Initialize tab from hash
+onMounted(() => {
+  const hash = route.hash.substring(1); // Remove # from hash
+  if (hash && ["upload", "processing", "catalog"].includes(hash)) {
+    activeTab.value = hash;
+  }
+});
+
+// Watch for hash changes (e.g., browser back/forward)
+watch(
+  () => route.hash,
+  (newHash) => {
+    const tab = newHash.substring(1);
+    if (tab && ["upload", "processing", "catalog"].includes(tab)) {
+      activeTab.value = tab;
+    } else if (!newHash) {
+      activeTab.value = "upload";
+    }
+  },
+);
 </script>
 
 <style scoped>

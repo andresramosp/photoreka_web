@@ -33,14 +33,18 @@
           <p class="action-description">Start a fresh project</p>
         </div>
 
-        <div class="action-card collections" :class="{ disabled: !canUseApp }">
+        <div
+          class="action-card catalog"
+          :class="{ disabled: !canUseApp }"
+          @click="goToCatalog"
+        >
           <div class="action-icon">
             <n-icon size="32">
-              <CollectionsIcon />
+              <PhotoHubIcon />
             </n-icon>
           </div>
-          <h3 class="action-title">Collections</h3>
-          <p class="action-description">Browse organized photos</p>
+          <h3 class="action-title">Catalog</h3>
+          <p class="action-description">Browse your photo catalog</p>
         </div>
 
         <div class="action-card ai-search" :class="{ disabled: false }">
@@ -324,6 +328,7 @@ import {
   CloudUploadOutline as ArrowUpIcon,
   AddOutline as AddIcon,
   FolderOpenOutline as CollectionsIcon,
+  ImageOutline as PhotoHubIcon,
   SettingsOutline as SettingsIcon,
 } from "@vicons/ionicons5";
 
@@ -336,6 +341,11 @@ const openProject = (projectId: string) => {
   // Navigate to project view with the specific project ID
   router.push({ name: "collections", params: { id: projectId } });
   console.log(`Opening project: ${projectId}`);
+};
+
+const goToCatalog = () => {
+  // Navigate to photo-hub with catalog tab active
+  router.push({ name: "photo-hub", hash: "#catalog" });
 };
 </script>
 
@@ -482,7 +492,7 @@ const openProject = (projectId: string) => {
   color: var(--secondary-color);
 }
 
-.collections .action-icon {
+.catalog .action-icon {
   color: var(--warning-color);
 }
 
