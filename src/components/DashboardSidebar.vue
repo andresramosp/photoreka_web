@@ -100,6 +100,28 @@
     @mouseleave="handleMouseLeave"
   >
     <div class="sidebar-content">
+      <!-- Toggle Button (only visible in toggle mode) -->
+      <div
+        v-if="menuMode === 'toggle'"
+        class="toggle-button-fixed"
+        :class="{ collapsed }"
+      >
+        <n-button
+          quaternary
+          circle
+          size="small"
+          class="toggle-btn"
+          @click="toggleSidebar"
+        >
+          <template #icon>
+            <n-icon>
+              <ChevronRightIcon v-if="collapsed" />
+              <ChevronLeftIcon v-else />
+            </n-icon>
+          </template>
+        </n-button>
+      </div>
+
       <div class="logo-container">
         <div class="logo">
           <div class="logo-icon">
@@ -205,6 +227,8 @@ import {
   PersonOutline,
   LogOutOutline,
   CameraOutline,
+  ChevronForwardOutline as ChevronRightIcon,
+  ChevronBackOutline as ChevronLeftIcon,
 } from "@vicons/ionicons5";
 
 const router = useRouter();
@@ -212,6 +236,7 @@ const route = useRoute();
 const photosStore = usePhotosStore();
 const collapsed = ref(true); // Default collapsed (showing only icons)
 const isMobile = ref(window.innerWidth < 768); // Initialize immediately
+const menuMode = ref<"hover" | "toggle">("toggle"); // 'hover' for original behavior, 'toggle' for new behavior
 
 const props = defineProps<{
   mobileMenuOpen?: boolean;
@@ -249,19 +274,19 @@ const firstSectionOptions = computed(() => [
                   "position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 6px #22c55e; animation: pulse 2s infinite;",
               })
             : null,
-        ]
+        ],
       ),
   },
   {
-    label: "Collections",
-    key: "collections",
+    label: "Catalog",
+    key: "catalog",
     disabled: !canUseApp.value,
     props: !canUseApp.value
       ? {
           title: "Add photos to your catalog",
         }
       : {},
-    icon: () => h(NIcon, null, { default: () => h(CollectionsIcon) }),
+    icon: () => h(NIcon, null, { default: () => h(PhotoHubIcon) }),
   },
 ]);
 
@@ -328,7 +353,11 @@ const thirdSectionOptions: MenuOption[] = [
 ];
 
 const handleMenuSelect = (key: string) => {
-  router.push({ name: key });
+  if (key === "catalog") {
+    router.push({ name: "photo-hub", hash: "#catalog" });
+  } else {
+    router.push({ name: key });
+  }
   // On mobile, close menu after selection
   if (isMobile.value) {
     emit("close-mobile-menu");
@@ -336,16 +365,38 @@ const handleMenuSelect = (key: string) => {
 };
 
 const handleMouseEnter = () => {
-  if (!isMobile.value) {
+  if (!isMobile.value && menuMode.value === "hover") {
     collapsed.value = false;
   }
 };
 
 const handleMouseLeave = () => {
-  if (!isMobile.value) {
+  if (!isMobile.value && menuMode.value === "hover") {
     collapsed.value = true;
   }
 };
+
+const toggleSidebar = () => {
+  if (!isMobile.value && menuMode.value === "toggle") {
+    collapsed.value = !collapsed.value;
+  }
+};
+
+const setMenuMode = (mode: "hover" | "toggle") => {
+  menuMode.value = mode;
+  // If switching to hover mode, expand sidebar by default
+  if (mode === "hover" && !isMobile.value) {
+    collapsed.value = true;
+  }
+};
+
+// Expose functions for external use
+defineExpose({
+  setMenuMode,
+  toggleSidebar,
+  menuMode: computed(() => menuMode.value),
+  collapsed: computed(() => collapsed.value),
+});
 
 const checkIsMobile = () => {
   isMobile.value = window.innerWidth < 768;
@@ -371,7 +422,7 @@ onUnmounted(() => {
   border-right: 1px solid #2c2c32 !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   z-index: 100 !important;
-  overflow: hidden !important;
+  overflow: visible !important;
 }
 
 .sidebar-content {
@@ -529,6 +580,29 @@ onUnmounted(() => {
   width: 0;
   min-width: 0;
   flex: 0;
+}
+
+.toggle-button-fixed {
+  position: absolute;
+  right: 16px;
+  bottom: 80px;
+  z-index: 101;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-button-fixed.collapsed {
+  right: 16px;
+}
+
+.toggle-btn {
+  color: #9ca3af;
+  transition: all 0.2s ease;
+  background-color: rgba(156, 163, 175, 0.1);
+}
+
+.toggle-btn:hover {
+  color: #d1d5db;
+  background-color: rgba(156, 163, 175, 0.2);
 }
 
 /* Mobile sidebar container */

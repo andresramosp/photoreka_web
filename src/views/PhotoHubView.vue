@@ -32,21 +32,21 @@
         <button
           class="tab-button"
           :class="{ active: activeTab === 'upload' }"
-          @click="activeTab = 'upload'"
+          @click="setActiveTab('upload')"
         >
           Upload
         </button>
         <button
           class="tab-button"
           :class="{ active: activeTab === 'processing' }"
-          @click="activeTab = 'processing'"
+          @click="setActiveTab('processing')"
         >
           Processing
         </button>
         <button
           class="tab-button"
           :class="{ active: activeTab === 'catalog' }"
-          @click="activeTab = 'catalog'"
+          @click="setActiveTab('catalog')"
         >
           Catalog
         </button>
