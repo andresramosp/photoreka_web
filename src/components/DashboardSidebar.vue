@@ -11,7 +11,7 @@
     <!-- Mobile sidebar -->
     <div v-if="props.mobileMenuOpen" class="mobile-sidebar">
       <div class="logo-container">
-        <div class="logo">
+        <div class="logo clickable-logo" @click="goToDashboard">
           <div class="logo-icon">
             <n-icon size="28" color="#2563eb">
               <CameraOutline />
@@ -24,7 +24,7 @@
         </div>
       </div>
 
-      <!-- First Menu Section: Dashboard, Photo Hub, Collections -->
+      <!-- First Menu Section: Photo Hub, Collections -->
       <n-menu
         :collapsed="false"
         :collapsed-width="64"
@@ -123,7 +123,7 @@
       </div>
 
       <div class="logo-container">
-        <div class="logo">
+        <div class="logo clickable-logo" @click="goToDashboard">
           <div class="logo-icon">
             <n-icon size="28" color="#2563eb">
               <CameraOutline />
@@ -136,7 +136,7 @@
         </div>
       </div>
 
-      <!-- First Menu Section: Dashboard, Photo Hub, Collections -->
+      <!-- First Menu Section: Photo Hub, Collections -->
       <n-menu
         :collapsed="collapsed"
         :collapsed-width="64"
@@ -247,13 +247,8 @@ const emit = defineEmits(["close-mobile-menu"]);
 const activeKey = computed(() => route.name as string);
 const canUseApp = computed(() => photosStore.canUseApp);
 
-// First section: Dashboard, Photo Hub, Collections
+// First section: Photo Hub, Collections
 const firstSectionOptions = computed(() => [
-  {
-    label: "Dashboard",
-    key: "dashboard",
-    icon: () => h(NIcon, null, { default: () => h(DashboardIcon) }),
-  },
   {
     label: "Photo Hub",
     key: "photo-hub",
@@ -274,7 +269,7 @@ const firstSectionOptions = computed(() => [
                   "position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 6px #22c55e; animation: pulse 2s infinite;",
               })
             : null,
-        ]
+        ],
       ),
   },
 ]);
@@ -347,6 +342,14 @@ const handleMenuSelect = (key: string) => {
   } else {
     router.push({ name: key });
   }
+  // On mobile, close menu after selection
+  if (isMobile.value) {
+    emit("close-mobile-menu");
+  }
+};
+
+const goToDashboard = () => {
+  router.push({ name: "dashboard" });
   // On mobile, close menu after selection
   if (isMobile.value) {
     emit("close-mobile-menu");
@@ -437,6 +440,17 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   transition: gap 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.clickable-logo {
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.clickable-logo:hover {
+  background-color: rgba(37, 99, 235, 0.1);
 }
 
 .logo-icon {
