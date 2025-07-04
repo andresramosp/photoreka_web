@@ -580,14 +580,14 @@ onUnmounted(() => {
 
 .toggle-button-fixed {
   position: absolute;
-  right: -16px;
+  right: 16px;
   bottom: 80px;
   z-index: 101;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .toggle-button-fixed.collapsed {
-  right: -16px;
+  right: 16px;
 }
 
 .toggle-btn {
