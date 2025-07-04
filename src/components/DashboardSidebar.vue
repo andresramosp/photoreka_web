@@ -378,6 +378,22 @@ const toggleSidebar = () => {
   }
 };
 
+const setMenuMode = (mode: "hover" | "toggle") => {
+  menuMode.value = mode;
+  // If switching to hover mode, expand sidebar by default
+  if (mode === "hover" && !isMobile.value) {
+    collapsed.value = true;
+  }
+};
+
+// Expose functions for external use
+defineExpose({
+  setMenuMode,
+  toggleSidebar,
+  menuMode: computed(() => menuMode.value),
+  collapsed: computed(() => collapsed.value),
+});
+
 const checkIsMobile = () => {
   isMobile.value = window.innerWidth < 768;
   // On mobile, keep collapsed by default and close mobile menu
