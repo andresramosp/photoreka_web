@@ -20,7 +20,7 @@
 
       <!-- Action Buttons (center overlay) - only show when not uploading -->
       <div
-        v-if="!photo.isCheckingDuplicates && !photo.isUploading"
+        v-if="!photo.isCheckingDuplicates && !isUploading"
         class="action-buttons-overlay"
       >
         <n-button
@@ -100,9 +100,14 @@
           type="info"
           class="status-tag"
         >
-          Saving
+          Uploading
         </n-tag>
-        <n-tag v-else size="small" type="default" class="status-tag">
+        <n-tag
+          v-else-if="!isUploading"
+          size="small"
+          type="default"
+          class="status-tag"
+        >
           Uploaded
         </n-tag>
       </div>
@@ -138,13 +143,13 @@ interface PhotoInfo {
   height?: number;
   originalFileName: string;
   isCheckingDuplicates: boolean;
-  isUploading: boolean;
 }
 
 interface Props {
   photo: PhotoInfo;
   selected?: boolean;
   showFooter: boolean;
+  isUploading: boolean;
 }
 
 interface Emits {

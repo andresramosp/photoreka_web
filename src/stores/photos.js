@@ -16,7 +16,7 @@ export const usePhotosStore = defineStore("photos", {
       ),
 
     uploadedPhotos: (state) =>
-      state.photos.filter((p) => p.status == "uploaded" || p.isUploading),
+      state.photos.filter((p) => p.status == "uploaded"),
 
     processingPhotos: (state) =>
       state.photos.filter((p) => p.status == "processing"),

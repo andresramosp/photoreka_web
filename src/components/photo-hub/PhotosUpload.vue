@@ -155,9 +155,8 @@
           class="analyze-btn"
           @click="emit('on-analyze')"
           :disabled="
-            uploadedPhotos.filter(
-              (p) => p.isUploading || p.isCheckingDuplicates
-            ).length > 0
+            isUploading ||
+            uploadedPhotos.filter((p) => p.isCheckingDuplicates).length > 0
           "
         >
           <template #icon>
@@ -180,14 +179,8 @@
       <div class="grid-controls grid-controls-base">
         <div class="results-info results-info-base">
           <span class="results-count results-count-base">
-            {{ uploadedPhotos.filter((p) => !p.isUploading).length }}/{{
-              uploadedPhotos.length
-            }}
+            {{ uploadedPhotos.length }}
             photos
-            <span v-if="isUploading">
-              ({{ uploadedPhotos.filter((p) => p.isUploading).length }}
-              uploading)
-            </span>
           </span>
         </div>
         <div class="header-controls">
@@ -212,13 +205,14 @@
         class="photos-grid photo-grid-base"
         :class="`grid-cols-${gridColumns}`"
       >
-        <PhotoCardInfo
+        <PhotoCardHub
           v-for="photo in uploadedPhotos"
           :key="photo.id"
           :photo="photo"
           @select="togglePhotoSelection"
           @delete="deletePhoto"
           :show-footer="true"
+          :is-uploading="isUploading"
         />
       </div>
     </div>
@@ -241,7 +235,7 @@ import { usePhotosStore } from "@/stores/photos.js";
 import pLimit from "p-limit";
 import pica from "pica";
 import { BookInformation20Regular } from "@vicons/fluent";
-import PhotoCardInfo from "../photoCards/PhotoCardHub.vue";
+import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 
 const emit = defineEmits(["on-analyze"]);
 
