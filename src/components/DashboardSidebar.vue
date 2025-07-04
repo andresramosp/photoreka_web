@@ -112,6 +112,28 @@
             <div class="app-subtitle">Photo Management</div>
           </div>
         </div>
+
+        <!-- Toggle Button (only visible in toggle mode) -->
+        <div
+          v-if="menuMode === 'toggle'"
+          class="toggle-section-header"
+          :class="{ collapsed }"
+        >
+          <n-button
+            quaternary
+            circle
+            size="small"
+            class="toggle-btn"
+            @click="toggleSidebar"
+          >
+            <template #icon>
+              <n-icon>
+                <ChevronRightIcon v-if="collapsed" />
+                <ChevronLeftIcon v-else />
+              </n-icon>
+            </template>
+          </n-button>
+        </div>
       </div>
 
       <!-- First Menu Section: Dashboard, Photo Hub, Collections -->
@@ -152,28 +174,6 @@
         @update:value="handleMenuSelect"
         class="sidebar-menu"
       />
-
-      <!-- Toggle Button (only visible in toggle mode) -->
-      <div
-        v-if="menuMode === 'toggle'"
-        class="toggle-section"
-        :class="{ collapsed }"
-      >
-        <n-button
-          quaternary
-          circle
-          size="small"
-          class="toggle-btn"
-          @click="toggleSidebar"
-        >
-          <template #icon>
-            <n-icon>
-              <ChevronRightIcon v-if="collapsed" />
-              <ChevronLeftIcon v-else />
-            </n-icon>
-          </template>
-        </n-button>
-      </div>
 
       <!-- User Profile Section -->
       <div class="user-profile-section" :class="{ collapsed }">
@@ -435,8 +435,9 @@ onUnmounted(() => {
   height: 64px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   box-sizing: border-box;
+  position: relative;
 }
 
 .logo {
@@ -578,18 +579,18 @@ onUnmounted(() => {
   flex: 0;
 }
 
-.toggle-section {
-  padding: 8px 16px 4px 16px;
+.toggle-section-header {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
+  justify-content: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-bottom: 1px solid #2c2c32;
 }
 
-.toggle-section.collapsed {
-  padding: 8px 0 4px 0;
-  justify-content: center;
+.toggle-section-header.collapsed {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .toggle-btn {
