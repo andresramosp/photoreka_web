@@ -100,6 +100,28 @@
     @mouseleave="handleMouseLeave"
   >
     <div class="sidebar-content">
+      <!-- Toggle Button (only visible in toggle mode) -->
+      <div
+        v-if="menuMode === 'toggle'"
+        class="toggle-button-fixed"
+        :class="{ collapsed }"
+      >
+        <n-button
+          quaternary
+          circle
+          size="small"
+          class="toggle-btn"
+          @click="toggleSidebar"
+        >
+          <template #icon>
+            <n-icon>
+              <ChevronRightIcon v-if="collapsed" />
+              <ChevronLeftIcon v-else />
+            </n-icon>
+          </template>
+        </n-button>
+      </div>
+
       <div class="logo-container">
         <div class="logo">
           <div class="logo-icon">
@@ -111,28 +133,6 @@
             <div class="app-name">FrameSaga</div>
             <div class="app-subtitle">Photo Management</div>
           </div>
-        </div>
-
-        <!-- Toggle Button (only visible in toggle mode) -->
-        <div
-          v-if="menuMode === 'toggle'"
-          class="toggle-section-header"
-          :class="{ collapsed }"
-        >
-          <n-button
-            quaternary
-            circle
-            size="small"
-            class="toggle-btn"
-            @click="toggleSidebar"
-          >
-            <template #icon>
-              <n-icon>
-                <ChevronRightIcon v-if="collapsed" />
-                <ChevronLeftIcon v-else />
-              </n-icon>
-            </template>
-          </n-button>
         </div>
       </div>
 
@@ -435,9 +435,8 @@ onUnmounted(() => {
   height: 64px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   box-sizing: border-box;
-  position: relative;
 }
 
 .logo {
@@ -579,18 +578,17 @@ onUnmounted(() => {
   flex: 0;
 }
 
-.toggle-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.toggle-button-fixed {
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 101;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.toggle-section-header.collapsed {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
+.toggle-button-fixed.collapsed {
+  right: -12px;
 }
 
 .toggle-btn {
