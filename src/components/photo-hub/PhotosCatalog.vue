@@ -247,6 +247,24 @@ const handleAddToCollection = () => {
   gap: 16px;
 }
 
+.controls-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.controls-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .results-info-base {
   display: flex;
   align-items: center;
