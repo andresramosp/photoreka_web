@@ -1,6 +1,9 @@
 <template>
   <div class="tab-content">
-    <div v-if="isUploading" class="upload-progress-section">
+    <div
+      v-if="isUploading && !isCheckingDuplicates"
+      class="upload-progress-section"
+    >
       <div class="progress-header">
         <h3 class="progress-title">Uploading Photos</h3>
         <span class="progress-count"
@@ -189,7 +192,7 @@
             <n-button
               type="error"
               size="small"
-              @click="handleDelete"
+              @click="handleDeleteMultiple"
               :disabled="selectedPhotoIds.length === 0"
             >
               <template #icon>
@@ -360,10 +363,12 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) uploadedPhotos.push(photo);
-          }),
-        ),
-      ),
+          })
+        )
+      )
     );
+
+    isUploading.value = false;
 
     // Set photos to checking duplicates state
     const photoIds = uploadedPhotos.map((p) => p.id);
@@ -401,7 +406,7 @@ async function processAndUploadFile(file) {
         fileType: resizedBlob.type,
         originalName: file.name,
       }),
-    },
+    }
   );
 
   if (!res.ok) throw new Error("Error obteniendo URLs firmadas");
@@ -450,7 +455,7 @@ function loadImage(file) {
 }
 
 const deletePhoto = async (photoId) => {
-  await photosStore.deletePhoto(photoId);
+  await photosStore.deletePhotos([photoId]);
   // photosStore.checkDuplicates(photo.duplicates); // solo si lanzamos uno inicial
 };
 
@@ -473,9 +478,8 @@ const handleSelectAll = () => {
 };
 
 // Action handlers (empty for now as requested)
-const handleDelete = () => {
-  console.log("Delete action for photos:", selectedPhotoIds.value);
-  // TODO: Implement delete functionality
+const handleDeleteMultiple = () => {
+  photosStore.deletePhotos(selectedPhotoIds.value);
 };
 
 const handleAddToCollection = () => {

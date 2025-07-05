@@ -55,7 +55,7 @@
           <div class="controls-left">
             <div class="results-info results-info-base">
               <span class="results-count results-count-base"
-                >{{ catalogPhotos.length }} photos</span
+                >{{ filteredPhotos.length }} photos</span
               >
             </div>
             <!-- Action buttons (show when photos are selected) -->
@@ -63,7 +63,7 @@
               <n-button
                 type="error"
                 size="small"
-                @click="handleDelete"
+                @click="handleDeleteMultiple"
                 :disabled="selectedPhotoIds.length === 0"
               >
                 <template #icon>
@@ -100,6 +100,11 @@
           </div>
 
           <div class="controls-right">
+            <div class="filter-controls">
+              <n-checkbox v-model:checked="filterDuplicates" size="large">
+                Filter duplicates
+              </n-checkbox>
+            </div>
             <div class="grid-size-controls grid-size-controls-base">
               <span class="grid-label grid-label-base">Columns:</span>
               <n-button-group>
@@ -137,7 +142,7 @@
           :class="`grid-cols-${gridColumns}`"
         >
           <PhotoCardHub
-            v-for="photo in catalogPhotos"
+            v-for="photo in filteredPhotos"
             :key="photo.id"
             :photo="{
               ...photo,
@@ -169,9 +174,17 @@ const gridColumns = ref(8);
 
 const showPhotoInfoDialog = ref(false);
 const selectedDialogPhoto = ref();
+const filterDuplicates = ref(false);
 
 // Static catalog photos for demonstration
 const catalogPhotos = computed(() => photosStore.catalogPhotos);
+
+const filteredPhotos = computed(() => {
+  if (!filterDuplicates.value) {
+    return catalogPhotos.value;
+  }
+  return catalogPhotos.value.filter((photo) => photo.isDuplicate);
+});
 
 // Selection state
 const selectedPhotosRecord = computed(() => photosStore.selectedPhotosRecord);
@@ -180,8 +193,8 @@ const selectedPhotoIds = computed(() => photosStore.selectedPhotoIds);
 // Check if all photos are selected
 const allSelected = computed(() => {
   return (
-    catalogPhotos.value.length > 0 &&
-    catalogPhotos.value.every((photo) => selectedPhotosRecord.value[photo.id])
+    filteredPhotos.value.length > 0 &&
+    filteredPhotos.value.every((photo) => selectedPhotosRecord.value[photo.id])
   );
 });
 
@@ -193,7 +206,7 @@ const showPhotoInfo = async (photo) => {
 };
 
 const deletePhoto = async (photoId) => {
-  await photosStore.deletePhoto(photoId);
+  await photosStore.deletePhotos([photoId]);
   // photosStore.checkDuplicates(photo.duplicates); // solo si lanzamos uno inicial
 };
 
@@ -210,7 +223,7 @@ const togglePhotoSelection = (photoId) => {
 // Select/Deselect all photos
 const handleSelectAll = () => {
   const shouldDeselectAll = allSelected.value;
-  catalogPhotos.value.forEach((photo) => {
+  filteredPhotos.value.forEach((photo) => {
     if (shouldDeselectAll) {
       // Deselect all
       photosStore.selectedPhotosRecord[photo.id] = false;
@@ -222,9 +235,8 @@ const handleSelectAll = () => {
 };
 
 // Action handlers (empty for now as requested)
-const handleDelete = () => {
-  console.log("Delete action for photos:", selectedPhotoIds.value);
-  // TODO: Implement delete functionality
+const handleDeleteMultiple = () => {
+  photosStore.deletePhotos(selectedPhotoIds.value);
 };
 
 const handleAddToCollection = () => {
