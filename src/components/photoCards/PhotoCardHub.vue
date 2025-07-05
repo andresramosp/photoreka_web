@@ -351,7 +351,7 @@ const onImageError = () => {
 
 /* Duplicate border styling */
 .photo-card-info.duplicate {
-  border-color: #f59e0b;
+  /* border-color: #f59e0b; */
 }
 
 /* Status tags */
