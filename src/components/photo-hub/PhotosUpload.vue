@@ -320,6 +320,18 @@ const filteredPhotos = computed(() => {
   return uploadedPhotos.value.filter((photo) => photo.isDuplicate);
 });
 
+// Selection state
+const selectedPhotosRecord = computed(() => photosStore.selectedPhotosRecord);
+const selectedPhotoIds = computed(() => photosStore.selectedPhotoIds);
+
+// Check if all photos are selected
+const allSelected = computed(() => {
+  return (
+    filteredPhotos.value.length > 0 &&
+    filteredPhotos.value.every((photo) => selectedPhotosRecord.value[photo.id])
+  );
+});
+
 const picaInstance = pica();
 const limit = pLimit(10);
 
