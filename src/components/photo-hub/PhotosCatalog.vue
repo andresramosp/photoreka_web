@@ -52,24 +52,82 @@
 
         <!-- Grid Controls -->
         <div class="grid-controls grid-controls-base">
-          <div class="results-info results-info-base">
-            <span class="results-count results-count-base"
-              >{{ catalogPhotos.length }} photos</span
-            >
-          </div>
-          <div class="grid-size-controls grid-size-controls-base">
-            <span class="grid-label grid-label-base">Columns:</span>
-            <n-button-group>
-              <n-button
-                v-for="size in [4, 6, 8]"
-                :key="size"
-                :type="gridColumns === size ? 'primary' : 'default'"
-                size="small"
-                @click="setGridColumns(size)"
+          <div class="controls-left">
+            <div class="results-info results-info-base">
+              <span class="results-count results-count-base"
+                >{{ catalogPhotos.length }} photos</span
               >
-                {{ size }}
+            </div>
+            <!-- Action buttons (show when photos are selected) -->
+            <div v-if="selectedPhotoIds.length > 0" class="action-buttons">
+              <n-button
+                type="error"
+                size="small"
+                @click="handleDelete"
+                :disabled="selectedPhotoIds.length === 0"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3H9M7 6h10v13H7V6Z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Delete ({{ selectedPhotoIds.length }})
               </n-button>
-            </n-button-group>
+              <n-button
+                type="info"
+                size="small"
+                @click="handleAddToCollection"
+                :disabled="selectedPhotoIds.length === 0"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M17 14H19V17H22V19H19V22H17V19H14V17H17V14M12 18H6V16H12V18M12 14H6V12H12V14M16 10H6V8H16V10M20 6H4C2.9 6 2 6.9 2 8V20C2 21.1 2.9 22 4 22H13.35C13.13 21.37 13 20.7 13 20C13 16.69 15.69 14 19 14C19.34 14 19.67 14.03 20 14.08V8C20 6.9 19.1 6 18 6H20Z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Add to Collection ({{ selectedPhotoIds.length }})
+              </n-button>
+            </div>
+          </div>
+
+          <div class="controls-right">
+            <div class="grid-size-controls grid-size-controls-base">
+              <span class="grid-label grid-label-base">Columns:</span>
+              <n-button-group>
+                <n-button
+                  v-for="size in [4, 6, 8]"
+                  :key="size"
+                  :type="gridColumns === size ? 'primary' : 'default'"
+                  size="small"
+                  @click="setGridColumns(size)"
+                >
+                  {{ size }}
+                </n-button>
+              </n-button-group>
+            </div>
+            <!-- Select All button (always visible) -->
+            <n-button type="default" size="small" @click="handleSelectAll">
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+              {{ allSelected ? "Deselect All" : "Select All" }}
+            </n-button>
           </div>
         </div>
 
