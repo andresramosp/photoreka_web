@@ -317,14 +317,16 @@ const handleAddToCollection = () => {
 
 /* Responsive */
 @media (max-width: 1200px) {
-  .photo-grid-base.grid-cols-6 {
+  .photo-grid-base.grid-cols-6,
+  .photo-grid-base.grid-cols-8 {
     grid-template-columns: repeat(5, 1fr);
   }
 }
 
 @media (max-width: 1024px) {
   .photo-grid-base.grid-cols-5,
-  .photo-grid-base.grid-cols-6 {
+  .photo-grid-base.grid-cols-6,
+  .photo-grid-base.grid-cols-8 {
     grid-template-columns: repeat(4, 1fr);
   }
 }
