@@ -160,7 +160,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>();
 
-const isSelected = ref(props.selected);
+const isSelected = computed(() => props.selected);
 const imageLoaded = ref(false);
 const imageError = ref(false);
 
@@ -214,7 +214,9 @@ const onImageError = () => {
 
 .photo-card-info.selected {
   border-color: #8b5cf6;
-  box-shadow: 0 0 0 1px #8b5cf640, 0 8px 24px rgba(139, 92, 246, 0.2);
+  box-shadow:
+    0 0 0 1px #8b5cf640,
+    0 8px 24px rgba(139, 92, 246, 0.2);
 }
 
 .photo-container {
