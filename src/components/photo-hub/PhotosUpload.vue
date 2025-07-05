@@ -458,6 +458,30 @@ const togglePhotoSelection = (photoId) => {
   photosStore.togglePhotoSelection(photoId);
 };
 
+// Select/Deselect all photos
+const handleSelectAll = () => {
+  filteredPhotos.value.forEach((photo) => {
+    if (allSelected.value) {
+      // Deselect all
+      photosStore.selectedPhotosRecord[photo.id] = false;
+    } else {
+      // Select all
+      photosStore.selectedPhotosRecord[photo.id] = true;
+    }
+  });
+};
+
+// Action handlers (empty for now as requested)
+const handleDelete = () => {
+  console.log("Delete action for photos:", selectedPhotoIds.value);
+  // TODO: Implement delete functionality
+};
+
+const handleAddToCollection = () => {
+  console.log("Add to collection action for photos:", selectedPhotoIds.value);
+  // TODO: Implement add to collection functionality
+};
+
 onMounted(() => {
   photosStore.checkDuplicates();
 });
