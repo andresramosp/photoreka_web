@@ -173,6 +173,18 @@ const selectedDialogPhoto = ref();
 // Static catalog photos for demonstration
 const catalogPhotos = computed(() => photosStore.catalogPhotos);
 
+// Selection state
+const selectedPhotosRecord = computed(() => photosStore.selectedPhotosRecord);
+const selectedPhotoIds = computed(() => photosStore.selectedPhotoIds);
+
+// Check if all photos are selected
+const allSelected = computed(() => {
+  return (
+    catalogPhotos.value.length > 0 &&
+    catalogPhotos.value.every((photo) => selectedPhotosRecord.value[photo.id])
+  );
+});
+
 // Photo selection functions
 const showPhotoInfo = async (photo) => {
   const fullPhoto = await photosStore.fetchPhoto(photo.id);
