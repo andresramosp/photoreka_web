@@ -165,7 +165,6 @@ const imageLoaded = ref(false);
 const imageError = ref(false);
 
 const toggleSelection = () => {
-  isSelected.value = !isSelected.value;
   emit("select", props.photo.id);
 };
 
