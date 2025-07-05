@@ -52,24 +52,82 @@
 
         <!-- Grid Controls -->
         <div class="grid-controls grid-controls-base">
-          <div class="results-info results-info-base">
-            <span class="results-count results-count-base"
-              >{{ catalogPhotos.length }} photos</span
-            >
-          </div>
-          <div class="grid-size-controls grid-size-controls-base">
-            <span class="grid-label grid-label-base">Columns:</span>
-            <n-button-group>
-              <n-button
-                v-for="size in [4, 6, 8]"
-                :key="size"
-                :type="gridColumns === size ? 'primary' : 'default'"
-                size="small"
-                @click="setGridColumns(size)"
+          <div class="controls-left">
+            <div class="results-info results-info-base">
+              <span class="results-count results-count-base"
+                >{{ catalogPhotos.length }} photos</span
               >
-                {{ size }}
+            </div>
+            <!-- Action buttons (show when photos are selected) -->
+            <div v-if="selectedPhotoIds.length > 0" class="action-buttons">
+              <n-button
+                type="error"
+                size="small"
+                @click="handleDelete"
+                :disabled="selectedPhotoIds.length === 0"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3H9M7 6h10v13H7V6Z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Delete ({{ selectedPhotoIds.length }})
               </n-button>
-            </n-button-group>
+              <n-button
+                type="info"
+                size="small"
+                @click="handleAddToCollection"
+                :disabled="selectedPhotoIds.length === 0"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M17 14H19V17H22V19H19V22H17V19H14V17H17V14M12 18H6V16H12V18M12 14H6V12H12V14M16 10H6V8H16V10M20 6H4C2.9 6 2 6.9 2 8V20C2 21.1 2.9 22 4 22H13.35C13.13 21.37 13 20.7 13 20C13 16.69 15.69 14 19 14C19.34 14 19.67 14.03 20 14.08V8C20 6.9 19.1 6 18 6H20Z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Add to Collection ({{ selectedPhotoIds.length }})
+              </n-button>
+            </div>
+          </div>
+
+          <div class="controls-right">
+            <div class="grid-size-controls grid-size-controls-base">
+              <span class="grid-label grid-label-base">Columns:</span>
+              <n-button-group>
+                <n-button
+                  v-for="size in [4, 6, 8]"
+                  :key="size"
+                  :type="gridColumns === size ? 'primary' : 'default'"
+                  size="small"
+                  @click="setGridColumns(size)"
+                >
+                  {{ size }}
+                </n-button>
+              </n-button-group>
+            </div>
+            <!-- Select All button (always visible) -->
+            <n-button type="default" size="small" @click="handleSelectAll">
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+              {{ allSelected ? "Deselect All" : "Select All" }}
+            </n-button>
           </div>
         </div>
 
@@ -85,8 +143,10 @@
               ...photo,
               size: parseFloat(photo.size) * 1024 * 1024, // Convert MB to bytes
             }"
+            :selected="selectedPhotosRecord[photo.id]"
             @info="showPhotoInfo"
             @delete="deletePhoto"
+            @select="togglePhotoSelection"
           />
         </div>
       </div>
@@ -113,6 +173,18 @@ const selectedDialogPhoto = ref();
 // Static catalog photos for demonstration
 const catalogPhotos = computed(() => photosStore.catalogPhotos);
 
+// Selection state
+const selectedPhotosRecord = computed(() => photosStore.selectedPhotosRecord);
+const selectedPhotoIds = computed(() => photosStore.selectedPhotoIds);
+
+// Check if all photos are selected
+const allSelected = computed(() => {
+  return (
+    catalogPhotos.value.length > 0 &&
+    catalogPhotos.value.every((photo) => selectedPhotosRecord.value[photo.id])
+  );
+});
+
 // Photo selection functions
 const showPhotoInfo = async (photo) => {
   const fullPhoto = await photosStore.fetchPhoto(photo.id);
@@ -129,6 +201,36 @@ const deletePhoto = async (photoId) => {
 const setGridColumns = (columns) => {
   gridColumns.value = columns;
 };
+
+// Photo selection functions
+const togglePhotoSelection = (photoId) => {
+  photosStore.togglePhotoSelection(photoId);
+};
+
+// Select/Deselect all photos
+const handleSelectAll = () => {
+  const shouldDeselectAll = allSelected.value;
+  catalogPhotos.value.forEach((photo) => {
+    if (shouldDeselectAll) {
+      // Deselect all
+      photosStore.selectedPhotosRecord[photo.id] = false;
+    } else {
+      // Select all
+      photosStore.selectedPhotosRecord[photo.id] = true;
+    }
+  });
+};
+
+// Action handlers (empty for now as requested)
+const handleDelete = () => {
+  console.log("Delete action for photos:", selectedPhotoIds.value);
+  // TODO: Implement delete functionality
+};
+
+const handleAddToCollection = () => {
+  console.log("Add to collection action for photos:", selectedPhotoIds.value);
+  // TODO: Implement add to collection functionality
+};
 </script>
 
 <style scoped>
@@ -144,6 +246,24 @@ const setGridColumns = (columns) => {
   align-items: center;
   margin-bottom: 24px;
   gap: 16px;
+}
+
+.controls-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.controls-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .results-info-base {
@@ -192,16 +312,22 @@ const setGridColumns = (columns) => {
   grid-template-columns: repeat(6, 1fr);
 }
 
+.photo-grid-base.grid-cols-8 {
+  grid-template-columns: repeat(8, 1fr);
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
-  .photo-grid-base.grid-cols-6 {
+  .photo-grid-base.grid-cols-6,
+  .photo-grid-base.grid-cols-8 {
     grid-template-columns: repeat(5, 1fr);
   }
 }
 
 @media (max-width: 1024px) {
   .photo-grid-base.grid-cols-5,
-  .photo-grid-base.grid-cols-6 {
+  .photo-grid-base.grid-cols-6,
+  .photo-grid-base.grid-cols-8 {
     grid-template-columns: repeat(4, 1fr);
   }
 }
@@ -217,6 +343,17 @@ const setGridColumns = (columns) => {
     gap: 12px;
   }
 
+  .controls-left,
+  .controls-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .action-buttons {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
   .grid-size-controls-base {
     width: 100%;
     justify-content: space-between;
@@ -225,7 +362,8 @@ const setGridColumns = (columns) => {
   .photo-grid-base.grid-cols-3,
   .photo-grid-base.grid-cols-4,
   .photo-grid-base.grid-cols-5,
-  .photo-grid-base.grid-cols-6 {
+  .photo-grid-base.grid-cols-6,
+  .photo-grid-base.grid-cols-8 {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
@@ -235,7 +373,8 @@ const setGridColumns = (columns) => {
   .photo-grid-base.grid-cols-3,
   .photo-grid-base.grid-cols-4,
   .photo-grid-base.grid-cols-5,
-  .photo-grid-base.grid-cols-6 {
+  .photo-grid-base.grid-cols-6,
+  .photo-grid-base.grid-cols-8 {
     grid-template-columns: 1fr;
   }
 }
