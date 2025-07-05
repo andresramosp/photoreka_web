@@ -592,6 +592,56 @@ onMounted(() => {
   gap: 16px;
 }
 
+.results-info-base {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.results-count-base {
+  font-size: 16px;
+  font-weight: 500;
+  color: #ffffffd1;
+}
+
+.grid-size-controls-base {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.grid-label-base {
+  font-size: 14px;
+  color: #ffffff73;
+  font-weight: 500;
+}
+
+/* Photo Grid */
+.photo-grid-base {
+  display: grid;
+  gap: 20px;
+}
+
+.photo-grid-base.grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.photo-grid-base.grid-cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.photo-grid-base.grid-cols-5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.photo-grid-base.grid-cols-6 {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.photo-grid-base.grid-cols-8 {
+  grid-template-columns: repeat(8, 1fr);
+}
+
 .filter-controls {
   display: flex;
   align-items: center;
