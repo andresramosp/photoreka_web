@@ -688,4 +688,56 @@ onMounted(() => {
   color: #ffffff73;
   text-align: center;
 }
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .photo-grid-base.grid-cols-8 {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .photo-grid-base.grid-cols-6,
+  .photo-grid-base.grid-cols-8 {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-controls-base {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .controls-left,
+  .controls-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .action-buttons {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .photo-grid-base.grid-cols-3,
+  .photo-grid-base.grid-cols-4,
+  .photo-grid-base.grid-cols-5,
+  .photo-grid-base.grid-cols-6,
+  .photo-grid-base.grid-cols-8 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .photo-grid-base.grid-cols-3,
+  .photo-grid-base.grid-cols-4,
+  .photo-grid-base.grid-cols-5,
+  .photo-grid-base.grid-cols-6,
+  .photo-grid-base.grid-cols-8 {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
