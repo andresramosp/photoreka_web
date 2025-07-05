@@ -361,7 +361,8 @@ const handleAddToCollection = () => {
   .photo-grid-base.grid-cols-3,
   .photo-grid-base.grid-cols-4,
   .photo-grid-base.grid-cols-5,
-  .photo-grid-base.grid-cols-6 {
+  .photo-grid-base.grid-cols-6,
+  .photo-grid-base.grid-cols-8 {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
@@ -371,7 +372,8 @@ const handleAddToCollection = () => {
   .photo-grid-base.grid-cols-3,
   .photo-grid-base.grid-cols-4,
   .photo-grid-base.grid-cols-5,
-  .photo-grid-base.grid-cols-6 {
+  .photo-grid-base.grid-cols-6,
+  .photo-grid-base.grid-cols-8 {
     grid-template-columns: 1fr;
   }
 }
