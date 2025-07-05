@@ -270,6 +270,7 @@
           v-for="photo in filteredPhotos"
           :key="photo.id"
           :photo="photo"
+          :selected="selectedPhotosRecord[photo.id]"
           @select="togglePhotoSelection"
           @delete="deletePhoto"
           :show-footer="true"
