@@ -143,8 +143,10 @@
               ...photo,
               size: parseFloat(photo.size) * 1024 * 1024, // Convert MB to bytes
             }"
+            :selected="selectedPhotosRecord[photo.id]"
             @info="showPhotoInfo"
             @delete="deletePhoto"
+            @select="togglePhotoSelection"
           />
         </div>
       </div>
