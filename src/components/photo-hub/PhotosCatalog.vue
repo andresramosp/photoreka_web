@@ -336,6 +336,17 @@ const handleAddToCollection = () => {
     gap: 12px;
   }
 
+  .controls-left,
+  .controls-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .action-buttons {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
   .grid-size-controls-base {
     width: 100%;
     justify-content: space-between;
