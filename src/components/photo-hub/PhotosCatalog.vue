@@ -19,6 +19,37 @@
           </h3>
         </div>
 
+        <div class="header-buttons compact-upload-section">
+          <div class=""></div>
+          <div style="display: flex; gap: 15px">
+            <n-button
+              type="default"
+              size="medium"
+              class="analyze-btn"
+              @click="
+                () => {
+                  photosStore.checkDuplicates();
+                }
+              "
+              :disabled="
+                catalogPhotos.filter((p) => !p.isUploading).length === 0
+              "
+            >
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+              Check duplicates
+            </n-button>
+          </div>
+        </div>
+
         <!-- Grid Controls -->
         <div class="grid-controls grid-controls-base">
           <div class="results-info results-info-base">

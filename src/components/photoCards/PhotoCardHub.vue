@@ -3,7 +3,7 @@
     class="photo-card-info"
     :class="{
       selected: isSelected,
-      duplicate: photo.isDuplicate && photo.status == 'uploaded',
+      duplicate: photo.isDuplicate,
       'with-footer': showFooter,
     }"
     @click="toggleSelection"
@@ -49,11 +49,7 @@
       </div>
 
       <!-- Duplicate indicator -->
-      <n-tooltip
-        v-if="photo.isDuplicate && photo.status == 'uploaded'"
-        trigger="hover"
-        placement="top"
-      >
+      <n-tooltip v-if="photo.isDuplicate" trigger="hover" placement="top">
         <template #trigger>
           <div class="duplicate-indicator">
             <n-icon size="16">

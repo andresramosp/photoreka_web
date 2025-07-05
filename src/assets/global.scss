@@ -385,3 +385,22 @@
   margin: 0;
   text-align: left;
 }
+
+.compact-upload-section {
+  margin-bottom: 0px;
+  padding: 16px 0;
+  border-bottom: 1px solid #2c2c32;
+}
+
+.compact-upload-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.header-buttons {
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  justify-content: space-between;
+}

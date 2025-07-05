@@ -459,19 +459,6 @@ onMounted(() => {
   font-size: 14px;
 }
 
-/* Compact Upload Section */
-.compact-upload-section {
-  margin-bottom: 0px;
-  padding: 16px 0;
-  border-bottom: 1px solid #2c2c32;
-}
-
-.compact-upload-buttons {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
 .compact-upload-btn {
   min-width: 120px;
 }
@@ -493,13 +480,6 @@ onMounted(() => {
   /* background-color: rgba(255, 255, 255, 0.05);
   border-radius: 6px;
   border: 1px solid #2c2c32; */
-}
-
-.header-buttons {
-  display: flex;
-  flex-direction: row;
-  align-content: center;
-  justify-content: space-between;
 }
 
 /* Upload Progress Section */
