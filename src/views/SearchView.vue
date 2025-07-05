@@ -65,6 +65,16 @@
               </n-icon>
               Flexible
             </div>
+            <div
+              class="mode-pill"
+              :class="{ active: searchMode === 'low_precision' }"
+              @click="searchMode = 'low_precision'"
+            >
+              <n-icon size="16" class="mode-icon">
+                <PencilOutline />
+              </n-icon>
+              Fast
+            </div>
           </div>
         </div>
       </div>
@@ -976,14 +986,14 @@ onUnmounted(() => {
 }
 
 .mode-pill:hover {
-  border-color: #2563eb;
-  color: #ffffffd1;
+  border-color: var(--primary-color);
+  color: var(--text-primary);
 }
 
 .mode-pill.active {
-  background-color: #2563eb;
-  border-color: #2563eb;
-  color: #ffffff;
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--text-primary);
 }
 
 .mode-icon {
