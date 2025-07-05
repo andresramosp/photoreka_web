@@ -311,6 +311,10 @@ const handleAddToCollection = () => {
   grid-template-columns: repeat(6, 1fr);
 }
 
+.photo-grid-base.grid-cols-8 {
+  grid-template-columns: repeat(8, 1fr);
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
   .photo-grid-base.grid-cols-6 {
