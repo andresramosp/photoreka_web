@@ -96,7 +96,7 @@
           type="info"
           class="status-tag"
         >
-          Uploading
+          Preprocessing
         </n-tag>
         <n-tag
           v-else-if="!isUploading"
