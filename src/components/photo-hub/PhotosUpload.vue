@@ -460,8 +460,9 @@ const togglePhotoSelection = (photoId) => {
 
 // Select/Deselect all photos
 const handleSelectAll = () => {
+  const shouldDeselectAll = allSelected.value;
   filteredPhotos.value.forEach((photo) => {
-    if (allSelected.value) {
+    if (shouldDeselectAll) {
       // Deselect all
       photosStore.selectedPhotosRecord[photo.id] = false;
     } else {
