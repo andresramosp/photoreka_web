@@ -8,36 +8,53 @@
         <div class="selector-group">
           <div class="selector-label">Search Type:</div>
           <div class="type-pills">
-            <div
-              class="type-pill"
-              :class="{ active: activeSearchType === 'semantic' }"
-              @click="setSearchType('semantic')"
-            >
-              <n-icon size="14" class="type-icon">
-                <DocumentOutline />
-              </n-icon>
-              Natural Language
-            </div>
-            <div
-              class="type-pill"
-              :class="{ active: activeSearchType === 'tags' }"
-              @click="setSearchType('tags')"
-            >
-              <n-icon size="16" class="type-icon">
-                <TagOutlined />
-              </n-icon>
-              Tags
-            </div>
-            <div
-              class="type-pill"
-              :class="{ active: activeSearchType === 'topological' }"
-              @click="setSearchType('topological')"
-            >
-              <n-icon size="16" class="type-icon">
-                <MapOutline />
-              </n-icon>
-              Spatial
-            </div>
+            <n-tooltip trigger="hover" placement="top">
+              <template #trigger>
+                <div
+                  class="type-pill"
+                  :class="{ active: activeSearchType === 'semantic' }"
+                  @click="setSearchType('semantic')"
+                >
+                  <n-icon size="14" class="type-icon">
+                    <DocumentOutline />
+                  </n-icon>
+                  Natural Language
+                </div>
+              </template>
+              Search using natural language descriptions like "sunset beach
+              photos with people"
+            </n-tooltip>
+            <n-tooltip trigger="hover" placement="top">
+              <template #trigger>
+                <div
+                  class="type-pill"
+                  :class="{ active: activeSearchType === 'tags' }"
+                  @click="setSearchType('tags')"
+                >
+                  <n-icon size="16" class="type-icon">
+                    <TagOutlined />
+                  </n-icon>
+                  Tags
+                </div>
+              </template>
+              Search by specific tags and keywords assigned to your photos
+            </n-tooltip>
+            <n-tooltip trigger="hover" placement="top">
+              <template #trigger>
+                <div
+                  class="type-pill"
+                  :class="{ active: activeSearchType === 'topological' }"
+                  @click="setSearchType('topological')"
+                >
+                  <n-icon size="16" class="type-icon">
+                    <MapOutline />
+                  </n-icon>
+                  Spatial
+                </div>
+              </template>
+              Search based on spatial arrangement of objects in your photos
+              (left, center, right)
+            </n-tooltip>
           </div>
         </div>
 
@@ -566,14 +583,14 @@ const includedTagSuggestionsFormatted = computed(() =>
   includedTagSuggestions.value.map((tagName) => ({
     label: tagName,
     value: tagName,
-  }))
+  })),
 );
 
 const excludedTagSuggestionsFormatted = computed(() =>
   excludedTagSuggestions.value.map((tagName) => ({
     label: tagName,
     value: tagName,
-  }))
+  })),
 );
 
 const tagIncSelect = ref(null);
@@ -672,7 +689,7 @@ function clearSelection() {
 }
 async function moveToCanvas() {
   await Promise.all(
-    photoStore.selectedPhotoIds.map((id) => photoStore.fetchPhoto(id))
+    photoStore.selectedPhotoIds.map((id) => photoStore.fetchPhoto(id)),
   );
   const photosToAdd = photoStore.selectedPhotoIds
     .map((id) => photoStore.photos.find((p) => p.id == id))
@@ -757,7 +774,7 @@ async function searchPhotos() {
       `${import.meta.env.VITE_API_BASE_URL}/api/search/${
         activeSearchType.value
       }`,
-      payload
+      payload,
     );
   } catch (err) {
     console.error("Error al buscar fotos:", err);
@@ -772,7 +789,7 @@ async function ensureWarmUp() {
   }, 5000);
 
   const { data } = await axios.get(
-    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`
+    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`,
   );
   warmedUp.value = data.result;
 
