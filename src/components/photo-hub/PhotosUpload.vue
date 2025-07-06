@@ -305,6 +305,7 @@ import pLimit from "p-limit";
 import pica from "pica";
 import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
+import DuplicatePhotosDialog from "../DuplicatePhotosDialog.vue";
 
 const emit = defineEmits(["on-analyze"]);
 
