@@ -226,6 +226,8 @@ const gridColumns = ref(8);
 const showPhotoInfoDialog = ref(false);
 const selectedDialogPhoto = ref();
 const filterDuplicates = ref(false);
+const showDuplicatesDialog = ref(false);
+const selectedDuplicates = ref([]);
 
 // Static catalog photos for demonstration
 const catalogPhotos = computed(() => photosStore.catalogPhotos);
