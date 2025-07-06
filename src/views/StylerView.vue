@@ -406,7 +406,7 @@ onUnmounted(() => {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px;
   position: sticky;
   top: 0;
   z-index: 10;
