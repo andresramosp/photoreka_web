@@ -504,7 +504,7 @@ onUnmounted(() => {
 .examples-title {
   font-size: 20px;
   font-weight: 600;
-  color: #ffffffd1;
+  color: var(--text-primary);
   margin: 0;
   text-align: center;
 }
