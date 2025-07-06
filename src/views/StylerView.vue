@@ -388,7 +388,9 @@ onUnmounted(() => {
   if (scrollContainer.value) {
     scrollContainer.value.removeEventListener("scroll", handleScroll);
   }
-  socket.off("styleMatches");
+  if (socket) {
+    socket.off("styleMatches");
+  }
 });
 </script>
 
