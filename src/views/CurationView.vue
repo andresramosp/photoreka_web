@@ -11,36 +11,6 @@
           class="search-input"
           @input="onSearchChange"
         />
-        <!-- Usage Limit Warning Badge -->
-        <div
-          v-if="userStore.usageLimits.curation.exceeded"
-          class="usage-limit-warning"
-        >
-          <div class="warning-badge">
-            <n-icon size="14" class="warning-icon">
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M1 21h22L12 2L1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
-                />
-              </svg>
-            </n-icon>
-            <span class="warning-text">Usage limit exceeded</span>
-            <n-tooltip trigger="hover" placement="top">
-              <template #trigger>
-                <n-icon size="12" class="info-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                    />
-                  </svg>
-                </n-icon>
-              </template>
-              This is a premium feature, purchase credits to continue using it.
-            </n-tooltip>
-          </div>
-        </div>
 
         <div class="search-actions">
           <n-button
@@ -80,6 +50,36 @@
             </template>
             Clear
           </n-button>
+        </div>
+        <!-- Usage Limit Warning Badge -->
+        <div
+          v-if="userStore.usageLimits.curation.exceeded"
+          class="usage-limit-warning"
+        >
+          <div class="warning-badge">
+            <n-icon size="14" class="warning-icon">
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M1 21h22L12 2L1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
+                />
+              </svg>
+            </n-icon>
+            <span class="warning-text">Free usage ended</span>
+            <n-tooltip trigger="hover" placement="top">
+              <template #trigger>
+                <n-icon size="12" class="info-icon">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+              This is a premium feature, purchase credits to continue using it.
+            </n-tooltip>
+          </div>
         </div>
       </div>
     </div>
@@ -741,19 +741,6 @@ const setMinRating = (rating: number) => {
   display: flex;
   justify-content: center;
   margin-bottom: 16px;
-}
-
-.warning-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background-color: rgba(245, 158, 11, 0.1);
-  border: 1px solid #f59e0b;
-  border-radius: 20px;
-  color: #f59e0b;
-  font-size: 13px;
-  font-weight: 500;
 }
 
 .warning-icon {

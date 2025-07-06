@@ -404,3 +404,16 @@
   align-content: center;
   justify-content: space-between;
 }
+
+.warning-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px;
+  background-color: rgba(245, 158, 11, 0.1);
+  border: 1px solid #f59e0b;
+  border-radius: 20px;
+  color: #f59e0b;
+  font-size: 13px;
+  font-weight: 500;
+}

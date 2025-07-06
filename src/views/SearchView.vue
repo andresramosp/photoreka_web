@@ -133,53 +133,7 @@
               @input="onSearchChange"
               :key="`semantic-${activeSearchType}`"
             />
-            <!-- Usage Limit Warning Badge -->
-            <div
-              v-if="
-                userStore.usageLimits.search.exceeded &&
-                !userStore.usageLimits.search.dismissed
-              "
-              class="usage-limit-warning"
-            >
-              <div class="warning-badge">
-                <n-icon size="14" class="warning-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M1 21h22L12 2L1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
-                    />
-                  </svg>
-                </n-icon>
-                <span class="warning-text">Usage limit exceeded</span>
-                <n-tooltip trigger="hover" placement="top">
-                  <template #trigger>
-                    <n-icon size="12" class="info-icon">
-                      <svg viewBox="0 0 24 24">
-                        <path
-                          fill="currentColor"
-                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                        />
-                      </svg>
-                    </n-icon>
-                  </template>
-                  Performance is now reduced for Strict and Flexible modes. Fast
-                  mode is not restricted.
-                </n-tooltip>
-                <button
-                  @click="userStore.dismissUsageWarning('search')"
-                  class="close-badge-btn"
-                >
-                  <n-icon size="12">
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
-                      />
-                    </svg>
-                  </n-icon>
-                </button>
-              </div>
-            </div>
+
             <div class="search-actions-inline">
               <n-button
                 type="primary"
@@ -217,6 +171,52 @@
                   </n-icon>
                 </template>
               </n-button>
+            </div>
+            <!-- Usage Limit Warning Badge -->
+            <div
+              v-if="
+                userStore.usageLimits.search.exceeded &&
+                !userStore.usageLimits.search.dismissed
+              "
+              class="usage-limit-warning"
+            >
+              <div class="warning-badge">
+                <n-icon size="14" class="warning-icon">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M1 21h22L12 2L1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
+                    />
+                  </svg>
+                </n-icon>
+                <span class="warning-text">Low performance</span>
+                <n-tooltip trigger="hover" placement="top">
+                  <template #trigger>
+                    <n-icon size="12" class="info-icon">
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                        />
+                      </svg>
+                    </n-icon>
+                  </template>
+                  {{ performanceTooltip }}
+                </n-tooltip>
+                <button
+                  @click="userStore.dismissUsageWarning('search')"
+                  class="close-badge-btn"
+                >
+                  <n-icon size="12">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+                      />
+                    </svg>
+                  </n-icon>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -275,53 +275,7 @@
                 >
               </div>
             </div>
-            <!-- Usage Limit Warning Badge -->
-            <div
-              v-if="
-                userStore.usageLimits.search.exceeded &&
-                !userStore.usageLimits.search.dismissed
-              "
-              class="usage-limit-warning"
-            >
-              <div class="warning-badge">
-                <n-icon size="14" class="warning-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M1 21h22L12 2L1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
-                    />
-                  </svg>
-                </n-icon>
-                <span class="warning-text">Usage limit exceeded</span>
-                <n-tooltip trigger="hover" placement="top">
-                  <template #trigger>
-                    <n-icon size="12" class="info-icon">
-                      <svg viewBox="0 0 24 24">
-                        <path
-                          fill="currentColor"
-                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                        />
-                      </svg>
-                    </n-icon>
-                  </template>
-                  Performance is now reduced for Strict and Flexible modes. Fast
-                  mode is not restricted.
-                </n-tooltip>
-                <button
-                  @click="userStore.dismissUsageWarning('search')"
-                  class="close-badge-btn"
-                >
-                  <n-icon size="12">
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
-                      />
-                    </svg>
-                  </n-icon>
-                </button>
-              </div>
-            </div>
+
             <div class="search-actions-inline">
               <n-button
                 type="primary"
@@ -359,6 +313,52 @@
                   </n-icon>
                 </template>
               </n-button>
+            </div>
+            <!-- Usage Limit Warning Badge -->
+            <div
+              v-if="
+                userStore.usageLimits.search.exceeded &&
+                !userStore.usageLimits.search.dismissed
+              "
+              class="usage-limit-warning"
+            >
+              <div class="warning-badge">
+                <n-icon size="14" class="warning-icon">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M1 21h22L12 2L1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
+                    />
+                  </svg>
+                </n-icon>
+                <span class="warning-text">Low performance</span>
+                <n-tooltip trigger="hover" placement="top">
+                  <template #trigger>
+                    <n-icon size="12" class="info-icon">
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                        />
+                      </svg>
+                    </n-icon>
+                  </template>
+                  {{ performanceTooltip }}
+                </n-tooltip>
+                <button
+                  @click="userStore.dismissUsageWarning('search')"
+                  class="close-badge-btn"
+                >
+                  <n-icon size="12">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+                      />
+                    </svg>
+                  </n-icon>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -405,53 +405,7 @@
                 />
               </div>
             </div>
-            <!-- Usage Limit Warning Badge -->
-            <div
-              v-if="
-                userStore.usageLimits.search.exceeded &&
-                !userStore.usageLimits.search.dismissed
-              "
-              class="usage-limit-warning"
-            >
-              <div class="warning-badge">
-                <n-icon size="14" class="warning-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M1 21h22L12 2L1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
-                    />
-                  </svg>
-                </n-icon>
-                <span class="warning-text">Usage limit exceeded</span>
-                <n-tooltip trigger="hover" placement="top">
-                  <template #trigger>
-                    <n-icon size="12" class="info-icon">
-                      <svg viewBox="0 0 24 24">
-                        <path
-                          fill="currentColor"
-                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                        />
-                      </svg>
-                    </n-icon>
-                  </template>
-                  Performance is now reduced for Strict and Flexible modes. Fast
-                  mode is not restricted.
-                </n-tooltip>
-                <button
-                  @click="userStore.dismissUsageWarning('search')"
-                  class="close-badge-btn"
-                >
-                  <n-icon size="12">
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
-                      />
-                    </svg>
-                  </n-icon>
-                </button>
-              </div>
-            </div>
+
             <div class="search-actions-inline">
               <n-button
                 type="primary"
@@ -489,6 +443,52 @@
                   </n-icon>
                 </template>
               </n-button>
+            </div>
+            <!-- Usage Limit Warning Badge -->
+            <div
+              v-if="
+                userStore.usageLimits.search.exceeded &&
+                !userStore.usageLimits.search.dismissed
+              "
+              class="usage-limit-warning"
+            >
+              <div class="warning-badge">
+                <n-icon size="14" class="warning-icon">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M1 21h22L12 2L1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
+                    />
+                  </svg>
+                </n-icon>
+                <span class="warning-text">Low performance</span>
+                <n-tooltip trigger="hover" placement="top">
+                  <template #trigger>
+                    <n-icon size="12" class="info-icon">
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                        />
+                      </svg>
+                    </n-icon>
+                  </template>
+                  {{ performanceTooltip }}
+                </n-tooltip>
+                <button
+                  @click="userStore.dismissUsageWarning('search')"
+                  class="close-badge-btn"
+                >
+                  <n-icon size="12">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+                      />
+                    </svg>
+                  </n-icon>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -706,6 +706,9 @@ const searchMode = ref("logical"); // 'logical' | 'flexible'
 // Semantic language
 const semanticQuery = ref("");
 
+const performanceTooltip =
+  "You have exceeded your daily search limit. Strict and flexible modes operate with reduced performance. Fast mode will not be affected.";
+
 // Tags
 const {
   includedTags,
@@ -746,14 +749,14 @@ const includedTagSuggestionsFormatted = computed(() =>
   includedTagSuggestions.value.map((tagName) => ({
     label: tagName,
     value: tagName,
-  })),
+  }))
 );
 
 const excludedTagSuggestionsFormatted = computed(() =>
   excludedTagSuggestions.value.map((tagName) => ({
     label: tagName,
     value: tagName,
-  })),
+  }))
 );
 
 const tagIncSelect = ref(null);
@@ -852,7 +855,7 @@ function clearSelection() {
 }
 async function moveToCanvas() {
   await Promise.all(
-    photoStore.selectedPhotoIds.map((id) => photoStore.fetchPhoto(id)),
+    photoStore.selectedPhotoIds.map((id) => photoStore.fetchPhoto(id))
   );
   const photosToAdd = photoStore.selectedPhotoIds
     .map((id) => photoStore.photos.find((p) => p.id == id))
@@ -937,7 +940,7 @@ async function searchPhotos() {
       `${import.meta.env.VITE_API_BASE_URL}/api/search/${
         activeSearchType.value
       }`,
-      payload,
+      payload
     );
   } catch (err) {
     console.error("Error al buscar fotos:", err);
@@ -952,7 +955,7 @@ async function ensureWarmUp() {
   }, 5000);
 
   const { data } = await axios.get(
-    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`,
+    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`
   );
   warmedUp.value = data.result;
 
@@ -1204,19 +1207,6 @@ onUnmounted(() => {
   margin-bottom: 12px;
 }
 
-.warning-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background-color: rgba(245, 158, 11, 0.1);
-  border: 1px solid #f59e0b;
-  border-radius: 20px;
-  color: #f59e0b;
-  font-size: 13px;
-  font-weight: 500;
-}
-
 .warning-icon {
   color: #f59e0b;
   flex-shrink: 0;
@@ -1247,7 +1237,6 @@ onUnmounted(() => {
   opacity: 0.8;
   transition: all 0.2s ease;
   flex-shrink: 0;
-  margin-left: 4px;
 }
 
 .close-badge-btn:hover {

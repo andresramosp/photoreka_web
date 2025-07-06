@@ -24,7 +24,7 @@ export const useUserStore = defineStore("user", () => {
     },
     curation: {
       exceeded: true,
-      permanent: true, // Cannot be closed, requires credits
+      permanent: false, // Cannot be closed, requires credits
       dismissed: false, // Not used when permanent is true
     },
   });
@@ -47,7 +47,7 @@ export const useUserStore = defineStore("user", () => {
 
   const login = async (
     email: string,
-    password: string,
+    password: string
   ): Promise<{ success: boolean; error?: string }> => {
     isLoading.value = true;
 
@@ -90,7 +90,7 @@ export const useUserStore = defineStore("user", () => {
   const register = async (
     email: string,
     password: string,
-    name: string,
+    name: string
   ): Promise<{ success: boolean; error?: string }> => {
     isLoading.value = true;
 
@@ -134,7 +134,7 @@ export const useUserStore = defineStore("user", () => {
   };
 
   const loginWithProvider = async (
-    provider: "google" | "facebook",
+    provider: "google" | "facebook"
   ): Promise<{ success: boolean; error?: string }> => {
     isLoading.value = true;
 
