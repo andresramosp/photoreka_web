@@ -90,7 +90,7 @@
 
             <!-- Processing status indicator -->
             <div
-              v-if="photo.analyzerProcessId == null"
+              v-if="photo.status == 'uploaded'"
               class="processing-status-indicator not-processed"
             >
               <n-icon size="16">
@@ -207,22 +207,18 @@ const allSelected = computed(() => {
   return (
     duplicatePhotos.value.length > 0 &&
     duplicatePhotos.value.every((photo) =>
-      selectedPhotoIds.value.includes(photo.id),
+      selectedPhotoIds.value.includes(photo.id)
     )
   );
 });
 
 // Processing status computeds
 const processedPhotos = computed(() => {
-  return duplicatePhotos.value.filter(
-    (photo) => photo.analyzerProcessId != null,
-  );
+  return duplicatePhotos.value.filter((photo) => photo.status == "processed");
 });
 
 const nonProcessedPhotos = computed(() => {
-  return duplicatePhotos.value.filter(
-    (photo) => photo.analyzerProcessId == null,
-  );
+  return duplicatePhotos.value.filter((photo) => photo.status == "uploaded");
 });
 
 const hasMixedProcessingStatus = computed(() => {
@@ -280,6 +276,8 @@ const deletePhoto = async (photoId) => {
       selectedPhotoIds.value.splice(index, 1);
     }
 
+    photosStore.checkDuplicates();
+
     message.success("Photo deleted successfully");
   } catch (error) {
     message.error("Failed to delete photo");
@@ -293,6 +291,7 @@ const handleDeleteSelected = async () => {
     await photosStore.deletePhotos(selectedPhotoIds.value);
     selectedPhotoIds.value = [];
     message.success("Selected photos deleted successfully");
+    photosStore.checkDuplicates();
   } catch (error) {
     message.error("Failed to delete selected photos");
   }
@@ -306,16 +305,19 @@ const handleDeleteWorseVersions = async () => {
       await photosStore.deletePhotos(nonProcessedIds);
       // Remove from selected if they were selected
       selectedPhotoIds.value = selectedPhotoIds.value.filter(
-        (id) => !nonProcessedIds.includes(id),
+        (id) => !nonProcessedIds.includes(id)
       );
+      photosStore.checkDuplicates();
+
       message.success("Non-processed photos deleted successfully");
     } catch (error) {
       message.error("Failed to delete non-processed photos");
     }
   } else {
+    // caso de duplicadas procesadas, requiere check health
     // TODO: Implement delete worse versions functionality
     message.info(
-      "Delete worse versions functionality will be implemented soon",
+      "Delete worse versions functionality will be implemented soon"
     );
   }
 };
@@ -332,7 +334,7 @@ watch(
     if (isOpen) {
       selectedPhotoIds.value = [];
     }
-  },
+  }
 );
 </script>
 
@@ -420,9 +422,7 @@ watch(
 
 .duplicate-photo-card.selected {
   border-color: #8b5cf6;
-  box-shadow:
-    0 0 0 1px #8b5cf640,
-    0 8px 24px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 0 0 1px #8b5cf640, 0 8px 24px rgba(139, 92, 246, 0.2);
 }
 
 .photo-container {
