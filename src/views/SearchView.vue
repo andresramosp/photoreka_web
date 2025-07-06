@@ -1234,6 +1234,28 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
+.close-badge-btn {
+  background: none;
+  border: none;
+  color: #f59e0b;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.close-badge-btn:hover {
+  opacity: 1;
+  background-color: rgba(245, 158, 11, 0.1);
+  transform: scale(1.1);
+}
+
 .search-content {
   padding-top: 12px;
 }
