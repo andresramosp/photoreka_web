@@ -420,49 +420,44 @@ onUnmounted(() => {
 
 /* Styler Tabs */
 .styler-tabs {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  background-color: var(--bg-container);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-lg);
 }
 
 /* Tab Navigation */
 .tab-navigation {
   display: flex;
-  background-color: transparent;
-  gap: 8px;
-  justify-content: center;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-container);
+  padding: var(--spacing-sm);
+  gap: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
 }
 
 .tab-button {
   flex: 1;
-  max-width: 200px;
-  padding: 12px 24px;
+  padding: var(--spacing-md) var(--spacing-2xl);
   background-color: transparent;
-  border: 1px solid var(--border-color);
-  border-radius: 20px;
+  border: none;
+  border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition-fast);
   text-align: center;
 }
 
 .tab-button:hover {
-  border-color: var(--primary-color);
+  background-color: var(--bg-surface);
   color: var(--text-primary);
-  transform: translateY(-1px);
 }
 
 .tab-button.active {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  color: #ffffff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
 }
 
 /* Tab Content Container */

@@ -145,6 +145,56 @@ const aestheticAspects = [
     label: "Atmosphere",
     description: "Mood, ambiance, emotional tone, weather effects",
   },
+  {
+    key: "contrast",
+    label: "Contrast",
+    description: "Light vs dark, high contrast, dramatic shadows",
+  },
+  {
+    key: "patterns",
+    label: "Patterns",
+    description: "Repetitive elements, geometric patterns, natural rhythms",
+  },
+  {
+    key: "scale",
+    label: "Scale & Proportion",
+    description: "Size relationships, macro details, vast landscapes",
+  },
+  {
+    key: "geometry",
+    label: "Geometric Forms",
+    description: "Architectural lines, geometric shapes, structural elements",
+  },
+  {
+    key: "organic",
+    label: "Organic Shapes",
+    description: "Natural curves, flowing forms, irregular patterns",
+  },
+  {
+    key: "isolation",
+    label: "Isolation",
+    description: "Single subjects, empty spaces, focal isolation",
+  },
+  {
+    key: "layers",
+    label: "Layering",
+    description: "Multiple planes, depth layers, foreground-background",
+  },
+  {
+    key: "framing",
+    label: "Natural Framing",
+    description: "Environmental frames, doorways, windows, branches",
+  },
+  {
+    key: "transparency",
+    label: "Transparency",
+    description: "See-through materials, glass, water, overlays",
+  },
+  {
+    key: "saturation",
+    label: "Color Saturation",
+    description: "Vibrant colors, muted tones, desaturated aesthetics",
+  },
 ];
 
 // Values for each aesthetic aspect (0-100 points)
@@ -196,7 +246,7 @@ const handleSearch = () => {
   const searchParams = {
     type: "ranking",
     criteria: Object.fromEntries(
-      Object.entries(values).filter(([_, value]) => value > 0)
+      Object.entries(values).filter(([_, value]) => value > 0),
     ),
   };
 
@@ -250,7 +300,7 @@ defineExpose({
 .ranking-content {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .ranking-header {
@@ -304,26 +354,26 @@ defineExpose({
 }
 
 .sliders-container {
-  margin: 8px 0;
+  margin: 4px 0;
 }
 
 .sliders-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
 }
 
 .slider-item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
 }
 
 .slider-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .slider-label {
@@ -343,7 +393,7 @@ defineExpose({
 .aesthetic-slider {
   width: 100%;
   height: 16px;
-  margin: 4px 0;
+  margin: 1px 0;
 }
 
 :deep(.n-slider) {
