@@ -177,6 +177,14 @@ const deletePhoto = () => {
   emit("delete", props.photo.id);
 };
 
+const showDuplicates = () => {
+  if (props.photo.duplicates && props.photo.duplicates.length > 0) {
+    // Include the current photo plus its duplicates
+    const allDuplicates = [props.photo.id, ...props.photo.duplicates];
+    emit("show-duplicates", allDuplicates);
+  }
+};
+
 const onImageLoad = () => {
   imageLoaded.value = true;
 };
