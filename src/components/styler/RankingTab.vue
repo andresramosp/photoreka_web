@@ -281,16 +281,16 @@ defineExpose({
 }
 
 .points-text {
-  font-size: 13px;
-  color: #ffffff73;
+  font-size: 12px;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .points-value {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
-  color: #ffffffd1;
-  min-width: 30px;
+  color: var(--text-primary);
+  min-width: 20px;
   text-align: center;
 }
 
