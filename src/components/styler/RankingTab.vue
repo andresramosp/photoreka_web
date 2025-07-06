@@ -1,0 +1,455 @@
+<template>
+  <div class="ranking-tab">
+    <div class="ranking-content">
+      <div class="ranking-header">
+        <h3 class="ranking-title">Aesthetic Ranking Criteria</h3>
+        <p class="ranking-subtitle">
+          Distribute 100 points across aesthetic aspects to define your ranking
+          criteria
+        </p>
+        <div class="points-indicator">
+          <span class="points-text">Remaining Points:</span>
+          <span
+            class="points-value"
+            :class="{
+              warning: remainingPoints < 0,
+              success: remainingPoints === 0,
+            }"
+          >
+            {{ remainingPoints }}
+          </span>
+        </div>
+      </div>
+
+      <div class="sliders-grid">
+        <div
+          v-for="aspect in aestheticAspects"
+          :key="aspect.key"
+          class="slider-item"
+        >
+          <div class="slider-header">
+            <label class="slider-label">{{ aspect.label }}</label>
+            <span class="slider-value">{{ values[aspect.key] }}</span>
+          </div>
+          <div class="slider-container">
+            <n-slider
+              v-model:value="values[aspect.key]"
+              :min="0"
+              :max="100"
+              :step="1"
+              :tooltip="false"
+              @update:value="handleSliderChange"
+              class="aesthetic-slider"
+            />
+          </div>
+          <p class="slider-description">{{ aspect.description }}</p>
+        </div>
+      </div>
+
+      <div class="ranking-actions">
+        <n-button
+          type="primary"
+          :disabled="!isValidDistribution"
+          @click="handleSearch"
+          class="search-button"
+        >
+          <template #icon>
+            <n-icon>
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+                />
+              </svg>
+            </n-icon>
+          </template>
+          Search by Ranking
+        </n-button>
+
+        <n-button
+          secondary
+          @click="handleClear"
+          :disabled="totalPoints === 0"
+          class="clear-button"
+        >
+          <template #icon>
+            <n-icon>
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+                />
+              </svg>
+            </n-icon>
+          </template>
+          Clear All
+        </n-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, reactive, watch } from "vue";
+
+const emit = defineEmits(["search", "clear"]);
+
+// Aesthetic aspects for ranking
+const aestheticAspects = [
+  {
+    key: "reflections",
+    label: "Reflections",
+    description: "Mirror-like surfaces, water reflections, glass reflections",
+  },
+  {
+    key: "lighting",
+    label: "Lighting",
+    description: "Dramatic lighting, golden hour, natural vs artificial light",
+  },
+  {
+    key: "yuxtapositions",
+    label: "Juxtapositions",
+    description: "Contrasting elements, old vs new, nature vs urban",
+  },
+  {
+    key: "symmetry",
+    label: "Symmetry",
+    description: "Balanced compositions, geometric patterns, mirror symmetry",
+  },
+  {
+    key: "depth",
+    label: "Depth of Field",
+    description: "Bokeh effects, shallow focus, background blur",
+  },
+  {
+    key: "colors",
+    label: "Color Harmony",
+    description:
+      "Complementary colors, monochromatic schemes, vibrant palettes",
+  },
+  {
+    key: "textures",
+    label: "Textures",
+    description: "Surface details, material contrasts, tactile qualities",
+  },
+  {
+    key: "minimalism",
+    label: "Minimalism",
+    description: "Clean compositions, negative space, simple elements",
+  },
+  {
+    key: "motion",
+    label: "Motion",
+    description: "Movement blur, dynamic poses, action capture",
+  },
+  {
+    key: "atmosphere",
+    label: "Atmosphere",
+    description: "Mood, ambiance, emotional tone, weather effects",
+  },
+];
+
+// Values for each aesthetic aspect (0-100 points)
+const values = reactive({});
+
+// Initialize all values to 0
+aestheticAspects.forEach((aspect) => {
+  values[aspect.key] = 0;
+});
+
+// Computed values
+const totalPoints = computed(() => {
+  return Object.values(values).reduce((sum, value) => sum + value, 0);
+});
+
+const remainingPoints = computed(() => {
+  return 100 - totalPoints.value;
+});
+
+const isValidDistribution = computed(() => {
+  return totalPoints.value === 100;
+});
+
+// Handle slider changes with zero-sum constraint
+const handleSliderChange = () => {
+  // If total exceeds 100, proportionally reduce other values
+  if (totalPoints.value > 100) {
+    const excess = totalPoints.value - 100;
+    redistributeExcess(excess);
+  }
+};
+
+const redistributeExcess = (excess) => {
+  // Find the slider that was just changed (has the highest value or most recent change)
+  // For simplicity, we'll just cap all values proportionally
+  const total = totalPoints.value;
+  if (total > 100) {
+    const factor = 100 / total;
+    Object.keys(values).forEach((key) => {
+      values[key] = Math.round(values[key] * factor);
+    });
+  }
+};
+
+const handleSearch = () => {
+  if (!isValidDistribution.value) return;
+
+  // Create search parameters with only non-zero values
+  const searchParams = {
+    type: "ranking",
+    criteria: Object.fromEntries(
+      Object.entries(values).filter(([_, value]) => value > 0),
+    ),
+  };
+
+  emit("search", searchParams);
+};
+
+const handleClear = () => {
+  Object.keys(values).forEach((key) => {
+    values[key] = 0;
+  });
+  emit("clear");
+};
+
+// Auto-distribute function for even distribution
+const autoDistribute = () => {
+  const nonZeroCount = Object.values(values).filter((v) => v > 0).length;
+  if (nonZeroCount === 0) {
+    // Distribute evenly among all
+    const evenValue = Math.floor(100 / aestheticAspects.length);
+    const remainder = 100 % aestheticAspects.length;
+
+    aestheticAspects.forEach((aspect, index) => {
+      values[aspect.key] = evenValue + (index < remainder ? 1 : 0);
+    });
+  } else {
+    // Distribute evenly among non-zero values
+    const evenValue = Math.floor(100 / nonZeroCount);
+    const remainder = 100 % nonZeroCount;
+
+    let distributedCount = 0;
+    Object.keys(values).forEach((key) => {
+      if (values[key] > 0) {
+        values[key] = evenValue + (distributedCount < remainder ? 1 : 0);
+        distributedCount++;
+      }
+    });
+  }
+};
+
+// Provide auto-distribute function to parent if needed
+defineExpose({
+  autoDistribute,
+});
+</script>
+
+<style scoped>
+.ranking-tab {
+  padding: 0;
+}
+
+.ranking-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.ranking-header {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.ranking-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffffd1;
+  margin: 0 0 8px 0;
+}
+
+.ranking-subtitle {
+  font-size: 14px;
+  color: #ffffff73;
+  margin: 0 0 16px 0;
+  line-height: 1.4;
+}
+
+.points-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  border: 1px solid #2c2c32;
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+.points-text {
+  font-size: 13px;
+  color: #ffffff73;
+  font-weight: 500;
+}
+
+.points-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffffd1;
+  min-width: 30px;
+  text-align: center;
+}
+
+.points-value.warning {
+  color: #f59e0b;
+}
+
+.points-value.success {
+  color: #10b981;
+}
+
+.sliders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin: 16px 0;
+}
+
+.slider-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid #2c2c32;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.slider-item:hover {
+  border-color: #3c3c42;
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.slider-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffffd1;
+}
+
+.slider-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2563eb;
+  min-width: 30px;
+  text-align: right;
+}
+
+.slider-container {
+  margin: 8px 0;
+}
+
+.aesthetic-slider {
+  width: 100%;
+}
+
+.slider-description {
+  font-size: 12px;
+  color: #ffffff73;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.ranking-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.search-button {
+  min-width: 160px;
+  height: 40px;
+  font-weight: 500;
+}
+
+.clear-button {
+  min-width: 120px;
+  height: 40px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sliders-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .slider-item {
+    padding: 12px;
+  }
+
+  .ranking-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .search-button,
+  .clear-button {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ranking-header {
+    margin-bottom: 16px;
+  }
+
+  .ranking-title {
+    font-size: 16px;
+  }
+
+  .ranking-subtitle {
+    font-size: 13px;
+  }
+
+  .points-indicator {
+    max-width: 180px;
+    padding: 6px 12px;
+  }
+
+  .points-text {
+    font-size: 12px;
+  }
+
+  .points-value {
+    font-size: 13px;
+  }
+
+  .slider-item {
+    padding: 10px;
+  }
+
+  .slider-label {
+    font-size: 13px;
+  }
+
+  .slider-value {
+    font-size: 12px;
+  }
+
+  .slider-description {
+    font-size: 11px;
+  }
+}
+</style>
