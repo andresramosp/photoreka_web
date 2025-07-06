@@ -61,7 +61,10 @@
         <ProcessingPhotos v-show="activeTab === 'processing'" />
 
         <!-- Tab 3: Catalog -->
-        <PhotosCatalog v-show="activeTab === 'catalog'" />
+        <PhotosCatalog
+          v-show="activeTab === 'catalog'"
+          @navigate-to-tab="setActiveTab"
+        />
       </div>
     </div>
   </div>
@@ -99,7 +102,7 @@ async function analyze() {
     setActiveTab("processing");
     message.success(
       `The analysis of your photos has begun! You can close this window in the meantime.`,
-      { duration: 5000 }
+      { duration: 5000 },
     );
     await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/analyzer`, {
       userId: "1234",
