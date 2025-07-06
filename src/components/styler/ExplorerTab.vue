@@ -203,86 +203,20 @@ defineExpose({
   line-height: 1.4;
 }
 
-.pills-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
-  margin: 8px 0;
-}
-
-.pill-item {
+.pills-container {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 14px 16px;
-  background-color: rgba(255, 255, 255, 0.02);
-  border: 1px solid #2c2c32;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-
-.pill-item:hover {
-  border-color: #3c3c42;
-  background-color: rgba(255, 255, 255, 0.04);
-  transform: translateY(-1px);
-}
-
-.pill-item.selected {
-  border-color: #2563eb;
-  background-color: rgba(37, 99, 235, 0.1);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-}
-
-.pill-item.selected:hover {
-  border-color: #1d4ed8;
-  background-color: rgba(37, 99, 235, 0.15);
-}
-
-.pill-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2px;
-}
-
-.pill-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #ffffffd1;
-  transition: color 0.2s ease;
-}
-
-.pill-item.selected .pill-label {
-  color: #ffffff;
-}
-
-.pill-indicator {
-  display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
   justify-content: center;
-  width: 20px;
-  height: 20px;
-  background-color: #2563eb;
-  border-radius: 50%;
-  color: #ffffff;
-  opacity: 1;
-  transform: scale(1);
+}
+
+.style-pill {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 14px;
+  cursor: pointer;
   transition: all 0.2s ease;
-}
-
-.pill-description {
-  font-size: 12px;
-  color: #ffffff73;
-  margin: 0;
-  line-height: 1.3;
-  transition: color 0.2s ease;
-}
-
-.pill-item.selected .pill-description {
-  color: #ffffffa3;
 }
 
 .explorer-info {
