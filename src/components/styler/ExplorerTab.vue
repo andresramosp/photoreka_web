@@ -258,15 +258,6 @@ defineExpose({
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .pills-grid {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 10px;
-  }
-
-  .pill-item {
-    padding: 12px 14px;
-  }
-
   .explorer-actions {
     flex-direction: column;
     gap: 8px;
@@ -292,26 +283,13 @@ defineExpose({
     font-size: 13px;
   }
 
-  .pills-grid {
-    grid-template-columns: 1fr;
-    gap: 8px;
+  .pills-container {
+    gap: 6px;
   }
 
-  .pill-item {
-    padding: 10px 12px;
-  }
-
-  .pill-label {
-    font-size: 13px;
-  }
-
-  .pill-description {
-    font-size: 11px;
-  }
-
-  .pill-indicator {
-    width: 18px;
-    height: 18px;
+  .style-pill {
+    font-size: 12px;
+    padding: 6px 10px;
   }
 
   .explorer-info {
@@ -322,22 +300,5 @@ defineExpose({
   .selected-count {
     font-size: 12px;
   }
-}
-
-/* Animation for pill selection */
-@keyframes pillSelect {
-  0% {
-    transform: translateY(-1px) scale(1);
-  }
-  50% {
-    transform: translateY(-2px) scale(1.02);
-  }
-  100% {
-    transform: translateY(-1px) scale(1);
-  }
-}
-
-.pill-item.selected {
-  animation: pillSelect 0.3s ease;
 }
 </style>
