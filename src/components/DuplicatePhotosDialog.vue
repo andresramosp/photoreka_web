@@ -470,6 +470,30 @@ watch(
   opacity: 1 !important;
 }
 
+/* Processing status indicator */
+.processing-status-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.processing-status-indicator.not-processed {
+  background-color: rgba(245, 158, 11, 0.9);
+  color: white;
+}
+
+.processing-status-indicator.processed {
+  background-color: rgba(34, 197, 94, 0.9);
+  color: white;
+}
+
 /* Selection indicator */
 .selection-indicator {
   position: absolute;
