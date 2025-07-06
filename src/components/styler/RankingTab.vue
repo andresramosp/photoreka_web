@@ -322,20 +322,20 @@ defineExpose({
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .slider-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-primary);
 }
 
 .slider-value {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--primary-color);
-  min-width: 25px;
+  min-width: 20px;
   text-align: right;
 }
 
