@@ -403,8 +403,8 @@ onUnmounted(() => {
 
 /* Styler Toolbar */
 .styler-toolbar {
-  background-color: #18181c;
-  border: 1px solid #2c2c32;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 24px;
   position: sticky;
