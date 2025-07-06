@@ -15,6 +15,20 @@ export const useUserStore = defineStore("user", () => {
   const user = ref<User | null>(null);
   const isLoading = ref(false);
 
+  // Mock usage limits state by section
+  const usageLimits = ref({
+    search: {
+      exceeded: true,
+      permanent: false, // Can be closed by user
+      dismissed: false, // Whether user dismissed the badge
+    },
+    curation: {
+      exceeded: true,
+      permanent: true, // Cannot be closed, requires credits
+      dismissed: false, // Not used when permanent is true
+    },
+  });
+
   // Check for existing token on store initialization
   const initAuth = () => {
     const savedToken = localStorage.getItem("frameka_token");
@@ -33,7 +47,7 @@ export const useUserStore = defineStore("user", () => {
 
   const login = async (
     email: string,
-    password: string
+    password: string,
   ): Promise<{ success: boolean; error?: string }> => {
     isLoading.value = true;
 
@@ -76,7 +90,7 @@ export const useUserStore = defineStore("user", () => {
   const register = async (
     email: string,
     password: string,
-    name: string
+    name: string,
   ): Promise<{ success: boolean; error?: string }> => {
     isLoading.value = true;
 
@@ -120,7 +134,7 @@ export const useUserStore = defineStore("user", () => {
   };
 
   const loginWithProvider = async (
-    provider: "google" | "facebook"
+    provider: "google" | "facebook",
   ): Promise<{ success: boolean; error?: string }> => {
     isLoading.value = true;
 
@@ -161,6 +175,12 @@ export const useUserStore = defineStore("user", () => {
     localStorage.removeItem("frameka_token");
   };
 
+  const dismissUsageWarning = (section: "search" | "curation") => {
+    if (!usageLimits.value[section].permanent) {
+      usageLimits.value[section].dismissed = true;
+    }
+  };
+
   // Initialize auth state
   initAuth();
 
@@ -169,6 +189,8 @@ export const useUserStore = defineStore("user", () => {
     token,
     user,
     isLoading,
+    usageLimits,
+    dismissUsageWarning,
     login,
     register,
     loginWithProvider,

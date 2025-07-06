@@ -8,36 +8,53 @@
         <div class="selector-group">
           <div class="selector-label">Search Type:</div>
           <div class="type-pills">
-            <div
-              class="type-pill"
-              :class="{ active: activeSearchType === 'semantic' }"
-              @click="setSearchType('semantic')"
-            >
-              <n-icon size="14" class="type-icon">
-                <DocumentOutline />
-              </n-icon>
-              Natural Language
-            </div>
-            <div
-              class="type-pill"
-              :class="{ active: activeSearchType === 'tags' }"
-              @click="setSearchType('tags')"
-            >
-              <n-icon size="16" class="type-icon">
-                <TagOutlined />
-              </n-icon>
-              Tags
-            </div>
-            <div
-              class="type-pill"
-              :class="{ active: activeSearchType === 'topological' }"
-              @click="setSearchType('topological')"
-            >
-              <n-icon size="16" class="type-icon">
-                <MapOutline />
-              </n-icon>
-              Spatial
-            </div>
+            <n-tooltip trigger="hover" placement="top">
+              <template #trigger>
+                <div
+                  class="type-pill"
+                  :class="{ active: activeSearchType === 'semantic' }"
+                  @click="setSearchType('semantic')"
+                >
+                  <n-icon size="14" class="type-icon">
+                    <DocumentOutline />
+                  </n-icon>
+                  Natural Language
+                </div>
+              </template>
+              Search using natural language descriptions like "sunset beach
+              photos with people"
+            </n-tooltip>
+            <n-tooltip trigger="hover" placement="top">
+              <template #trigger>
+                <div
+                  class="type-pill"
+                  :class="{ active: activeSearchType === 'tags' }"
+                  @click="setSearchType('tags')"
+                >
+                  <n-icon size="16" class="type-icon">
+                    <TagOutlined />
+                  </n-icon>
+                  Tags
+                </div>
+              </template>
+              Search by specific tags and keywords assigned to your photos
+            </n-tooltip>
+            <n-tooltip trigger="hover" placement="top">
+              <template #trigger>
+                <div
+                  class="type-pill"
+                  :class="{ active: activeSearchType === 'topological' }"
+                  @click="setSearchType('topological')"
+                >
+                  <n-icon size="16" class="type-icon">
+                    <MapOutline />
+                  </n-icon>
+                  Spatial
+                </div>
+              </template>
+              Search based on spatial arrangement of objects in your photos
+              (left, center, right)
+            </n-tooltip>
           </div>
         </div>
 
@@ -45,36 +62,55 @@
         <div class="selector-group">
           <div class="selector-label">Search Mode:</div>
           <div class="mode-pills">
-            <div
-              class="mode-pill"
-              :class="{ active: searchMode === 'logical' }"
-              @click="searchMode = 'logical'"
-            >
-              <n-icon size="14" class="mode-icon">
-                <CheckOutlined />
-              </n-icon>
-              Strict
-            </div>
-            <div
-              class="mode-pill"
-              :class="{ active: searchMode === 'flexible' }"
-              @click="searchMode = 'flexible'"
-            >
-              <n-icon size="16" class="mode-icon">
-                <PencilOutline />
-              </n-icon>
-              Flexible
-            </div>
-            <div
-              class="mode-pill"
-              :class="{ active: searchMode === 'low_precision' }"
-              @click="searchMode = 'low_precision'"
-            >
-              <n-icon size="16" class="mode-icon">
-                <PencilOutline />
-              </n-icon>
-              Fast
-            </div>
+            <n-tooltip trigger="hover" placement="top">
+              <template #trigger>
+                <div
+                  class="mode-pill premium-pill"
+                  :class="{ active: searchMode === 'logical' }"
+                  @click="searchMode = 'logical'"
+                >
+                  <n-icon size="14" class="mode-icon">
+                    <CheckOutlined />
+                  </n-icon>
+                  Strict
+                  <div class="premium-indicator-pill"></div>
+                </div>
+              </template>
+              High precision search with exact matching criteria (Premium
+              feature)
+            </n-tooltip>
+            <n-tooltip trigger="hover" placement="top">
+              <template #trigger>
+                <div
+                  class="mode-pill premium-pill"
+                  :class="{ active: searchMode === 'flexible' }"
+                  @click="searchMode = 'flexible'"
+                >
+                  <n-icon size="16" class="mode-icon">
+                    <PencilOutline />
+                  </n-icon>
+                  Flexible
+                  <div class="premium-indicator-pill"></div>
+                </div>
+              </template>
+              Adaptive search that finds similar and related content (Premium
+              feature)
+            </n-tooltip>
+            <n-tooltip trigger="hover" placement="top">
+              <template #trigger>
+                <div
+                  class="mode-pill"
+                  :class="{ active: searchMode === 'low_precision' }"
+                  @click="searchMode = 'low_precision'"
+                >
+                  <n-icon size="16" class="mode-icon">
+                    <PencilOutline />
+                  </n-icon>
+                  Fast
+                </div>
+              </template>
+              Quick search with basic matching for faster results
+            </n-tooltip>
           </div>
         </div>
       </div>
@@ -97,6 +133,53 @@
               @input="onSearchChange"
               :key="`semantic-${activeSearchType}`"
             />
+            <!-- Usage Limit Warning Badge -->
+            <div
+              v-if="
+                userStore.usageLimits.search.exceeded &&
+                !userStore.usageLimits.search.dismissed
+              "
+              class="usage-limit-warning"
+            >
+              <div class="warning-badge">
+                <n-icon size="14" class="warning-icon">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M1 21h22L12 2L1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
+                    />
+                  </svg>
+                </n-icon>
+                <span class="warning-text">Usage limit exceeded</span>
+                <n-tooltip trigger="hover" placement="top">
+                  <template #trigger>
+                    <n-icon size="12" class="info-icon">
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                        />
+                      </svg>
+                    </n-icon>
+                  </template>
+                  Performance is now reduced for Strict and Flexible modes. Fast
+                  mode is not restricted.
+                </n-tooltip>
+                <button
+                  @click="userStore.dismissUsageWarning('search')"
+                  class="close-badge-btn"
+                >
+                  <n-icon size="12">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+                      />
+                    </svg>
+                  </n-icon>
+                </button>
+              </div>
+            </div>
             <div class="search-actions-inline">
               <n-button
                 type="primary"
@@ -192,6 +275,53 @@
                 >
               </div>
             </div>
+            <!-- Usage Limit Warning Badge -->
+            <div
+              v-if="
+                userStore.usageLimits.search.exceeded &&
+                !userStore.usageLimits.search.dismissed
+              "
+              class="usage-limit-warning"
+            >
+              <div class="warning-badge">
+                <n-icon size="14" class="warning-icon">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M1 21h22L12 2L1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
+                    />
+                  </svg>
+                </n-icon>
+                <span class="warning-text">Usage limit exceeded</span>
+                <n-tooltip trigger="hover" placement="top">
+                  <template #trigger>
+                    <n-icon size="12" class="info-icon">
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                        />
+                      </svg>
+                    </n-icon>
+                  </template>
+                  Performance is now reduced for Strict and Flexible modes. Fast
+                  mode is not restricted.
+                </n-tooltip>
+                <button
+                  @click="userStore.dismissUsageWarning('search')"
+                  class="close-badge-btn"
+                >
+                  <n-icon size="12">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+                      />
+                    </svg>
+                  </n-icon>
+                </button>
+              </div>
+            </div>
             <div class="search-actions-inline">
               <n-button
                 type="primary"
@@ -273,6 +403,53 @@
                   @input="onSearchChange"
                   :key="`topological-right-${activeSearchType}`"
                 />
+              </div>
+            </div>
+            <!-- Usage Limit Warning Badge -->
+            <div
+              v-if="
+                userStore.usageLimits.search.exceeded &&
+                !userStore.usageLimits.search.dismissed
+              "
+              class="usage-limit-warning"
+            >
+              <div class="warning-badge">
+                <n-icon size="14" class="warning-icon">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M1 21h22L12 2L1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
+                    />
+                  </svg>
+                </n-icon>
+                <span class="warning-text">Usage limit exceeded</span>
+                <n-tooltip trigger="hover" placement="top">
+                  <template #trigger>
+                    <n-icon size="12" class="info-icon">
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                        />
+                      </svg>
+                    </n-icon>
+                  </template>
+                  Performance is now reduced for Strict and Flexible modes. Fast
+                  mode is not restricted.
+                </n-tooltip>
+                <button
+                  @click="userStore.dismissUsageWarning('search')"
+                  class="close-badge-btn"
+                >
+                  <n-icon size="12">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+                      />
+                    </svg>
+                  </n-icon>
+                </button>
               </div>
             </div>
             <div class="search-actions-inline">
@@ -494,6 +671,7 @@ import {
 } from "vue";
 import axios from "axios";
 import { io } from "socket.io-client";
+import { NTooltip } from "naive-ui";
 
 // Componentes e íconos
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
@@ -505,6 +683,7 @@ import { DocumentOutline, MapOutline, PencilOutline } from "@vicons/ionicons5";
 import { CheckOutlined, TagOutlined } from "@vicons/antd";
 import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas.js";
+import { useUserStore } from "@/stores/userStore";
 import { useRouter } from "vue-router";
 
 // Conexión real-time para resultados incrementales
@@ -512,6 +691,7 @@ const socket = io(import.meta.env.VITE_API_WS_URL);
 
 const photoStore = usePhotosStore();
 const canvasStore = useCanvasStore();
+const userStore = useUserStore();
 const router = useRouter();
 
 // Estado del toolbar colapsable
@@ -566,14 +746,14 @@ const includedTagSuggestionsFormatted = computed(() =>
   includedTagSuggestions.value.map((tagName) => ({
     label: tagName,
     value: tagName,
-  }))
+  })),
 );
 
 const excludedTagSuggestionsFormatted = computed(() =>
   excludedTagSuggestions.value.map((tagName) => ({
     label: tagName,
     value: tagName,
-  }))
+  })),
 );
 
 const tagIncSelect = ref(null);
@@ -672,7 +852,7 @@ function clearSelection() {
 }
 async function moveToCanvas() {
   await Promise.all(
-    photoStore.selectedPhotoIds.map((id) => photoStore.fetchPhoto(id))
+    photoStore.selectedPhotoIds.map((id) => photoStore.fetchPhoto(id)),
   );
   const photosToAdd = photoStore.selectedPhotoIds
     .map((id) => photoStore.photos.find((p) => p.id == id))
@@ -757,7 +937,7 @@ async function searchPhotos() {
       `${import.meta.env.VITE_API_BASE_URL}/api/search/${
         activeSearchType.value
       }`,
-      payload
+      payload,
     );
   } catch (err) {
     console.error("Error al buscar fotos:", err);
@@ -772,7 +952,7 @@ async function ensureWarmUp() {
   }, 5000);
 
   const { data } = await axios.get(
-    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`
+    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`,
   );
   warmedUp.value = data.result;
 
@@ -983,6 +1163,11 @@ onUnmounted(() => {
   flex-shrink: 0;
   justify-content: center;
   overflow: visible;
+  position: relative;
+}
+
+.mode-pill.premium-pill {
+  padding-right: 20px;
 }
 
 .mode-pill:hover {
@@ -998,6 +1183,77 @@ onUnmounted(() => {
 
 .mode-icon {
   flex-shrink: 0;
+}
+
+.premium-indicator-pill {
+  position: absolute;
+  top: -4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  transform: rotate(45deg);
+  box-shadow: 0 0 4px rgba(245, 158, 11, 0.4);
+  border: 1px solid #18181c;
+}
+
+/* Usage Limit Warning Badge */
+.usage-limit-warning {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.warning-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: rgba(245, 158, 11, 0.1);
+  border: 1px solid #f59e0b;
+  border-radius: 20px;
+  color: #f59e0b;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.warning-icon {
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.warning-text {
+  color: #f59e0b;
+  white-space: nowrap;
+}
+
+.info-icon {
+  color: #f59e0b;
+  opacity: 0.8;
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.close-badge-btn {
+  background: none;
+  border: none;
+  color: #f59e0b;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.close-badge-btn:hover {
+  opacity: 1;
+  background-color: rgba(245, 158, 11, 0.1);
+  transform: scale(1.1);
 }
 
 .search-content {
