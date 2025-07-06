@@ -280,6 +280,7 @@
           :selected="selectedPhotosRecord[photo.id]"
           @select="togglePhotoSelection"
           @delete="deletePhoto"
+          @show-duplicates="showDuplicates"
           :show-footer="true"
           :is-uploading="isUploading"
         />
