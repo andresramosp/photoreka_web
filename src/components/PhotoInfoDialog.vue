@@ -141,7 +141,9 @@
               <div class="existing-tags" v-if="photoTags.length > 0">
                 <div class="tags-list">
                   <n-tag
-                    v-for="tag in photoTags"
+                    v-for="tag in photoTags.filter(
+                      (tag) => tag.group !== 'misc'
+                    )"
                     :key="tag.id || tag.name"
                     closable
                     @close="removeTag(tag)"
