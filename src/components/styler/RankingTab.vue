@@ -251,7 +251,7 @@ defineExpose({
 .ranking-content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 }
 
 .ranking-header {
