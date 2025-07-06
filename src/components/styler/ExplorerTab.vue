@@ -181,7 +181,7 @@ defineExpose({
 .explorer-content {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 .explorer-header {
