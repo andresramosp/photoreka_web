@@ -15,6 +15,9 @@ export const useUserStore = defineStore("user", () => {
   const user = ref<User | null>(null);
   const isLoading = ref(false);
 
+  // Mock usage limits state
+  const usageLimitExceeded = ref(true); // Set to true for testing
+
   // Check for existing token on store initialization
   const initAuth = () => {
     const savedToken = localStorage.getItem("frameka_token");
@@ -33,7 +36,7 @@ export const useUserStore = defineStore("user", () => {
 
   const login = async (
     email: string,
-    password: string
+    password: string,
   ): Promise<{ success: boolean; error?: string }> => {
     isLoading.value = true;
 
@@ -76,7 +79,7 @@ export const useUserStore = defineStore("user", () => {
   const register = async (
     email: string,
     password: string,
-    name: string
+    name: string,
   ): Promise<{ success: boolean; error?: string }> => {
     isLoading.value = true;
 
@@ -120,7 +123,7 @@ export const useUserStore = defineStore("user", () => {
   };
 
   const loginWithProvider = async (
-    provider: "google" | "facebook"
+    provider: "google" | "facebook",
   ): Promise<{ success: boolean; error?: string }> => {
     isLoading.value = true;
 
