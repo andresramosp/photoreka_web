@@ -129,6 +129,56 @@ const aestheticAspects = [
     label: "Atmosphere",
     description: "Mood, ambiance, emotional tone, weather effects",
   },
+  {
+    key: "contrast",
+    label: "Contrast",
+    description: "Light vs dark, high contrast, dramatic shadows",
+  },
+  {
+    key: "patterns",
+    label: "Patterns",
+    description: "Repetitive elements, geometric patterns, natural rhythms",
+  },
+  {
+    key: "scale",
+    label: "Scale & Proportion",
+    description: "Size relationships, macro details, vast landscapes",
+  },
+  {
+    key: "geometry",
+    label: "Geometric Forms",
+    description: "Architectural lines, geometric shapes, structural elements",
+  },
+  {
+    key: "organic",
+    label: "Organic Shapes",
+    description: "Natural curves, flowing forms, irregular patterns",
+  },
+  {
+    key: "isolation",
+    label: "Isolation",
+    description: "Single subjects, empty spaces, focal isolation",
+  },
+  {
+    key: "layers",
+    label: "Layering",
+    description: "Multiple planes, depth layers, foreground-background",
+  },
+  {
+    key: "framing",
+    label: "Natural Framing",
+    description: "Environmental frames, doorways, windows, branches",
+  },
+  {
+    key: "transparency",
+    label: "Transparency",
+    description: "See-through materials, glass, water, overlays",
+  },
+  {
+    key: "saturation",
+    label: "Color Saturation",
+    description: "Vibrant colors, muted tones, desaturated aesthetics",
+  },
 ];
 
 // Selected aesthetic aspects
