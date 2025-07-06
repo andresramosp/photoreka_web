@@ -134,31 +134,7 @@
 
     <template #action>
       <div class="dialog-actions">
-        <n-button @click="close">Cancel</n-button>
-        <n-button
-          type="warning"
-          :disabled="duplicatePhotos.length === 0"
-          @click="handleDeleteWorseVersions"
-        >
-          <template #icon>
-            <n-icon>
-              <CleanIcon />
-            </n-icon>
-          </template>
-          Delete Worse Versions
-        </n-button>
-        <n-button
-          type="error"
-          :disabled="selectedPhotoIds.length === 0"
-          @click="handleDeleteSelected"
-        >
-          <template #icon>
-            <n-icon>
-              <DeleteIcon />
-            </n-icon>
-          </template>
-          Delete Selected ({{ selectedPhotoIds.length }})
-        </n-button>
+        <n-button @click="close">Close</n-button>
       </div>
     </template>
   </n-modal>
