@@ -15,8 +15,19 @@ export const useUserStore = defineStore("user", () => {
   const user = ref<User | null>(null);
   const isLoading = ref(false);
 
-  // Mock usage limits state
-  const usageLimitExceeded = ref(true); // Set to true for testing
+  // Mock usage limits state by section
+  const usageLimits = ref({
+    search: {
+      exceeded: true,
+      permanent: false, // Can be closed by user
+      dismissed: false, // Whether user dismissed the badge
+    },
+    curation: {
+      exceeded: true,
+      permanent: true, // Cannot be closed, requires credits
+      dismissed: false, // Not used when permanent is true
+    },
+  });
 
   // Check for existing token on store initialization
   const initAuth = () => {
