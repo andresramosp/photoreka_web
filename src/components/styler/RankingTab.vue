@@ -303,19 +303,19 @@ defineExpose({
 }
 
 .sliders-container {
-  margin: 16px 0;
+  margin: 8px 0;
 }
 
 .sliders-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
 }
 
 .slider-item {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .slider-header {
