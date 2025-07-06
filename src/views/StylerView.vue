@@ -198,7 +198,9 @@ import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas.js";
 import { useRouter } from "vue-router";
 
-const socket = io(import.meta.env.VITE_API_WS_URL);
+const socket = import.meta.env.VITE_API_WS_URL
+  ? io(import.meta.env.VITE_API_WS_URL)
+  : null;
 
 const photoStore = usePhotosStore();
 const canvasStore = useCanvasStore();
