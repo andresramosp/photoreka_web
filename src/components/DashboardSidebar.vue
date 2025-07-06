@@ -221,6 +221,7 @@ import {
   SearchOutline as SearchIcon,
   BrushOutline as CanvasIcon,
   ImagesOutline as CurationIcon,
+  ColorPaletteOutline as StylerIcon,
   AppsOutline as GridIcon,
   SettingsOutline as SettingsIcon,
   HelpCircleOutline as HelpIcon,
@@ -269,7 +270,7 @@ const firstSectionOptions = computed(() => [
                   "position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 6px #22c55e; animation: pulse 2s infinite;",
               })
             : null,
-        ]
+        ],
       ),
   },
 ]);
