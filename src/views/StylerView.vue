@@ -431,8 +431,8 @@ onUnmounted(() => {
   background-color: transparent;
   gap: 8px;
   justify-content: center;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--border-color);
 }
 
