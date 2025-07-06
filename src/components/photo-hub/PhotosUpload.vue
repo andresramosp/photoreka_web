@@ -466,6 +466,11 @@ const deletePhoto = async (photoId) => {
   // photosStore.checkDuplicates(photo.duplicates); // solo si lanzamos uno inicial
 };
 
+const showDuplicates = (duplicates) => {
+  selectedDuplicates.value = duplicates;
+  showDuplicatesDialog.value = true;
+};
+
 const togglePhotoSelection = (photoId) => {
   photosStore.togglePhotoSelection(photoId);
 };
