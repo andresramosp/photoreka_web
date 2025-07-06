@@ -2,11 +2,9 @@
   <div class="explorer-tab">
     <div class="explorer-content">
       <div class="explorer-header">
-        <h3 class="explorer-title">Style Explorer</h3>
-        <p class="explorer-subtitle">
-          Select aesthetic characteristics to find photos with those specific
-          qualities
-        </p>
+        <span class="header-text"
+          >Select aesthetic characteristics to explore</span
+        >
       </div>
 
       <div class="pills-container">
