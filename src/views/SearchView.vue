@@ -1042,6 +1042,18 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
+.premium-indicator-pill {
+  position: absolute;
+  top: -4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(245, 158, 11, 0.4);
+  border: 1px solid #18181c;
+}
+
 .search-content {
   padding-top: 12px;
 }
