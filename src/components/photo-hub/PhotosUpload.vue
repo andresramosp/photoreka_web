@@ -315,6 +315,8 @@ const isUploading = ref(false);
 const gridColumns = ref(8);
 const fileInput = ref(null);
 const filterDuplicates = ref(false);
+const showDuplicatesDialog = ref(false);
+const selectedDuplicates = ref([]);
 
 const uploadedCount = ref(0);
 const totalFiles = ref(0);
