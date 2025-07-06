@@ -542,6 +542,7 @@ import { DocumentOutline, MapOutline, PencilOutline } from "@vicons/ionicons5";
 import { CheckOutlined, TagOutlined } from "@vicons/antd";
 import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas.js";
+import { useUserStore } from "@/stores/userStore";
 import { useRouter } from "vue-router";
 
 // Conexión real-time para resultados incrementales
