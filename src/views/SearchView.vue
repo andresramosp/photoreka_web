@@ -530,6 +530,7 @@ import {
 } from "vue";
 import axios from "axios";
 import { io } from "socket.io-client";
+import { NTooltip } from "naive-ui";
 
 // Componentes e íconos
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
