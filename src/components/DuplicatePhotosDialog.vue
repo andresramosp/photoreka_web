@@ -27,6 +27,7 @@
         </div>
         <div class="actions-right">
           <n-button
+            v-if="showDeleteButton"
             type="warning"
             size="small"
             :disabled="duplicatePhotos.length === 0"
@@ -37,7 +38,7 @@
                 <CleanIcon />
               </n-icon>
             </template>
-            Delete Worse Versions
+            {{ deleteButtonText }}
           </n-button>
           <n-button
             type="error"
