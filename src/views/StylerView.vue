@@ -368,18 +368,20 @@ onMounted(() => {
     }
   });
 
-  socket.on("styleMatches", (data) => {
-    Object.entries(data.results).forEach(([iter, items]) => {
-      iterationsRecord[iter] = {
-        photos: items.map((i) => i.photo),
-      };
+  if (socket) {
+    socket.on("styleMatches", (data) => {
+      Object.entries(data.results).forEach(([iter, items]) => {
+        iterationsRecord[iter] = {
+          photos: items.map((i) => i.photo),
+        };
+      });
+      hasMoreIterations.value = data.hasMore;
+      iteration.value = data.iteration + 1;
+      setTimeout(() => {
+        scrollToLast();
+      }, 0);
     });
-    hasMoreIterations.value = data.hasMore;
-    iteration.value = data.iteration + 1;
-    setTimeout(() => {
-      scrollToLast();
-    }, 0);
-  });
+  }
 });
 
 onUnmounted(() => {
