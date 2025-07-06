@@ -467,7 +467,7 @@ onUnmounted(() => {
 
 /* Tab Content Container */
 .tab-content-container {
-  min-height: 120px;
+  min-height: 80px;
 }
 
 /* Search Results Container */
