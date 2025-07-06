@@ -87,6 +87,21 @@
               </n-button>
             </div>
 
+            <!-- Processing status indicator -->
+            <div
+              v-if="photo.analyzerProcessId == null"
+              class="processing-status-indicator not-processed"
+            >
+              <n-icon size="16">
+                <WarningIcon />
+              </n-icon>
+            </div>
+            <div v-else class="processing-status-indicator processed">
+              <n-icon size="16">
+                <ProcessedIcon />
+              </n-icon>
+            </div>
+
             <!-- Selection indicator -->
             <div
               v-if="selectedPhotoIds.includes(photo.id)"
