@@ -28,15 +28,6 @@
         </n-tag>
       </div>
 
-      <div class="explorer-info" v-if="selectedAspects.length > 0">
-        <span class="selected-count"
-          >{{ selectedAspects.length }} characteristic{{
-            selectedAspects.length > 1 ? "s" : ""
-          }}
-          selected</span
-        >
-      </div>
-
       <div class="explorer-actions">
         <n-button
           type="primary"
