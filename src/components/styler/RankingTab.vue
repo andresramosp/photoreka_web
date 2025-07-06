@@ -328,36 +328,25 @@ defineExpose({
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .slider-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  color: #ffffffd1;
+  color: var(--text-primary);
 }
 
 .slider-value {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: #2563eb;
-  min-width: 30px;
+  color: var(--primary-color);
+  min-width: 25px;
   text-align: right;
-}
-
-.slider-container {
-  margin: 8px 0;
 }
 
 .aesthetic-slider {
   width: 100%;
-}
-
-.slider-description {
-  font-size: 12px;
-  color: #ffffff73;
-  margin: 0;
-  line-height: 1.3;
 }
 
 .ranking-actions {
