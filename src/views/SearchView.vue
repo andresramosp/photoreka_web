@@ -62,36 +62,55 @@
         <div class="selector-group">
           <div class="selector-label">Search Mode:</div>
           <div class="mode-pills">
-            <div
-              class="mode-pill"
-              :class="{ active: searchMode === 'logical' }"
-              @click="searchMode = 'logical'"
-            >
-              <n-icon size="14" class="mode-icon">
-                <CheckOutlined />
-              </n-icon>
-              Strict
-            </div>
-            <div
-              class="mode-pill"
-              :class="{ active: searchMode === 'flexible' }"
-              @click="searchMode = 'flexible'"
-            >
-              <n-icon size="16" class="mode-icon">
-                <PencilOutline />
-              </n-icon>
-              Flexible
-            </div>
-            <div
-              class="mode-pill"
-              :class="{ active: searchMode === 'low_precision' }"
-              @click="searchMode = 'low_precision'"
-            >
-              <n-icon size="16" class="mode-icon">
-                <PencilOutline />
-              </n-icon>
-              Fast
-            </div>
+            <n-tooltip trigger="hover" placement="top">
+              <template #trigger>
+                <div
+                  class="mode-pill premium-pill"
+                  :class="{ active: searchMode === 'logical' }"
+                  @click="searchMode = 'logical'"
+                >
+                  <n-icon size="14" class="mode-icon">
+                    <CheckOutlined />
+                  </n-icon>
+                  Strict
+                  <div class="premium-indicator-pill"></div>
+                </div>
+              </template>
+              High precision search with exact matching criteria (Premium
+              feature)
+            </n-tooltip>
+            <n-tooltip trigger="hover" placement="top">
+              <template #trigger>
+                <div
+                  class="mode-pill premium-pill"
+                  :class="{ active: searchMode === 'flexible' }"
+                  @click="searchMode = 'flexible'"
+                >
+                  <n-icon size="16" class="mode-icon">
+                    <PencilOutline />
+                  </n-icon>
+                  Flexible
+                  <div class="premium-indicator-pill"></div>
+                </div>
+              </template>
+              Adaptive search that finds similar and related content (Premium
+              feature)
+            </n-tooltip>
+            <n-tooltip trigger="hover" placement="top">
+              <template #trigger>
+                <div
+                  class="mode-pill"
+                  :class="{ active: searchMode === 'low_precision' }"
+                  @click="searchMode = 'low_precision'"
+                >
+                  <n-icon size="16" class="mode-icon">
+                    <PencilOutline />
+                  </n-icon>
+                  Fast
+                </div>
+              </template>
+              Quick search with basic matching for faster results
+            </n-tooltip>
           </div>
         </div>
       </div>
