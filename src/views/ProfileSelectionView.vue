@@ -4,7 +4,7 @@
       <div class="profile-header">
         <h1 class="profile-title">What is your preferred style?</h1>
         <p class="profile-subtitle">
-          Help us customize your FrameSaga experience
+          Help us customize your Frameka experience
         </p>
       </div>
 
@@ -298,14 +298,14 @@ const completeProfile = () => {
   console.log("Selected Tags:", selectedTags.value);
 
   message.success(
-    "Profile preferences saved! Now let's set up your storage and plan.",
+    "Profile preferences saved! Now let's set up your storage and plan."
   );
   router.push("/storage-plan-setup");
 };
 
 const skipProfile = () => {
   message.info(
-    "Profile setup skipped. Now let's set up your storage and plan.",
+    "Profile setup skipped. Now let's set up your storage and plan."
   );
   router.push("/storage-plan-setup");
 };

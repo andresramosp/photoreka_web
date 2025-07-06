@@ -44,7 +44,7 @@
               </svg>
             </n-icon>
           </div>
-          <h3 class="dropzone-title">Your upload storage is empty</h3>
+          <h3 class="dropzone-title">Your upload stash is empty</h3>
           <p class="dropzone-subtitle">
             Drag and drop your images, or click to browse
           </p>

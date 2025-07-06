@@ -34,7 +34,7 @@
           :class="{ active: activeTab === 'upload' }"
           @click="setActiveTab('upload')"
         >
-          Upload
+          Upload Stash
         </button>
         <button
           class="tab-button"
@@ -48,7 +48,7 @@
           :class="{ active: activeTab === 'catalog' }"
           @click="setActiveTab('catalog')"
         >
-          Catalog
+          Photos Catalog
         </button>
       </div>
 

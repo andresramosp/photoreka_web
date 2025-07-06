@@ -1,11 +1,11 @@
 <template>
-  <div class="framesaga-logo" :class="{ 'logo-large': size === 'large' }">
+  <div class="frameka-logo" :class="{ 'logo-large': size === 'large' }">
     <div class="logo-icon">
       <n-icon :size="iconSize" color="#2563eb">
         <CameraOutline />
       </n-icon>
     </div>
-    <span class="logo-text" v-if="showText">FrameSaga</span>
+    <span class="logo-text" v-if="showText">Frameka</span>
   </div>
 </template>
 
@@ -36,14 +36,14 @@ export default {
 </script>
 
 <style scoped>
-.framesaga-logo {
+.frameka-logo {
   display: flex;
   align-items: center;
   gap: 12px;
   color: #2563eb;
 }
 
-.framesaga-logo.logo-large {
+.frameka-logo.logo-large {
   gap: 16px;
 }
 
@@ -60,8 +60,8 @@ export default {
   font-weight: 700;
   letter-spacing: -0.025em;
   color: #ffffffd1;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    sans-serif;
 }
 
 .logo-large .logo-text {
@@ -69,7 +69,7 @@ export default {
 }
 
 /* Animation for the camera icon */
-.framesaga-logo:hover .logo-icon {
+.frameka-logo:hover .logo-icon {
   transform: scale(1.05);
 }
 

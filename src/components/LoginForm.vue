@@ -1,6 +1,6 @@
 <template>
   <div class="login-form">
-    <div class="form-header">Access your FrameSaga account</div>
+    <div class="form-header">Access your Frameka account</div>
 
     <AuthProviders mode="login" />
 

@@ -4,7 +4,7 @@
       <div class="auth-content">
         <div class="auth-header">
           <AppLogo size="large" />
-          <p class="auth-subtitle">Your photo management platform</p>
+          <p class="auth-subtitle">Your photo discovery lab</p>
         </div>
 
         <div class="auth-form-container">
@@ -12,7 +12,7 @@
         </div>
 
         <div class="auth-footer">
-          <p class="footer-text">© 2024 FrameSaga. All rights reserved.</p>
+          <p class="footer-text">© 2024 Frameka. All rights reserved.</p>
         </div>
       </div>
     </div>
