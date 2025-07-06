@@ -183,10 +183,42 @@ defineExpose({
   margin-bottom: 12px;
 }
 
+.header-inline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
 .header-text {
   font-size: 14px;
   color: var(--text-secondary);
   font-weight: 500;
+}
+
+.selected-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.selected-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.selected-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary-color);
+  min-width: 20px;
+  text-align: center;
 }
 
 .pills-container {
