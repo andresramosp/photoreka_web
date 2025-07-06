@@ -263,13 +263,13 @@ defineExpose({
 .ranking-title {
   font-size: 18px;
   font-weight: 600;
-  color: #ffffffd1;
+  color: var(--text-primary);
   margin: 0 0 8px 0;
 }
 
 .ranking-subtitle {
   font-size: 14px;
-  color: #ffffff73;
+  color: var(--text-secondary);
   margin: 0 0 16px 0;
   line-height: 1.4;
 }
