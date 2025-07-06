@@ -175,6 +175,12 @@ export const useUserStore = defineStore("user", () => {
     localStorage.removeItem("frameka_token");
   };
 
+  const dismissUsageWarning = (section: "search" | "curation") => {
+    if (!usageLimits.value[section].permanent) {
+      usageLimits.value[section].dismissed = true;
+    }
+  };
+
   // Initialize auth state
   initAuth();
 
