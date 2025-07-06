@@ -286,10 +286,10 @@ const createIconWithPremium = (IconComponent, color, isPremium = false) => {
       },
       [
         h(NIcon, { color }, { default: () => h(IconComponent) }),
-        // Premium indicator
+        // Premium indicator (diamond shape)
         isPremium
           ? h("div", {
-              class: "premium-indicator",
+              class: "premium-indicator-diamond",
               style: `
                 position: absolute;
                 top: -4px;
@@ -297,7 +297,7 @@ const createIconWithPremium = (IconComponent, color, isPremium = false) => {
                 width: 8px;
                 height: 8px;
                 background: linear-gradient(135deg, #f59e0b, #d97706);
-                border-radius: 50%;
+                transform: rotate(45deg);
                 box-shadow: 0 0 4px rgba(245, 158, 11, 0.4);
                 border: 1px solid #16161a;
               `,
