@@ -21,17 +21,17 @@
         </div>
       </div>
 
-      <div class="sliders-grid">
-        <div
-          v-for="aspect in aestheticAspects"
-          :key="aspect.key"
-          class="slider-item"
-        >
-          <div class="slider-header">
-            <label class="slider-label">{{ aspect.label }}</label>
-            <span class="slider-value">{{ values[aspect.key] }}</span>
-          </div>
-          <div class="slider-container">
+      <div class="sliders-container">
+        <div class="sliders-grid">
+          <div
+            v-for="aspect in aestheticAspects"
+            :key="aspect.key"
+            class="slider-item"
+          >
+            <div class="slider-header">
+              <label class="slider-label">{{ aspect.label }}</label>
+              <span class="slider-value">{{ values[aspect.key] }}</span>
+            </div>
             <n-slider
               v-model:value="values[aspect.key]"
               :min="0"
@@ -42,7 +42,6 @@
               class="aesthetic-slider"
             />
           </div>
-          <p class="slider-description">{{ aspect.description }}</p>
         </div>
       </div>
 
