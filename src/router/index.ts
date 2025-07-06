@@ -95,6 +95,14 @@ const router = createRouter({
       },
     },
     {
+      path: "/styler",
+      name: "styler",
+      component: StylerView,
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
       path: "/grid-maker",
       name: "grid-maker",
       component: GridMaker,
