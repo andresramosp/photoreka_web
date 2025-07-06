@@ -172,6 +172,7 @@ export const useUserStore = defineStore("user", () => {
     token,
     user,
     isLoading,
+    usageLimitExceeded,
     login,
     register,
     loginWithProvider,
