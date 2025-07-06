@@ -213,14 +213,6 @@ const togglePhotoSelection = (photoId) => {
   }
 };
 
-const handleSelectAll = () => {
-  if (allSelected.value) {
-    selectedPhotoIds.value = [];
-  } else {
-    selectedPhotoIds.value = duplicatePhotos.value.map((photo) => photo.id);
-  }
-};
-
 // Action handlers
 const deletePhoto = async (photoId) => {
   try {
