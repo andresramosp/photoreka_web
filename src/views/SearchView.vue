@@ -76,8 +76,7 @@
                   <div class="premium-indicator-pill"></div>
                 </div>
               </template>
-              High precision search with exact matching criteria (Premium
-              feature)
+              High precision search that prioritizes logical accuracy
             </n-tooltip>
             <n-tooltip trigger="hover" placement="top">
               <template #trigger>
@@ -89,12 +88,11 @@
                   <n-icon size="16" class="mode-icon">
                     <PencilOutline />
                   </n-icon>
-                  Flexible
+                  Figurative
                   <div class="premium-indicator-pill"></div>
                 </div>
               </template>
-              Adaptive search that finds similar and related content (Premium
-              feature)
+              Adaptive search that finds similar and indirect associations
             </n-tooltip>
             <n-tooltip trigger="hover" placement="top">
               <template #trigger>
