@@ -183,22 +183,13 @@ defineExpose({
 }
 
 .explorer-header {
-  text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
-.explorer-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 8px 0;
-}
-
-.explorer-subtitle {
+.header-text {
   font-size: 14px;
   color: var(--text-secondary);
-  margin: 0;
-  line-height: 1.4;
+  font-weight: 500;
 }
 
 .pills-container {
