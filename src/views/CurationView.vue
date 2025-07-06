@@ -299,6 +299,7 @@
 import { ref, computed } from "vue";
 import PhotoCard from "../components/photoCards/PhotoCard.vue";
 import { useUserStore } from "@/stores/userStore";
+import { NTooltip } from "naive-ui";
 
 // Photo interface with curation-specific properties
 interface CurationPhoto {
