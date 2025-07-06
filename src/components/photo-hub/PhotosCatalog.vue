@@ -263,6 +263,11 @@ const deletePhoto = async (photoId) => {
   // photosStore.checkDuplicates(photo.duplicates); // solo si lanzamos uno inicial
 };
 
+const showDuplicates = (duplicates) => {
+  selectedDuplicates.value = duplicates;
+  showDuplicatesDialog.value = true;
+};
+
 // Grid columns function
 const setGridColumns = (columns) => {
   gridColumns.value = columns;
