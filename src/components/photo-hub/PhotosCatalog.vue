@@ -214,6 +214,7 @@ import { usePhotosStore } from "@/stores/photos.js";
 import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoInfoDialog from "../PhotoInfoDialog.vue";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
+import DuplicatePhotosDialog from "../DuplicatePhotosDialog.vue";
 
 const emit = defineEmits(["navigate-to-tab"]);
 
