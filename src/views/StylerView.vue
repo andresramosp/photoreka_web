@@ -422,7 +422,7 @@ onUnmounted(() => {
 .styler-tabs {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 /* Tab Navigation */
