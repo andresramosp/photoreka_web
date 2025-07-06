@@ -237,24 +237,6 @@ defineExpose({
   transition: all 0.2s ease;
 }
 
-.explorer-info {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 8px 16px;
-  background-color: rgba(37, 99, 235, 0.1);
-  border: 1px solid rgba(37, 99, 235, 0.2);
-  border-radius: 20px;
-  max-width: 300px;
-  margin: 0 auto;
-}
-
-.selected-count {
-  font-size: 13px;
-  color: #2563eb;
-  font-weight: 500;
-}
-
 .explorer-actions {
   display: flex;
   gap: 12px;
