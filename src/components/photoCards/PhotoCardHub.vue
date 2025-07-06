@@ -132,6 +132,7 @@ interface PhotoInfo {
   uploadDate?: Date;
   date?: string;
   isDuplicate?: boolean;
+  duplicates?: string[];
   status?: "uploaded" | "processing" | "processed";
   aiTags?: number;
   faces?: number;
