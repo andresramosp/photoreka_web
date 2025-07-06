@@ -253,35 +253,31 @@ defineExpose({
 }
 
 .ranking-header {
-  text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
-.ranking-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0 0 8px 0;
+.header-inline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
 }
 
-.ranking-subtitle {
+.header-text {
   font-size: 14px;
   color: var(--text-secondary);
-  margin: 0 0 16px 0;
-  line-height: 1.4;
+  font-weight: 500;
 }
 
 .points-indicator {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 8px 16px;
+  gap: 6px;
+  padding: 4px 12px;
   background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 20px;
-  border: 1px solid #2c2c32;
-  max-width: 200px;
-  margin: 0 auto;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .points-text {
