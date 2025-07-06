@@ -1,5 +1,9 @@
 <template>
   <div class="tab-content">
+    <DuplicatePhotosDialog
+      v-model="showDuplicatesDialog"
+      :duplicates="selectedDuplicates"
+    />
     <div
       v-if="isUploading && !isCheckingDuplicates"
       class="upload-progress-section"
@@ -363,9 +367,9 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) uploadedPhotos.push(photo);
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
 
     isUploading.value = false;
@@ -406,7 +410,7 @@ async function processAndUploadFile(file) {
         fileType: resizedBlob.type,
         originalName: file.name,
       }),
-    }
+    },
   );
 
   if (!res.ok) throw new Error("Error obteniendo URLs firmadas");
