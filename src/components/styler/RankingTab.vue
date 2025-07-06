@@ -87,7 +87,8 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, watch } from "vue";
+import { NSlider, NButton, NIcon } from "naive-ui";
+import { computed, reactive } from "vue";
 
 const emit = defineEmits(["search", "clear"]);
 
@@ -195,7 +196,7 @@ const handleSearch = () => {
   const searchParams = {
     type: "ranking",
     criteria: Object.fromEntries(
-      Object.entries(values).filter(([_, value]) => value > 0),
+      Object.entries(values).filter(([_, value]) => value > 0)
     ),
   };
 
