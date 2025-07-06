@@ -2,22 +2,20 @@
   <div class="ranking-tab">
     <div class="ranking-content">
       <div class="ranking-header">
-        <h3 class="ranking-title">Aesthetic Ranking Criteria</h3>
-        <p class="ranking-subtitle">
-          Distribute 100 points across aesthetic aspects to define your ranking
-          criteria
-        </p>
-        <div class="points-indicator">
-          <span class="points-text">Remaining Points:</span>
-          <span
-            class="points-value"
-            :class="{
-              warning: remainingPoints < 0,
-              success: remainingPoints === 0,
-            }"
-          >
-            {{ remainingPoints }}
-          </span>
+        <div class="header-inline">
+          <span class="header-text">Distribute 100 points across aspects</span>
+          <div class="points-indicator">
+            <span class="points-text">Remaining:</span>
+            <span
+              class="points-value"
+              :class="{
+                warning: remainingPoints < 0,
+                success: remainingPoints === 0,
+              }"
+            >
+              {{ remainingPoints }}
+            </span>
+          </div>
         </div>
       </div>
 
