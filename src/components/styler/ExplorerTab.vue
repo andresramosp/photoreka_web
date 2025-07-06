@@ -207,7 +207,7 @@ defineExpose({
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 12px 0;
+  margin: 8px 0;
   justify-content: center;
 }
 
