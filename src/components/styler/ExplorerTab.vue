@@ -292,13 +292,13 @@ defineExpose({
     padding: 6px 10px;
   }
 
-  .explorer-info {
-    max-width: 250px;
-    padding: 6px 12px;
+  .selected-indicator {
+    padding: 3px 8px;
   }
 
+  .selected-text,
   .selected-count {
-    font-size: 12px;
+    font-size: 11px;
   }
 }
 </style>
