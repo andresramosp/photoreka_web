@@ -1149,6 +1149,43 @@ onUnmounted(() => {
   border: 1px solid #18181c;
 }
 
+/* Usage Limit Warning Badge */
+.usage-limit-warning {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.warning-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: rgba(245, 158, 11, 0.1);
+  border: 1px solid #f59e0b;
+  border-radius: 20px;
+  color: #f59e0b;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.warning-icon {
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.warning-text {
+  color: #f59e0b;
+  white-space: nowrap;
+}
+
+.info-icon {
+  color: #f59e0b;
+  opacity: 0.8;
+  cursor: help;
+  flex-shrink: 0;
+}
+
 .search-content {
   padding-top: 12px;
 }
