@@ -371,12 +371,8 @@ defineExpose({
 /* Responsive Design */
 @media (max-width: 768px) {
   .sliders-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .slider-item {
-    padding: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
   }
 
   .ranking-actions {
@@ -417,19 +413,16 @@ defineExpose({
     font-size: 13px;
   }
 
-  .slider-item {
-    padding: 10px;
+  .sliders-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .slider-label {
-    font-size: 13px;
-  }
-
-  .slider-value {
     font-size: 12px;
   }
 
-  .slider-description {
+  .slider-value {
     font-size: 11px;
   }
 }
