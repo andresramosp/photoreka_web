@@ -200,6 +200,7 @@
             @info="showPhotoInfo"
             @delete="deletePhoto"
             @select="togglePhotoSelection"
+            @show-duplicates="showDuplicates"
           />
         </div>
       </div>
