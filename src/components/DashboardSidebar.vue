@@ -275,6 +275,38 @@ const firstSectionOptions = computed(() => [
   },
 ]);
 
+// Function to create icon with premium indicator
+const createIconWithPremium = (IconComponent, color, isPremium = false) => {
+  return () =>
+    h(
+      "div",
+      {
+        style:
+          "position: relative; display: flex; align-items: center; justify-content: center;",
+      },
+      [
+        h(NIcon, { color }, { default: () => h(IconComponent) }),
+        // Premium indicator
+        isPremium
+          ? h("div", {
+              class: "premium-indicator",
+              style: `
+                position: absolute;
+                top: -4px;
+                right: -4px;
+                width: 8px;
+                height: 8px;
+                background: linear-gradient(135deg, #f59e0b, #d97706);
+                border-radius: 50%;
+                box-shadow: 0 0 4px rgba(245, 158, 11, 0.4);
+                border: 1px solid #16161a;
+              `,
+            })
+          : null,
+      ],
+    );
+};
+
 // Second section: Search, Canvas, Curation
 const secondSectionOptions = computed(() => [
   {
@@ -286,7 +318,7 @@ const secondSectionOptions = computed(() => [
           title: "Add photos to your catalog",
         }
       : {},
-    icon: () => h(NIcon, null, { default: () => h(SearchIcon) }),
+    icon: createIconWithPremium(SearchIcon, "#06b6d4"), // Info color for search functionality
   },
   {
     label: "Canvas",
@@ -297,7 +329,7 @@ const secondSectionOptions = computed(() => [
           title: "Add photos to your catalog",
         }
       : {},
-    icon: () => h(NIcon, null, { default: () => h(CanvasIcon) }),
+    icon: createIconWithPremium(CanvasIcon, "#8b5cf6"), // Secondary color for creative tools
   },
   {
     label: "Grids",
@@ -308,7 +340,7 @@ const secondSectionOptions = computed(() => [
           title: "Add photos to your catalog",
         }
       : {},
-    icon: () => h(NIcon, null, { default: () => h(GridIcon) }),
+    icon: createIconWithPremium(GridIcon, "#22c55e"), // Success color for layout/organization
   },
   {
     label: "Curation",
@@ -319,7 +351,7 @@ const secondSectionOptions = computed(() => [
           title: "Add photos to your catalog",
         }
       : {},
-    icon: () => h(NIcon, null, { default: () => h(CurationIcon) }),
+    icon: createIconWithPremium(CurationIcon, "#f59e0b", true), // Warning color for curation + premium
   },
   {
     label: "Styler",
@@ -330,7 +362,7 @@ const secondSectionOptions = computed(() => [
           title: "Add photos to your catalog",
         }
       : {},
-    icon: () => h(NIcon, null, { default: () => h(StylerIcon) }),
+    icon: createIconWithPremium(StylerIcon, "#ef4444"), // Error color for advanced styling
   },
 ]);
 
