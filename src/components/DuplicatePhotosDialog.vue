@@ -26,8 +26,31 @@
           </span>
         </div>
         <div class="actions-right">
-          <n-button type="default" size="small" @click="handleSelectAll">
-            {{ allSelected ? "Deselect All" : "Select All" }}
+          <n-button
+            type="warning"
+            size="small"
+            :disabled="duplicatePhotos.length === 0"
+            @click="handleDeleteWorseVersions"
+          >
+            <template #icon>
+              <n-icon>
+                <CleanIcon />
+              </n-icon>
+            </template>
+            Delete Worse Versions
+          </n-button>
+          <n-button
+            type="error"
+            size="small"
+            :disabled="selectedPhotoIds.length === 0"
+            @click="handleDeleteSelected"
+          >
+            <template #icon>
+              <n-icon>
+                <DeleteIcon />
+              </n-icon>
+            </template>
+            Delete Selected ({{ selectedPhotoIds.length }})
           </n-button>
         </div>
       </div>
