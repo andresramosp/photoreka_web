@@ -51,13 +51,13 @@
       <!-- Duplicate indicator -->
       <n-tooltip v-if="photo.isDuplicate" trigger="hover" placement="top">
         <template #trigger>
-          <div class="duplicate-indicator">
+          <div class="duplicate-indicator" @click.stop="showDuplicates">
             <n-icon size="16">
               <WarningIcon />
             </n-icon>
           </div>
         </template>
-        Duplicate photo
+        Click to view duplicates
       </n-tooltip>
 
       <!-- Checking duplicates overlay with spinner -->
