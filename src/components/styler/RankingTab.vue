@@ -308,27 +308,20 @@ defineExpose({
   color: #10b981;
 }
 
+.sliders-container {
+  margin: 16px 0;
+}
+
 .sliders-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  margin: 16px 0;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
 }
 
 .slider-item {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 16px;
-  background-color: rgba(255, 255, 255, 0.02);
-  border: 1px solid #2c2c32;
-  border-radius: 12px;
-  transition: all 0.2s ease;
-}
-
-.slider-item:hover {
-  border-color: #3c3c42;
-  background-color: rgba(255, 255, 255, 0.04);
 }
 
 .slider-header {
