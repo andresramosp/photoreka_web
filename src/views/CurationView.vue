@@ -12,7 +12,10 @@
           @input="onSearchChange"
         />
         <!-- Usage Limit Warning Badge -->
-        <div v-if="userStore.usageLimitExceeded" class="usage-limit-warning">
+        <div
+          v-if="userStore.usageLimits.curation.exceeded"
+          class="usage-limit-warning"
+        >
           <div class="warning-badge">
             <n-icon size="14" class="warning-icon">
               <svg viewBox="0 0 24 24">
