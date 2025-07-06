@@ -2,9 +2,15 @@
   <div class="explorer-tab">
     <div class="explorer-content">
       <div class="explorer-header">
-        <span class="header-text"
-          >Select aesthetic characteristics to explore</span
-        >
+        <div class="header-inline">
+          <span class="header-text"
+            >Select aesthetic characteristics to explore</span
+          >
+          <div v-if="selectedAspects.length > 0" class="selected-indicator">
+            <span class="selected-text">Selected:</span>
+            <span class="selected-count">{{ selectedAspects.length }}</span>
+          </div>
+        </div>
       </div>
 
       <div class="pills-container">
