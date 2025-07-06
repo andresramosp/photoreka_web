@@ -1,5 +1,9 @@
 <template>
   <div class="tab-content">
+    <DuplicatePhotosDialog
+      v-model="showDuplicatesDialog"
+      :duplicates="selectedDuplicates"
+    />
     <div
       v-if="isUploading && !isCheckingDuplicates"
       class="upload-progress-section"
@@ -276,6 +280,7 @@
           :selected="selectedPhotosRecord[photo.id]"
           @select="togglePhotoSelection"
           @delete="deletePhoto"
+          @show-duplicates="showDuplicates"
           :show-footer="true"
           :is-uploading="isUploading"
         />
@@ -301,6 +306,7 @@ import pLimit from "p-limit";
 import pica from "pica";
 import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
+import DuplicatePhotosDialog from "../DuplicatePhotosDialog.vue";
 
 const emit = defineEmits(["on-analyze"]);
 
@@ -310,6 +316,8 @@ const isUploading = ref(false);
 const gridColumns = ref(8);
 const fileInput = ref(null);
 const filterDuplicates = ref(false);
+const showDuplicatesDialog = ref(false);
+const selectedDuplicates = ref([]);
 
 const uploadedCount = ref(0);
 const totalFiles = ref(0);
@@ -363,9 +371,9 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) uploadedPhotos.push(photo);
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
 
     isUploading.value = false;
@@ -406,7 +414,7 @@ async function processAndUploadFile(file) {
         fileType: resizedBlob.type,
         originalName: file.name,
       }),
-    }
+    },
   );
 
   if (!res.ok) throw new Error("Error obteniendo URLs firmadas");
@@ -457,6 +465,11 @@ function loadImage(file) {
 const deletePhoto = async (photoId) => {
   await photosStore.deletePhotos([photoId]);
   // photosStore.checkDuplicates(photo.duplicates); // solo si lanzamos uno inicial
+};
+
+const showDuplicates = (duplicates) => {
+  selectedDuplicates.value = duplicates;
+  showDuplicatesDialog.value = true;
 };
 
 const togglePhotoSelection = (photoId) => {

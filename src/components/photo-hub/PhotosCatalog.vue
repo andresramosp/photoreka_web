@@ -4,6 +4,10 @@
       v-model="showPhotoInfoDialog"
       :selected-photo="selectedDialogPhoto"
     />
+    <DuplicatePhotosDialog
+      v-model="showDuplicatesDialog"
+      :duplicates="selectedDuplicates"
+    />
 
     <!-- Empty State (when no photos) -->
     <div v-if="catalogPhotos.length == 0" class="empty-state-section">
@@ -196,6 +200,7 @@
             @info="showPhotoInfo"
             @delete="deletePhoto"
             @select="togglePhotoSelection"
+            @show-duplicates="showDuplicates"
           />
         </div>
       </div>
@@ -210,6 +215,7 @@ import { usePhotosStore } from "@/stores/photos.js";
 import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoInfoDialog from "../PhotoInfoDialog.vue";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
+import DuplicatePhotosDialog from "../DuplicatePhotosDialog.vue";
 
 const emit = defineEmits(["navigate-to-tab"]);
 
@@ -221,6 +227,8 @@ const gridColumns = ref(8);
 const showPhotoInfoDialog = ref(false);
 const selectedDialogPhoto = ref();
 const filterDuplicates = ref(false);
+const showDuplicatesDialog = ref(false);
+const selectedDuplicates = ref([]);
 
 // Static catalog photos for demonstration
 const catalogPhotos = computed(() => photosStore.catalogPhotos);
@@ -254,6 +262,11 @@ const showPhotoInfo = async (photo) => {
 const deletePhoto = async (photoId) => {
   await photosStore.deletePhotos([photoId]);
   // photosStore.checkDuplicates(photo.duplicates); // solo si lanzamos uno inicial
+};
+
+const showDuplicates = (duplicates) => {
+  selectedDuplicates.value = duplicates;
+  showDuplicatesDialog.value = true;
 };
 
 // Grid columns function

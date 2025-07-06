@@ -51,13 +51,13 @@
       <!-- Duplicate indicator -->
       <n-tooltip v-if="photo.isDuplicate" trigger="hover" placement="top">
         <template #trigger>
-          <div class="duplicate-indicator">
+          <div class="duplicate-indicator" @click.stop="showDuplicates">
             <n-icon size="16">
               <WarningIcon />
             </n-icon>
           </div>
         </template>
-        Duplicate photo
+        Click to view duplicates
       </n-tooltip>
 
       <!-- Checking duplicates overlay with spinner -->
@@ -132,6 +132,7 @@ interface PhotoInfo {
   uploadDate?: Date;
   date?: string;
   isDuplicate?: boolean;
+  duplicates?: string[];
   status?: "uploaded" | "processing" | "processed";
   aiTags?: number;
   faces?: number;
@@ -152,6 +153,7 @@ interface Emits {
   (e: "select", photoId: string): void;
   (e: "info", photo: PhotoInfo): void;
   (e: "delete", photoId: string): void;
+  (e: "show-duplicates", duplicates: string[]): void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -174,6 +176,14 @@ const showInfo = () => {
 
 const deletePhoto = () => {
   emit("delete", props.photo.id);
+};
+
+const showDuplicates = () => {
+  if (props.photo.duplicates && props.photo.duplicates.length > 0) {
+    // Include the current photo plus its duplicates
+    const allDuplicates = [props.photo.id, ...props.photo.duplicates];
+    emit("show-duplicates", allDuplicates);
+  }
 };
 
 const onImageLoad = () => {
