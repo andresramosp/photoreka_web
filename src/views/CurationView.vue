@@ -284,6 +284,9 @@ interface CurationPhoto {
   height?: number;
 }
 
+// Stores
+const userStore = useUserStore();
+
 // State
 const searchQuery = ref("");
 const isSearching = ref(false);
