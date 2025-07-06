@@ -196,6 +196,44 @@ const allSelected = computed(() => {
   );
 });
 
+// Processing status computeds
+const processedPhotos = computed(() => {
+  return duplicatePhotos.value.filter(
+    (photo) => photo.analyzerProcessId != null,
+  );
+});
+
+const nonProcessedPhotos = computed(() => {
+  return duplicatePhotos.value.filter(
+    (photo) => photo.analyzerProcessId == null,
+  );
+});
+
+const hasMixedProcessingStatus = computed(() => {
+  return (
+    processedPhotos.value.length > 0 && nonProcessedPhotos.value.length > 0
+  );
+});
+
+const allNonProcessed = computed(() => {
+  return (
+    duplicatePhotos.value.length > 0 &&
+    nonProcessedPhotos.value.length === duplicatePhotos.value.length
+  );
+});
+
+// Button text and visibility
+const deleteButtonText = computed(() => {
+  if (hasMixedProcessingStatus.value) {
+    return "Delete Non-processed";
+  }
+  return "Delete Worse Versions";
+});
+
+const showDeleteButton = computed(() => {
+  return !allNonProcessed.value;
+});
+
 // Helper functions
 const formatFileSize = (bytes) => {
   if (!bytes || bytes === 0) return "Unknown";
