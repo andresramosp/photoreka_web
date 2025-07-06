@@ -5,8 +5,43 @@
       :selected-photo="selectedDialogPhoto"
     />
 
-    <div class="catalog-section">
-      <!-- Static Example Photos -->
+    <!-- Empty State (when no photos) -->
+    <div v-if="catalogPhotos.length === 0" class="empty-state-section">
+      <div class="empty-state-container">
+        <div class="empty-state-content">
+          <div class="empty-state-icon">
+            <n-icon size="48" color="#8b5cf6">
+              <BookInformation20Regular />
+            </n-icon>
+          </div>
+          <h3 class="empty-state-title">Your catalog is empty</h3>
+          <p class="empty-state-description">
+            To add photos, follow these steps:
+          </p>
+          <div class="empty-state-steps">
+            <ol class="steps-list">
+              <li>
+                Go to
+                <button class="tab-link" @click="navigateToTab('upload')">
+                  Upload Stash
+                </button>
+              </li>
+              <li>Upload and review your photos</li>
+              <li>
+                Click Analyze, you can follow the process evolution in the
+                <button class="tab-link" @click="navigateToTab('processing')">
+                  Processing
+                </button>
+                tab
+              </li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Catalog with Photos -->
+    <div v-else class="catalog-section">
       <div class="catalog-photos">
         <!-- Catalog Title -->
         <div class="photo-hub-header">
@@ -167,6 +202,8 @@ import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoInfoDialog from "../PhotoInfoDialog.vue";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 
+const emit = defineEmits(["navigate-to-tab"]);
+
 const photosStore = usePhotosStore();
 
 // Grid columns state
@@ -242,6 +279,11 @@ const handleDeleteMultiple = () => {
 const handleAddToCollection = () => {
   console.log("Add to collection action for photos:", selectedPhotoIds.value);
   // TODO: Implement add to collection functionality
+};
+
+// Navigation function for empty state
+const navigateToTab = (tabName) => {
+  emit("navigate-to-tab", tabName);
 };
 </script>
 
@@ -389,5 +431,79 @@ const handleAddToCollection = () => {
   .photo-grid-base.grid-cols-8 {
     grid-template-columns: 1fr;
   }
+}
+
+/* Empty State Styles */
+.empty-state-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 500px;
+  padding: 64px 32px;
+}
+
+.empty-state-container {
+  border: 2px dashed #2c2c32;
+  border-radius: 16px;
+  padding: 64px 32px;
+  text-align: center;
+  background-color: #1a1a1f;
+  transition: all 0.3s ease;
+  max-width: 500px;
+  width: 100%;
+}
+
+.empty-state-content {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.empty-state-icon {
+  margin-bottom: 24px;
+}
+
+.empty-state-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #ffffffd1;
+  margin: 0 0 8px 0;
+}
+
+.empty-state-description {
+  font-size: 16px;
+  color: #ffffff73;
+  margin: 0 0 32px 0;
+}
+
+.empty-state-steps {
+  display: flex;
+  justify-content: center;
+}
+
+.steps-list {
+  font-size: 14px;
+  color: #ffffff73;
+  line-height: 1.6;
+  padding-left: 20px;
+  text-align: left;
+}
+
+.steps-list li {
+  margin-bottom: 8px;
+}
+
+.tab-link {
+  background: none;
+  border: none;
+  color: #8b5cf6;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  padding: 0;
+}
+
+.tab-link:hover {
+  color: #a78bfa;
 }
 </style>
