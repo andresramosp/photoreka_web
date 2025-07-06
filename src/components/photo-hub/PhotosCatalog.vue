@@ -6,7 +6,16 @@
     />
 
     <!-- Empty State (when no photos) -->
-    <div v-if="catalogPhotos.length === 0" class="empty-state-section">
+    <div v-if="true" class="empty-state-section">
+      <div class="photo-hub-header">
+        <n-icon :color="`var(--warning-color)`" size="18">
+          <BookInformation20Regular />
+        </n-icon>
+        <h3 class="photo-hub-title">
+          Here's your catalog with all the photos processed and ready to be used
+          in the tools. You can edit and delete them.
+        </h3>
+      </div>
       <div class="empty-state-container">
         <div class="empty-state-content">
           <div class="empty-state-icon">
@@ -436,10 +445,10 @@ const navigateToTab = (tabName) => {
 /* Empty State Styles */
 .empty-state-section {
   display: flex;
-  align-items: center;
   justify-content: center;
   min-height: 500px;
-  padding: 64px 32px;
+  /* padding: 64px 32px; */
+  flex-direction: column;
 }
 
 .empty-state-container {
@@ -449,8 +458,6 @@ const navigateToTab = (tabName) => {
   text-align: center;
   background-color: #1a1a1f;
   transition: all 0.3s ease;
-  max-width: 500px;
-  width: 100%;
 }
 
 .empty-state-content {
@@ -472,7 +479,7 @@ const navigateToTab = (tabName) => {
 .empty-state-description {
   font-size: 16px;
   color: #ffffff73;
-  margin: 0 0 32px 0;
+  margin: 0 0 16px 0;
 }
 
 .empty-state-steps {
