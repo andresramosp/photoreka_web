@@ -9,32 +9,19 @@
         </p>
       </div>
 
-      <div class="pills-grid">
-        <div
+      <div class="pills-container">
+        <n-tag
           v-for="aspect in aestheticAspects"
           :key="aspect.key"
-          class="pill-item"
-          :class="{ selected: selectedAspects.includes(aspect.key) }"
-          @click="toggleAspect(aspect.key)"
+          :type="selectedAspects.includes(aspect.key) ? 'primary' : 'default'"
+          :bordered="false"
+          checkable
+          :checked="selectedAspects.includes(aspect.key)"
+          @update:checked="() => toggleAspect(aspect.key)"
+          class="style-pill"
         >
-          <div class="pill-header">
-            <span class="pill-label">{{ aspect.label }}</span>
-            <div
-              class="pill-indicator"
-              v-if="selectedAspects.includes(aspect.key)"
-            >
-              <n-icon size="14">
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
-                  />
-                </svg>
-              </n-icon>
-            </div>
-          </div>
-          <p class="pill-description">{{ aspect.description }}</p>
-        </div>
+          {{ aspect.label }}
+        </n-tag>
       </div>
 
       <div class="explorer-info" v-if="selectedAspects.length > 0">
