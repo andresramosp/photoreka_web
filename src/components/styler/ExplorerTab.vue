@@ -195,15 +195,15 @@ defineExpose({
 .pills-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 8px 0;
+  gap: 6px;
+  margin: 6px 0;
   justify-content: center;
 }
 
 .style-pill {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  padding: 8px 14px;
+  padding: 6px 12px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
