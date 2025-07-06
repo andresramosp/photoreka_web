@@ -221,6 +221,7 @@ import {
   SearchOutline as SearchIcon,
   BrushOutline as CanvasIcon,
   ImagesOutline as CurationIcon,
+  ColorPaletteOutline as StylerIcon,
   AppsOutline as GridIcon,
   SettingsOutline as SettingsIcon,
   HelpCircleOutline as HelpIcon,
@@ -269,7 +270,7 @@ const firstSectionOptions = computed(() => [
                   "position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 6px #22c55e; animation: pulse 2s infinite;",
               })
             : null,
-        ]
+        ],
       ),
   },
 ]);
@@ -319,6 +320,17 @@ const secondSectionOptions = computed(() => [
         }
       : {},
     icon: () => h(NIcon, null, { default: () => h(CurationIcon) }),
+  },
+  {
+    label: "Styler",
+    key: "styler",
+    disabled: !canUseApp.value,
+    props: !canUseApp.value
+      ? {
+          title: "Add photos to your catalog",
+        }
+      : {},
+    icon: () => h(NIcon, null, { default: () => h(StylerIcon) }),
   },
 ]);
 
