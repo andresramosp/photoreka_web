@@ -341,6 +341,29 @@ defineExpose({
 
 .aesthetic-slider {
   width: 100%;
+  height: 16px;
+  margin: 4px 0;
+}
+
+:deep(.n-slider) {
+  height: 16px;
+}
+
+:deep(.n-slider-rail) {
+  height: 4px;
+  background-color: var(--border-color);
+}
+
+:deep(.n-slider-fill) {
+  height: 4px;
+  background-color: var(--primary-color);
+}
+
+:deep(.n-slider-handle) {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--primary-color);
+  background-color: #ffffff;
 }
 
 .ranking-actions {
