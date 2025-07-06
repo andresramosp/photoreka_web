@@ -1020,6 +1020,11 @@ onUnmounted(() => {
   flex-shrink: 0;
   justify-content: center;
   overflow: visible;
+  position: relative;
+}
+
+.mode-pill.premium-pill {
+  padding-right: 20px;
 }
 
 .mode-pill:hover {
