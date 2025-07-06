@@ -441,9 +441,9 @@ onUnmounted(() => {
   max-width: 200px;
   padding: 12px 24px;
   background-color: transparent;
-  border: 1px solid #2c2c32;
+  border: 1px solid var(--border-color);
   border-radius: 20px;
-  color: #ffffff73;
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -452,14 +452,14 @@ onUnmounted(() => {
 }
 
 .tab-button:hover {
-  border-color: #2563eb;
-  color: #ffffffd1;
+  border-color: var(--primary-color);
+  color: var(--text-primary);
   transform: translateY(-1px);
 }
 
 .tab-button.active {
-  background-color: #2563eb;
-  border-color: #2563eb;
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
   color: #ffffff;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
