@@ -151,6 +151,8 @@ import {
   ImageOutline as ImageIcon,
   CheckmarkCircleOutline as CheckCircleIcon,
   SparklesOutline as CleanIcon,
+  WarningOutline as WarningIcon,
+  CheckmarkDoneOutline as ProcessedIcon,
 } from "@vicons/ionicons5";
 
 const props = defineProps({
