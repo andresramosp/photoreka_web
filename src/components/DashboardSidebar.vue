@@ -321,6 +321,17 @@ const secondSectionOptions = computed(() => [
       : {},
     icon: () => h(NIcon, null, { default: () => h(CurationIcon) }),
   },
+  {
+    label: "Styler",
+    key: "styler",
+    disabled: !canUseApp.value,
+    props: !canUseApp.value
+      ? {
+          title: "Add photos to your catalog",
+        }
+      : {},
+    icon: () => h(NIcon, null, { default: () => h(StylerIcon) }),
+  },
 ]);
 
 // Third section: Settings, Help (always enabled)
