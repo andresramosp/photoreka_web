@@ -4,6 +4,10 @@
       v-model="showPhotoInfoDialog"
       :selected-photo="selectedDialogPhoto"
     />
+    <DuplicatePhotosDialog
+      v-model="showDuplicatesDialog"
+      :duplicates="selectedDuplicates"
+    />
 
     <!-- Empty State (when no photos) -->
     <div v-if="catalogPhotos.length == 0" class="empty-state-section">
