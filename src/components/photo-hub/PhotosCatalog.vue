@@ -6,7 +6,7 @@
     />
 
     <!-- Empty State (when no photos) -->
-    <div v-if="true" class="empty-state-section">
+    <div v-if="catalogPhotos.length == 0" class="empty-state-section">
       <div class="photo-hub-header">
         <n-icon :color="`var(--warning-color)`" size="18">
           <BookInformation20Regular />
