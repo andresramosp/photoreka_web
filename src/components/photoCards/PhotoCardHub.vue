@@ -152,6 +152,7 @@ interface Emits {
   (e: "select", photoId: string): void;
   (e: "info", photo: PhotoInfo): void;
   (e: "delete", photoId: string): void;
+  (e: "show-duplicates", duplicates: string[]): void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
