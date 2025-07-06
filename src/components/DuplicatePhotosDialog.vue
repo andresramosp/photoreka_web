@@ -298,9 +298,26 @@ const handleDeleteSelected = async () => {
   }
 };
 
-const handleDeleteWorseVersions = () => {
-  // TODO: Implement delete worse versions functionality
-  message.info("Delete worse versions functionality will be implemented soon");
+const handleDeleteWorseVersions = async () => {
+  if (hasMixedProcessingStatus.value) {
+    // Delete non-processed photos
+    const nonProcessedIds = nonProcessedPhotos.value.map((photo) => photo.id);
+    try {
+      await photosStore.deletePhotos(nonProcessedIds);
+      // Remove from selected if they were selected
+      selectedPhotoIds.value = selectedPhotoIds.value.filter(
+        (id) => !nonProcessedIds.includes(id),
+      );
+      message.success("Non-processed photos deleted successfully");
+    } catch (error) {
+      message.error("Failed to delete non-processed photos");
+    }
+  } else {
+    // TODO: Implement delete worse versions functionality
+    message.info(
+      "Delete worse versions functionality will be implemented soon",
+    );
+  }
 };
 
 const close = () => {
