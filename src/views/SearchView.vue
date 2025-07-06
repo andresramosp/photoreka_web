@@ -375,7 +375,10 @@
             </div>
             <!-- Usage Limit Warning Badge -->
             <div
-              v-if="userStore.usageLimitExceeded"
+              v-if="
+                userStore.usageLimits.search.exceeded &&
+                !userStore.usageLimits.search.dismissed
+              "
               class="usage-limit-warning"
             >
               <div class="warning-badge">
@@ -402,6 +405,19 @@
                   Performance is now reduced for Strict and Flexible modes. Fast
                   mode is not restricted.
                 </n-tooltip>
+                <button
+                  @click="userStore.dismissUsageWarning('search')"
+                  class="close-badge-btn"
+                >
+                  <n-icon size="12">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
+                      />
+                    </svg>
+                  </n-icon>
+                </button>
               </div>
             </div>
             <div class="search-actions-inline">
