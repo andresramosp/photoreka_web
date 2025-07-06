@@ -28,26 +28,28 @@
             </n-icon>
           </div>
           <h3 class="empty-state-title">Your catalog is empty</h3>
-          <p class="empty-state-description">
+          <!-- <p class="empty-state-description">
             To add photos, follow these steps:
-          </p>
+          </p> -->
           <div class="empty-state-steps">
-            <ol class="steps-list">
-              <li>
-                Go to
-                <button class="tab-link" @click="navigateToTab('upload')">
-                  Upload Stash
-                </button>
-              </li>
-              <li>Upload and review your photos</li>
-              <li>
-                Click Analyze, you can follow the process evolution in the
-                <button class="tab-link" @click="navigateToTab('processing')">
-                  Processing
-                </button>
-                tab
-              </li>
-            </ol>
+            <div class="step-item">
+              1. Go to
+              <button class="tab-link" @click="navigateToTab('upload')">
+                Upload Stash
+              </button>
+            </div>
+            <div class="step-item">2. Upload (and review) your photos</div>
+            <div class="step-item">
+              3. Click Analyze and follow the process evolution in the
+              <button class="tab-link" @click="navigateToTab('processing')">
+                Processing
+              </button>
+              tab
+            </div>
+            <div class="step-item">
+              4. Repeat this process whenever you want to add photos to your
+              catalog
+            </div>
           </div>
         </div>
       </div>
@@ -474,7 +476,7 @@ const navigateToTab = (tabName) => {
 }
 
 .empty-state-content {
-  max-width: 400px;
+  max-width: 550px;
   margin: 0 auto;
 }
 
@@ -491,7 +493,7 @@ const navigateToTab = (tabName) => {
 
 .empty-state-description {
   font-size: 16px;
-  color: #ffffff73;
+  color: #ffffffd1;
   margin: 0 0 16px 0;
 }
 
@@ -525,5 +527,18 @@ const navigateToTab = (tabName) => {
 
 .tab-link:hover {
   color: #a78bfa;
+}
+
+.empty-state-steps {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.step-item {
+  text-align: center;
+  color: #ffffff73;
 }
 </style>
