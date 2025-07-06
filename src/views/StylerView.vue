@@ -433,7 +433,7 @@ onUnmounted(() => {
   justify-content: center;
   margin-bottom: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #2c2c32;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .tab-button {
