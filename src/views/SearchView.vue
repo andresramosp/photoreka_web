@@ -550,6 +550,7 @@ const socket = io(import.meta.env.VITE_API_WS_URL);
 
 const photoStore = usePhotosStore();
 const canvasStore = useCanvasStore();
+const userStore = useUserStore();
 const router = useRouter();
 
 // Estado del toolbar colapsable
