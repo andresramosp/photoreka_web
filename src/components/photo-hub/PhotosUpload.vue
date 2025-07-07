@@ -382,6 +382,11 @@ const selectedDuplicates = ref([]);
 const uploadedCount = ref(0);
 const totalFiles = ref(0);
 
+// Fast mode and analyze confirmation dialog
+const fastMode = ref(false);
+const showAnalyzeDialog = ref(false);
+const dontShowAgain = ref(false);
+
 const uploadedPhotos = computed(() => photosStore.uploadedPhotos);
 
 const filteredPhotos = computed(() => {
