@@ -431,6 +431,72 @@ function handlePhotosAdded(photos) {
   console.log("Photos added to sync:", photos);
 }
 
+// Search functionality
+let searchTimeout = null;
+
+function onSearchChange() {
+  // Clear any existing timeout
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+  }
+
+  // If search is empty, show all photos
+  if (!searchQuery.value.trim()) {
+    clearSearch();
+    return;
+  }
+
+  // Debounce search to avoid too many API calls
+  searchTimeout = setTimeout(async () => {
+    await performSearch();
+  }, 500);
+}
+
+async function performSearch() {
+  if (!searchQuery.value.trim()) {
+    clearSearch();
+    return;
+  }
+
+  isSearching.value = true;
+  searchResults.value = [];
+
+  try {
+    const payload = {
+      description: searchQuery.value.trim(),
+      options: {
+        iteration: 1,
+        pageSize: 50, // Get more results for dialog
+        searchMode: "low_precision",
+      },
+    };
+
+    await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/api/search/semantic`,
+      payload,
+    );
+
+    // Results will be handled by socket listener or we can handle response directly
+    // For now, let's handle response directly if no socket is set up for this dialog
+  } catch (error) {
+    console.error("Error searching photos:", error);
+    // On error, show all photos
+    searchResults.value = [...allCatalogPhotos.value];
+  } finally {
+    isSearching.value = false;
+  }
+}
+
+function clearSearch() {
+  searchQuery.value = "";
+  searchResults.value = [];
+  isSearching.value = false;
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+    searchTimeout = null;
+  }
+}
+
 // Watch for dialog open/close to fetch photos
 watch(
   () => props.modelValue,
