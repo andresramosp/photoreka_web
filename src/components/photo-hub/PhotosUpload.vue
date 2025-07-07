@@ -429,6 +429,31 @@ const triggerFileInput = () => {
   if (!isUploading.value) fileInput.value?.click();
 };
 
+// Handle analyze confirmation dialog
+const showAnalyzeConfirmation = () => {
+  // Check if "don't show again" was previously selected for fast mode
+  if (fastMode.value) {
+    const skipDialog = localStorage.getItem("skipFastModeDialog") === "true";
+    if (skipDialog) {
+      emit("on-analyze");
+      return;
+    }
+  }
+
+  showAnalyzeDialog.value = true;
+  dontShowAgain.value = false;
+};
+
+const handleStartAnalysis = () => {
+  // Save "don't show again" preference for fast mode
+  if (fastMode.value && dontShowAgain.value) {
+    localStorage.setItem("skipFastModeDialog", "true");
+  }
+
+  showAnalyzeDialog.value = false;
+  emit("on-analyze");
+};
+
 async function uploadLocalFiles(event) {
   const selectedLocalFiles = Array.from(event.target.files);
   if (selectedLocalFiles.length === 0) return;
