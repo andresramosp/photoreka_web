@@ -434,26 +434,6 @@ const toggleSelection = (photoId) => {
   text-align: center;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .grid-controls-base {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .controls-left,
-  .controls-right {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .action-buttons {
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-}
-
 /* Scrollbar styling for photos grid */
 .photos-grid {
   scrollbar-width: thin;
