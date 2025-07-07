@@ -45,6 +45,9 @@
             </div>
           </div>
         </div>
+
+        <!-- Floating Add Photos Button -->
+        <FloatingAddPhotosButton />
       </template>
     </n-message-provider>
   </n-config-provider>
@@ -57,6 +60,7 @@ import { darkTheme } from "naive-ui";
 import { useUserStore } from "./stores/userStore";
 import DashboardSidebar from "./components/DashboardSidebar.vue";
 import DashboardHeader from "./components/DashboardHeader.vue";
+import FloatingAddPhotosButton from "./components/FloatingAddPhotosButton.vue";
 import { usePhotosStore } from "@/stores/photos.js";
 
 const photosStore = usePhotosStore();
@@ -154,9 +158,9 @@ onUnmounted(() => {
 <style>
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #101014;
