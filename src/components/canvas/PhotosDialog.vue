@@ -321,6 +321,17 @@ const photos = computed(() => {
   }
 });
 
+// Total selected count across all tabs
+const totalSelectedCount = computed(() => {
+  if (props.isTrash) {
+    return selectedIds.value.length;
+  } else {
+    return activeTab.value === "catalog"
+      ? selectedIds.value.length
+      : syncSelectedIds.value.length;
+  }
+});
+
 // Selection methods
 function toggleSelection(photoId) {
   if (props.singleSelection) {
