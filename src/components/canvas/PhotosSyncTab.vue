@@ -96,81 +96,19 @@
 
     <!-- Uploaded Photos -->
     <div v-if="syncPhotos.length > 0" class="uploaded-photos-section">
-      <div class="grid-controls grid-controls-base">
-        <div class="controls-left">
-          <div class="results-info results-info-base">
-            <span class="results-count results-count-base">
-              {{ filteredPhotos.length }}
-              photos
-            </span>
-          </div>
-          <!-- Action buttons (show when photos are selected) -->
-          <div v-if="selectedIds.length > 0" class="action-buttons">
-            <n-button
-              type="error"
-              size="small"
-              @click="handleDeleteMultiple"
-              :disabled="selectedIds.length === 0"
-            >
-              <template #icon>
-                <n-icon>
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3H9M7 6h10v13H7V6Z"
-                    />
-                  </svg>
-                </n-icon>
-              </template>
-              Delete ({{ selectedIds.length }})
-            </n-button>
-          </div>
-        </div>
-
-        <div class="controls-right">
-          <div class="grid-size-controls grid-size-controls-base">
-            <span class="grid-label grid-label-base">Columns:</span>
-            <n-button-group>
-              <n-button
-                v-for="size in [4, 6, 8]"
-                :key="size"
-                :type="gridColumns === size ? 'primary' : 'default'"
-                size="small"
-                @click="gridColumns = size"
-              >
-                {{ size }}
-              </n-button>
-            </n-button-group>
-          </div>
-          <!-- Select All button -->
-          <n-button type="default" size="small" @click="handleSelectAll">
-            <template #icon>
-              <n-icon>
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
-                  />
-                </svg>
-              </n-icon>
-            </template>
-            {{ allSelected ? "Deselect All" : "Select All" }}
-          </n-button>
-        </div>
-      </div>
-
       <div
         class="photos-grid photo-grid-base"
         :class="`grid-cols-${gridColumns}`"
       >
-        <PhotoCard
+        <PhotoCardHub
           v-for="photo in filteredPhotos"
           :key="photo.id"
           :photo="photo"
           :selected="selectedIds.includes(photo.id)"
-          mode="default"
           @select="toggleSelection"
           @delete="deletePhoto"
+          :show-footer="true"
+          :is-uploading="isUploading"
         />
       </div>
     </div>
