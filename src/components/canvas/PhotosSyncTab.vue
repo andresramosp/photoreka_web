@@ -106,8 +106,10 @@
           :photo="photo"
           :selected="selectedIds.includes(photo.id)"
           @select="toggleSelection"
-          @delete="deletePhoto"
-          :show-footer="true"
+          :show-delete="false"
+          :show-name="false"
+          :show-footer="false"
+          :showDuplicate="false"
           :is-uploading="isUploading"
         />
       </div>
@@ -191,9 +193,9 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) uploadedPhotos.push(photo);
-          }),
-        ),
-      ),
+          })
+        )
+      )
     );
 
     isUploading.value = false;
@@ -240,7 +242,7 @@ async function processAndUploadFile(file) {
         fileType: resizedBlob.type,
         originalName: file.name,
       }),
-    },
+    }
   );
 
   if (!res.ok) throw new Error("Error getting signed URLs");
@@ -287,14 +289,6 @@ function loadImage(file) {
     img.src = URL.createObjectURL(file);
   });
 }
-
-const deletePhoto = async (photoId) => {
-  await photosStore.deletePhotos([photoId]);
-  // Remove from selection if selected
-  if (selectedIds.value.includes(photoId)) {
-    selectedIds.value = selectedIds.value.filter((id) => id !== photoId);
-  }
-};
 
 const toggleSelection = (photoId) => {
   if (selectedIds.value.includes(photoId)) {

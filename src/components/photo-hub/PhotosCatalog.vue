@@ -223,6 +223,10 @@
             @delete="deletePhoto"
             @select="togglePhotoSelection"
             @show-duplicates="showDuplicates"
+            :show-delete="true"
+            :show-name="true"
+            :show-footer="true"
+            :showDuplicate="true"
           />
         </div>
       </div>

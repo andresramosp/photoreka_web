@@ -332,7 +332,10 @@
           @select="togglePhotoSelection"
           @delete="deletePhoto"
           @show-duplicates="showDuplicates"
+          :show-delete="true"
+          :show-name="true"
           :show-footer="true"
+          :showDuplicate="true"
           :is-uploading="isUploading"
         />
       </div>
@@ -375,7 +378,7 @@ const uploadedCount = ref(0);
 const totalFiles = ref(0);
 
 const isFirstTimeUpload = computed(
-  () => photosStore.catalogPhotos.length === 0,
+  () => photosStore.catalogPhotos.length === 0
 );
 
 const fastModeOverride = ref(null);
@@ -400,7 +403,7 @@ const fastMode = computed({
 });
 const showAnalyzeDialog = ref(false);
 const dontShowFastAgain = ref(
-  localStorage.getItem("dontShowFastAgain") === "1",
+  localStorage.getItem("dontShowFastAgain") === "1"
 );
 
 const uploadedPhotos = computed(() => photosStore.uploadedPhotos);
@@ -452,9 +455,9 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) uploadedPhotos.push(photo);
-          }),
-        ),
-      ),
+          })
+        )
+      )
     );
 
     isUploading.value = false;
@@ -495,7 +498,7 @@ async function processAndUploadFile(file) {
         fileType: resizedBlob.type,
         originalName: file.name,
       }),
-    },
+    }
   );
 
   if (!res.ok) throw new Error("Error obteniendo URLs firmadas");

@@ -39,6 +39,7 @@
           size="medium"
           class="action-button delete-button"
           @click.stop="deletePhoto"
+          v-if="showDelete"
         >
           <template #icon>
             <n-icon>
@@ -49,7 +50,11 @@
       </div>
 
       <!-- Duplicate indicator -->
-      <n-tooltip v-if="photo.isDuplicate" trigger="hover" placement="top">
+      <n-tooltip
+        v-if="photo.isDuplicate && showDuplicate"
+        trigger="hover"
+        placement="top"
+      >
         <template #trigger>
           <div class="duplicate-indicator" @click.stop="showDuplicates">
             <n-icon size="16">
@@ -75,7 +80,7 @@
 
     <!-- Footer with detailed information -->
     <div v-if="showFooter" class="photo-footer">
-      <div class="photo-title" :title="photo.originalFileName">
+      <div v-if="showName" class="photo-title" :title="photo.originalFileName">
         {{ photo.originalFileName }}
       </div>
 
@@ -104,7 +109,7 @@
           type="default"
           class="status-tag"
         >
-          Uploaded
+          Synced
         </n-tag>
       </div>
     </div>
@@ -146,7 +151,10 @@ interface Props {
   photo: PhotoInfo;
   selected?: boolean;
   showFooter: boolean;
+  showDelete: boolean;
+  showName: boolean;
   isUploading: boolean;
+  showDuplicate: boolean;
 }
 
 interface Emits {
@@ -223,9 +231,7 @@ const onImageError = () => {
 
 .photo-card-info.selected {
   border-color: #8b5cf6;
-  box-shadow:
-    0 0 0 1px #8b5cf640,
-    0 8px 24px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 0 0 1px #8b5cf640, 0 8px 24px rgba(139, 92, 246, 0.2);
 }
 
 .photo-container {
