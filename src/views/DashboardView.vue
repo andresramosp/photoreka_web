@@ -29,7 +29,7 @@
 
         <div
           class="action-card catalog"
-          :class="{ disabled: !canUseApp }"
+          :class="{ disabled: appAccessMode === 'blocked' }"
           @click="goToCatalog"
         >
           <div class="action-icon">
@@ -41,7 +41,10 @@
           <p class="action-description">Browse your photo catalog</p>
         </div>
 
-        <div class="action-card new-project" :class="{ disabled: !canUseApp }">
+        <div
+          class="action-card new-project"
+          :class="{ disabled: appAccessMode === 'blocked' }"
+        >
           <div class="action-icon">
             <n-icon size="32">
               <AddIcon />
@@ -66,8 +69,8 @@
     <div class="recent-projects-section">
       <h2 class="section-title">Recent projects and series</h2>
 
-      <!-- Empty state when can't use app OR no projects available -->
-      <div v-if="!canUseApp" class="empty-state">
+      <!-- Empty state when blocked OR no projects available -->
+      <div v-if="appAccessMode === 'blocked'" class="empty-state">
         <div class="empty-state-icon">
           <n-icon size="64" color="var(--text-tertiary)">
             <CollectionsIcon />
@@ -338,7 +341,7 @@ import {
 const router = useRouter();
 const photosStore = usePhotosStore();
 
-const canUseApp = computed(() => photosStore.canUseApp);
+const appAccessMode = computed(() => photosStore.appAccessMode);
 
 const openProject = (projectId: string) => {
   // Navigate to project view with the specific project ID

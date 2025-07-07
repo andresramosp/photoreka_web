@@ -247,7 +247,7 @@ const props = defineProps<{
 const emit = defineEmits(["close-mobile-menu"]);
 
 const activeKey = computed(() => route.name as string);
-const canUseApp = computed(() => photosStore.canUseApp);
+const appAccessMode = computed(() => photosStore.appAccessMode);
 
 // First section: Photo Hub, Collections
 const firstSectionOptions = computed(() => [
@@ -263,15 +263,15 @@ const firstSectionOptions = computed(() => [
         },
         [
           h(NIcon, null, { default: () => h(PhotoHubIcon) }),
-          // Visual indicator when can't use app (visible in both collapsed and expanded states)
-          !canUseApp.value
+          // Visual indicator when blocked (visible in both collapsed and expanded states)
+          appAccessMode.value === "blocked"
             ? h("div", {
                 class: "photo-hub-indicator",
                 style:
                   "position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 6px #22c55e; animation: pulse 2s infinite;",
               })
             : null,
-        ]
+        ],
       ),
   },
 ]);
@@ -304,68 +304,74 @@ const createIconWithPremium = (IconComponent, color, isPremium = false) => {
               `,
             })
           : null,
-      ]
+      ],
     );
 };
 
 // Second section: Search, Canvas, Curation
-const secondSectionOptions = computed(() => [
-  {
-    label: "Search",
-    key: "search",
-    disabled: !canUseApp.value,
-    props: !canUseApp.value
-      ? {
-          title: "Add photos to your catalog",
-        }
-      : {},
-    icon: createIconWithPremium(SearchIcon, "#06b6d4"), // Info color for search functionality
-  },
-  {
-    label: "Canvas",
-    key: "canvas",
-    disabled: !canUseApp.value,
-    props: !canUseApp.value
-      ? {
-          title: "Add photos to your catalog",
-        }
-      : {},
-    icon: createIconWithPremium(CanvasIcon, "#8b5cf6"), // Secondary color for creative tools
-  },
-  {
-    label: "Grids",
-    key: "grid-maker",
-    disabled: !canUseApp.value,
-    props: !canUseApp.value
-      ? {
-          title: "Add photos to your catalog",
-        }
-      : {},
-    icon: createIconWithPremium(GridIcon, "#22c55e"), // Success color for layout/organization
-  },
-  {
-    label: "Curation",
-    key: "curation",
-    disabled: !canUseApp.value,
-    props: !canUseApp.value
-      ? {
-          title: "Add photos to your catalog",
-        }
-      : {},
-    icon: createIconWithPremium(CurationIcon, "#f59e0b", true), // Warning color for curation + premium
-  },
-  {
-    label: "Styler",
-    key: "styler",
-    disabled: !canUseApp.value,
-    props: !canUseApp.value
-      ? {
-          title: "Add photos to your catalog",
-        }
-      : {},
-    icon: createIconWithPremium(StylerIcon, "#ef4444"), // Error color for advanced styling
-  },
-]);
+const secondSectionOptions = computed(() => {
+  const isBlocked = appAccessMode.value === "blocked";
+  const isPartial = appAccessMode.value === "partial";
+  const isFull = appAccessMode.value === "full";
+
+  return [
+    {
+      label: "Search",
+      key: "search",
+      disabled: isBlocked,
+      props: isBlocked
+        ? {
+            title: "Add photos to your catalog",
+          }
+        : {},
+      icon: createIconWithPremium(SearchIcon, "#06b6d4"), // Info color for search functionality
+    },
+    {
+      label: "Canvas",
+      key: "canvas",
+      disabled: isBlocked,
+      props: isBlocked
+        ? {
+            title: "Add photos to your catalog",
+          }
+        : {},
+      icon: createIconWithPremium(CanvasIcon, "#8b5cf6"), // Secondary color for creative tools
+    },
+    {
+      label: "Grids",
+      key: "grid-maker",
+      disabled: isBlocked,
+      props: isBlocked
+        ? {
+            title: "Add photos to your catalog",
+          }
+        : {},
+      icon: createIconWithPremium(GridIcon, "#22c55e"), // Success color for layout/organization
+    },
+    {
+      label: "Curation",
+      key: "curation",
+      disabled: isBlocked,
+      props: isBlocked
+        ? {
+            title: "Add photos to your catalog",
+          }
+        : {},
+      icon: createIconWithPremium(CurationIcon, "#f59e0b", true), // Warning color for curation + premium
+    },
+    {
+      label: "Styler",
+      key: "styler",
+      disabled: isBlocked,
+      props: isBlocked
+        ? {
+            title: "Add photos to your catalog",
+          }
+        : {},
+      icon: createIconWithPremium(StylerIcon, "#ef4444"), // Error color for advanced styling
+    },
+  ];
+});
 
 // Third section: Settings, Help (always enabled)
 const thirdSectionOptions: MenuOption[] = [

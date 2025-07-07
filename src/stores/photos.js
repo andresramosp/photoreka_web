@@ -24,13 +24,24 @@ export const usePhotosStore = defineStore("photos", {
     catalogPhotos: (state) =>
       state.photos.filter((p) => p.status == "processed"),
 
-    canUseApp: (state) => {
-      // Hardcoded to false for testing purposes
-      return false;
+    appAccessMode: (state) => {
+      // No photos at all = blocked
+      if (state.photos.length === 0) {
+        return "blocked";
+      }
 
-      // Real logic: return true if has at least 50 photos without .needProcess
-      // const processedPhotos = state.photos.filter(photo => !photo.needProcess);
-      // return processedPhotos.length >= 50;
+      // Has processed photos = full access
+      if (state.photos.some((photo) => photo.status === "processed")) {
+        return "full";
+      }
+
+      // Only has uploaded photos = partial access
+      if (state.photos.some((photo) => photo.status === "uploaded")) {
+        return "partial";
+      }
+
+      // Default to blocked if no uploaded or processed photos
+      return "blocked";
     },
   },
 
@@ -40,7 +51,7 @@ export const usePhotosStore = defineStore("photos", {
         this.isLoading = true;
         try {
           const response = await axios.get(
-            `${import.meta.env.VITE_API_BASE_URL}/api/catalog`
+            `${import.meta.env.VITE_API_BASE_URL}/api/catalog`,
           );
 
           const photos = response.data.photos.map((photo) => ({
@@ -76,7 +87,7 @@ export const usePhotosStore = defineStore("photos", {
     async fetchPhoto(photoId) {
       try {
         const { data: photo } = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/api/catalog/${photoId}`
+          `${import.meta.env.VITE_API_BASE_URL}/api/catalog/${photoId}`,
         );
         const updatedPhoto = photo;
         const index = this.photos.findIndex((p) => p.id == photoId);
@@ -97,18 +108,18 @@ export const usePhotosStore = defineStore("photos", {
       try {
         await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/api/catalog/delete`,
-          { ids: photoIds }
+          { ids: photoIds },
         );
         photoIds.forEach((id) => {
           delete this.selectedPhotosRecord[id];
         });
         this.photos = this.photos.filter(
-          (photo) => !photoIds.includes(photo.id)
+          (photo) => !photoIds.includes(photo.id),
         );
       } catch (error) {
         console.warn(
           "API not available for deletePhotos, using local delete:",
-          error.message
+          error.message,
         );
       }
     },
@@ -117,7 +128,7 @@ export const usePhotosStore = defineStore("photos", {
       try {
         const res = await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}/api/catalog/deleteDuplicates`,
-          { duplicates: photosIds }
+          { duplicates: photosIds },
         );
 
         const { deleted } = res.data;
@@ -127,7 +138,7 @@ export const usePhotosStore = defineStore("photos", {
       } catch (error) {
         console.warn(
           "API not available for deleteDuplicates, using local delete:",
-          error.message
+          error.message,
         );
         // Fallback: delete locally
         this.photos = this.photos.filter((p) => !photosIds.includes(p.id));
@@ -143,7 +154,7 @@ export const usePhotosStore = defineStore("photos", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
-          }
+          },
         );
 
         if (!res.ok) throw new Error("Error al consultar duplicados");
