@@ -24,7 +24,14 @@ const route = useRoute();
 const router = useRouter();
 
 // Define las rutas donde NO debe aparecer el botón
-const hiddenRoutes = ["canvas", "grid-maker"];
+const hiddenRoutes = [
+  "canvas",
+  "grid-maker",
+  "photo-hub",
+  "settings",
+  "help",
+  "plan",
+];
 
 // Calcular si el botón debe mostrarse
 const shouldShow = computed(() => {
@@ -39,7 +46,7 @@ const handleClick = async () => {
   // Esperar un tick para que se renderice la vista
   setTimeout(() => {
     const chooseFilesButton = document.querySelector(
-      ".upload-btn, .compact-upload-btn",
+      ".upload-btn, .compact-upload-btn"
     );
     if (chooseFilesButton) {
       chooseFilesButton.click();
