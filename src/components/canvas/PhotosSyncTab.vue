@@ -303,22 +303,6 @@ const toggleSelection = (photoId) => {
     selectedIds.value = [...selectedIds.value, photoId];
   }
 };
-
-// Select/Deselect all photos
-const handleSelectAll = () => {
-  const shouldDeselectAll = allSelected.value;
-  if (shouldDeselectAll) {
-    selectedIds.value = [];
-  } else {
-    selectedIds.value = filteredPhotos.value.map((photo) => photo.id);
-  }
-};
-
-// Action handlers
-const handleDeleteMultiple = () => {
-  photosStore.deletePhotos(selectedIds.value);
-  selectedIds.value = [];
-};
 </script>
 
 <style scoped>
