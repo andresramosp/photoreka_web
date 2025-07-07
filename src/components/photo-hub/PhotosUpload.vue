@@ -374,10 +374,33 @@ const selectedDuplicates = ref([]);
 const uploadedCount = ref(0);
 const totalFiles = ref(0);
 
-const fastMode = ref(false);
+const isFirstTimeUpload = computed(
+  () => photosStore.catalogPhotos.length === 0,
+);
+
+const fastModeOverride = ref(null);
+
+const fastMode = computed({
+  get() {
+    // Si hay un override manual, usarlo
+    if (fastModeOverride.value !== null) {
+      return fastModeOverride.value;
+    }
+    // Si es la primera vez subiendo fotos, no activar fast mode automáticamente
+    if (isFirstTimeUpload.value) {
+      return false;
+    }
+    // Si hay menos de 8 fotos subidas, activar fast mode automáticamente
+    return uploadedPhotos.value.length < 8;
+  },
+  set(value) {
+    // Para casos donde se necesite override manual
+    fastModeOverride.value = value;
+  },
+});
 const showAnalyzeDialog = ref(false);
 const dontShowFastAgain = ref(
-  localStorage.getItem("dontShowFastAgain") === "1"
+  localStorage.getItem("dontShowFastAgain") === "1",
 );
 
 const uploadedPhotos = computed(() => photosStore.uploadedPhotos);
@@ -429,9 +452,9 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) uploadedPhotos.push(photo);
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
 
     isUploading.value = false;
@@ -472,7 +495,7 @@ async function processAndUploadFile(file) {
         fileType: resizedBlob.type,
         originalName: file.name,
       }),
-    }
+    },
   );
 
   if (!res.ok) throw new Error("Error obteniendo URLs firmadas");
