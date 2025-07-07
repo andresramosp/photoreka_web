@@ -227,7 +227,8 @@ import { ref, computed, onMounted, watch } from "vue";
 import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas";
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
-import { NModal, NButton, NIcon, NSelect } from "naive-ui";
+import PhotosSyncTab from "./PhotosSyncTab.vue";
+import { NModal, NButton, NIcon, NSelect, NTabs, NTabPane } from "naive-ui";
 
 // Import @vicons icons from ionicons5 for reliability
 import {
