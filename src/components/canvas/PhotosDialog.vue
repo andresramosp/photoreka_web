@@ -23,17 +23,26 @@
             <!-- Search and Stats Bar -->
             <div class="stats-bar">
               <div class="search-section">
-                <n-select
-                  v-model:value="selectedTags"
-                  multiple
-                  filterable
-                  placeholder="Filter by tags..."
-                  :options="tagOptions"
+                <n-input
+                  v-model:value="searchQuery"
+                  placeholder="Search photos..."
                   size="small"
                   clearable
-                  :max-tag-count="3"
-                  class="tag-search"
-                />
+                  class="text-search"
+                  @input="onSearchChange"
+                  @clear="clearSearch"
+                >
+                  <template #prefix>
+                    <n-icon size="16">
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+                        />
+                      </svg>
+                    </n-icon>
+                  </template>
+                </n-input>
               </div>
               <div class="stats-section">
                 <div class="stats-info">
@@ -114,17 +123,26 @@
         <!-- Search and Stats Bar -->
         <div class="stats-bar">
           <div class="search-section">
-            <n-select
-              v-model:value="selectedTags"
-              multiple
-              filterable
-              placeholder="Filter by tags..."
-              :options="tagOptions"
+            <n-input
+              v-model:value="searchQuery"
+              placeholder="Search photos..."
               size="small"
               clearable
-              :max-tag-count="3"
-              class="tag-search"
-            />
+              class="text-search"
+              @input="onSearchChange"
+              @clear="clearSearch"
+            >
+              <template #prefix>
+                <n-icon size="16">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+            </n-input>
           </div>
           <div class="stats-section">
             <div class="stats-info">
@@ -223,12 +241,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas";
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
 import PhotosSyncTab from "./PhotosSyncTab.vue";
-import { NModal, NButton, NIcon, NSelect, NTabs, NTabPane } from "naive-ui";
+import { NModal, NButton, NIcon, NInput, NTabs, NTabPane } from "naive-ui";
+import axios from "axios";
+import { io } from "socket.io-client";
 
 // Import @vicons icons from ionicons5 for reliability
 import {
@@ -273,36 +293,25 @@ const canvasStore = useCanvasStore();
 const selectedIds = ref([]);
 const syncSelectedIds = ref([]);
 const isSubmitting = ref(false);
-const selectedTags = ref([]);
+const searchQuery = ref("");
 const activeTab = ref("catalog");
-
-// Tag options for search (mock data)
-const tagOptions = [
-  { label: "landscape", value: "landscape" },
-  { label: "portrait", value: "portrait" },
-  { label: "nature", value: "nature" },
-  { label: "architecture", value: "architecture" },
-  { label: "people", value: "people" },
-  { label: "animals", value: "animals" },
-  { label: "food", value: "food" },
-  { label: "travel", value: "travel" },
-  { label: "street", value: "street" },
-  { label: "black & white", value: "black_white" },
-  { label: "macro", value: "macro" },
-  { label: "sunset", value: "sunset" },
-  { label: "urban", value: "urban" },
-  { label: "vintage", value: "vintage" },
-  { label: "minimalist", value: "minimalist" },
-];
+const isSearching = ref(false);
+const searchResults = ref([]);
+const allCatalogPhotos = ref([]);
 
 // Computed photos for different contexts
 const catalogPhotos = computed(() => {
-  // Return photos that are not on canvas and not discarded
-  return photosStore.catalogPhotos.filter(
-    (p) =>
-      !canvasStore.photos.find((photo) => photo.id === p.id) &&
-      !canvasStore.discardedPhotos.find((photo) => photo.id === p.id),
-  );
+  // If there's a search query, use search results (even if empty - means no matches)
+  if (searchQuery.value.trim()) {
+    return searchResults.value.filter(
+      (p) =>
+        !canvasStore.photos.find((photo) => photo.id === p.id) &&
+        !canvasStore.discardedPhotos.find((photo) => photo.id === p.id),
+    );
+  }
+
+  // No search query, show all available photos
+  return allCatalogPhotos.value;
 });
 
 const trashPhotos = computed(() => {
@@ -416,23 +425,120 @@ function handlePhotosAdded(photos) {
   console.log("Photos added to sync:", photos);
 }
 
+// Search functionality
+let searchTimeout = null;
+
+function onSearchChange() {
+  // Clear any existing timeout
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+  }
+
+  // If search is empty, show all photos
+  if (!searchQuery.value.trim()) {
+    clearSearch();
+    return;
+  }
+
+  // Debounce search to avoid too many API calls
+  searchTimeout = setTimeout(async () => {
+    await performSearch();
+  }, 500);
+}
+
+async function performSearch() {
+  if (!searchQuery.value.trim()) {
+    clearSearch();
+    return;
+  }
+
+  isSearching.value = true;
+  searchResults.value = [];
+
+  try {
+    const payload = {
+      description: searchQuery.value.trim(),
+      options: {
+        iteration: 1,
+        pageSize: 50, // Get more results for dialog
+        searchMode: "low_precision",
+      },
+    };
+
+    await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/api/search/semantic`,
+      payload,
+    );
+
+    // Results will be handled by socket listener or we can handle response directly
+    // For now, let's handle response directly if no socket is set up for this dialog
+  } catch (error) {
+    console.error("Error searching photos:", error);
+    // On error, show all photos
+    searchResults.value = [...allCatalogPhotos.value];
+  } finally {
+    isSearching.value = false;
+  }
+}
+
+function clearSearch() {
+  searchQuery.value = "";
+  searchResults.value = [];
+  isSearching.value = false;
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+    searchTimeout = null;
+  }
+}
+
 // Watch for dialog open/close to fetch photos
 watch(
   () => props.modelValue,
-  (isOpen) => {
+  async (isOpen) => {
     if (isOpen) {
       selectedIds.value = [];
       syncSelectedIds.value = [];
       activeTab.value = "catalog";
+      clearSearch();
+
       // Ensure photos are loaded
-      photosStore.getOrFetch();
+      await photosStore.getOrFetch();
+
+      // Initialize all catalog photos for search filtering
+      allCatalogPhotos.value = photosStore.catalogPhotos.filter(
+        (p) =>
+          !canvasStore.photos.find((photo) => photo.id === p.id) &&
+          !canvasStore.discardedPhotos.find((photo) => photo.id === p.id),
+      );
     }
   },
 );
 
+// Socket for real-time search results
+const socket = io(import.meta.env.VITE_API_WS_URL);
+
 // Fetch photos on mount
 onMounted(() => {
   photosStore.getOrFetch();
+
+  // Listen for search results
+  socket.on("matches", (data) => {
+    if (isSearching.value) {
+      // Extract photos from search results
+      const photos = [];
+      Object.entries(data.results).forEach(([iter, items]) => {
+        photos.push(...items.map((i) => i.photo));
+      });
+
+      searchResults.value = photos;
+      isSearching.value = false;
+    }
+  });
+});
+
+onUnmounted(() => {
+  socket.off("matches");
+  socket.disconnect();
 });
 </script>
 
@@ -481,7 +587,7 @@ onMounted(() => {
   min-width: 200px;
 }
 
-.tag-search {
+.text-search {
   width: 100%;
   max-width: 300px;
 }
@@ -616,7 +722,7 @@ onMounted(() => {
     font-size: var(--font-size-lg);
   }
 
-  .tag-search {
+  .text-search {
     max-width: none;
   }
 }
