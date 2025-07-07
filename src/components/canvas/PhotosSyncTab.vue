@@ -163,14 +163,6 @@ const selectedIds = computed({
   set: (value) => emit("update:selectedIds", value),
 });
 
-// Check if all photos are selected
-const allSelected = computed(() => {
-  return (
-    filteredPhotos.value.length > 0 &&
-    filteredPhotos.value.every((photo) => selectedIds.value.includes(photo.id))
-  );
-});
-
 const picaInstance = pica();
 const limit = pLimit(10);
 
