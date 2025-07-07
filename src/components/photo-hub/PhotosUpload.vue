@@ -4,6 +4,61 @@
       v-model="showDuplicatesDialog"
       :duplicates="selectedDuplicates"
     />
+
+    <!-- Analyze Confirmation Dialog -->
+    <n-modal v-model:show="showAnalyzeDialog">
+      <n-card
+        style="width: 600px"
+        title="Confirm Analysis"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
+      >
+        <template #header-extra>
+          <n-button quaternary circle @click="showAnalyzeDialog = false">
+            <template #icon>
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+          </n-button>
+        </template>
+
+        <div>
+          <p
+            style="
+              margin-bottom: 20px;
+              color: var(--text-primary);
+              line-height: 1.6;
+            "
+          >
+            {{ analyzeDialogContent }}
+          </p>
+
+          <!-- Don't show again checkbox (only for fast mode) -->
+          <div v-if="fastMode" style="margin-bottom: 20px">
+            <n-checkbox v-model:checked="dontShowAgain">
+              Don't show this again
+            </n-checkbox>
+          </div>
+        </div>
+
+        <template #footer>
+          <div style="display: flex; gap: 12px; justify-content: flex-end">
+            <n-button @click="showAnalyzeDialog = false"> Cancel </n-button>
+            <n-button type="primary" @click="handleStartAnalysis">
+              Start analysis
+            </n-button>
+          </div>
+        </template>
+      </n-card>
+    </n-modal>
     <div
       v-if="isUploading && !isCheckingDuplicates"
       class="upload-progress-section"
