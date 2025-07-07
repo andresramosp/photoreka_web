@@ -16,87 +16,176 @@
     </template>
 
     <div class="dialog-content">
-      <!-- Search and Stats Bar -->
-      <div class="stats-bar">
-        <div class="search-section">
-          <n-select
-            v-model:value="selectedTags"
-            multiple
-            filterable
-            placeholder="Filter by tags..."
-            :options="tagOptions"
-            size="small"
-            clearable
-            :max-tag-count="3"
-            class="tag-search"
+      <!-- Tabs -->
+      <div v-if="!isTrash" class="tabs-container">
+        <n-tabs v-model:value="activeTab" type="line" animated>
+          <n-tab-pane name="catalog" tab="From Catalog">
+            <!-- Search and Stats Bar -->
+            <div class="stats-bar">
+              <div class="search-section">
+                <n-select
+                  v-model:value="selectedTags"
+                  multiple
+                  filterable
+                  placeholder="Filter by tags..."
+                  :options="tagOptions"
+                  size="small"
+                  clearable
+                  :max-tag-count="3"
+                  class="tag-search"
+                />
+              </div>
+              <div class="stats-section">
+                <div class="stats-info">
+                  <span class="stats-text">
+                    {{ catalogPhotos.length }}
+                    {{ catalogPhotos.length === 1 ? "photo" : "photos" }}
+                    available
+                    <span v-if="selectedIds.length > 0" class="selected-count">
+                      • {{ selectedIds.length }} selected
+                    </span>
+                  </span>
+                </div>
+                <div class="stats-actions">
+                  <n-button
+                    v-if="selectedIds.length > 0"
+                    text
+                    type="primary"
+                    @click="selectAll"
+                  >
+                    Select All
+                  </n-button>
+                  <n-button
+                    v-if="selectedIds.length > 0"
+                    text
+                    type="warning"
+                    @click="clearSelection"
+                  >
+                    Clear Selection
+                  </n-button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Photos Grid -->
+            <div
+              v-if="catalogPhotos.length > 0"
+              class="photos-grid photo-grid-base"
+              :class="`grid-cols-${6}`"
+            >
+              <PhotoCard
+                v-for="photo in catalogPhotos"
+                :key="photo.id"
+                :photo="photo"
+                :selected="selectedIds.includes(photo.id)"
+                mode="default"
+                @select="toggleSelection"
+                @info="showPhotoInfo"
+              />
+            </div>
+
+            <!-- Empty State -->
+            <div v-else class="empty-state">
+              <div class="empty-state-content">
+                <n-icon size="64" class="empty-state-icon">
+                  <ImageIcon />
+                </n-icon>
+                <h3 class="empty-state-title">No photos available</h3>
+                <p class="empty-state-description">
+                  Either all photos are already on the canvas or you haven't
+                  uploaded any photos yet.
+                </p>
+              </div>
+            </div>
+          </n-tab-pane>
+
+          <n-tab-pane name="sync" tab="From Sync">
+            <PhotosSyncTab
+              :selected-ids="syncSelectedIds"
+              @update:selected-ids="syncSelectedIds = $event"
+              @photos-added="handlePhotosAdded"
+            />
+          </n-tab-pane>
+        </n-tabs>
+      </div>
+
+      <!-- Trash mode (no tabs) -->
+      <div v-else>
+        <!-- Search and Stats Bar -->
+        <div class="stats-bar">
+          <div class="search-section">
+            <n-select
+              v-model:value="selectedTags"
+              multiple
+              filterable
+              placeholder="Filter by tags..."
+              :options="tagOptions"
+              size="small"
+              clearable
+              :max-tag-count="3"
+              class="tag-search"
+            />
+          </div>
+          <div class="stats-section">
+            <div class="stats-info">
+              <span class="stats-text">
+                {{ trashPhotos.length }}
+                {{ trashPhotos.length === 1 ? "photo" : "photos" }}
+                available
+                <span v-if="selectedIds.length > 0" class="selected-count">
+                  • {{ selectedIds.length }} selected
+                </span>
+              </span>
+            </div>
+            <div class="stats-actions">
+              <n-button
+                v-if="selectedIds.length > 0"
+                text
+                type="primary"
+                @click="selectAll"
+              >
+                Select All
+              </n-button>
+              <n-button
+                v-if="selectedIds.length > 0"
+                text
+                type="warning"
+                @click="clearSelection"
+              >
+                Clear Selection
+              </n-button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Photos Grid -->
+        <div
+          v-if="trashPhotos.length > 0"
+          class="photos-grid photo-grid-base"
+          :class="`grid-cols-${6}`"
+        >
+          <PhotoCard
+            v-for="photo in trashPhotos"
+            :key="photo.id"
+            :photo="photo"
+            :selected="selectedIds.includes(photo.id)"
+            mode="default"
+            @select="toggleSelection"
+            @info="showPhotoInfo"
           />
         </div>
-        <div class="stats-section">
-          <div class="stats-info">
-            <span class="stats-text">
-              {{ photos.length }} {{ photos.length === 1 ? "photo" : "photos" }}
-              available
-              <span v-if="selectedIds.length > 0" class="selected-count">
-                • {{ selectedIds.length }} selected
-              </span>
-            </span>
-          </div>
-          <div class="stats-actions">
-            <n-button
-              v-if="selectedIds.length > 0"
-              text
-              type="primary"
-              @click="selectAll"
-            >
-              Select All
-            </n-button>
-            <n-button
-              v-if="selectedIds.length > 0"
-              text
-              type="warning"
-              @click="clearSelection"
-            >
-              Clear Selection
-            </n-button>
-          </div>
-        </div>
-      </div>
 
-      <!-- Photos Grid -->
-      <!-- <div v-if="photos.length > 0" class="photos-grid"> -->
-      <div
-        v-if="photos.length > 0"
-        class="photos-grid photo-grid-base"
-        :class="`grid-cols-${6}`"
-      >
-        <PhotoCard
-          v-for="photo in photos"
-          :key="photo.id"
-          :photo="photo"
-          :selected="selectedIds.includes(photo.id)"
-          mode="default"
-          @select="toggleSelection"
-          @info="showPhotoInfo"
-        />
-      </div>
-
-      <!-- Empty State -->
-      <div v-else class="empty-state">
-        <div class="empty-state-content">
-          <n-icon size="64" class="empty-state-icon">
-            <DeleteIcon v-if="isTrash" />
-            <ImageIcon v-else />
-          </n-icon>
-          <h3 class="empty-state-title">
-            {{ isTrash ? "No deleted photos" : "No photos available" }}
-          </h3>
-          <p class="empty-state-description">
-            {{
-              isTrash
-                ? "All photos are currently on the canvas or in your collection."
-                : "Either all photos are already on the canvas or you haven't uploaded any photos yet."
-            }}
-          </p>
+        <!-- Empty State -->
+        <div v-else class="empty-state">
+          <div class="empty-state-content">
+            <n-icon size="64" class="empty-state-icon">
+              <DeleteIcon />
+            </n-icon>
+            <h3 class="empty-state-title">No deleted photos</h3>
+            <p class="empty-state-description">
+              All photos are currently on the canvas or in your collection.
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -106,7 +195,7 @@
         <n-button @click="close">Cancel</n-button>
         <n-button
           type="primary"
-          :disabled="selectedIds.length === 0"
+          :disabled="totalSelectedCount === 0"
           @click="confirmSelection"
           :loading="isSubmitting"
         >
@@ -122,10 +211,10 @@
                   selectedIds.length === 1 ? "Photo" : "Photos"
                 }`
               : props.singleSelection
-              ? "Select Photo"
-              : `Add ${selectedIds.length} ${
-                  selectedIds.length === 1 ? "Photo" : "Photos"
-                } to Canvas`
+                ? "Select Photo"
+                : `Add ${totalSelectedCount} ${
+                    totalSelectedCount === 1 ? "Photo" : "Photos"
+                  } to Canvas`
           }}
         </n-button>
       </div>
@@ -138,7 +227,8 @@ import { ref, computed, onMounted, watch } from "vue";
 import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas";
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
-import { NModal, NButton, NIcon, NSelect } from "naive-ui";
+import PhotosSyncTab from "./PhotosSyncTab.vue";
+import { NModal, NButton, NIcon, NSelect, NTabs, NTabPane } from "naive-ui";
 
 // Import @vicons icons from ionicons5 for reliability
 import {
@@ -181,8 +271,10 @@ const canvasStore = useCanvasStore();
 
 // Component state
 const selectedIds = ref([]);
+const syncSelectedIds = ref([]);
 const isSubmitting = ref(false);
 const selectedTags = ref([]);
+const activeTab = ref("catalog");
 
 // Tag options for search (mock data)
 const tagOptions = [
@@ -203,20 +295,40 @@ const tagOptions = [
   { label: "minimalist", value: "minimalist" },
 ];
 
-// Computed photos based on mode
+// Computed photos for different contexts
+const catalogPhotos = computed(() => {
+  // Return photos that are not on canvas and not discarded
+  return photosStore.catalogPhotos.filter(
+    (p) =>
+      !canvasStore.photos.find((photo) => photo.id === p.id) &&
+      !canvasStore.discardedPhotos.find((photo) => photo.id === p.id),
+  );
+});
+
+const trashPhotos = computed(() => {
+  // Return discarded photos that can be restored
+  return canvasStore.discardedPhotos
+    .map((dp) => photosStore.catalogPhotos.find((p) => p.id === dp.id))
+    .filter(Boolean);
+});
+
+// For compatibility with existing code
 const photos = computed(() => {
   if (props.isTrash) {
-    // Return discarded photos that can be restored
-    return canvasStore.discardedPhotos
-      .map((dp) => photosStore.catalogPhotos.find((p) => p.id === dp.id))
-      .filter(Boolean);
+    return trashPhotos.value;
   } else {
-    // Return photos that are not on canvas and not discarded
-    return photosStore.catalogPhotos.filter(
-      (p) =>
-        !canvasStore.photos.find((photo) => photo.id === p.id) &&
-        !canvasStore.discardedPhotos.find((photo) => photo.id === p.id)
-    );
+    return catalogPhotos.value;
+  }
+});
+
+// Total selected count across all tabs
+const totalSelectedCount = computed(() => {
+  if (props.isTrash) {
+    return selectedIds.value.length;
+  } else {
+    return activeTab.value === "catalog"
+      ? selectedIds.value.length
+      : syncSelectedIds.value.length;
   }
 });
 
@@ -236,11 +348,19 @@ function toggleSelection(photoId) {
 }
 
 function selectAll() {
-  selectedIds.value = photos.value.map((p) => p.id);
+  if (activeTab.value === "catalog" || props.isTrash) {
+    selectedIds.value = photos.value.map((p) => p.id);
+  } else if (activeTab.value === "sync") {
+    syncSelectedIds.value = photosStore.uploadedPhotos.map((p) => p.id);
+  }
 }
 
 function clearSelection() {
-  selectedIds.value = [];
+  if (activeTab.value === "catalog" || props.isTrash) {
+    selectedIds.value = [];
+  } else if (activeTab.value === "sync") {
+    syncSelectedIds.value = [];
+  }
 }
 
 function showPhotoInfo(photo) {
@@ -250,19 +370,31 @@ function showPhotoInfo(photo) {
 
 // Main actions
 async function confirmSelection() {
-  if (selectedIds.value.length === 0) return;
+  let photosToAdd = [];
+
+  if (props.isTrash) {
+    if (selectedIds.value.length === 0) return;
+
+    // Remove from discarded photos (restore)
+    canvasStore.discardedPhotos = canvasStore.discardedPhotos.filter(
+      (dp) => !selectedIds.value.includes(dp.id),
+    );
+    photosToAdd = selectedIds.value;
+  } else {
+    // Determine which photos to add based on active tab
+    if (activeTab.value === "catalog") {
+      photosToAdd = selectedIds.value;
+    } else if (activeTab.value === "sync") {
+      photosToAdd = syncSelectedIds.value;
+    }
+
+    if (photosToAdd.length === 0) return;
+  }
 
   isSubmitting.value = true;
   try {
-    if (props.isTrash) {
-      // Remove from discarded photos (restore)
-      canvasStore.discardedPhotos = canvasStore.discardedPhotos.filter(
-        (dp) => !selectedIds.value.includes(dp.id)
-      );
-    }
-
     // Emit add-photos event with selected photo IDs
-    emit("add-photos", selectedIds.value);
+    emit("add-photos", photosToAdd);
     close();
   } catch (error) {
     console.error("Error adding photos:", error);
@@ -273,7 +405,15 @@ async function confirmSelection() {
 
 function close() {
   selectedIds.value = [];
+  syncSelectedIds.value = [];
+  activeTab.value = "catalog";
   emit("update:modelValue", false);
+}
+
+function handlePhotosAdded(photos) {
+  // This is called when new photos are uploaded in the sync tab
+  // Photos are automatically available in the sync photos list
+  console.log("Photos added to sync:", photos);
 }
 
 // Watch for dialog open/close to fetch photos
@@ -282,10 +422,12 @@ watch(
   (isOpen) => {
     if (isOpen) {
       selectedIds.value = [];
+      syncSelectedIds.value = [];
+      activeTab.value = "catalog";
       // Ensure photos are loaded
       photosStore.getOrFetch();
     }
-  }
+  },
 );
 
 // Fetch photos on mount
@@ -314,6 +456,11 @@ onMounted(() => {
   flex-direction: column;
   gap: var(--spacing-lg);
   max-height: 60vh;
+  overflow: hidden;
+}
+
+.tabs-container {
+  flex: 1;
   overflow: hidden;
 }
 
