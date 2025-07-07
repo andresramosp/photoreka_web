@@ -459,6 +459,11 @@ onMounted(() => {
   overflow: hidden;
 }
 
+.tabs-container {
+  flex: 1;
+  overflow: hidden;
+}
+
 /* Search and Stats Bar */
 .stats-bar {
   display: flex;
