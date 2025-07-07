@@ -400,7 +400,7 @@ const handleDeleteMultiple = () => {
 
 .compact-upload-section {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   margin-bottom: 16px;
 }
 
