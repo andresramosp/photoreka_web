@@ -416,6 +416,15 @@ const overallProgress = computed(() => {
   return (uploadedCount.value / totalFiles.value) * 100;
 });
 
+// Dialog content based on fast mode
+const analyzeDialogContent = computed(() => {
+  if (fastMode.value) {
+    return "Fast mode is designed for uploading a few photos that you want to use immediately and has a limit of 10% of your total storage space. If you have a lot of photos, it's recommended to use normal mode.";
+  } else {
+    return "It's recommended to review the photos and any duplicates before the analysis process. Once started, it cannot be reversed.";
+  }
+});
+
 const triggerFileInput = () => {
   if (!isUploading.value) fileInput.value?.click();
 };
