@@ -195,7 +195,7 @@
         <n-button @click="close">Cancel</n-button>
         <n-button
           type="primary"
-          :disabled="selectedIds.length === 0"
+          :disabled="totalSelectedCount === 0"
           @click="confirmSelection"
           :loading="isSubmitting"
         >
@@ -212,8 +212,8 @@
                 }`
               : props.singleSelection
                 ? "Select Photo"
-                : `Add ${selectedIds.length} ${
-                    selectedIds.length === 1 ? "Photo" : "Photos"
+                : `Add ${totalSelectedCount} ${
+                    totalSelectedCount === 1 ? "Photo" : "Photos"
                   } to Canvas`
           }}
         </n-button>
