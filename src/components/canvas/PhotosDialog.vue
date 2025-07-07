@@ -394,7 +394,15 @@ async function confirmSelection() {
 
 function close() {
   selectedIds.value = [];
+  syncSelectedIds.value = [];
+  activeTab.value = "catalog";
   emit("update:modelValue", false);
+}
+
+function handlePhotosAdded(photos) {
+  // This is called when new photos are uploaded in the sync tab
+  // Photos are automatically available in the sync photos list
+  console.log("Photos added to sync:", photos);
 }
 
 // Watch for dialog open/close to fetch photos
