@@ -130,8 +130,8 @@ import { computed, ref } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
 import pLimit from "p-limit";
 import pica from "pica";
-import PhotoCard from "../photoCards/PhotoCard.vue";
-import { NButton, NButtonGroup, NProgress, NIcon } from "naive-ui";
+import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
+import { NButton, NProgress, NIcon } from "naive-ui";
 
 const props = defineProps({
   selectedIds: {
