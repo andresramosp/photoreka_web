@@ -337,11 +337,19 @@ function toggleSelection(photoId) {
 }
 
 function selectAll() {
-  selectedIds.value = photos.value.map((p) => p.id);
+  if (activeTab.value === "catalog" || props.isTrash) {
+    selectedIds.value = photos.value.map((p) => p.id);
+  } else if (activeTab.value === "sync") {
+    syncSelectedIds.value = photosStore.uploadedPhotos.map((p) => p.id);
+  }
 }
 
 function clearSelection() {
-  selectedIds.value = [];
+  if (activeTab.value === "catalog" || props.isTrash) {
+    selectedIds.value = [];
+  } else if (activeTab.value === "sync") {
+    syncSelectedIds.value = [];
+  }
 }
 
 function showPhotoInfo(photo) {
