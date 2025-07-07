@@ -500,13 +500,22 @@ function clearSearch() {
 // Watch for dialog open/close to fetch photos
 watch(
   () => props.modelValue,
-  (isOpen) => {
+  async (isOpen) => {
     if (isOpen) {
       selectedIds.value = [];
       syncSelectedIds.value = [];
       activeTab.value = "catalog";
+      clearSearch();
+
       // Ensure photos are loaded
-      photosStore.getOrFetch();
+      await photosStore.getOrFetch();
+
+      // Initialize all catalog photos for search filtering
+      allCatalogPhotos.value = photosStore.catalogPhotos.filter(
+        (p) =>
+          !canvasStore.photos.find((photo) => photo.id === p.id) &&
+          !canvasStore.discardedPhotos.find((photo) => photo.id === p.id),
+      );
     }
   },
 );
