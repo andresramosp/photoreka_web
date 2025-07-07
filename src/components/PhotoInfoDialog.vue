@@ -146,6 +146,8 @@
                     )"
                     :key="tag.id || tag.name"
                     closable
+                    type="info"
+                    :bordered="false"
                     @close="removeTag(tag)"
                     class="photo-tag"
                   >
@@ -753,8 +755,8 @@ if (typeof window !== "undefined") {
 
 .photo-tag {
   margin: 0;
-  background-color: var(--secondary-color) !important;
-  color: var(--text-primary) !important;
+  /* background-color: var(--secondary-color) !important;
+  color: var(--text-primary) !important; */
 }
 
 .add-tag-section {

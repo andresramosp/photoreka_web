@@ -34,21 +34,37 @@
           :class="{ active: activeTab === 'upload' }"
           @click="setActiveTab('upload')"
         >
-          Sync Area
+          <div class="tab-title">
+            <n-icon size="18">
+              <DriveFolderUploadFilled color="var(--info-color)" />
+            </n-icon>
+            Prep Area
+          </div>
+        </button>
+
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'catalog' }"
+          @click="setActiveTab('catalog')"
+        >
+          <div class="tab-title">
+            <n-icon size="16">
+              <ImagesOutline color="var(--success-color)" />
+            </n-icon>
+            Workspace
+          </div>
         </button>
         <button
           class="tab-button"
           :class="{ active: activeTab === 'processing' }"
           @click="setActiveTab('processing')"
         >
-          Analysis Progress
-        </button>
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'catalog' }"
-          @click="setActiveTab('catalog')"
-        >
-          Photos Catalog
+          <div class="tab-title">
+            <n-icon>
+              <InProgress color="var(--primary-color)" />
+            </n-icon>
+            Analyzing Processes
+          </div>
         </button>
       </div>
 
@@ -57,14 +73,15 @@
         <!-- Tab 1: Upload -->
         <PhotosUpload v-show="activeTab === 'upload'" @on-analyze="analyze" />
 
-        <!-- Tab 2: Processing -->
-        <ProcessingPhotos v-show="activeTab === 'processing'" />
-
-        <!-- Tab 3: Catalog -->
         <PhotosCatalog
           v-show="activeTab === 'catalog'"
           @navigate-to-tab="setActiveTab"
         />
+
+        <!-- Tab 2: Processing -->
+        <ProcessingPhotos v-show="activeTab === 'processing'" />
+
+        <!-- Tab 3: Catalog -->
       </div>
     </div>
   </div>
@@ -78,6 +95,10 @@ import PhotosCatalog from "@/components/photo-hub/PhotosCatalog.vue";
 import { usePhotosStore } from "@/stores/photos.js";
 import axios from "axios";
 import { useMessage } from "naive-ui";
+import { ImagesOutline, MenuOutline } from "@vicons/ionicons5";
+import { DriveFolderUploadFilled, SyncAltFilled } from "@vicons/material";
+import { ProjectionScreenDismiss24Regular } from "@vicons/fluent";
+import { InProgress } from "@vicons/carbon";
 
 const photosStore = usePhotosStore();
 const message = useMessage();
@@ -159,6 +180,13 @@ watch(activeTab, (newTab) => {
   background-color: var(--bg-container);
   padding: var(--spacing-sm);
   gap: var(--spacing-xs);
+}
+
+.tab-title {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  align-items: center;
 }
 
 .tab-button {

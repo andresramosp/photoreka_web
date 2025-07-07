@@ -26,7 +26,7 @@ export const usePhotosStore = defineStore("photos", {
 
     canUseApp: (state) => {
       // Hardcoded to false for testing purposes
-      return true;
+      return false;
 
       // Real logic: return true if has at least 50 photos without .needProcess
       // const processedPhotos = state.photos.filter(photo => !photo.needProcess);

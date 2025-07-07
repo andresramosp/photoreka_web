@@ -17,7 +17,7 @@
         </n-icon>
         <h3 class="photo-hub-title">
           Here's your catalog with all the photos processed and ready to be used
-          in the tools. You can edit and delete them.
+          in the all the tools.
         </h3>
       </div>
       <div class="empty-state-container">
@@ -67,7 +67,7 @@
           </n-icon>
           <h3 class="photo-hub-title">
             Here's your catalog with all the photos processed and ready to be
-            used in the tools. You can edit and delete them.
+            used in the tools.
           </h3>
         </div>
 

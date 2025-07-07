@@ -13,9 +13,9 @@
             <BookInformation20Regular />
           </n-icon>
           <h3 class="photo-hub-title">
-            Here you can monitor the analysis process for your photos. It
-            usually takes between 2 and 6 hours, depending on the number of
-            photos.
+            Here you can monitor the analysis process for your photos. They will
+            appear in your Workspace once the process is complete (up to two
+            hours).
           </h3>
         </div>
 

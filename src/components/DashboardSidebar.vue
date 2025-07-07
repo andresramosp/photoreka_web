@@ -213,13 +213,14 @@ import { NIcon } from "naive-ui";
 import type { MenuOption } from "naive-ui";
 import { usePhotosStore } from "@/stores/photos.js";
 
+import { Workspace as CanvasIcon } from "@vicons/carbon";
+
 // Import @vicons icons from ionicons5 for reliability
 import {
   GridOutline as DashboardIcon,
   ImageOutline as PhotoHubIcon,
   FolderOpenOutline as CollectionsIcon,
   SearchOutline as SearchIcon,
-  BrushOutline as CanvasIcon,
   ImagesOutline as CurationIcon,
   ColorPaletteOutline as StylerIcon,
   AppsOutline as GridIcon,
@@ -270,7 +271,7 @@ const firstSectionOptions = computed(() => [
                   "position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 6px #22c55e; animation: pulse 2s infinite;",
               })
             : null,
-        ],
+        ]
       ),
   },
 ]);
@@ -303,7 +304,7 @@ const createIconWithPremium = (IconComponent, color, isPremium = false) => {
               `,
             })
           : null,
-      ],
+      ]
     );
 };
 

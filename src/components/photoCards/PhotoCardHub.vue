@@ -35,7 +35,7 @@
             </n-icon>
           </template>
         </n-button>
-        <n-button
+        <!-- <n-button
           size="medium"
           class="action-button delete-button"
           @click.stop="deletePhoto"
@@ -46,7 +46,7 @@
               <DeleteIcon />
             </n-icon>
           </template>
-        </n-button>
+        </n-button> -->
       </div>
 
       <!-- Duplicate indicator -->
@@ -87,30 +87,50 @@
       <div class="photo-status">
         <!-- Status tags -->
 
-        <!-- <n-tag
-          v-if="photo.isDuplicate"
-          size="small"
-          type="warning"
-          class="status-tag"
-        >
-          Duplicate
-        </n-tag> -->
         <n-tag
           v-if="photo.isCheckingDuplicates"
           size="small"
           type="info"
           class="status-tag"
         >
-          Preprocessing
+          Processing
         </n-tag>
-        <n-tag
-          v-else-if="!isUploading"
-          size="small"
-          type="default"
-          class="status-tag"
+
+        <n-tooltip
+          v-else-if="!isUploading && photo.status == 'uploaded'"
+          trigger="hover"
+          placement="top"
         >
-          Synced
-        </n-tag>
+          <template #trigger>
+            <n-tag
+              size="small"
+              :bordered="false"
+              type="info"
+              class="status-tag"
+            >
+              Prep
+            </n-tag>
+          </template>
+          Preprocessed photo, limited use in tools
+        </n-tooltip>
+
+        <n-tooltip
+          v-else-if="!isUploading && photo.status == 'processed'"
+          trigger="hover"
+          placement="top"
+        >
+          <template #trigger>
+            <n-tag
+              size="small"
+              :bordered="false"
+              type="success"
+              class="status-tag"
+            >
+              Processed
+            </n-tag>
+          </template>
+          Fully processed photo, valid in all tools
+        </n-tooltip>
       </div>
     </div>
   </div>

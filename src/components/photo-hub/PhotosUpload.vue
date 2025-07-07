@@ -62,8 +62,9 @@
         <BookInformation20Regular />
       </n-icon>
       <h3 class="photo-hub-title">
-        This is where you sync your photos from your platforms. You can store
-        them until you want to run the analysis.
+        Entry point for photos into the platform. These photos are pre-processed
+        for limited use in some tools. You can also analyze them to unlock their
+        use in other tools.
       </h3>
     </div>
     <!-- Full Upload Dasdaopzone (show when no photos) -->
@@ -218,15 +219,10 @@
           >
             <template #icon>
               <n-icon>
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                  />
-                </svg>
+                <InProgress></InProgress>
               </n-icon>
             </template>
-            Analyze Photos
+            Process Photos
           </n-button>
         </div>
       </div>
@@ -362,6 +358,8 @@ import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 import DuplicatePhotosDialog from "../DuplicatePhotosDialog.vue";
 import { NModal, NCheckbox, NTooltip } from "naive-ui";
+import { ImagesOutline } from "@vicons/ionicons5";
+import { InProgress } from "@vicons/carbon";
 
 const emit = defineEmits(["on-analyze"]);
 
