@@ -271,8 +271,10 @@ const canvasStore = useCanvasStore();
 
 // Component state
 const selectedIds = ref([]);
+const syncSelectedIds = ref([]);
 const isSubmitting = ref(false);
 const selectedTags = ref([]);
+const activeTab = ref("catalog");
 
 // Tag options for search (mock data)
 const tagOptions = [
