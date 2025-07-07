@@ -35,10 +35,12 @@
             <div class="step-item">
               1. Go to
               <button class="tab-link" @click="navigateToTab('upload')">
-                Upload Stash
+                Sync Area
               </button>
             </div>
-            <div class="step-item">2. Upload (and review) your photos</div>
+            <div class="step-item">
+              2. Upload or sync your photos from any platform
+            </div>
             <div class="step-item">
               3. Click Analyze and follow the process evolution in the
               <button class="tab-link" @click="navigateToTab('processing')">

@@ -34,7 +34,7 @@
           :class="{ active: activeTab === 'upload' }"
           @click="setActiveTab('upload')"
         >
-          Upload Stash
+          Sync Stash
         </button>
         <button
           class="tab-button"
@@ -102,7 +102,7 @@ async function analyze() {
     setActiveTab("processing");
     message.success(
       `The analysis of your photos has begun! You can close this window in the meantime.`,
-      { duration: 5000 },
+      { duration: 5000 }
     );
     await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/analyzer`, {
       userId: "1234",

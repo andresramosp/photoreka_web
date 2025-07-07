@@ -705,7 +705,7 @@ const searchMode = ref("logical"); // 'logical' | 'flexible'
 const semanticQuery = ref("");
 
 const performanceTooltip =
-  "You have exceeded your daily search limit. Strict and flexible modes operate with reduced performance. Fast mode will not be affected.";
+  "You have exceeded your daily search limit. Strict and figurative modes operate with reduced performance. Fast mode will not be affected.";
 
 // Tags
 const {

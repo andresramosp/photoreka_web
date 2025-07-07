@@ -30,8 +30,8 @@
         <BookInformation20Regular />
       </n-icon>
       <h3 class="photo-hub-title">
-        This is where you upload your photos. You can store them until you want
-        to run the analysis.
+        This is where you sync your photos from your platforms. You can store
+        them until you want to run the analysis.
       </h3>
     </div>
     <!-- Full Upload Dasdaopzone (show when no photos) -->
@@ -48,7 +48,7 @@
               </svg>
             </n-icon>
           </div>
-          <h3 class="dropzone-title">Your upload stash is empty</h3>
+          <h3 class="dropzone-title">Your sync area is empty</h3>
           <p class="dropzone-subtitle">
             Drag and drop your images, or click to browse
           </p>
@@ -371,9 +371,9 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) uploadedPhotos.push(photo);
-          }),
-        ),
-      ),
+          })
+        )
+      )
     );
 
     isUploading.value = false;
@@ -414,7 +414,7 @@ async function processAndUploadFile(file) {
         fileType: resizedBlob.type,
         originalName: file.name,
       }),
-    },
+    }
   );
 
   if (!res.ok) throw new Error("Error obteniendo URLs firmadas");
