@@ -273,27 +273,11 @@ const canvasStore = useCanvasStore();
 const selectedIds = ref([]);
 const syncSelectedIds = ref([]);
 const isSubmitting = ref(false);
-const selectedTags = ref([]);
+const searchQuery = ref("");
 const activeTab = ref("catalog");
-
-// Tag options for search (mock data)
-const tagOptions = [
-  { label: "landscape", value: "landscape" },
-  { label: "portrait", value: "portrait" },
-  { label: "nature", value: "nature" },
-  { label: "architecture", value: "architecture" },
-  { label: "people", value: "people" },
-  { label: "animals", value: "animals" },
-  { label: "food", value: "food" },
-  { label: "travel", value: "travel" },
-  { label: "street", value: "street" },
-  { label: "black & white", value: "black_white" },
-  { label: "macro", value: "macro" },
-  { label: "sunset", value: "sunset" },
-  { label: "urban", value: "urban" },
-  { label: "vintage", value: "vintage" },
-  { label: "minimalist", value: "minimalist" },
-];
+const isSearching = ref(false);
+const searchResults = ref([]);
+const allCatalogPhotos = ref([]);
 
 // Computed photos for different contexts
 const catalogPhotos = computed(() => {
