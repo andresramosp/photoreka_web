@@ -229,10 +229,10 @@
                   selectedIds.length === 1 ? "Photo" : "Photos"
                 }`
               : props.singleSelection
-                ? "Select Photo"
-                : `Add ${totalSelectedCount} ${
-                    totalSelectedCount === 1 ? "Photo" : "Photos"
-                  } to Canvas`
+              ? "Select Photo"
+              : `Add ${totalSelectedCount} ${
+                  totalSelectedCount === 1 ? "Photo" : "Photos"
+                } to Canvas`
           }}
         </n-button>
       </div>
@@ -301,16 +301,19 @@ const allCatalogPhotos = ref([]);
 
 // Computed photos for different contexts
 const catalogPhotos = computed(() => {
-  // If there's a search query, use search results (even if empty - means no matches)
-  if (searchQuery.value.trim()) {
+  const hasSearch = searchQuery.value.trim();
+  const hasResults = searchResults.value && searchResults.value.length > 0;
+
+  // Si hay búsqueda Y resultados, muestra solo los resultados (filtrados)
+  if (hasSearch && hasResults) {
     return searchResults.value.filter(
       (p) =>
         !canvasStore.photos.find((photo) => photo.id === p.id) &&
-        !canvasStore.discardedPhotos.find((photo) => photo.id === p.id),
+        !canvasStore.discardedPhotos.find((photo) => photo.id === p.id)
     );
   }
 
-  // No search query, show all available photos
+  // Si no hay búsqueda o la búsqueda no tiene resultados, muestra todo el catálogo
   return allCatalogPhotos.value;
 });
 
@@ -386,7 +389,7 @@ async function confirmSelection() {
 
     // Remove from discarded photos (restore)
     canvasStore.discardedPhotos = canvasStore.discardedPhotos.filter(
-      (dp) => !selectedIds.value.includes(dp.id),
+      (dp) => !selectedIds.value.includes(dp.id)
     );
     photosToAdd = selectedIds.value;
   } else {
@@ -443,7 +446,7 @@ function onSearchChange() {
   // Debounce search to avoid too many API calls
   searchTimeout = setTimeout(async () => {
     await performSearch();
-  }, 500);
+  }, 1000);
 }
 
 async function performSearch() {
@@ -467,7 +470,7 @@ async function performSearch() {
 
     await axios.post(
       `${import.meta.env.VITE_API_BASE_URL}/api/search/semantic`,
-      payload,
+      payload
     );
 
     // Results will be handled by socket listener or we can handle response directly
@@ -508,10 +511,10 @@ watch(
       allCatalogPhotos.value = photosStore.catalogPhotos.filter(
         (p) =>
           !canvasStore.photos.find((photo) => photo.id === p.id) &&
-          !canvasStore.discardedPhotos.find((photo) => photo.id === p.id),
+          !canvasStore.discardedPhotos.find((photo) => photo.id === p.id)
       );
     }
-  },
+  }
 );
 
 // Socket for real-time search results
@@ -519,11 +522,9 @@ const socket = io(import.meta.env.VITE_API_WS_URL);
 
 // Fetch photos on mount
 onMounted(() => {
-  photosStore.getOrFetch();
-
   // Listen for search results
   socket.on("matches", (data) => {
-    if (isSearching.value) {
+    if (true) {
       // Extract photos from search results
       const photos = [];
       Object.entries(data.results).forEach(([iter, items]) => {
@@ -589,7 +590,6 @@ onUnmounted(() => {
 
 .text-search {
   width: 100%;
-  max-width: 300px;
 }
 
 .stats-section {
