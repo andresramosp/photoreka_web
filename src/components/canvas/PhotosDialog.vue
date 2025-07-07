@@ -594,7 +594,7 @@ onUnmounted(() => {
   min-width: 200px;
 }
 
-.tag-search {
+.text-search {
   width: 100%;
   max-width: 300px;
 }
