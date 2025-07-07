@@ -411,6 +411,8 @@ watch(
   (isOpen) => {
     if (isOpen) {
       selectedIds.value = [];
+      syncSelectedIds.value = [];
+      activeTab.value = "catalog";
       // Ensure photos are loaded
       photosStore.getOrFetch();
     }
