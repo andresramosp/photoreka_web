@@ -521,9 +521,31 @@ watch(
   },
 );
 
+// Socket for real-time search results
+const socket = io(import.meta.env.VITE_API_WS_URL);
+
 // Fetch photos on mount
 onMounted(() => {
   photosStore.getOrFetch();
+
+  // Listen for search results
+  socket.on("matches", (data) => {
+    if (isSearching.value) {
+      // Extract photos from search results
+      const photos = [];
+      Object.entries(data.results).forEach(([iter, items]) => {
+        photos.push(...items.map((i) => i.photo));
+      });
+
+      searchResults.value = photos;
+      isSearching.value = false;
+    }
+  });
+});
+
+onUnmounted(() => {
+  socket.off("matches");
+  socket.disconnect();
 });
 </script>
 
