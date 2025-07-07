@@ -27,7 +27,7 @@
               <BookInformation20Regular />
             </n-icon>
           </div>
-          <h3 class="empty-state-title">Your catalog is empty</h3>
+          <h3 class="empty-state-title">Your workspace is empty</h3>
           <!-- <p class="empty-state-description">
             To add photos, follow these steps:
           </p> -->
@@ -35,7 +35,7 @@
             <div class="step-item">
               1. Go to
               <button class="tab-link" @click="navigateToTab('upload')">
-                Sync Area
+                Prep Area
               </button>
             </div>
             <div class="step-item">

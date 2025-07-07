@@ -24,13 +24,29 @@ export const usePhotosStore = defineStore("photos", {
     catalogPhotos: (state) =>
       state.photos.filter((p) => p.status == "processed"),
 
-    canUseApp: (state) => {
-      // Hardcoded to false for testing purposes
-      return false;
+    appAccessMode: (state) => {
+      // No photos at all = blocked
+      if (state.photos.length === 0) {
+        return "blocked";
+      }
 
-      // Real logic: return true if has at least 50 photos without .needProcess
-      // const processedPhotos = state.photos.filter(photo => !photo.needProcess);
-      // return processedPhotos.length >= 50;
+      // Has processed photos = full access
+      if (state.photos.some((photo) => photo.status === "processed")) {
+        return "full";
+      }
+
+      // Only has uploaded photos = partial access
+      if (
+        state.photos.some(
+          (photo) =>
+            photo.status === "uploaded" || photo.status === "processing"
+        )
+      ) {
+        return "partial";
+      }
+
+      // Default to blocked if no uploaded or processed photos
+      return "blocked";
     },
   },
 
