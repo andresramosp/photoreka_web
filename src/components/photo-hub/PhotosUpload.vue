@@ -136,7 +136,12 @@
           </n-button>
         </div>
       </div>
-      <div style="display: flex; gap: 15px">
+      <div style="display: flex; gap: 15px; align-items: center">
+        <!-- Fast mode checkbox -->
+        <n-checkbox v-model:checked="fastMode" size="large">
+          Fast mode
+        </n-checkbox>
+
         <!-- <n-button
           type="default"
           size="medium"
@@ -160,7 +165,7 @@
           type="info"
           size="medium"
           class="analyze-btn"
-          @click="emit('on-analyze')"
+          @click="showAnalyzeConfirmation"
           :disabled="
             isUploading ||
             uploadedPhotos.filter((p) => p.isCheckingDuplicates).length > 0
@@ -371,9 +376,9 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) uploadedPhotos.push(photo);
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
 
     isUploading.value = false;
@@ -414,7 +419,7 @@ async function processAndUploadFile(file) {
         fileType: resizedBlob.type,
         originalName: file.name,
       }),
-    }
+    },
   );
 
   if (!res.ok) throw new Error("Error obteniendo URLs firmadas");
