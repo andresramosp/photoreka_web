@@ -359,19 +359,31 @@ function showPhotoInfo(photo) {
 
 // Main actions
 async function confirmSelection() {
-  if (selectedIds.value.length === 0) return;
+  let photosToAdd = [];
+
+  if (props.isTrash) {
+    if (selectedIds.value.length === 0) return;
+
+    // Remove from discarded photos (restore)
+    canvasStore.discardedPhotos = canvasStore.discardedPhotos.filter(
+      (dp) => !selectedIds.value.includes(dp.id),
+    );
+    photosToAdd = selectedIds.value;
+  } else {
+    // Determine which photos to add based on active tab
+    if (activeTab.value === "catalog") {
+      photosToAdd = selectedIds.value;
+    } else if (activeTab.value === "sync") {
+      photosToAdd = syncSelectedIds.value;
+    }
+
+    if (photosToAdd.length === 0) return;
+  }
 
   isSubmitting.value = true;
   try {
-    if (props.isTrash) {
-      // Remove from discarded photos (restore)
-      canvasStore.discardedPhotos = canvasStore.discardedPhotos.filter(
-        (dp) => !selectedIds.value.includes(dp.id),
-      );
-    }
-
     // Emit add-photos event with selected photo IDs
-    emit("add-photos", selectedIds.value);
+    emit("add-photos", photosToAdd);
     close();
   } catch (error) {
     console.error("Error adding photos:", error);
