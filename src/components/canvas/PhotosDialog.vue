@@ -295,20 +295,29 @@ const tagOptions = [
   { label: "minimalist", value: "minimalist" },
 ];
 
-// Computed photos based on mode
+// Computed photos for different contexts
+const catalogPhotos = computed(() => {
+  // Return photos that are not on canvas and not discarded
+  return photosStore.catalogPhotos.filter(
+    (p) =>
+      !canvasStore.photos.find((photo) => photo.id === p.id) &&
+      !canvasStore.discardedPhotos.find((photo) => photo.id === p.id),
+  );
+});
+
+const trashPhotos = computed(() => {
+  // Return discarded photos that can be restored
+  return canvasStore.discardedPhotos
+    .map((dp) => photosStore.catalogPhotos.find((p) => p.id === dp.id))
+    .filter(Boolean);
+});
+
+// For compatibility with existing code
 const photos = computed(() => {
   if (props.isTrash) {
-    // Return discarded photos that can be restored
-    return canvasStore.discardedPhotos
-      .map((dp) => photosStore.catalogPhotos.find((p) => p.id === dp.id))
-      .filter(Boolean);
+    return trashPhotos.value;
   } else {
-    // Return photos that are not on canvas and not discarded
-    return photosStore.catalogPhotos.filter(
-      (p) =>
-        !canvasStore.photos.find((photo) => photo.id === p.id) &&
-        !canvasStore.discardedPhotos.find((photo) => photo.id === p.id),
-    );
+    return catalogPhotos.value;
   }
 });
 
