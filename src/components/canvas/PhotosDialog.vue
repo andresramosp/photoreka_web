@@ -281,8 +281,20 @@ const allCatalogPhotos = ref([]);
 
 // Computed photos for different contexts
 const catalogPhotos = computed(() => {
-  // Return photos that are not on canvas and not discarded
-  return photosStore.catalogPhotos.filter(
+  // If there's a search query and we have search results, use them
+  if (searchQuery.value.trim() && searchResults.value.length > 0) {
+    return searchResults.value.filter(
+      (p) =>
+        !canvasStore.photos.find((photo) => photo.id === p.id) &&
+        !canvasStore.discardedPhotos.find((photo) => photo.id === p.id),
+    );
+  }
+
+  // Otherwise, return all available photos (filtered or unfiltered)
+  const photosToShow = searchQuery.value.trim()
+    ? searchResults.value
+    : allCatalogPhotos.value;
+  return photosToShow.filter(
     (p) =>
       !canvasStore.photos.find((photo) => photo.id === p.id) &&
       !canvasStore.discardedPhotos.find((photo) => photo.id === p.id),
