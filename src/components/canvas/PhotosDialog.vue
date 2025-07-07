@@ -729,7 +729,7 @@ onUnmounted(() => {
     font-size: var(--font-size-lg);
   }
 
-  .tag-search {
+  .text-search {
     max-width: none;
   }
 }
