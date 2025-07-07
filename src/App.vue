@@ -45,10 +45,10 @@
             </div>
           </div>
         </div>
-      </template>
 
-      <!-- Floating Add Photos Button -->
-      <FloatingAddPhotosButton />
+        <!-- Floating Add Photos Button -->
+        <FloatingAddPhotosButton />
+      </template>
     </n-message-provider>
   </n-config-provider>
 </template>
