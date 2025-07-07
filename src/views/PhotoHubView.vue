@@ -34,14 +34,14 @@
           :class="{ active: activeTab === 'upload' }"
           @click="setActiveTab('upload')"
         >
-          Sync Stash
+          Sync Area
         </button>
         <button
           class="tab-button"
           :class="{ active: activeTab === 'processing' }"
           @click="setActiveTab('processing')"
         >
-          Processing
+          Analysis Progress
         </button>
         <button
           class="tab-button"
@@ -55,7 +55,7 @@
       <!-- Tab Content -->
       <div class="tab-content-container">
         <!-- Tab 1: Upload -->
-        <PhotosUpload v-show="activeTab === 'upload'" @on-analyze="analyze()" />
+        <PhotosUpload v-show="activeTab === 'upload'" @on-analyze="analyze" />
 
         <!-- Tab 2: Processing -->
         <ProcessingPhotos v-show="activeTab === 'processing'" />
@@ -97,7 +97,7 @@ const updateTabFromHash = () => {
   }
 };
 
-async function analyze() {
+async function analyze(ev) {
   try {
     setActiveTab("processing");
     message.success(
@@ -108,6 +108,7 @@ async function analyze() {
       userId: "1234",
       packageId: "basic_1",
       mode: "adding",
+      fastMode: ev.fastMode,
     });
     photosStore.getOrFetch(true);
   } catch (error) {

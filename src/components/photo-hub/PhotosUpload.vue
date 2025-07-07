@@ -4,6 +4,38 @@
       v-model="showDuplicatesDialog"
       :duplicates="selectedDuplicates"
     />
+    <n-modal
+      v-model:show="showAnalyzeDialog"
+      preset="confirm"
+      title="Confirm analysis"
+      :closable="false"
+      @close="closeAnalyzeDialog"
+    >
+      <div style="margin-bottom: 18px">
+        <span v-if="!fastMode">
+          You are about to process all your synced photos. It's recommended to
+          review any duplicates before the analysis process. Once started, it
+          cannot be reversed.
+        </span>
+        <span v-else>
+          Fast mode is designed for uploading photos that you want to use
+          immediately and has a limit of 10% of your total storage space. If you
+          have a lot of photos, it's recommended to use normal mode.
+        </span>
+      </div>
+      <n-checkbox
+        v-if="fastMode"
+        v-model:checked="dontShowFastAgain"
+        style="margin-bottom: 8px"
+        >Don't show this again</n-checkbox
+      >
+      <div style="display: flex; gap: 14px; justify-content: flex-end">
+        <n-button tertiary @click="closeAnalyzeDialog">Cancel</n-button>
+        <n-button type="primary" @click="confirmAnalyze"
+          >Start analysis</n-button
+        >
+      </div>
+    </n-modal>
     <div
       v-if="isUploading && !isCheckingDuplicates"
       class="upload-progress-section"
@@ -156,28 +188,47 @@
           </template>
           Check duplicates
         </n-button> -->
-        <n-button
-          type="info"
-          size="medium"
-          class="analyze-btn"
-          @click="emit('on-analyze')"
-          :disabled="
-            isUploading ||
-            uploadedPhotos.filter((p) => p.isCheckingDuplicates).length > 0
-          "
-        >
-          <template #icon>
-            <n-icon>
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                />
-              </svg>
-            </n-icon>
-          </template>
-          Analyze Photos
-        </n-button>
+        <div style="display: flex; gap: 15px; align-items: center">
+          <n-checkbox size="large" v-model:checked="fastMode"
+            >Fast mode
+            <n-tooltip trigger="hover" placement="top">
+              <template #trigger>
+                <n-icon size="12" class="info-icon">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+              Use it when you want to upload a few photos quickly.
+            </n-tooltip></n-checkbox
+          >
+
+          <n-button
+            type="info"
+            size="medium"
+            class="analyze-btn"
+            @click="openAnalyzeDialog"
+            :disabled="
+              isUploading ||
+              uploadedPhotos.filter((p) => p.isCheckingDuplicates).length > 0
+            "
+          >
+            <template #icon>
+              <n-icon>
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+            Analyze Photos
+          </n-button>
+        </div>
       </div>
     </div>
 
@@ -307,6 +358,7 @@ import pica from "pica";
 import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 import DuplicatePhotosDialog from "../DuplicatePhotosDialog.vue";
+import { NModal, NCheckbox, NTooltip } from "naive-ui";
 
 const emit = defineEmits(["on-analyze"]);
 
@@ -321,6 +373,12 @@ const selectedDuplicates = ref([]);
 
 const uploadedCount = ref(0);
 const totalFiles = ref(0);
+
+const fastMode = ref(false);
+const showAnalyzeDialog = ref(false);
+const dontShowFastAgain = ref(
+  localStorage.getItem("dontShowFastAgain") === "1"
+);
 
 const uploadedPhotos = computed(() => photosStore.uploadedPhotos);
 
@@ -498,6 +556,28 @@ const handleDeleteMultiple = () => {
 const handleAddToCollection = () => {
   console.log("Add to collection action for photos:", selectedPhotoIds.value);
   // TODO: Implement add to collection functionality
+};
+
+const openAnalyzeDialog = () => {
+  // Si fastMode y marcado no mostrar de nuevo, lanza análisis directo
+  if (fastMode.value && dontShowFastAgain.value) {
+    emit("on-analyze", { fastMode: true });
+    return;
+  }
+  showAnalyzeDialog.value = true;
+};
+
+const closeAnalyzeDialog = () => {
+  showAnalyzeDialog.value = false;
+};
+
+const confirmAnalyze = () => {
+  // Guarda preferencia en localStorage si procede
+  if (fastMode.value && dontShowFastAgain.value) {
+    localStorage.setItem("dontShowFastAgain", "1");
+  }
+  showAnalyzeDialog.value = false;
+  emit("on-analyze", { fastMode: fastMode.value });
 };
 
 onMounted(() => {
