@@ -467,6 +467,11 @@ const showAnalyzeConfirmation = () => {
   dontShowAgain.value = false;
 };
 
+const closeAnalyzeDialog = () => {
+  showAnalyzeDialog.value = false;
+  dontShowAgain.value = false;
+};
+
 const handleStartAnalysis = () => {
   // Save "don't show again" preference for fast mode
   if (fastMode.value && dontShowAgain.value) {
