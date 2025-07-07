@@ -301,8 +301,8 @@ const allCatalogPhotos = ref([]);
 
 // Computed photos for different contexts
 const catalogPhotos = computed(() => {
-  // If there's a search query and we have search results, use them
-  if (searchQuery.value.trim() && searchResults.value.length > 0) {
+  // If there's a search query, use search results (even if empty - means no matches)
+  if (searchQuery.value.trim()) {
     return searchResults.value.filter(
       (p) =>
         !canvasStore.photos.find((photo) => photo.id === p.id) &&
@@ -310,15 +310,8 @@ const catalogPhotos = computed(() => {
     );
   }
 
-  // Otherwise, return all available photos (filtered or unfiltered)
-  const photosToShow = searchQuery.value.trim()
-    ? searchResults.value
-    : allCatalogPhotos.value;
-  return photosToShow.filter(
-    (p) =>
-      !canvasStore.photos.find((photo) => photo.id === p.id) &&
-      !canvasStore.discardedPhotos.find((photo) => photo.id === p.id),
-  );
+  // No search query, show all available photos
+  return allCatalogPhotos.value;
 });
 
 const trashPhotos = computed(() => {
