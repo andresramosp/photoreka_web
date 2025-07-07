@@ -389,56 +389,6 @@ const toggleSelection = (photoId) => {
   min-width: 140px;
 }
 
-.controls-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.controls-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.action-buttons {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.grid-controls-base {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  gap: 16px;
-}
-
-.results-info-base {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.results-count-base {
-  font-size: 14px;
-  font-weight: 500;
-  color: #ffffffd1;
-}
-
-.grid-size-controls-base {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.grid-label-base {
-  font-size: 12px;
-  color: #ffffff73;
-  font-weight: 500;
-}
-
 /* Photo Grid */
 .photos-grid {
   overflow-y: auto;
