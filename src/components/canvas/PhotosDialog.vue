@@ -111,7 +111,7 @@
             </div>
           </n-tab-pane>
 
-          <n-tab-pane name="sync" tab="From Prep Area">
+          <n-tab-pane name="sync" tab="From Staging Area">
             <PhotosSyncTab
               :selected-ids="syncSelectedIds"
               @update:selected-ids="syncSelectedIds = $event"

@@ -2,23 +2,18 @@
   <div class="tab-content">
     <div class="processing-section">
       <!-- Processing Jobs Table -->
+
+      <div class="photo-hub-header">
+        <n-icon :color="`var(--warning-color)`" size="18">
+          <BookInformation20Regular />
+        </n-icon>
+        <h3 class="photo-hub-title">
+          Here you can monitor the analysis process for your photos. They will
+          appear in your Workspace once the process is complete (up to two
+          hours).
+        </h3>
+      </div>
       <div v-if="processingJobs.length > 0" class="processing-table-container">
-        <!-- <div class="section-header">
-          <h3 class="photo-hub-title">Analysis Processes</h3>
-          <span class="photo-count">{{ processingJobs.length }} processes</span>
-        </div> -->
-
-        <div class="photo-hub-header">
-          <n-icon :color="`var(--warning-color)`" size="18">
-            <BookInformation20Regular />
-          </n-icon>
-          <h3 class="photo-hub-title">
-            Here you can monitor the analysis process for your photos. They will
-            appear in your Workspace once the process is complete (up to two
-            hours).
-          </h3>
-        </div>
-
         <div class="processing-table">
           <div
             v-for="job in processingJobs"
@@ -36,14 +31,29 @@
                 <span class="cell-label">Started</span>
                 <span class="cell-value">{{ formatDate(job.startDate) }}</span>
               </div>
+
               <div class="row-cell photos-cell">
                 <span class="cell-label">Photos</span>
                 <span class="cell-value">{{ job.photoCount }}</span>
               </div>
-              <div class="row-cell type-cell">
-                <span class="cell-label">Process</span>
-                <span class="cell-value">{{ job.processType }}</span>
+              <div class="row-cell type-cell progress-cell">
+                <span class="cell-label">Progress</span>
+                <n-tooltip placement="top">
+                  <template #trigger>
+                    <n-progress
+                      type="circle"
+                      :percentage="job.progressPercent"
+                      :show-indicator="false"
+                      :stroke-width="5"
+                      color="#18a058"
+                      rail-color="#eee"
+                      class="progress-compact"
+                    />
+                  </template>
+                  <span>{{ job.currentStageLabel }}</span>
+                </n-tooltip>
               </div>
+
               <div class="row-cell status-cell">
                 <span class="cell-label">Status</span>
                 <n-tag
@@ -72,34 +82,16 @@
             <!-- Expanded Row Content -->
             <div v-if="job.expanded" class="row-expanded">
               <div class="expanded-content">
-                <div class="expanded-header">
-                  <span class="expanded-title"
-                    >Processing Photos ({{ job.photos.length }})</span
-                  >
-                  <div v-if="job.status === 'processing'" class="progress-info">
-                    <n-progress
-                      type="line"
-                      :percentage="job.progress"
-                      :show-indicator="false"
-                      class="job-progress"
-                    />
-                    <span class="progress-text"
-                      >{{ job.progress }}% complete</span
-                    >
-                  </div>
-                </div>
                 <div class="photos-grid-mini">
-                  <div
+                  <PhotoCardHub
                     v-for="photo in job.photos"
                     :key="photo.id"
-                    class="mini-photo"
-                  >
-                    <img
-                      :src="photo.url"
-                      :alt="photo.name"
-                      class="mini-photo-image"
-                    />
-                  </div>
+                    :photo="photo"
+                    :show-delete="false"
+                    :show-name="false"
+                    :show-footer="false"
+                    :showDuplicate="false"
+                  />
                 </div>
               </div>
             </div>
@@ -108,13 +100,7 @@
       </div>
 
       <!-- Empty Processing State -->
-      <div
-        v-if="
-          processingJobs.length === 0 ||
-          processingJobs.every((job) => job.status === 'finished')
-        "
-        class="empty-processing-state"
-      >
+      <div v-if="processingJobs.length === 0" class="empty-processing-state">
         <div class="empty-state-content">
           <n-icon size="64" color="#6b7280">
             <svg viewBox="0 0 24 24">
@@ -126,7 +112,11 @@
           </n-icon>
           <h3 class="empty-state-title">No photos being processed</h3>
           <p class="empty-state-description">
-            Upload photos in the Upload tab to see them here during processing
+            Upload photos in the
+            <button class="tab-link" @click="navigateToTab('upload')">
+              Staging Area
+            </button>
+            to see them here during processing
           </p>
         </div>
       </div>
@@ -134,21 +124,85 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref } from "vue";
-import { mockedJobs, type ProcessingJob } from "@/assets/mocked";
-import {
-  Notifications,
-  NotificationsCircleOutline,
-  NotificationsOutline,
-} from "@vicons/ionicons5";
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from "vue";
+import axios from "axios";
 import { BookInformation20Regular } from "@vicons/fluent";
+import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
+import { NProgress, NTooltip } from "naive-ui";
 
-// Processing jobs state
-const processingJobs = ref<ProcessingJob[]>(mockedJobs);
+const emit = defineEmits(["navigate-to-tab"]);
 
-// Utility functions
-const formatDate = (date: Date | string): string => {
+// Utilidades
+const API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/analyzer-process`;
+
+// Estado de procesos
+const processingJobs = ref([]);
+let intervalId = null;
+
+// Orden de las stages del pipeline
+const STAGES = [
+  { key: "init", label: "Initializing" },
+  { key: "clip_embeddings", label: "CLIP Embeddings" },
+  { key: "vision_context_story_accents", label: "Vision Context & Accents" },
+  { key: "tags_context_story", label: "Tags & Story" },
+  { key: "tags_visual_accents", label: "Visual Accents" },
+  {
+    key: "chunks_context_story_visual_accents",
+    label: "Story Chunks & Accents",
+  },
+  { key: "visual_color_embedding_task", label: "Color Embedding" },
+  { key: "topological_tags", label: "Topological Tags" },
+  { key: "finished", label: "Finished" },
+];
+
+// Devuelve el índice de la etapa actual
+function getCurrentStageIndex(stage) {
+  return STAGES.findIndex((s) => s.key === stage);
+}
+
+// Mapear proceso
+const mapProcess = (proc) => {
+  const currentStageIdx = getCurrentStageIndex(proc.currentStage || "init");
+  const totalStages = STAGES.length - 1; // 'finished' no cuenta para el progreso
+  const isFinished = proc.currentStage === "finished";
+  return {
+    id: proc.id,
+    expanded: false,
+    startDate: proc.createdAt,
+    photoCount: proc.photos?.length ?? 0,
+    status: isFinished ? "finished" : "processing",
+    // El porcentaje es etapas completadas respecto al total (sin finished)
+    progressPercent: isFinished
+      ? 100
+      : Math.max(0, Math.round((currentStageIdx / totalStages) * 100)),
+    currentStageLabel: STAGES[currentStageIdx]?.label || "Starting...",
+    photos: proc.photos,
+  };
+};
+
+// Carga todos los procesos
+async function loadProcesses() {
+  const response = await axios.get(API_URL);
+  processingJobs.value = response.data
+    .map(mapProcess)
+    .sort(
+      (a, b) =>
+        new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+    );
+}
+
+// Inicia carga y auto-refresh
+onMounted(async () => {
+  await loadProcesses();
+  intervalId = setInterval(loadProcesses, 5000);
+});
+onBeforeUnmount(() => {
+  if (intervalId) clearInterval(intervalId);
+});
+
+// Utilidades de UI
+const formatDate = (date) => {
   const dateObj = typeof date === "string" ? new Date(date) : date;
   return dateObj.toLocaleDateString("en-US", {
     year: "numeric",
@@ -158,13 +212,13 @@ const formatDate = (date: Date | string): string => {
     minute: "2-digit",
   });
 };
-
-// Processing jobs functions
-const toggleJobExpansion = (jobId: string) => {
+const toggleJobExpansion = (jobId) => {
   const job = processingJobs.value.find((j) => j.id === jobId);
-  if (job) {
-    job.expanded = !job.expanded;
-  }
+  if (job) job.expanded = !job.expanded;
+};
+
+const navigateToTab = (tabName) => {
+  emit("navigate-to-tab", tabName);
 };
 </script>
 
@@ -237,7 +291,7 @@ const toggleJobExpansion = (jobId: string) => {
 
 .row-main {
   display: grid;
-  grid-template-columns: 1fr 80px 1fr 120px 40px;
+  grid-template-columns: 300px 350px 350px 350px 1fr;
   gap: 16px;
   padding: 16px 20px;
   align-items: center;
@@ -456,5 +510,25 @@ const toggleJobExpansion = (jobId: string) => {
   .job-progress {
     width: 100%;
   }
+}
+
+.progress-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  width: 56px; /* Ajusta según tu diseño */
+}
+
+.progress-compact {
+  width: 25px !important;
+  height: 25px !important;
+  min-width: 25px !important;
+  min-height: 25px !important;
+  max-width: 25px !important;
+  max-height: 25px !important;
+  display: block;
+  margin: 0 auto;
 }
 </style>

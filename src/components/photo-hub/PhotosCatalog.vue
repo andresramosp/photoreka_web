@@ -35,7 +35,7 @@
             <div class="step-item">
               1. Go to
               <button class="tab-link" @click="navigateToTab('upload')">
-                Prep Area
+                Staging Area
               </button>
             </div>
             <div class="step-item">
@@ -214,10 +214,7 @@
           <PhotoCardHub
             v-for="photo in filteredPhotos"
             :key="photo.id"
-            :photo="{
-              ...photo,
-              size: parseFloat(photo.size) * 1024 * 1024, // Convert MB to bytes
-            }"
+            :photo="photo"
             :selected="selectedPhotosRecord[photo.id]"
             @info="showPhotoInfo"
             @delete="deletePhoto"
@@ -553,17 +550,6 @@ const navigateToTab = (tabName) => {
 
 .steps-list li {
   margin-bottom: 8px;
-}
-
-.tab-link {
-  background: none;
-  border: none;
-  color: #8b5cf6;
-  text-decoration: underline;
-  cursor: pointer;
-  font-size: inherit;
-  font-family: inherit;
-  padding: 0;
 }
 
 .tab-link:hover {

@@ -426,7 +426,7 @@ const exportGrid = () => {
   }
 
   // Simulate export process
-  message.loading("Preparing grid for export...", {
+  message.loading("Stagingaring grid for export...", {
     duration: 2000,
     onAfterLeave: () => {
       message.success("Grid exported successfully!");
