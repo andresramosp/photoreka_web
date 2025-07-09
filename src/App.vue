@@ -1,8 +1,11 @@
 <template>
   <n-config-provider :theme="darkTheme" :theme-overrides="themeOverrides">
     <n-message-provider>
+      <!-- Landing Page Layout (no sidebar) -->
+      <router-view v-if="route.name === 'landing'" />
+
       <!-- Authentication Layout -->
-      <router-view v-if="!userStore.isAuthenticated" />
+      <router-view v-else-if="!userStore.isAuthenticated" />
 
       <!-- Profile Setup Layout (authenticated but special case) -->
       <router-view
