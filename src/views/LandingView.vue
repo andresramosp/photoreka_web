@@ -69,7 +69,6 @@
                 class="demo-video"
                 :src="demoVideoUrl"
                 controls
-                poster="/api/placeholder/600/400"
                 @play="onVideoPlay"
               >
                 Your browser does not support the video tag.
