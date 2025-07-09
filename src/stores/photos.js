@@ -35,17 +35,13 @@ export const usePhotosStore = defineStore("photos", {
         return "full";
       }
 
-      // Only has uploaded photos = partial access
-<<<<<<< HEAD
-      if (state.photos.some((photo) => photo.status === "uploaded")) {
-=======
+      // Only has uploaded or processing photos = partial access
       if (
         state.photos.some(
           (photo) =>
-            photo.status === "uploaded" || photo.status === "processing"
+            photo.status === "uploaded" || photo.status === "processing",
         )
       ) {
->>>>>>> origin/main
         return "partial";
       }
 

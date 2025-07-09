@@ -318,22 +318,12 @@ const secondSectionOptions = computed(() => {
     {
       label: "Search",
       key: "search",
-<<<<<<< HEAD
       disabled: isBlocked,
       props: isBlocked
         ? {
             title: "Add photos to your catalog",
           }
         : {},
-=======
-      disabled: isBlocked || isPartial,
-      props:
-        isBlocked || isPartial
-          ? {
-              title: "Add photos to your catalog",
-            }
-          : {},
->>>>>>> origin/main
       icon: createIconWithPremium(SearchIcon, "#06b6d4"), // Info color for search functionality
     },
     {
@@ -361,42 +351,23 @@ const secondSectionOptions = computed(() => {
     {
       label: "Curation",
       key: "curation",
-<<<<<<< HEAD
       disabled: isBlocked,
       props: isBlocked
         ? {
             title: "Add photos to your catalog",
           }
         : {},
-=======
-      disabled: isBlocked || isPartial,
-      props:
-        isBlocked || isPartial
-          ? {
-              title: "Add photos to your catalog",
-            }
-          : {},
->>>>>>> origin/main
       icon: createIconWithPremium(CurationIcon, "#f59e0b", true), // Warning color for curation + premium
     },
     {
       label: "Styler",
       key: "styler",
-<<<<<<< HEAD
       disabled: isBlocked,
       props: isBlocked
         ? {
             title: "Add photos to your catalog",
           }
         : {},
-=======
-      disabled: isBlocked || isPartial,
-      props:
-        isBlocked || isPartial
-          ? {
-              title: "Add photos to your catalog",
-            }
-          : {},
 >>>>>>> origin/main
       icon: createIconWithPremium(StylerIcon, "#ef4444"), // Error color for advanced styling
     },
