@@ -368,7 +368,6 @@ const secondSectionOptions = computed(() => {
             title: "Add photos to your catalog",
           }
         : {},
->>>>>>> origin/main
       icon: createIconWithPremium(StylerIcon, "#ef4444"), // Error color for advanced styling
     },
   ];
