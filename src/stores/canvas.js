@@ -47,8 +47,12 @@ export const useCanvasStore = defineStore("canvas", {
     photos: [],
     discardedPhotos: [],
     currentZIndex: 1,
+    basicMode: false, // true si hay alguna foto .status === "uploaded"
   }),
   actions: {
+    updateBasicMode() {
+      this.basicMode = this.photos.some((p) => p.status === "uploaded");
+    },
     addPhotos(photoObjects, fromPhoto = false) {
       photoObjects.forEach((photo, index) => {
         if (!this.photos.some((p) => p.id == photo.id)) {
@@ -57,6 +61,7 @@ export const useCanvasStore = defineStore("canvas", {
           );
         }
       });
+      this.updateBasicMode();
     },
 
     // Trae fotos similares usando el endpoint /byPhotos
@@ -144,15 +149,17 @@ export const useCanvasStore = defineStore("canvas", {
         (p) => !photosToRemove.map((p) => p.id).includes(p.id)
       );
       this.discardedPhotos = this.discardedPhotos.concat(photosToRemove);
+      this.updateBasicMode();
     },
   },
 });
 
 export const expansionTypeOptions = [
   { label: "General", value: "embedding" },
-  { label: "Narrative", value: "story" },
-  { label: "Context", value: "context" },
+  // Solo mostrar "Narrative", "Context" y "Selected Tags" si NO está basicMode
+  { label: "Narrative", value: "story", basicOnly: false },
+  { label: "Context", value: "context", basicOnly: false },
   { label: "Chromatic", value: "chromatic" },
-  { label: "Selected Tags", value: "tags" },
-  // { label: "Dominant Colors", value: "chromatic_dominant" },
+  { label: "Selected Tags", value: "tags", basicOnly: false },
+  // { label: "Dominant Colors", value: "chromatic_dominant", basicOnly: false },
 ];

@@ -4,7 +4,7 @@
       <n-select
         v-model:value="toolbarState.expansion.type"
         size="small"
-        :options="expansionTypeOptions"
+        :options="filteredExpansionTypeOptions"
         placeholder="Search type"
         label-field="label"
         class="expansion-type-select"
@@ -52,7 +52,7 @@
 
 <script setup>
 import { NSelect, NCheckbox } from "naive-ui";
-import { nextTick, onMounted, ref, watch } from "vue";
+import { nextTick, onMounted, ref, watch, computed } from "vue";
 import { useCanvasStore, expansionTypeOptions } from "@/stores/canvas.js";
 import { useTagDisplay } from "@/composables/canvas/useTagsDisplay";
 import { debounce } from "lodash";
@@ -66,6 +66,14 @@ const props = defineProps({
 const emit = defineEmits(["photos-generated", "loading"]);
 
 const canvasStore = useCanvasStore();
+const filteredExpansionTypeOptions = computed(() => {
+  if (canvasStore.basicMode) {
+    return expansionTypeOptions.filter((opt) =>
+      ["embedding", "chromatic"].includes(opt.value)
+    );
+  }
+  return expansionTypeOptions;
+});
 
 const { filteredTags, selectedColor, hoverColor, defaultColor, pillHeight } =
   useTagDisplay(() => props.baseImage?.tags);

@@ -335,6 +335,32 @@
     <!-- Top Right Controls -->
     <div class="canvas-controls top-right">
       <n-space>
+        <template v-if="basicMode">
+          <div
+            class="basic-mode-banner"
+            style="
+              display: flex;
+              align-items: center;
+              margin-right: 12px;
+              background: #f5eaea;
+              color: #b91c1c;
+              border-radius: 6px;
+              padding: 4px 12px;
+              font-weight: 600;
+              font-size: 14px;
+            "
+          >
+            <n-icon size="18" style="margin-right: 6px; color: #b91c1c">
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"
+                />
+              </svg>
+            </n-icon>
+            Basic mode: Only chromatic and general expansions available
+          </div>
+        </template>
         <n-button @click="() => {}">
           <template #icon>
             <n-icon size="20" color="#2563eb">
@@ -401,7 +427,7 @@
 
             <div v-if="isDropdownOpen" class="dropdown-menu" @click.stop>
               <div
-                v-for="option in expansionTypeOptions"
+                v-for="option in filteredExpansionTypeOptions"
                 :key="option.value"
                 :class="[
                   'dropdown-item',
@@ -515,7 +541,7 @@ import { usePhotoAnimations } from "@/composables/canvas/usePhotoAnimations";
 import { useCanvasStore, expansionTypeOptions } from "@/stores/canvas.js";
 // import PhotoDetectionAreas from "@/components/canvas/PhotoControls/PhotoDetectionAreas.vue";
 import { usePhotosStore } from "@/stores/photos";
-import { ref, onMounted, onUnmounted, computed, h, watch } from "vue";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 import {
   NButton,
   NButtonGroup,
@@ -537,6 +563,7 @@ const canvasStore = useCanvasStore();
 const photosStore = usePhotosStore();
 // const photosStore = usePhotosStore();
 const { photos } = storeToRefs(canvasStore);
+const { basicMode } = storeToRefs(canvasStore);
 
 // Refs
 const stageRef = ref(null);
@@ -620,6 +647,16 @@ const dynamicSizeFactor = computed(() => {
   const zoom = toolbarState.value.zoomLevel || 100;
   let newFactor = baseSize * (0.8 / zoom);
   return Math.min(Math.max(newFactor, 1), 5);
+});
+
+// Computed property to filter expansion options based on basicMode
+const filteredExpansionTypeOptions = computed(() => {
+  if (basicMode.value) {
+    return expansionTypeOptions.filter((opt) =>
+      ["embedding", "chromatic"].includes(opt.value)
+    );
+  }
+  return expansionTypeOptions;
 });
 
 // Event handlers
