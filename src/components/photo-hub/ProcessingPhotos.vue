@@ -40,13 +40,13 @@
                 <span class="cell-label">Progress</span>
                 <n-tooltip placement="top">
                   <template #trigger>
-                    <n-progress
-                      type="circle"
+                    <PieProgress
                       :percentage="job.progressPercent"
-                      :show-indicator="false"
-                      :stroke-width="5"
-                      color="#18a058"
-                      rail-color="#eee"
+                      :size="24"
+                      :progress-color="job.status === 'finished' ? '#10b981' : '#f59e0b'"
+                      background-color="#2c2c32"
+                      stroke-color="#1a1a1f"
+                      :stroke-width="1"
                       class="progress-compact"
                     />
                   </template>
@@ -129,7 +129,8 @@ import { ref, onMounted, onBeforeUnmount } from "vue";
 import axios from "axios";
 import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
-import { NProgress, NTooltip } from "naive-ui";
+import PieProgress from "../PieProgress.vue";
+import { NTooltip } from "naive-ui";
 import { usePhotosStore } from "@/stores/photos"; // o donde tengas el store
 const photosStore = usePhotosStore();
 
@@ -543,12 +544,6 @@ const navigateToTab = (tabName) => {
 }
 
 .progress-compact {
-  width: 25px !important;
-  height: 25px !important;
-  min-width: 25px !important;
-  min-height: 25px !important;
-  max-width: 25px !important;
-  max-height: 25px !important;
   display: block;
   margin: 0 auto;
 }

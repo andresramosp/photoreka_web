@@ -8,6 +8,7 @@
         placeholder="Search type"
         label-field="label"
         class="expansion-type-select"
+        :disabled-field="'disabled'"
       />
       <n-checkbox
         v-model:checked="toolbarState.expansion.opposite"
@@ -67,12 +68,15 @@ const emit = defineEmits(["photos-generated", "loading"]);
 
 const canvasStore = useCanvasStore();
 const filteredExpansionTypeOptions = computed(() => {
-  if (canvasStore.basicMode) {
-    return expansionTypeOptions.filter((opt) =>
-      ["embedding", "chromatic"].includes(opt.value)
-    );
-  }
-  return expansionTypeOptions;
+  return expansionTypeOptions.map((opt) => {
+    if (
+      canvasStore.basicMode &&
+      !["embedding", "chromatic"].includes(opt.value)
+    ) {
+      return { ...opt, disabled: true };
+    }
+    return { ...opt, disabled: false };
+  });
 });
 
 const { filteredTags, selectedColor, hoverColor, defaultColor, pillHeight } =

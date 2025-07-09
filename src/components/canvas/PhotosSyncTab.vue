@@ -134,6 +134,7 @@ import pLimit from "p-limit";
 import pica from "pica";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 import { NButton, NProgress, NIcon } from "naive-ui";
+import axios from "axios";
 
 const props = defineProps({
   selectedIds: {
@@ -208,7 +209,13 @@ async function uploadLocalFiles(event) {
 
     isCheckingDuplicates.value = true;
 
-    // Check duplicates and restore normal state
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/analyzer`, {
+      userId: "1234",
+      packageId: "preprocess",
+      mode: "adding",
+      sync: true,
+    });
+
     await photosStore.checkDuplicates(photoIds);
 
     // Remove checking duplicates flag

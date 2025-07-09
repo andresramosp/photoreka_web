@@ -335,30 +335,14 @@
     <!-- Top Right Controls -->
     <div class="canvas-controls top-right">
       <n-space>
-        <template v-if="basicMode">
-          <div
-            class="basic-mode-banner"
-            style="
-              display: flex;
-              align-items: center;
-              margin-right: 12px;
-              background: #f5eaea;
-              color: #b91c1c;
-              border-radius: 6px;
-              padding: 4px 12px;
-              font-weight: 600;
-              font-size: 14px;
-            "
-          >
-            <n-icon size="18" style="margin-right: 6px; color: #b91c1c">
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"
-                />
-              </svg>
-            </n-icon>
-            Basic mode: Only chromatic and general expansions available
+        <template v-if="basicMode && !basicModeDismissed">
+          <div class="usage-limit-warning">
+            <WarningBadge
+              message="Basic mode"
+              tooltip="Only chromatic and general expansions are available while there are staged photos on the canvas."
+              :closable="true"
+              @close="basicModeDismissed = true"
+            />
           </div>
         </template>
         <n-button @click="() => {}">
@@ -433,9 +417,10 @@
                   'dropdown-item',
                   {
                     active: toolbarState.expansion.type === option.value,
+                    disabled: option.disabled,
                   },
                 ]"
-                @click="selectOption(option)"
+                @click="!option.disabled && selectOption(option)"
               >
                 <n-icon class="option-icon">
                   <component :is="option.icon" />
@@ -531,6 +516,7 @@
 </template>
 
 <script setup>
+import WarningBadge from "@/components/WarningBadge.vue";
 import {
   useCanvasStage,
   TOOLBAR_WIDTH,
@@ -541,7 +527,7 @@ import { usePhotoAnimations } from "@/composables/canvas/usePhotoAnimations";
 import { useCanvasStore, expansionTypeOptions } from "@/stores/canvas.js";
 // import PhotoDetectionAreas from "@/components/canvas/PhotoControls/PhotoDetectionAreas.vue";
 import { usePhotosStore } from "@/stores/photos";
-import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { ref, onMounted, onUnmounted, computed, h, watch } from "vue";
 import {
   NButton,
   NButtonGroup,
@@ -593,6 +579,7 @@ const toolbarState = ref({
 });
 
 // State
+const basicModeDismissed = ref(false);
 const expansionMode = ref("catalog");
 const interactionMode = ref("pan");
 const showRelatedPhotos = ref(false);
@@ -651,12 +638,12 @@ const dynamicSizeFactor = computed(() => {
 
 // Computed property to filter expansion options based on basicMode
 const filteredExpansionTypeOptions = computed(() => {
-  if (basicMode.value) {
-    return expansionTypeOptions.filter((opt) =>
-      ["embedding", "chromatic"].includes(opt.value)
-    );
-  }
-  return expansionTypeOptions;
+  return expansionTypeOptions.map((opt) => {
+    if (basicMode.value && !["embedding", "chromatic"].includes(opt.value)) {
+      return { ...opt, disabled: true };
+    }
+    return { ...opt, disabled: false };
+  });
 });
 
 // Event handlers
@@ -941,6 +928,10 @@ watch(
   { immediate: true }
 );
 
+watch(basicMode, (val) => {
+  if (val) basicModeDismissed.value = false;
+});
+
 onMounted(() => {
   window.addEventListener("resize", handleResize);
   document.addEventListener("click", handleClickOutside);
@@ -1105,6 +1096,17 @@ onUnmounted(() => {
 .dropdown-item.active {
   background: var(--primary-color, #007bff);
   color: #ffffff;
+}
+
+.dropdown-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.dropdown-item.disabled:hover {
+  background: transparent;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.8));
 }
 
 .option-icon {

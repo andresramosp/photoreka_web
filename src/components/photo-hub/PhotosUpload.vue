@@ -41,9 +41,9 @@
       class="upload-progress-section"
     >
       <div class="progress-header">
-        <h3 class="progress-title">Uploading Photos</h3>
+        <h3 class="progress-title">Staging Photos</h3>
         <span class="progress-count"
-          >{{ uploadedCount }}/{{ totalFiles }} photos uploaded</span
+          >{{ uploadedCount }}/{{ totalFiles }} photos staged</span
         >
       </div>
       <n-progress
@@ -360,6 +360,7 @@ import DuplicatePhotosDialog from "../DuplicatePhotosDialog.vue";
 import { NModal, NCheckbox, NTooltip } from "naive-ui";
 import { ImagesOutline } from "@vicons/ionicons5";
 import { InProgress } from "@vicons/carbon";
+import axios from "axios";
 
 const emit = defineEmits(["on-analyze"]);
 
@@ -467,6 +468,13 @@ async function uploadLocalFiles(event) {
     });
 
     // Check duplicates and restore normal state
+    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/analyzer`, {
+      userId: "1234",
+      packageId: "preprocess",
+      mode: "adding",
+      sync: true,
+    });
+
     await photosStore.checkDuplicates(photoIds);
 
     // Remove checking duplicates flag

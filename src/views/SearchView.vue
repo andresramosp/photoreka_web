@@ -178,43 +178,12 @@
               "
               class="usage-limit-warning"
             >
-              <div class="warning-badge">
-                <n-icon size="14" class="warning-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M1 21h22L12 2L1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
-                    />
-                  </svg>
-                </n-icon>
-                <span class="warning-text">Low performance</span>
-                <n-tooltip trigger="hover" placement="top">
-                  <template #trigger>
-                    <n-icon size="12" class="info-icon">
-                      <svg viewBox="0 0 24 24">
-                        <path
-                          fill="currentColor"
-                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                        />
-                      </svg>
-                    </n-icon>
-                  </template>
-                  {{ performanceTooltip }}
-                </n-tooltip>
-                <button
-                  @click="userStore.dismissUsageWarning('search')"
-                  class="close-badge-btn"
-                >
-                  <n-icon size="12">
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
-                      />
-                    </svg>
-                  </n-icon>
-                </button>
-              </div>
+              <WarningBadge
+                message="Low performance"
+                :tooltip="performanceTooltip"
+                :closable="true"
+                @close="userStore.dismissUsageWarning('search')"
+              />
             </div>
           </div>
         </div>
@@ -673,6 +642,7 @@ import { NTooltip } from "naive-ui";
 
 // Componentes e íconos
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
+import WarningBadge from "@/components/WarningBadge.vue";
 
 // Composable de tags y ejemplos
 import { useSearchTags } from "@/composables/useSearchTags";

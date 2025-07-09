@@ -156,7 +156,6 @@ export const useCanvasStore = defineStore("canvas", {
 
 export const expansionTypeOptions = [
   { label: "General", value: "embedding" },
-  // Solo mostrar "Narrative", "Context" y "Selected Tags" si NO está basicMode
   { label: "Narrative", value: "story", basicOnly: false },
   { label: "Context", value: "context", basicOnly: false },
   { label: "Chromatic", value: "chromatic" },
