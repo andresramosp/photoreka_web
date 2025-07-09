@@ -425,6 +425,8 @@ onMounted(() => {
   min-height: 100vh;
   background: linear-gradient(180deg, #0f0f13 0%, #16161a 100%);
   color: var(--text-primary);
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* Navigation */
