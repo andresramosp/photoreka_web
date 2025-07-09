@@ -130,6 +130,8 @@ import axios from "axios";
 import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 import { NProgress, NTooltip } from "naive-ui";
+import { usePhotosStore } from "@/stores/photos"; // o donde tengas el store
+const photosStore = usePhotosStore();
 
 const emit = defineEmits(["navigate-to-tab"]);
 
@@ -181,15 +183,34 @@ const mapProcess = (proc) => {
   };
 };
 
-// Carga todos los procesos
 async function loadProcesses() {
   const response = await axios.get(API_URL);
-  processingJobs.value = response.data
-    .map(mapProcess)
-    .sort(
-      (a, b) =>
-        new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-    );
+
+  const previousJobs = [...processingJobs.value]; // Clonar los anteriores
+
+  const updated = response.data.map((proc) => {
+    const current = processingJobs.value.find((j) => j.id === proc.id);
+    const mapped = mapProcess(proc);
+    if (current) mapped.expanded = current.expanded;
+    return mapped;
+  });
+
+  processingJobs.value = updated.sort(
+    (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+  );
+
+  // Detectar si alguno ha pasado de "processing" a "finished"
+  for (const updatedJob of processingJobs.value) {
+    const previousJob = previousJobs.find((j) => j.id == updatedJob.id);
+    if (
+      previousJob &&
+      previousJob.status === "processing" &&
+      updatedJob.status === "finished"
+    ) {
+      await photosStore.fetchOrGet();
+      break; // solo una vez
+    }
+  }
 }
 
 // Inicia carga y auto-refresh
