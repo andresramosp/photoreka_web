@@ -274,6 +274,12 @@ const firstSectionOptions = computed(() => [
         ],
       ),
   },
+  {
+    label: "Collections",
+    key: "collections",
+    icon: () =>
+      h(NIcon, { color: "#f59e0b" }, { default: () => h(CollectionsIcon) }),
+  },
 ]);
 
 // Function to create icon with premium indicator
