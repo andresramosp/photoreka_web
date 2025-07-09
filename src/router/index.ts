@@ -14,6 +14,7 @@ import ProfileSelectionView from "../views/ProfileSelectionView.vue";
 import StoragePlanSelectionView from "../views/StoragePlanSelectionView.vue";
 import GridMaker from "@/views/GridMaker.vue";
 import StylerView from "@/views/StylerView.vue";
+import LandingView from "@/views/LandingView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,6 +22,14 @@ const router = createRouter({
     {
       path: "/",
       redirect: "/dashboard",
+    },
+    {
+      path: "/landing",
+      name: "landing",
+      component: LandingView,
+      meta: {
+        requiresGuest: false, // Accessible to both guests and authenticated users
+      },
     },
     {
       path: "/auth",

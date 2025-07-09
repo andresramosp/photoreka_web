@@ -271,8 +271,14 @@ const firstSectionOptions = computed(() => [
                   "position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 6px #22c55e; animation: pulse 2s infinite;",
               })
             : null,
-        ]
+        ],
       ),
+  },
+  {
+    label: "Collections",
+    key: "collections",
+    icon: () =>
+      h(NIcon, { color: "#f59e0b" }, { default: () => h(CollectionsIcon) }),
   },
 ]);
 
@@ -304,7 +310,7 @@ const createIconWithPremium = (IconComponent, color, isPremium = false) => {
               `,
             })
           : null,
-      ]
+      ],
     );
 };
 
@@ -318,13 +324,12 @@ const secondSectionOptions = computed(() => {
     {
       label: "Search",
       key: "search",
-      disabled: isBlocked || isPartial,
-      props:
-        isBlocked || isPartial
-          ? {
-              title: "Add photos to your catalog",
-            }
-          : {},
+      disabled: isBlocked,
+      props: isBlocked
+        ? {
+            title: "Add photos to your catalog",
+          }
+        : {},
       icon: createIconWithPremium(SearchIcon, "#06b6d4"), // Info color for search functionality
     },
     {
@@ -352,25 +357,23 @@ const secondSectionOptions = computed(() => {
     {
       label: "Curation",
       key: "curation",
-      disabled: isBlocked || isPartial,
-      props:
-        isBlocked || isPartial
-          ? {
-              title: "Add photos to your catalog",
-            }
-          : {},
+      disabled: isBlocked,
+      props: isBlocked
+        ? {
+            title: "Add photos to your catalog",
+          }
+        : {},
       icon: createIconWithPremium(CurationIcon, "#f59e0b", true), // Warning color for curation + premium
     },
     {
       label: "Styler",
       key: "styler",
-      disabled: isBlocked || isPartial,
-      props:
-        isBlocked || isPartial
-          ? {
-              title: "Add photos to your catalog",
-            }
-          : {},
+      disabled: isBlocked,
+      props: isBlocked
+        ? {
+            title: "Add photos to your catalog",
+          }
+        : {},
       icon: createIconWithPremium(StylerIcon, "#ef4444"), // Error color for advanced styling
     },
   ];
