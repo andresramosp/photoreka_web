@@ -733,7 +733,7 @@ const warmedUp = ref(false);
 
 const warmingMessages = [
   "Warming up the engines...",
-  "Preparing the stage...",
+  "Stagingaring the stage...",
   "Just a few seconds more...",
   "Aligning the neurons...",
   "Summoning the muses...",

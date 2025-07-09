@@ -38,7 +38,7 @@
             <n-icon size="18">
               <DriveFolderUploadFilled color="var(--info-color)" />
             </n-icon>
-            Prep Area
+            Staging Area
           </div>
         </button>
 
@@ -79,7 +79,10 @@
         />
 
         <!-- Tab 2: Processing -->
-        <ProcessingPhotos v-show="activeTab === 'processing'" />
+        <ProcessingPhotos
+          v-show="activeTab === 'processing'"
+          @navigate-to-tab="setActiveTab"
+        />
 
         <!-- Tab 3: Catalog -->
       </div>

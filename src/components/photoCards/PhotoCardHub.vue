@@ -108,10 +108,10 @@
               type="info"
               class="status-tag"
             >
-              Prep
+              Staged
             </n-tag>
           </template>
-          Preprocessed photo, limited use in tools
+          Staged photo, limited use in tools
         </n-tooltip>
 
         <n-tooltip

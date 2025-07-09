@@ -62,9 +62,9 @@
         <BookInformation20Regular />
       </n-icon>
       <h3 class="photo-hub-title">
-        Entry point for photos into the platform. These photos are pre-processed
-        for limited use in some tools. You can also analyze them to unlock their
-        use in other tools.
+        Entry point for photos into the platform. Staged photos are
+        pre-processed for limited use in some tools. You can also analyze them
+        to unlock their use in other tools.
       </h3>
     </div>
     <!-- Full Upload Dasdaopzone (show when no photos) -->
@@ -81,7 +81,7 @@
               </svg>
             </n-icon>
           </div>
-          <h3 class="dropzone-title">Your sync area is empty</h3>
+          <h3 class="dropzone-title">Your Staging Area is empty</h3>
           <p class="dropzone-subtitle">
             Drag and drop your images, or click to browse
           </p>

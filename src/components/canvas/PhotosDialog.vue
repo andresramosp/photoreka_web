@@ -19,7 +19,7 @@
       <!-- Tabs -->
       <div v-if="!isTrash" class="tabs-container">
         <n-tabs v-model:value="activeTab" type="line" animated>
-          <n-tab-pane name="catalog" tab="From Catalog">
+          <n-tab-pane name="catalog" tab="From Workspace">
             <!-- Search and Stats Bar -->
             <div class="stats-bar">
               <div class="search-section">
@@ -27,7 +27,7 @@
                   v-model:value="searchQuery"
                   placeholder="Search photos..."
                   size="small"
-                  clearable
+                  :clearable="!isSearching"
                   class="text-search"
                   @input="onSearchChange"
                   @clear="clearSearch"
@@ -41,6 +41,9 @@
                         />
                       </svg>
                     </n-icon>
+                  </template>
+                  <template #suffix>
+                    <n-spin size="small" v-if="isSearching" />
                   </template>
                 </n-input>
               </div>
@@ -108,7 +111,7 @@
             </div>
           </n-tab-pane>
 
-          <n-tab-pane name="sync" tab="From Sync">
+          <n-tab-pane name="sync" tab="From Staging Area">
             <PhotosSyncTab
               :selected-ids="syncSelectedIds"
               @update:selected-ids="syncSelectedIds = $event"
@@ -127,7 +130,7 @@
               v-model:value="searchQuery"
               placeholder="Search photos..."
               size="small"
-              clearable
+              :clearable="!isSearching"
               class="text-search"
               @input="onSearchChange"
               @clear="clearSearch"
@@ -141,6 +144,14 @@
                     />
                   </svg>
                 </n-icon>
+              </template>
+              <template #suffix>
+                <n-spin
+                  size="small"
+                  class="search-loading"
+                  v-if="isSearching"
+                  style="vertical-align: middle"
+                />
               </template>
             </n-input>
           </div>
@@ -246,7 +257,15 @@ import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas";
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
 import PhotosSyncTab from "./PhotosSyncTab.vue";
-import { NModal, NButton, NIcon, NInput, NTabs, NTabPane } from "naive-ui";
+import {
+  NModal,
+  NButton,
+  NIcon,
+  NInput,
+  NTabs,
+  NTabPane,
+  NSpin,
+} from "naive-ui";
 import axios from "axios";
 import { io } from "socket.io-client";
 
@@ -295,7 +314,7 @@ const syncSelectedIds = ref([]);
 const isSubmitting = ref(false);
 const searchQuery = ref("");
 const activeTab = ref("catalog");
-const isSearching = ref(false);
+const isSearching = ref(true);
 const searchResults = ref([]);
 const allCatalogPhotos = ref([]);
 
@@ -592,6 +611,20 @@ onUnmounted(() => {
   width: 100%;
 }
 
+.search-loading-container {
+  /* display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px; */
+}
+
+.search-loading {
+  transform-origin: center;
+  opacity: 0.7;
+}
+
 .stats-section {
   display: flex;
   align-items: center;
@@ -748,5 +781,10 @@ onUnmounted(() => {
 
 .photos-grid::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+:deep(.n-input__suffix) {
+  display: flex !important;
+  align-items: center !important;
+  height: 100%;
 }
 </style>
