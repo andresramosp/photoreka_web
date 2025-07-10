@@ -43,7 +43,9 @@
                     <PieProgress
                       :percentage="job.progressPercent"
                       :size="24"
-                      :progress-color="job.status === 'finished' ? '#10b981' : '#f59e0b'"
+                      :progress-color="
+                        job.status === 'finished' ? '#10b981' : '#f59e0b'
+                      "
                       background-color="#2c2c32"
                       stroke-color="#1a1a1f"
                       :stroke-width="1"
