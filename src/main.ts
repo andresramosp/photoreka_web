@@ -35,6 +35,7 @@ import {
 
 import App from "./App.vue";
 import router from "./router";
+import { initializeAuth } from "./authInit";
 
 // Import theme variables and global styles
 import "./assets/theme.css";
@@ -73,10 +74,13 @@ const naive = create({
 });
 
 const app = createApp(App);
+const pinia = createPinia();
+app.use(pinia);
 
-app.use(createPinia());
+// Inicializar autenticación después de registrar Pinia
+initializeAuth();
+
 app.use(router);
 app.use(naive);
 app.use(VueKonva);
-
 app.mount("#app");

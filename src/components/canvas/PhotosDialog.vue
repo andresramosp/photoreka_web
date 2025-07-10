@@ -266,7 +266,7 @@ import {
   NTabPane,
   NSpin,
 } from "naive-ui";
-import axios from "axios";
+import api from "@/utils/axios";
 import { io } from "socket.io-client";
 
 // Import @vicons icons from ionicons5 for reliability
@@ -487,10 +487,7 @@ async function performSearch() {
       },
     };
 
-    await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/api/search/semantic`,
-      payload
-    );
+    await api.post("/api/photos/dialog", payload);
 
     // Results will be handled by socket listener or we can handle response directly
     // For now, let's handle response directly if no socket is set up for this dialog

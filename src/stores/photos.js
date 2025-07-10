@@ -1,6 +1,6 @@
 // stores/photos.js
 import { defineStore } from "pinia";
-import axios from "axios";
+import api from "@/utils/axios";
 
 export const usePhotosStore = defineStore("photos", {
   state: () => ({
@@ -55,9 +55,7 @@ export const usePhotosStore = defineStore("photos", {
       if (force || (this.photos.length === 0 && !this.isLoading)) {
         this.isLoading = true;
         try {
-          const response = await axios.get(
-            `${import.meta.env.VITE_API_BASE_URL}/api/catalog`
-          );
+          const response = await api.get(`/api/catalog`);
 
           const photos = response.data.photos.map((photo) => ({
             ...photo,
@@ -91,9 +89,7 @@ export const usePhotosStore = defineStore("photos", {
 
     async fetchPhoto(photoId) {
       try {
-        const { data: photo } = await axios.get(
-          `${import.meta.env.VITE_API_BASE_URL}/api/catalog/${photoId}`
-        );
+        const { data: photo } = await api.get(`/api/catalog/${photoId}`);
         const updatedPhoto = photo;
         const index = this.photos.findIndex((p) => p.id == photoId);
         if (index !== -1) {
@@ -110,10 +106,7 @@ export const usePhotosStore = defineStore("photos", {
 
     async deletePhotos(photoIds) {
       try {
-        await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/api/catalog/delete`,
-          { ids: photoIds }
-        );
+        await api.post(`/api/catalog/delete`, { ids: photoIds });
         photoIds.forEach((id) => {
           delete this.selectedPhotosRecord[id];
         });
@@ -130,10 +123,9 @@ export const usePhotosStore = defineStore("photos", {
 
     async deleteDuplicates(photosIds) {
       try {
-        const res = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/api/catalog/deleteDuplicates`,
-          { duplicates: photosIds }
-        );
+        const res = await api.post(`/api/catalog/deleteDuplicates`, {
+          duplicates: photosIds,
+        });
 
         const { deleted } = res.data;
 
@@ -152,17 +144,8 @@ export const usePhotosStore = defineStore("photos", {
     async checkDuplicates(photoIds = null) {
       try {
         const payload = photoIds ? { newPhotoIds: photoIds } : {};
-        const res = await fetch(
-          `${import.meta.env.VITE_API_BASE_URL}/api/catalog/checkDuplicates`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          }
-        );
-
-        if (!res.ok) throw new Error("Error al consultar duplicados");
-        const duplicatesMap = await res.json();
+        const res = await api.post("/api/catalog/checkDuplicates", payload);
+        const duplicatesMap = res.data;
 
         for (const photo of this.photos) {
           if (!photoIds || photoIds.includes(photo.id)) {

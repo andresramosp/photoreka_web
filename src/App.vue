@@ -107,10 +107,24 @@ const checkIsMobile = () => {
 };
 
 onMounted(() => {
-  photosStore.getOrFetch();
   checkIsMobile();
   window.addEventListener("resize", checkIsMobile);
+  // Espera a que el usuario esté autenticado antes de cargar las fotos
+  if (userStore.isAuthenticated) {
+    photosStore.getOrFetch();
+  }
 });
+
+// Watcher para cargar fotos cuando el usuario se autentica
+import { watch } from "vue";
+watch(
+  () => userStore.isAuthenticated,
+  (isAuth) => {
+    if (isAuth) {
+      photosStore.getOrFetch();
+    }
+  }
+);
 
 onUnmounted(() => {
   window.removeEventListener("resize", checkIsMobile);
@@ -161,9 +175,9 @@ onUnmounted(() => {
 <style>
 body {
   margin: 0;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
-    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #101014;

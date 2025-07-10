@@ -128,7 +128,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from "vue";
-import axios from "axios";
+import api from "@/utils/axios";
 import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 import PieProgress from "../PieProgress.vue";
@@ -139,7 +139,7 @@ const photosStore = usePhotosStore();
 const emit = defineEmits(["navigate-to-tab"]);
 
 // Utilidades
-const API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/analyzer-process`;
+const API_URL = "/api/analyzer-process";
 
 // Estado de procesos
 const processingJobs = ref([]);
@@ -187,7 +187,7 @@ const mapProcess = (proc) => {
 };
 
 async function loadProcesses() {
-  const response = await axios.get(API_URL);
+  const response = await api.get(API_URL);
 
   const previousJobs = [...processingJobs.value]; // Clonar los anteriores
 

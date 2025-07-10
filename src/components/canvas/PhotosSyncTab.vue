@@ -134,7 +134,7 @@ import pLimit from "p-limit";
 import pica from "pica";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 import { NButton, NProgress, NIcon } from "naive-ui";
-import axios from "axios";
+import api from "@/utils/axios";
 
 const props = defineProps({
   selectedIds: {
@@ -209,7 +209,7 @@ async function uploadLocalFiles(event) {
 
     isCheckingDuplicates.value = true;
 
-    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/analyzer`, {
+    await api.post(`/api/analyzer`, {
       userId: "1234",
       packageId: "preprocess",
       mode: "adding",
@@ -240,20 +240,12 @@ async function processAndUploadFile(file) {
     resizeImage(file, 800),
   ]);
 
-  const res = await fetch(
-    `${import.meta.env.VITE_API_BASE_URL}/api/catalog/uploadLocal`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        fileType: resizedBlob.type,
-        originalName: file.name,
-      }),
-    }
-  );
-
-  if (!res.ok) throw new Error("Error getting signed URLs");
-  const { uploadUrl, thumbnailUploadUrl, photo } = await res.json();
+  // Usar el api global de axios para la petición interna
+  const response = await api.post("/api/catalog/uploadLocal", {
+    fileType: resizedBlob.type,
+    originalName: file.name,
+  });
+  const { uploadUrl, thumbnailUploadUrl, photo } = response.data;
 
   await Promise.all([
     fetch(uploadUrl, {

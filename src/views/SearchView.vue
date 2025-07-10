@@ -636,7 +636,7 @@ import {
   watch,
   nextTick,
 } from "vue";
-import axios from "axios";
+import api from "@/utils/axios";
 import { io } from "socket.io-client";
 import { NTooltip } from "naive-ui";
 
@@ -904,12 +904,7 @@ async function searchPhotos() {
         options,
       };
     }
-    await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/api/search/${
-        activeSearchType.value
-      }`,
-      payload
-    );
+    await api.post(`/api/search/${activeSearchType.value}`, payload);
   } catch (err) {
     console.error("Error al buscar fotos:", err);
   }
@@ -922,9 +917,7 @@ async function ensureWarmUp() {
     warmingMessage.value = warmingMessages[i];
   }, 5000);
 
-  const { data } = await axios.get(
-    `${import.meta.env.VITE_API_BASE_URL}/api/search/warmUp`
-  );
+  const { data } = await api.get("/api/search/warmUp");
   warmedUp.value = data.result;
 
   if (data.result && warmingInterval) {

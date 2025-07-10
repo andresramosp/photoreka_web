@@ -32,7 +32,7 @@ export const useUserStore = defineStore("user", () => {
 
   // Check for existing token on store initialization
   const initAuth = () => {
-    const savedToken = localStorage.getItem("frameka_token");
+    const savedToken = localStorage.getItem("auth_token");
     if (savedToken) {
       token.value = savedToken;
       isAuthenticated.value = true;
@@ -127,7 +127,7 @@ export const useUserStore = defineStore("user", () => {
         provider,
       };
 
-      localStorage.setItem("frameka_token", mockToken);
+      localStorage.setItem("auth_token", mockToken);
 
       return { success: true };
     } catch (error) {
@@ -144,7 +144,7 @@ export const useUserStore = defineStore("user", () => {
     token.value = null;
     isAuthenticated.value = false;
     user.value = null;
-    localStorage.removeItem("frameka_token");
+    localStorage.removeItem("auth_token");
   };
 
   const dismissUsageWarning = (section: "search" | "curation") => {
@@ -167,5 +167,6 @@ export const useUserStore = defineStore("user", () => {
     register,
     loginWithProvider,
     logout,
+    initAuth,
   };
 });

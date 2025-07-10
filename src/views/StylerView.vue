@@ -187,8 +187,8 @@
 defineOptions({ name: "StylerPage" });
 
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from "vue";
-import axios from "axios";
 import { io } from "socket.io-client";
+import api from "@/utils/axios";
 
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
 import RankingTab from "@/components/styler/RankingTab.vue";
@@ -270,7 +270,7 @@ const showPhotoInfo = (photo) => {
 
 const moveToCanvas = async () => {
   await Promise.all(
-    photoStore.selectedPhotoIds.map((id) => photoStore.fetchPhoto(id)),
+    photoStore.selectedPhotoIds.map((id) => photoStore.fetchPhoto(id))
   );
   const photosToAdd = photoStore.selectedPhotoIds
     .map((id) => photoStore.photos.find((p) => p.id == id))
@@ -322,10 +322,7 @@ const searchPhotos = async () => {
       options,
     };
 
-    await axios.post(
-      `${import.meta.env.VITE_API_BASE_URL}/api/search/style`,
-      payload,
-    );
+    await api.post("/api/search/style", payload);
   } catch (err) {
     console.error("Error al buscar fotos por estilo:", err);
   }

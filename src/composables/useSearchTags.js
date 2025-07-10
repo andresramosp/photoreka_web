@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import axios from "axios";
+import api from "@/utils/axios";
 
 export function useSearchTags() {
   const includedTags = ref([]);
@@ -14,12 +14,9 @@ export function useSearchTags() {
 
   async function fetchTagSuggestions(query) {
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/tags/search`,
-        {
-          params: { term: query },
-        }
-      );
+      const response = await api.get("/api/tags/search", {
+        params: { term: query },
+      });
       return response.data.result.map((tag) => tag.name);
     } catch (error) {
       console.error("Error fetching tag suggestions", error);

@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import axios from "axios";
+import api from "@/utils/axios";
 
 const PHOTO_WIDTH = 150 * 1.5;
 const PHOTO_HEIGHT = 100 * 1.5;
@@ -101,20 +101,17 @@ export const useCanvasStore = defineStore("canvas", {
             .map((dt) => dt.id);
           selectedBoxes = selectedBoxes.concat(selectedDetectionIds);
         }
-        const response = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}/api/search/byPhotos`,
-          {
-            anchorIds,
-            currentPhotosIds: currentOrDiscardedPhotos,
-            criteria: similarityType,
-            opposite,
-            inverted,
-            // descriptionCategories: similarityType.fields,
-            resultLength,
-            tagIds: selectedTags,
-            boxesIds: selectedBoxes,
-          }
-        );
+        const response = await api.post(`/api/search/byPhotos`, {
+          anchorIds,
+          currentPhotosIds: currentOrDiscardedPhotos,
+          criteria: similarityType,
+          opposite,
+          inverted,
+          // descriptionCategories: similarityType.fields,
+          resultLength,
+          tagIds: selectedTags,
+          boxesIds: selectedBoxes,
+        });
         const backendPhotos = Array.isArray(response.data)
           ? response.data
           : [response.data];

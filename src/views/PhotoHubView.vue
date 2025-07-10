@@ -96,7 +96,7 @@ import PhotosUpload from "@/components/photo-hub/PhotosUpload.vue";
 import ProcessingPhotos from "@/components/photo-hub/ProcessingPhotos.vue";
 import PhotosCatalog from "@/components/photo-hub/PhotosCatalog.vue";
 import { usePhotosStore } from "@/stores/photos.js";
-import axios from "axios";
+import api from "@/utils/axios";
 import { useMessage } from "naive-ui";
 import { ImagesOutline, MenuOutline } from "@vicons/ionicons5";
 import { DriveFolderUploadFilled, SyncAltFilled } from "@vicons/material";
@@ -128,7 +128,7 @@ async function analyze(ev) {
       `The analysis of your photos has begun! You can close this window in the meantime.`,
       { duration: 5000 }
     );
-    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/analyzer`, {
+    await api.post(`/api/analyzer`, {
       userId: "1234",
       packageId: "process",
       mode: "adding",

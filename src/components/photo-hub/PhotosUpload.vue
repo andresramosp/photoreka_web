@@ -360,7 +360,7 @@ import DuplicatePhotosDialog from "../DuplicatePhotosDialog.vue";
 import { NModal, NCheckbox, NTooltip } from "naive-ui";
 import { ImagesOutline } from "@vicons/ionicons5";
 import { InProgress } from "@vicons/carbon";
-import axios from "axios";
+import api from "@/utils/axios";
 
 const emit = defineEmits(["on-analyze"]);
 
@@ -468,7 +468,7 @@ async function uploadLocalFiles(event) {
     });
 
     // Check duplicates and restore normal state
-    await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/analyzer`, {
+    await api.post(`/api/analyzer`, {
       userId: "1234",
       packageId: "preprocess",
       mode: "adding",
@@ -495,20 +495,13 @@ async function processAndUploadFile(file) {
     resizeImage(file, 800),
   ]);
 
-  const res = await fetch(
-    `${import.meta.env.VITE_API_BASE_URL}/api/catalog/uploadLocal`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        fileType: resizedBlob.type,
-        originalName: file.name,
-      }),
-    }
-  );
+  // Usar el api global de axios para la petición interna
+  const response = await api.post("/api/catalog/uploadLocal", {
+    fileType: resizedBlob.type,
+    originalName: file.name,
+  });
 
-  if (!res.ok) throw new Error("Error obteniendo URLs firmadas");
-  const { uploadUrl, thumbnailUploadUrl, photo } = await res.json();
+  const { uploadUrl, thumbnailUploadUrl, photo } = response.data;
 
   await Promise.all([
     fetch(uploadUrl, {
