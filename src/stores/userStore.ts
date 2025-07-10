@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import { defineStore } from "pinia";
+import api from "../utils/axios";
 
 interface User {
   id: string;
@@ -52,36 +53,21 @@ export const useUserStore = defineStore("user", () => {
     isLoading.value = true;
 
     try {
-      // Mock authentication - replace with real API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await api.post("/api/auth/login", { email, password });
+      const { token: receivedToken, user: receivedUser } = response.data;
 
-      // Mock validation
-      if (email && password.length >= 6) {
-        const mockToken = `mock_token_${Date.now()}_${Math.random()
-          .toString(36)
-          .substr(2, 9)}`;
+      token.value = receivedToken;
+      isAuthenticated.value = true;
+      user.value = receivedUser;
 
-        token.value = mockToken;
-        isAuthenticated.value = true;
-        user.value = {
-          id: `user_${Date.now()}`,
-          email,
-          name: email.split("@")[0],
-          provider: "email",
-        };
+      localStorage.setItem("auth_token", receivedToken);
 
-        localStorage.setItem("frameka_token", mockToken);
-
-        return { success: true };
-      } else {
-        return {
-          success: false,
-          error:
-            "Email and password are required. Password must be at least 6 characters.",
-        };
-      }
-    } catch (error) {
-      return { success: false, error: "Error logging in. Please try again." };
+      return { success: true };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.response?.data?.message || "Error logging in.",
+      };
     } finally {
       isLoading.value = false;
     }
@@ -95,38 +81,24 @@ export const useUserStore = defineStore("user", () => {
     isLoading.value = true;
 
     try {
-      // Mock registration - replace with real API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await api.post("/api/auth/register", {
+        email,
+        password,
+        name,
+      });
+      const { token: receivedToken, user: receivedUser } = response.data;
 
-      // Mock validation
-      if (email && password.length >= 6 && name) {
-        const mockToken = `mock_token_${Date.now()}_${Math.random()
-          .toString(36)
-          .substr(2, 9)}`;
+      token.value = receivedToken;
+      isAuthenticated.value = true;
+      user.value = receivedUser;
 
-        token.value = mockToken;
-        isAuthenticated.value = true;
-        user.value = {
-          id: `user_${Date.now()}`,
-          email,
-          name,
-          provider: "email",
-        };
+      localStorage.setItem("auth_token", receivedToken);
 
-        localStorage.setItem("frameka_token", mockToken);
-
-        return { success: true };
-      } else {
-        return {
-          success: false,
-          error:
-            "All fields are required. Password must be at least 6 characters.",
-        };
-      }
-    } catch (error) {
+      return { success: true };
+    } catch (error: any) {
       return {
         success: false,
-        error: "Error creating account. Please try again.",
+        error: error.response?.data?.message || "Error registering.",
       };
     } finally {
       isLoading.value = false;
