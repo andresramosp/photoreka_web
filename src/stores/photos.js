@@ -64,9 +64,7 @@ export const usePhotosStore = defineStore("photos", {
       if (
         state.photos.some(
           (photo) =>
-            photo.status === "uploaded" ||
-            photo.status === "preprocessed" ||
-            photo.status === "processing"
+            photo.status === "preprocessed" || photo.status === "processing"
         )
       ) {
         return "partial";

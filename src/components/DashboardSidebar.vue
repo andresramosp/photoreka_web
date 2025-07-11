@@ -121,7 +121,6 @@
           </template>
         </n-button>
       </div>
-
       <div class="logo-container">
         <div class="logo clickable-logo" @click="goToDashboard">
           <div class="logo-icon">
@@ -271,7 +270,7 @@ const firstSectionOptions = computed(() => [
                   "position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 6px #22c55e; animation: pulse 2s infinite;",
               })
             : null,
-        ],
+        ]
       ),
   },
   {
@@ -310,7 +309,7 @@ const createIconWithPremium = (IconComponent, color, isPremium = false) => {
               `,
             })
           : null,
-      ],
+      ]
     );
 };
 
@@ -324,7 +323,7 @@ const secondSectionOptions = computed(() => {
     {
       label: "Search",
       key: "search",
-      disabled: isBlocked,
+      disabled: isBlocked || isPartial,
       props: isBlocked
         ? {
             title: "Add photos to your catalog",
@@ -357,7 +356,7 @@ const secondSectionOptions = computed(() => {
     {
       label: "Curation",
       key: "curation",
-      disabled: isBlocked,
+      disabled: isBlocked || isPartial,
       props: isBlocked
         ? {
             title: "Add photos to your catalog",
@@ -368,7 +367,7 @@ const secondSectionOptions = computed(() => {
     {
       label: "Styler",
       key: "styler",
-      disabled: isBlocked,
+      disabled: isBlocked || isPartial,
       props: isBlocked
         ? {
             title: "Add photos to your catalog",
