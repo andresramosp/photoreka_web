@@ -137,6 +137,12 @@ watch(
 onUnmounted(() => {
   window.removeEventListener("resize", checkIsMobile);
 });
+
+const onOnboardingFinish = () => {
+  showOnboarding.value = false;
+  // TODO: Set user preference to not show onboarding again
+  console.log("Onboarding completed!");
+};
 </script>
 
 <style scoped>
