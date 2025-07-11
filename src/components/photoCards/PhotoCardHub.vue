@@ -79,7 +79,7 @@
 
     <!-- File name in top-right corner of photo (if showName) -->
     <div v-if="showName" class="photo-filename-topright" :title="cleanFileName">
-      {{ shortFileName }}
+      {{ cleanFileName }}
     </div>
 
     <!-- Footer with detailed information -->
@@ -166,18 +166,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { NIcon, NSpin, NTooltip } from "naive-ui";
-// Utilidad para limpiar extensión y acortar nombre
-function removeExtension(filename: string): string {
-  return filename.replace(/\.[^.]+$/, "");
-}
-
-const cleanFileName = computed(() =>
-  removeExtension(props.photo.originalFileName)
-);
-const shortFileName = computed(() => {
-  const name = cleanFileName.value;
-  return name.length > 6 ? name.slice(0, 6) + "..." : name;
-});
 
 // Import @vicons icons from ionicons5 for reliability
 import {
@@ -234,6 +222,15 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>();
 
+// Utilidad para limpiar extensión y acortar nombre
+function removeExtension(filename: string): string {
+  return filename.replace(/\.[^.]+$/, "");
+}
+
+const cleanFileName = computed(() =>
+  removeExtension(props.photo.originalFileName)
+);
+
 const isSelected = computed(() => props.selected);
 const imageLoaded = ref(false);
 const imageError = ref(false);
@@ -282,6 +279,10 @@ const onImageError = () => {
   background-color: #2c2c32;
   display: flex;
   flex-direction: column;
+
+  /* Habilitar container queries */
+  container-type: inline-size;
+  container-name: photo-card;
 }
 
 .photo-card-info.with-footer {
@@ -432,11 +433,6 @@ const onImageError = () => {
   gap: 8px;
 }
 
-/* Duplicate border styling */
-.photo-card-info.duplicate {
-  /* border-color: #f59e0b; */
-}
-
 /* Status tags */
 .status-tag {
   flex-shrink: 0;
@@ -450,21 +446,66 @@ const onImageError = () => {
 }
 .photo-filename-topright {
   position: absolute;
-
-  right: 0px;
-
-  color: gray;
-  font-size: 17px;
-  padding-right: 3px;
-
+  top: -2px;
+  right: 2px;
+  color: var(--text-secondary);
+  font-size: 22px;
   font-weight: 500;
-  border-radius: 8px;
+  border-radius: 0 12px 0 8px;
   max-width: 70%;
+  min-width: 0; /* Permite que el contenedor se encoja */
+  opacity: 0.65;
+  z-index: 2;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+  transition: opacity 0.2s ease;
+
+  /* Manejo inteligente del texto */
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  opacity: 0.6;
 
-  z-index: 1;
-  pointer-events: none;
+  /* Mejoras para legibilidad */
+  /* text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7); */
+  letter-spacing: 0.025em;
+}
+
+.photo-filename-topright:hover {
+  opacity: 1;
+}
+
+/* Variante para contenedores más pequeños */
+@container photo-card (max-width: 200px) {
+  .photo-filename-topright {
+    font-size: 12px;
+    /* padding: 4px 6px; */
+    max-width: 75%;
+  }
+}
+
+/* Variante para contenedores muy pequeños */
+@container photo-card (max-width: 150px) {
+  .photo-filename-topright {
+    font-size: 11px;
+    /* padding: 3px 5px; */
+    max-width: 80%;
+  }
+}
+
+/* Soporte para navegadores sin container queries */
+@media (max-width: 768px) {
+  .photo-filename-topright {
+    font-size: 12px;
+    /* padding: 4px 6px; */
+    max-width: 75%;
+  }
+}
+
+@media (max-width: 480px) {
+  .photo-filename-topright {
+    font-size: 11px;
+    /* padding: 3px 5px; */
+    max-width: 80%;
+  }
 }
 </style>

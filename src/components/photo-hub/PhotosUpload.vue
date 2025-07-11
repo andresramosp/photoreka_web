@@ -26,7 +26,7 @@
           align-items: center;
         "
       >
-        <div style="display: flex; align-items: center; gap: 6px">
+        <div style="display: flex; align-items: center">
           <n-checkbox size="large" v-model:checked="fastMode">
             Fast mode
           </n-checkbox>
