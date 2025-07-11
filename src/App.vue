@@ -51,6 +51,12 @@
 
         <!-- Floating Add Photos Button -->
         <FloatingAddPhotosButton />
+
+        <!-- Onboarding Slider -->
+        <OnboardingSlider
+          v-model="showOnboarding"
+          @finish="onOnboardingFinish"
+        />
       </template>
     </n-message-provider>
   </n-config-provider>
@@ -65,6 +71,7 @@ import DashboardSidebar from "./components/DashboardSidebar.vue";
 import DashboardHeader from "./components/DashboardHeader.vue";
 import FloatingAddPhotosButton from "./components/FloatingAddPhotosButton.vue";
 import { usePhotosStore } from "@/stores/photos.js";
+import OnboardingSlider from "./components/OnboardingSlider.vue";
 
 const photosStore = usePhotosStore();
 
@@ -94,6 +101,7 @@ const themeOverrides = {
 
 const mobileMenuOpen = ref(false);
 const isMobile = ref(false);
+const showOnboarding = ref(true); // Mock to always show for now
 
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value;
@@ -123,7 +131,7 @@ watch(
     if (isAuth) {
       photosStore.getOrFetch();
     }
-  }
+  },
 );
 
 onUnmounted(() => {
@@ -175,9 +183,9 @@ onUnmounted(() => {
 <style>
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #101014;
