@@ -193,25 +193,6 @@
               Use it when you want to upload a few photos quickly.
             </n-tooltip></n-checkbox
           >
-
-          <n-button
-            type="info"
-            size="medium"
-            class="analyze-btn"
-            @click="openAnalyzeDialog"
-            :disabled="
-              isUploading ||
-              prepAreaPhotos.length === 0 ||
-              prepAreaPhotos.filter((p) => p.isCheckingDuplicates).length > 0
-            "
-          >
-            <template #icon>
-              <n-icon>
-                <InProgress></InProgress>
-              </n-icon>
-            </template>
-            Process Photos
-          </n-button>
         </div>
       </div>
     </div>
@@ -351,6 +332,13 @@
       style="display: none"
       @change="uploadLocalFiles"
     />
+
+    <!-- Floating Process Photos Button -->
+    <FloatingProcessPhotosButton
+      :should-show="shouldShowProcessButton"
+      :disabled="isProcessButtonDisabled"
+      @click="openAnalyzeDialog"
+    />
   </div>
 </template>
 
@@ -362,6 +350,7 @@ import pica from "pica";
 import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 import DuplicatePhotosDialog from "../DuplicatePhotosDialog.vue";
+import FloatingProcessPhotosButton from "../FloatingProcessPhotosButton.vue";
 import {
   NModal,
   NCheckbox,
@@ -382,6 +371,19 @@ const props = defineProps({
 
 const emit = defineEmits(["on-analyze"]);
 const photosStore = usePhotosStore();
+
+// Computed for floating button
+const shouldShowProcessButton = computed(() => {
+  return allPhotos.value.length > 0;
+});
+
+const isProcessButtonDisabled = computed(() => {
+  return (
+    isUploading.value ||
+    prepAreaPhotos.value.length === 0 ||
+    prepAreaPhotos.value.filter((p) => p.isCheckingDuplicates).length > 0
+  );
+});
 
 const isUploading = ref(false);
 const gridColumns = ref(8);
@@ -417,7 +419,7 @@ const fastMode = computed({
 });
 const showAnalyzeDialog = ref(false);
 const dontShowFastAgain = ref(
-  localStorage.getItem("dontShowFastAgain") === "1"
+  localStorage.getItem("dontShowFastAgain") === "1",
 );
 
 // Filtro de visualización para singleViewMode (radio)
@@ -499,9 +501,9 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) photosToUpload.push(photo);
-          })
-        )
-      )
+          }),
+        ),
+      ),
     );
 
     isUploading.value = false;
