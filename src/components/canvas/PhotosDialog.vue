@@ -43,7 +43,11 @@
                     </n-icon>
                   </template>
                   <template #suffix>
-                    <n-spin size="small" v-if="isSearching" />
+                    <n-spin
+                      size="small"
+                      class="spinner-search spinner-medium spinner-centered"
+                      v-if="isSearching"
+                    />
                   </template>
                 </n-input>
               </div>
@@ -148,9 +152,8 @@
               <template #suffix>
                 <n-spin
                   size="small"
-                  class="search-loading"
+                  class="spinner-search spinner-medium spinner-centered"
                   v-if="isSearching"
-                  style="vertical-align: middle"
                 />
               </template>
             </n-input>
@@ -606,20 +609,6 @@ onUnmounted(() => {
 
 .text-search {
   width: 100%;
-}
-
-.search-loading-container {
-  /* display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  margin-right: 8px; */
-}
-
-.search-loading {
-  transform-origin: center;
-  opacity: 0.7;
 }
 
 .stats-section {

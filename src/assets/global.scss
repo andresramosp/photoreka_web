@@ -434,3 +434,72 @@
   font-family: inherit;
   padding: 0;
 }
+
+/* =========================================================================
+   SPINNER SYSTEM - CENTERED SPINNERS
+   ========================================================================== */
+
+/* Base spinner container for inline usage */
+.spinner-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Spinner container for status badges */
+.spinner-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 2px;
+}
+
+/* Spinner container for search inputs */
+.spinner-search {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center;
+  opacity: 0.7;
+}
+
+/* Common spinner deep styles to fix centering issues */
+.spinner-centered .n-spin {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.spinner-centered .n-spin-container {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.spinner-centered .n-spin-body {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Size-specific spinner styles */
+.spinner-small.spinner-centered .n-spin,
+.spinner-small.spinner-centered .n-spin-container,
+.spinner-small.spinner-centered .n-spin-body {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.spinner-medium.spinner-centered .n-spin,
+.spinner-medium.spinner-centered .n-spin-container,
+.spinner-medium.spinner-centered .n-spin-body {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* Flex containers for elements with spinners */
+.element-with-spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

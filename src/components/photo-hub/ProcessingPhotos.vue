@@ -60,12 +60,18 @@
                 <span class="cell-label">Status</span>
                 <n-tag
                   size="small"
-                  class="status-tag"
+                  class="status-tag element-with-spinner"
                   :class="{
                     'status-processing': job.status === 'processing',
                     'status-finished': job.status === 'finished',
                   }"
                 >
+                  <template v-if="job.status === 'processing'">
+                    <n-spin
+                      size="12"
+                      class="spinner-status-badge spinner-small spinner-centered"
+                    />
+                  </template>
                   {{ job.status === "processing" ? "Processing" : "Finished" }}
                 </n-tag>
               </div>
@@ -132,7 +138,7 @@ import api from "@/utils/axios";
 import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 import PieProgress from "../PieProgress.vue";
-import { NTooltip } from "naive-ui";
+import { NTooltip, NSpin } from "naive-ui";
 import { usePhotosStore } from "@/stores/photos"; // o donde tengas el store
 const photosStore = usePhotosStore();
 
@@ -476,9 +482,9 @@ const navigateToTab = (tabName) => {
 
 /* Custom Status Badge Colors */
 .status-processing {
-  background-color: #f59e0b !important;
+  background-color: var(--warning-color) !important;
   color: #ffffff !important;
-  border-color: #f59e0b !important;
+  border-color: var(--warning-color) !important;
 }
 
 .status-finished {

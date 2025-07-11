@@ -53,10 +53,10 @@
         <FloatingAddPhotosButton />
 
         <!-- Onboarding Slider -->
-        <OnboardingSlider
+        <!-- <OnboardingSlider
           v-model="showOnboarding"
           @finish="onOnboardingFinish"
-        />
+        /> -->
       </template>
     </n-message-provider>
   </n-config-provider>
