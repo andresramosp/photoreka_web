@@ -505,7 +505,7 @@ const navigateToTab = (tabName) => {
 /* Empty State Styles */
 .empty-state-section {
   display: flex;
-  justify-content: center;
+  /* justify-content: center; */
   min-height: 500px;
   /* padding: 64px 32px; */
   flex-direction: column;
