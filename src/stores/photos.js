@@ -7,6 +7,7 @@ export const usePhotosStore = defineStore("photos", {
     photos: [],
     isLoading: false,
     selectedPhotosRecord: {},
+    catalogSingleView: false, // Nuevo modo single view
   }),
 
   getters: {
@@ -15,14 +16,37 @@ export const usePhotosStore = defineStore("photos", {
         .filter((photoId) => !!state.selectedPhotosRecord[photoId])
         .map(Number),
 
+    prepAreaPhotos: (state) =>
+      state.photos.filter(
+        (p) =>
+          p.status == "uploaded" ||
+          p.status == "preprocessing" ||
+          p.status == "preprocessed"
+        // p.status == "processing"
+      ),
+
+    workspacePhotos: (state) =>
+      state.photos.filter(
+        (p) => p.status == "processing" || p.status == "processed"
+      ),
+
     uploadedPhotos: (state) =>
       state.photos.filter((p) => p.status == "uploaded"),
+
+    preProcessingPhotos: (state) =>
+      state.photos.filter((p) => p.status == "preprocessing"),
+
+    preprocessedPhotos: (state) =>
+      state.photos.filter((p) => p.status == "preprocessed"),
 
     processingPhotos: (state) =>
       state.photos.filter((p) => p.status == "processing"),
 
-    catalogPhotos: (state) =>
+    processedPhotos: (state) =>
       state.photos.filter((p) => p.status == "processed"),
+
+    // Todas las fotos que son preprocesadas o procesadas
+    allPhotos: (state) => state.photos,
 
     appAccessMode: (state) => {
       // No photos at all = blocked

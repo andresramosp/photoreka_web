@@ -10,7 +10,7 @@
     />
 
     <!-- Empty State (when no photos) -->
-    <div v-if="catalogPhotos.length == 0" class="empty-state-section">
+    <div v-if="processedPhotos.length == 0" class="empty-state-section">
       <div class="photo-hub-header">
         <n-icon :color="`var(--warning-color)`" size="18">
           <BookInformation20Regular />
@@ -35,22 +35,18 @@
             <div class="step-item">
               1. Go to
               <button class="tab-link" @click="navigateToTab('upload')">
-                Staging Area
+                Prep Area
               </button>
             </div>
             <div class="step-item">
               2. Upload or sync your photos from any platform
             </div>
             <div class="step-item">
-              3. Click Analyze and follow the process evolution in the
+              3. Click Process Photos and follow the process evolution in the
               <button class="tab-link" @click="navigateToTab('processing')">
                 Processing
               </button>
               tab
-            </div>
-            <div class="step-item">
-              4. Repeat this process whenever you want to add photos to your
-              catalog
             </div>
           </div>
         </div>
@@ -84,7 +80,7 @@
                 }
               "
               :disabled="
-                catalogPhotos.filter((p) => !p.isUploading).length === 0
+                processedPhotos.filter((p) => !p.isUploading).length === 0
               "
             >
               <template #icon>
@@ -257,13 +253,13 @@ const showDuplicatesDialog = ref(false);
 const selectedDuplicates = ref([]);
 
 // Static catalog photos for demonstration
-const catalogPhotos = computed(() => photosStore.catalogPhotos);
+const processedPhotos = computed(() => photosStore.processedPhotos);
 
 const filteredPhotos = computed(() => {
   if (!filterDuplicates.value) {
-    return catalogPhotos.value;
+    return processedPhotos.value;
   }
-  return catalogPhotos.value.filter((photo) => photo.isDuplicate);
+  return processedPhotos.value.filter((photo) => photo.isDuplicate);
 });
 
 // Selection state

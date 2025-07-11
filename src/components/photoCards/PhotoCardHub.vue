@@ -6,7 +6,16 @@
       duplicate: photo.isDuplicate,
       'with-footer': showFooter,
     }"
-    @click="toggleSelection"
+    @click="
+      (photo.status === 'processed' || photo.status === 'preprocessed') &&
+        toggleSelection()
+    "
+    :style="{
+      cursor:
+        photo.status === 'processed' || photo.status === 'preprocessed'
+          ? 'pointer'
+          : 'default',
+    }"
   >
     <div class="photo-container">
       <!-- Show actual image when uploaded -->
@@ -20,7 +29,11 @@
 
       <!-- Action Buttons (center overlay) - only show when not uploading -->
       <div
-        v-if="!photo.isCheckingDuplicates && !isUploading"
+        v-if="
+          !photo.isCheckingDuplicates &&
+          !isUploading &&
+          (photo.status === 'processed' || photo.status === 'preprocessed')
+        "
         class="action-buttons-overlay"
       >
         <n-button
@@ -88,7 +101,16 @@
         <!-- Status tags -->
 
         <n-tag
-          v-if="photo.isCheckingDuplicates"
+          v-if="photo.status == 'uploaded' || photo.status == 'preprocessing'"
+          size="small"
+          type="info"
+          class="status-tag"
+        >
+          Preprocessing
+        </n-tag>
+
+        <n-tag
+          v-if="photo.status == 'processing'"
           size="small"
           type="info"
           class="status-tag"
@@ -97,7 +119,7 @@
         </n-tag>
 
         <n-tooltip
-          v-else-if="!isUploading && photo.status == 'uploaded'"
+          v-else-if="!isUploading && photo.status == 'preprocessed'"
           trigger="hover"
           placement="top"
         >
@@ -108,10 +130,10 @@
               type="info"
               class="status-tag"
             >
-              Staged
+              Preprocessed
             </n-tag>
           </template>
-          Staged photo, limited use in tools
+          Preprocessed photo, limited use in tools
         </n-tooltip>
 
         <n-tooltip
@@ -158,7 +180,12 @@ interface PhotoInfo {
   date?: string;
   isDuplicate?: boolean;
   duplicates?: string[];
-  status?: "uploaded" | "processing" | "processed";
+  status?:
+    | "uploaded"
+    | "preprocessing"
+    | "preprocessed"
+    | "processing"
+    | "processed";
   aiTags?: number;
   faces?: number;
   width?: number;

@@ -50,8 +50,8 @@
               <div class="stats-section">
                 <div class="stats-info">
                   <span class="stats-text">
-                    {{ catalogPhotos.length }}
-                    {{ catalogPhotos.length === 1 ? "photo" : "photos" }}
+                    {{ processedPhotos.length }}
+                    {{ processedPhotos.length === 1 ? "photo" : "photos" }}
                     available
                     <span v-if="selectedIds.length > 0" class="selected-count">
                       • {{ selectedIds.length }} selected
@@ -81,12 +81,12 @@
 
             <!-- Photos Grid -->
             <div
-              v-if="catalogPhotos.length > 0"
+              v-if="processedPhotos.length > 0"
               class="photos-grid photo-grid-base"
               :class="`grid-cols-${6}`"
             >
               <PhotoCard
-                v-for="photo in catalogPhotos"
+                v-for="photo in processedPhotos"
                 :key="photo.id"
                 :photo="photo"
                 :selected="selectedIds.includes(photo.id)"
@@ -111,7 +111,7 @@
             </div>
           </n-tab-pane>
 
-          <n-tab-pane name="sync" tab="From Staging Area">
+          <n-tab-pane name="sync" tab="From Prep Area">
             <PhotosSyncTab
               :selected-ids="syncSelectedIds"
               @update:selected-ids="syncSelectedIds = $event"
@@ -319,7 +319,7 @@ const searchResults = ref([]);
 const allCatalogPhotos = ref([]);
 
 // Computed photos for different contexts
-const catalogPhotos = computed(() => {
+const processedPhotos = computed(() => {
   const hasSearch = searchQuery.value.trim();
   const hasResults = searchResults.value && searchResults.value.length > 0;
 
@@ -339,7 +339,7 @@ const catalogPhotos = computed(() => {
 const trashPhotos = computed(() => {
   // Return discarded photos that can be restored
   return canvasStore.discardedPhotos
-    .map((dp) => photosStore.catalogPhotos.find((p) => p.id === dp.id))
+    .map((dp) => photosStore.processedPhotos.find((p) => p.id === dp.id))
     .filter(Boolean);
 });
 
@@ -348,7 +348,7 @@ const photos = computed(() => {
   if (props.isTrash) {
     return trashPhotos.value;
   } else {
-    return catalogPhotos.value;
+    return processedPhotos.value;
   }
 });
 
@@ -382,7 +382,7 @@ function selectAll() {
   if (activeTab.value === "catalog" || props.isTrash) {
     selectedIds.value = photos.value.map((p) => p.id);
   } else if (activeTab.value === "sync") {
-    syncSelectedIds.value = photosStore.uploadedPhotos.map((p) => p.id);
+    syncSelectedIds.value = photosStore.prepAreaPhotos.map((p) => p.id);
   }
 }
 
@@ -524,7 +524,7 @@ watch(
       await photosStore.getOrFetch();
 
       // Initialize all catalog photos for search filtering
-      allCatalogPhotos.value = photosStore.catalogPhotos.filter(
+      allCatalogPhotos.value = photosStore.processedPhotos.filter(
         (p) =>
           !canvasStore.photos.find((photo) => photo.id === p.id) &&
           !canvasStore.discardedPhotos.find((photo) => photo.id === p.id)

@@ -41,9 +41,9 @@
       class="upload-progress-section"
     >
       <div class="progress-header">
-        <h3 class="progress-title">Staging Photos</h3>
+        <h3 class="progress-title">Synchronizing Photos</h3>
         <span class="progress-count"
-          >{{ uploadedCount }}/{{ totalFiles }} photos staged</span
+          >{{ uploadedCount }}/{{ totalFiles }} photos</span
         >
       </div>
       <n-progress
@@ -62,13 +62,13 @@
         <BookInformation20Regular />
       </n-icon>
       <h3 class="photo-hub-title">
-        Entry point for photos into the platform. Staged photos are
-        pre-processed for limited use in some tools. You can also analyze them
-        to unlock their use in other tools.
+        Entry point for photos into the platform. Preprocessed photos have
+        limited use in the tools. Process them to unlock their use in other
+        tools.
       </h3>
     </div>
     <!-- Full Upload Dasdaopzone (show when no photos) -->
-    <div v-if="uploadedPhotos.length === 0" class="upload-section">
+    <div v-if="allPhotos.length === 0" class="upload-section">
       <div class="upload-dropzone">
         <div class="dropzone-content">
           <div class="upload-icon">
@@ -81,7 +81,13 @@
               </svg>
             </n-icon>
           </div>
-          <h3 class="dropzone-title">Your Staging Area is empty</h3>
+          <h3 class="dropzone-title">
+            {{
+              singleViewMode
+                ? "Your Workspace is empty"
+                : "Your Prep Area is empty"
+            }}
+          </h3>
           <p class="dropzone-subtitle">
             Drag and drop your images, or click to browse
           </p>
@@ -170,25 +176,6 @@
         </div>
       </div>
       <div style="display: flex; gap: 15px">
-        <!-- <n-button
-          type="default"
-          size="medium"
-          class="analyze-btn"
-          @click="() => {}"
-          :disabled="uploadedPhotos.filter((p) => !p.isUploading).length === 0"
-        >
-          <template #icon>
-            <n-icon>
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                />
-              </svg>
-            </n-icon>
-          </template>
-          Check duplicates
-        </n-button> -->
         <div style="display: flex; gap: 15px; align-items: center">
           <n-checkbox size="large" v-model:checked="fastMode"
             >Fast mode
@@ -214,7 +201,8 @@
             @click="openAnalyzeDialog"
             :disabled="
               isUploading ||
-              uploadedPhotos.filter((p) => p.isCheckingDuplicates).length > 0
+              prepAreaPhotos.length === 0 ||
+              prepAreaPhotos.filter((p) => p.isCheckingDuplicates).length > 0
             "
           >
             <template #icon>
@@ -229,7 +217,7 @@
     </div>
 
     <!-- Uploaded Photos -->
-    <div v-if="uploadedPhotos.length > 0" class="uploaded-photos-section">
+    <div v-if="allPhotos.length > 0" class="uploaded-photos-section">
       <div class="grid-controls grid-controls-base">
         <div class="controls-left">
           <div class="results-info results-info-base">
@@ -280,10 +268,27 @@
         </div>
 
         <div class="controls-right">
-          <div class="filter-controls">
+          <div
+            class="filter-controls"
+            style="display: flex; align-items: center; gap: 12px"
+          >
             <n-checkbox v-model:checked="filterDuplicates" size="large">
               Filter duplicates
             </n-checkbox>
+            <template v-if="props.singleViewMode">
+              <n-radio-group
+                v-model:value="singleViewFilter"
+                size="small"
+                style="margin-left: 12px"
+              >
+                <n-radio-button value="all">All</n-radio-button>
+                <n-radio-button value="preprocessed"
+                  >Preprocessed</n-radio-button
+                >
+                <!-- <n-radio-button value="processing">Processing</n-radio-button> -->
+                <n-radio-button value="processed">Processed</n-radio-button>
+              </n-radio-group>
+            </template>
           </div>
           <div class="grid-size-controls grid-size-controls-base">
             <span class="grid-label grid-label-base">Columns:</span>
@@ -350,20 +355,32 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
 import pLimit from "p-limit";
 import pica from "pica";
 import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 import DuplicatePhotosDialog from "../DuplicatePhotosDialog.vue";
-import { NModal, NCheckbox, NTooltip } from "naive-ui";
+import {
+  NModal,
+  NCheckbox,
+  NTooltip,
+  NRadioGroup,
+  NRadioButton,
+} from "naive-ui";
 import { ImagesOutline } from "@vicons/ionicons5";
 import { InProgress } from "@vicons/carbon";
 import api from "@/utils/axios";
 
-const emit = defineEmits(["on-analyze"]);
+const props = defineProps({
+  singleViewMode: {
+    type: Boolean,
+    default: false,
+  },
+});
 
+const emit = defineEmits(["on-analyze"]);
 const photosStore = usePhotosStore();
 
 const isUploading = ref(false);
@@ -376,9 +393,7 @@ const selectedDuplicates = ref([]);
 const uploadedCount = ref(0);
 const totalFiles = ref(0);
 
-const isFirstTimeUpload = computed(
-  () => photosStore.catalogPhotos.length === 0
-);
+const isFirstTimeUpload = computed(() => photosStore.allPhotos.length === 0);
 
 const fastModeOverride = ref(null);
 
@@ -393,7 +408,7 @@ const fastMode = computed({
       return false;
     }
     // Si hay menos de 8 fotos subidas, activar fast mode automáticamente
-    return uploadedPhotos.value.length < 8;
+    return prepAreaPhotos.value.length < 8;
   },
   set(value) {
     // Para casos donde se necesite override manual
@@ -405,13 +420,43 @@ const dontShowFastAgain = ref(
   localStorage.getItem("dontShowFastAgain") === "1"
 );
 
-const uploadedPhotos = computed(() => photosStore.uploadedPhotos);
+// Filtro de visualización para singleViewMode (radio)
+// Valores: 'all', 'processed', 'processing', 'preprocessed'
+const singleViewFilter = ref("all");
+
+// En el check 'preprocessed' queremos ver todas las usables en las tools, por lo que entran
+// las que están en proceso y por tanto preprocessed
+const preprocessed = computed(() => [
+  ...photosStore.prepAreaPhotos,
+  ...photosStore.processingPhotos,
+]);
+const prepAreaPhotos = computed(() => photosStore.prepAreaPhotos);
+
+const processedPhotos = computed(() => photosStore.processedPhotos);
+const processingPhotos = computed(() => photosStore.processingPhotos);
+const allPhotos = computed(() => photosStore.allPhotos);
 
 const filteredPhotos = computed(() => {
-  if (!filterDuplicates.value) {
-    return uploadedPhotos.value;
+  if (props.singleViewMode) {
+    let base = [];
+    if (singleViewFilter.value === "all") {
+      base = allPhotos.value;
+    } else if (singleViewFilter.value === "processed") {
+      base = processedPhotos.value;
+    } else if (singleViewFilter.value === "processing") {
+      base = processingPhotos.value;
+    } else if (singleViewFilter.value === "preprocessed") {
+      base = preprocessed.value;
+    }
+    return filterDuplicates.value
+      ? base.filter((photo) => photo.isDuplicate)
+      : base;
+  } else {
+    // Modo normal: solo preprocesadas
+    return filterDuplicates.value
+      ? prepAreaPhotos.value.filter((photo) => photo.isDuplicate)
+      : prepAreaPhotos.value;
   }
-  return uploadedPhotos.value.filter((photo) => photo.isDuplicate);
 });
 
 // Selection state
@@ -446,14 +491,14 @@ async function uploadLocalFiles(event) {
   totalFiles.value = selectedLocalFiles.length;
   uploadedCount.value = 0;
 
-  const uploadedPhotos = [];
+  const photosToUpload = [];
 
   try {
     await Promise.all(
       selectedLocalFiles.map((file) =>
         limit(() =>
           processAndUploadFile(file).then((photo) => {
-            if (photo) uploadedPhotos.push(photo);
+            if (photo) photosToUpload.push(photo);
           })
         )
       )
@@ -462,7 +507,7 @@ async function uploadLocalFiles(event) {
     isUploading.value = false;
 
     // Set photos to checking duplicates state
-    const photoIds = uploadedPhotos.map((p) => p.id);
+    const photoIds = photosToUpload.map((p) => p.id);
     photoIds.forEach((id) => {
       photosStore.updatePhoto(id, { isCheckingDuplicates: true });
     });
@@ -475,6 +520,7 @@ async function uploadLocalFiles(event) {
       sync: true,
     });
 
+    await photosStore.getOrFetch(true);
     await photosStore.checkDuplicates(photoIds);
 
     // Remove checking duplicates flag

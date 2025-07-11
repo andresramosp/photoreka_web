@@ -156,7 +156,9 @@ const uploadedCount = ref(0);
 const totalFiles = ref(0);
 
 // Get sync photos from the store
-const syncPhotos = computed(() => photosStore.uploadedPhotos || []);
+const syncPhotos = computed(
+  () => [...photosStore.processingPhotos, ...photosStore.prepAreaPhotos] || []
+);
 
 const filteredPhotos = computed(() => syncPhotos.value);
 
@@ -186,14 +188,14 @@ async function uploadLocalFiles(event) {
   totalFiles.value = selectedLocalFiles.length;
   uploadedCount.value = 0;
 
-  const uploadedPhotos = [];
+  const photosToUpload = [];
 
   try {
     await Promise.all(
       selectedLocalFiles.map((file) =>
         limit(() =>
           processAndUploadFile(file).then((photo) => {
-            if (photo) uploadedPhotos.push(photo);
+            if (photo) photosToUpload.push(photo);
           })
         )
       )
@@ -202,7 +204,7 @@ async function uploadLocalFiles(event) {
     isUploading.value = false;
 
     // Set photos to checking duplicates state
-    const photoIds = uploadedPhotos.map((p) => p.id);
+    const photoIds = photosToUpload.map((p) => p.id);
     photoIds.forEach((id) => {
       photosStore.updatePhoto(id, { isCheckingDuplicates: true });
     });
@@ -216,6 +218,7 @@ async function uploadLocalFiles(event) {
       sync: true,
     });
 
+    await photosStore.getOrFetch(true);
     await photosStore.checkDuplicates(photoIds);
 
     // Remove checking duplicates flag
@@ -224,7 +227,7 @@ async function uploadLocalFiles(event) {
     });
 
     // Emit that new photos were added
-    emit("photos-added", uploadedPhotos);
+    emit("photos-added", photosToUpload);
   } catch (error) {
     console.error("❌ Error uploading photos:", error);
   } finally {

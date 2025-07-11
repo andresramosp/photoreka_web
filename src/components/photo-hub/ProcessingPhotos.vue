@@ -116,7 +116,7 @@
           <p class="empty-state-description">
             Upload photos in the
             <button class="tab-link" @click="navigateToTab('upload')">
-              Staging Area
+              Prep Area
             </button>
             to see them here during processing
           </p>
@@ -191,12 +191,14 @@ async function loadProcesses() {
 
   const previousJobs = [...processingJobs.value]; // Clonar los anteriores
 
-  const updated = response.data.map((proc) => {
-    const current = processingJobs.value.find((j) => j.id === proc.id);
-    const mapped = mapProcess(proc);
-    if (current) mapped.expanded = current.expanded;
-    return mapped;
-  });
+  const updated = response.data
+    .filter((proc) => !proc.isPreprocess) // && proc.mode == "adding"
+    .map((proc) => {
+      const current = processingJobs.value.find((j) => j.id === proc.id);
+      const mapped = mapProcess(proc);
+      if (current) mapped.expanded = current.expanded;
+      return mapped;
+    });
 
   processingJobs.value = updated.sort(
     (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
@@ -210,7 +212,7 @@ async function loadProcesses() {
       previousJob.status === "processing" &&
       updatedJob.status === "finished"
     ) {
-      await photosStore.fetchOrGet();
+      await photosStore.getOrFetch(true);
       break; // solo una vez
     }
   }

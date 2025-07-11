@@ -51,7 +51,10 @@ export const useCanvasStore = defineStore("canvas", {
   }),
   actions: {
     updateBasicMode() {
-      this.basicMode = this.photos.some((p) => p.status === "uploaded");
+      debugger;
+      this.basicMode = this.photos.some(
+        (p) => p.status === "preprocessed" || p.status === "processing"
+      );
     },
     addPhotos(photoObjects, fromPhoto = false) {
       photoObjects.forEach((photo, index) => {
@@ -61,6 +64,7 @@ export const useCanvasStore = defineStore("canvas", {
           );
         }
       });
+
       this.updateBasicMode();
     },
 

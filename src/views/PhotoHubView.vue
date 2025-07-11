@@ -27,65 +27,96 @@
 
     <!-- Tabs Section -->
     <div class="tabs-container">
-      <!-- Tab Navigation -->
-      <div class="tab-navigation">
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'upload' }"
-          @click="setActiveTab('upload')"
-        >
-          <div class="tab-title">
-            <n-icon size="18">
-              <DriveFolderUploadFilled color="var(--info-color)" />
-            </n-icon>
-            Staging Area
-          </div>
-        </button>
-
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'catalog' }"
-          @click="setActiveTab('catalog')"
-        >
-          <div class="tab-title">
-            <n-icon size="16">
-              <ImagesOutline color="var(--success-color)" />
-            </n-icon>
-            Workspace
-          </div>
-        </button>
-        <button
-          class="tab-button"
-          :class="{ active: activeTab === 'processing' }"
-          @click="setActiveTab('processing')"
-        >
-          <div class="tab-title">
+      <template v-if="photosStore.catalogSingleView">
+        <div class="tab-navigation">
+          <button
+            class="tab-button"
+            :class="{ active: activeTab === 'upload' }"
+            @click="setActiveTab('upload')"
+          >
+            <div class="tab-title">
+              <n-icon size="18">
+                <DriveFolderUploadFilled color="var(--info-color)" />
+              </n-icon>
+              Workspace
+            </div>
+          </button>
+          <button
+            class="tab-button"
+            :class="{ active: activeTab === 'processing' }"
+            @click="setActiveTab('processing')"
+          >
             <n-icon>
               <InProgress color="var(--primary-color)" />
             </n-icon>
             Analyzing Processes
-          </div>
-        </button>
-      </div>
+          </button>
+        </div>
 
-      <!-- Tab Content -->
-      <div class="tab-content-container">
-        <!-- Tab 1: Upload -->
-        <PhotosUpload v-show="activeTab === 'upload'" @on-analyze="analyze" />
-
-        <PhotosCatalog
-          v-show="activeTab === 'catalog'"
-          @navigate-to-tab="setActiveTab"
-        />
-
-        <!-- Tab 2: Processing -->
-        <ProcessingPhotos
-          v-show="activeTab === 'processing'"
-          @navigate-to-tab="setActiveTab"
-        />
-
-        <!-- Tab 3: Catalog -->
-      </div>
+        <div class="tab-content-container">
+          <PhotosUpload
+            v-show="activeTab === 'upload'"
+            singleViewMode
+            @on-analyze="analyze"
+          />
+          <ProcessingPhotos
+            v-show="activeTab === 'processing'"
+            @navigate-to-tab="setActiveTab"
+          />
+        </div>
+      </template>
+      <template v-else>
+        <!-- Modo normal: tabs separadas -->
+        <div class="tab-navigation">
+          <button
+            class="tab-button"
+            :class="{ active: activeTab === 'upload' }"
+            @click="setActiveTab('upload')"
+          >
+            <div class="tab-title">
+              <n-icon size="18">
+                <DriveFolderUploadFilled color="var(--info-color)" />
+              </n-icon>
+              Prep Area
+            </div>
+          </button>
+          <button
+            class="tab-button"
+            :class="{ active: activeTab === 'catalog' }"
+            @click="setActiveTab('catalog')"
+          >
+            <div class="tab-title">
+              <n-icon size="16">
+                <ImagesOutline color="var(--success-color)" />
+              </n-icon>
+              Workspace
+            </div>
+          </button>
+          <button
+            class="tab-button"
+            :class="{ active: activeTab === 'processing' }"
+            @click="setActiveTab('processing')"
+          >
+            <div class="tab-title">
+              <n-icon>
+                <InProgress color="var(--primary-color)" />
+              </n-icon>
+              Analyzing Processes
+            </div>
+          </button>
+        </div>
+        <div class="tab-content-container">
+          <PhotosUpload v-show="activeTab === 'upload'" @on-analyze="analyze" />
+          <PhotosCatalog
+            v-show="activeTab === 'catalog'"
+            @navigate-to-tab="setActiveTab"
+          />
+          <ProcessingPhotos
+            v-show="activeTab === 'processing'"
+            @navigate-to-tab="setActiveTab"
+          />
+        </div>
+      </template>
     </div>
   </div>
 </template>
