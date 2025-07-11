@@ -12,23 +12,38 @@
       @close="closeAnalyzeDialog"
     >
       <div style="margin-bottom: 18px">
-        <span v-if="!fastMode">
-          You are about to process all your synced photos. It's recommended to
-          review any duplicates before the analysis process. Once started, it
+        <span>
+          You are about to process all your synced photos. Once started, it
           cannot be reversed.
         </span>
-        <span v-else>
+      </div>
+      <div
+        style="
+          margin-bottom: 16px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        "
+      >
+        <n-checkbox size="large" v-model:checked="fastMode">
+          Fast mode
+        </n-checkbox>
+        <n-tooltip trigger="hover" placement="top">
+          <template #trigger>
+            <n-icon size="12" class="info-icon">
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                />
+              </svg>
+            </n-icon>
+          </template>
           Fast mode is designed for uploading photos that you want to use
           immediately and has a limit of 10% of your total storage space. If you
           have a lot of photos, it's recommended to use normal mode.
-        </span>
+        </n-tooltip>
       </div>
-      <n-checkbox
-        v-if="fastMode"
-        v-model:checked="dontShowFastAgain"
-        style="margin-bottom: 8px"
-        >Don't show this again</n-checkbox
-      >
       <div style="display: flex; gap: 14px; justify-content: flex-end">
         <n-button tertiary @click="closeAnalyzeDialog">Cancel</n-button>
         <n-button type="primary" @click="confirmAnalyze"
@@ -176,24 +191,7 @@
         </div>
       </div>
       <div style="display: flex; gap: 15px">
-        <div style="display: flex; gap: 15px; align-items: center">
-          <n-checkbox size="large" v-model:checked="fastMode"
-            >Fast mode
-            <n-tooltip trigger="hover" placement="top">
-              <template #trigger>
-                <n-icon size="12" class="info-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                    />
-                  </svg>
-                </n-icon>
-              </template>
-              Use it when you want to upload a few photos quickly.
-            </n-tooltip></n-checkbox
-          >
-        </div>
+        <div style="display: flex; gap: 15px; align-items: center"></div>
       </div>
     </div>
 
@@ -418,9 +416,6 @@ const fastMode = computed({
   },
 });
 const showAnalyzeDialog = ref(false);
-const dontShowFastAgain = ref(
-  localStorage.getItem("dontShowFastAgain") === "1",
-);
 
 // Filtro de visualización para singleViewMode (radio)
 // Valores: 'all', 'processed', 'processing', 'preprocessed'
@@ -632,11 +627,6 @@ const handleAddToCollection = () => {
 };
 
 const openAnalyzeDialog = () => {
-  // Si fastMode y marcado no mostrar de nuevo, lanza análisis directo
-  if (fastMode.value && dontShowFastAgain.value) {
-    emit("on-analyze", { fastMode: true });
-    return;
-  }
   showAnalyzeDialog.value = true;
 };
 
@@ -645,10 +635,6 @@ const closeAnalyzeDialog = () => {
 };
 
 const confirmAnalyze = () => {
-  // Guarda preferencia en localStorage si procede
-  if (fastMode.value && dontShowFastAgain.value) {
-    localStorage.setItem("dontShowFastAgain", "1");
-  }
   showAnalyzeDialog.value = false;
   emit("on-analyze", { fastMode: fastMode.value });
 };
