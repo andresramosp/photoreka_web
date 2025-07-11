@@ -175,7 +175,7 @@
               <span class="grid-label grid-label-base">Columns:</span>
               <n-button-group>
                 <n-button
-                  v-for="size in [4, 6, 8]"
+                  v-for="size in [4, 6, 8, 10]"
                   :key="size"
                   :type="gridColumns === size ? 'primary' : 'default'"
                   size="small"
@@ -428,18 +428,27 @@ const navigateToTab = (tabName) => {
   grid-template-columns: repeat(8, 1fr);
 }
 
+.photo-grid-base.grid-cols-10 {
+  grid-template-columns: repeat(10, 1fr);
+}
+
 /* Responsive */
+
 @media (max-width: 1200px) {
   .photo-grid-base.grid-cols-6,
   .photo-grid-base.grid-cols-8 {
     grid-template-columns: repeat(5, 1fr);
+  }
+  .photo-grid-base.grid-cols-10 {
+    grid-template-columns: repeat(7, 1fr);
   }
 }
 
 @media (max-width: 1024px) {
   .photo-grid-base.grid-cols-5,
   .photo-grid-base.grid-cols-6,
-  .photo-grid-base.grid-cols-8 {
+  .photo-grid-base.grid-cols-8,
+  .photo-grid-base.grid-cols-10 {
     grid-template-columns: repeat(4, 1fr);
   }
 }
@@ -475,7 +484,8 @@ const navigateToTab = (tabName) => {
   .photo-grid-base.grid-cols-4,
   .photo-grid-base.grid-cols-5,
   .photo-grid-base.grid-cols-6,
-  .photo-grid-base.grid-cols-8 {
+  .photo-grid-base.grid-cols-8,
+  .photo-grid-base.grid-cols-10 {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
@@ -486,7 +496,8 @@ const navigateToTab = (tabName) => {
   .photo-grid-base.grid-cols-4,
   .photo-grid-base.grid-cols-5,
   .photo-grid-base.grid-cols-6,
-  .photo-grid-base.grid-cols-8 {
+  .photo-grid-base.grid-cols-8,
+  .photo-grid-base.grid-cols-10 {
     grid-template-columns: 1fr;
   }
 }

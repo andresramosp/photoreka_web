@@ -1,11 +1,10 @@
 <template>
   <n-button
-    v-if="shouldShow"
+    v-if="shouldShow && !disabled"
     type="info"
     size="large"
     class="floating-process-button"
     @click="handleClick"
-    :disabled="disabled"
   >
     <template #icon>
       <n-icon size="20">

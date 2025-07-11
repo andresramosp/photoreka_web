@@ -7,47 +7,50 @@
     <n-modal
       v-model:show="showAnalyzeDialog"
       preset="confirm"
-      title="Confirm analysis"
+      title="Confirm Process"
       :closable="false"
       @close="closeAnalyzeDialog"
+      :style="{ width: '600px' }"
     >
       <div style="margin-bottom: 18px">
         <span>
-          You are about to process all your synced photos. Once started, it
-          cannot be reversed.
+          You are about to process all your preprocessed photos. Once started,
+          it cannot be reversed. Do you want to continue?
         </span>
       </div>
       <div
         style="
           margin-bottom: 16px;
           display: flex;
+          justify-content: flex-start;
           align-items: center;
-          gap: 8px;
         "
       >
-        <n-checkbox size="large" v-model:checked="fastMode">
-          Fast mode
-        </n-checkbox>
-        <n-tooltip trigger="hover" placement="top">
-          <template #trigger>
-            <n-icon size="12" class="info-icon">
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                />
-              </svg>
-            </n-icon>
-          </template>
-          Fast mode is designed for uploading photos that you want to use
-          immediately and has a limit of 10% of your total storage space. If you
-          have a lot of photos, it's recommended to use normal mode.
-        </n-tooltip>
+        <div style="display: flex; align-items: center; gap: 6px">
+          <n-checkbox size="large" v-model:checked="fastMode">
+            Fast mode
+          </n-checkbox>
+          <n-tooltip trigger="hover" placement="top">
+            <template #trigger>
+              <n-icon size="12" class="info-icon">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                  />
+                </svg>
+              </n-icon>
+            </template>
+            Fast mode is designed for uploading photos that you want to use
+            immediately and has a limit of 10% of your total storage space. If
+            you have a lot of photos, it's recommended to use normal mode.
+          </n-tooltip>
+        </div>
       </div>
-      <div style="display: flex; gap: 14px; justify-content: flex-end">
+      <div style="display: flex; gap: 14px; justify-content: center">
         <n-button tertiary @click="closeAnalyzeDialog">Cancel</n-button>
         <n-button type="primary" @click="confirmAnalyze"
-          >Start analysis</n-button
+          >Yes, start process</n-button
         >
       </div>
     </n-modal>
@@ -273,7 +276,7 @@
             <span class="grid-label grid-label-base">Columns:</span>
             <n-button-group>
               <n-button
-                v-for="size in [4, 6, 8]"
+                v-for="size in [4, 6, 8, 10]"
                 :key="size"
                 :type="gridColumns === size ? 'primary' : 'default'"
                 size="small"
@@ -392,6 +395,7 @@ const selectedDuplicates = ref([]);
 
 const uploadedCount = ref(0);
 const totalFiles = ref(0);
+const pendingPhotos = ref([]); // Array temporal para fotos subidas pero no mostradas
 
 const isFirstTimeUpload = computed(() => photosStore.allPhotos.length === 0);
 
@@ -496,12 +500,21 @@ async function uploadLocalFiles(event) {
         limit(() =>
           processAndUploadFile(file).then((photo) => {
             if (photo) photosToUpload.push(photo);
-          }),
-        ),
-      ),
+          })
+        )
+      )
     );
 
     isUploading.value = false;
+
+    // Ahora que terminó la subida, añadir todas las fotos al store solo si showUploadProgress es false
+    if (photosStore.showUploadProgress === false) {
+      pendingPhotos.value.forEach((photo) => {
+        photosStore.photos.unshift(photo);
+      });
+      // Limpiar el array temporal
+      pendingPhotos.value = [];
+    }
 
     // Set photos to checking duplicates state
     const photoIds = photosToUpload.map((p) => p.id);
@@ -561,7 +574,11 @@ async function processAndUploadFile(file) {
 
   photo.status = "uploaded";
   photo.isDuplicate = false;
-  photosStore.photos.unshift(photo);
+  if (photosStore.showUploadProgress === false) {
+    pendingPhotos.value.push(photo);
+  } else {
+    photosStore.photos.unshift(photo);
+  }
   uploadedCount.value++;
 
   return photo;
@@ -799,6 +816,10 @@ onMounted(() => {
   grid-template-columns: repeat(8, 1fr);
 }
 
+.photo-grid-base.grid-cols-10 {
+  grid-template-columns: repeat(10, 1fr);
+}
+
 .filter-controls {
   display: flex;
   align-items: center;
@@ -847,15 +868,20 @@ onMounted(() => {
 }
 
 /* Responsive */
+
 @media (max-width: 1200px) {
   .photo-grid-base.grid-cols-8 {
     grid-template-columns: repeat(6, 1fr);
+  }
+  .photo-grid-base.grid-cols-10 {
+    grid-template-columns: repeat(7, 1fr);
   }
 }
 
 @media (max-width: 1024px) {
   .photo-grid-base.grid-cols-6,
-  .photo-grid-base.grid-cols-8 {
+  .photo-grid-base.grid-cols-8,
+  .photo-grid-base.grid-cols-10 {
     grid-template-columns: repeat(5, 1fr);
   }
 }
@@ -882,7 +908,8 @@ onMounted(() => {
   .photo-grid-base.grid-cols-4,
   .photo-grid-base.grid-cols-5,
   .photo-grid-base.grid-cols-6,
-  .photo-grid-base.grid-cols-8 {
+  .photo-grid-base.grid-cols-8,
+  .photo-grid-base.grid-cols-10 {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
@@ -893,7 +920,8 @@ onMounted(() => {
   .photo-grid-base.grid-cols-4,
   .photo-grid-base.grid-cols-5,
   .photo-grid-base.grid-cols-6,
-  .photo-grid-base.grid-cols-8 {
+  .photo-grid-base.grid-cols-8,
+  .photo-grid-base.grid-cols-10 {
     grid-template-columns: 1fr;
   }
 }

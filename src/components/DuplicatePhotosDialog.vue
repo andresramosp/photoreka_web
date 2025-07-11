@@ -90,7 +90,9 @@
 
             <!-- Processing status indicator -->
             <div
-              v-if="photo.status == 'uploaded'"
+              v-if="
+                photo.status == 'uploaded' || photo.status == 'preprocessed'
+              "
               class="processing-status-indicator not-processed"
             >
               <n-icon size="16">
@@ -218,7 +220,9 @@ const processedPhotos = computed(() => {
 });
 
 const nonProcessedPhotos = computed(() => {
-  return duplicatePhotos.value.filter((photo) => photo.status == "uploaded");
+  return duplicatePhotos.value.filter(
+    (photo) => photo.status == "uploaded" || photo.status == "preprocessed"
+  );
 });
 
 const hasMixedProcessingStatus = computed(() => {

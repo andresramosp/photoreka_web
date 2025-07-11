@@ -62,21 +62,7 @@
         </n-button> -->
       </div>
 
-      <!-- Duplicate indicator -->
-      <n-tooltip
-        v-if="photo.isDuplicate && showDuplicate"
-        trigger="hover"
-        placement="top"
-      >
-        <template #trigger>
-          <div class="duplicate-indicator" @click.stop="showDuplicates">
-            <n-icon size="16">
-              <WarningIcon />
-            </n-icon>
-          </div>
-        </template>
-        Click to view duplicates
-      </n-tooltip>
+      <!-- (Eliminado: el indicador de duplicados ahora va en el footer) -->
 
       <!-- Checking duplicates overlay with spinner -->
       <div v-if="photo.isCheckingDuplicates" class="processing-overlay">
@@ -91,12 +77,13 @@
       </div>
     </div>
 
+    <!-- File name in top-right corner of photo (if showName) -->
+    <div v-if="showName" class="photo-filename-topright" :title="cleanFileName">
+      {{ shortFileName }}
+    </div>
+
     <!-- Footer with detailed information -->
     <div v-if="showFooter" class="photo-footer">
-      <div v-if="showName" class="photo-title" :title="photo.originalFileName">
-        {{ photo.originalFileName }}
-      </div>
-
       <div class="photo-status">
         <!-- Status tags -->
 
@@ -154,6 +141,24 @@
           Fully processed photo, valid in all tools
         </n-tooltip>
       </div>
+      <!-- Duplicate indicator in footer, right-aligned -->
+      <n-tooltip
+        v-if="photo.isDuplicate && showDuplicate"
+        trigger="hover"
+        placement="top"
+      >
+        <template #trigger>
+          <div
+            class="duplicate-indicator footer-duplicate-indicator"
+            @click.stop="showDuplicates"
+          >
+            <n-icon size="16">
+              <WarningIcon />
+            </n-icon>
+          </div>
+        </template>
+        Click to view duplicates
+      </n-tooltip>
     </div>
   </div>
 </template>
@@ -161,6 +166,18 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { NIcon, NSpin, NTooltip } from "naive-ui";
+// Utilidad para limpiar extensión y acortar nombre
+function removeExtension(filename: string): string {
+  return filename.replace(/\.[^.]+$/, "");
+}
+
+const cleanFileName = computed(() =>
+  removeExtension(props.photo.originalFileName)
+);
+const shortFileName = computed(() => {
+  const name = cleanFileName.value;
+  return name.length > 6 ? name.slice(0, 6) + "..." : name;
+});
 
 // Import @vicons icons from ionicons5 for reliability
 import {
@@ -319,9 +336,6 @@ const onImageError = () => {
 
 /* Duplicate indicator */
 .duplicate-indicator {
-  position: absolute;
-  top: 8px;
-  right: 8px;
   background-color: rgba(245, 158, 11, 0.9);
   border-radius: 50%;
   width: 28px;
@@ -329,7 +343,12 @@ const onImageError = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2;
+}
+
+.footer-duplicate-indicator {
+  position: static;
+  margin-left: auto;
+  margin-right: 0;
 }
 
 /* Processing overlay */
@@ -428,5 +447,24 @@ const onImageError = () => {
   .photo-card-info {
     aspect-ratio: 1; /* Square on mobile for space efficiency */
   }
+}
+.photo-filename-topright {
+  position: absolute;
+
+  right: 0px;
+
+  color: gray;
+  font-size: 17px;
+  padding-right: 3px;
+
+  font-weight: 500;
+  border-radius: 8px;
+  max-width: 70%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.6;
+
+  z-index: 1;
+  pointer-events: none;
 }
 </style>

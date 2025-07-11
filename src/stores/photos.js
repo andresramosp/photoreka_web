@@ -8,6 +8,7 @@ export const usePhotosStore = defineStore("photos", {
     isLoading: false,
     selectedPhotosRecord: {},
     catalogSingleView: false, // Nuevo modo single view
+    showUploadProgress: false, // Controla si se muestra el progreso de subida especial
   }),
 
   getters: {
