@@ -13,7 +13,7 @@
       <div class="storage-selection">
         <h3 class="section-title">Select Storage</h3>
         <p class="section-subtitle">
-          Choose how many photos you plan to store in Frameka
+          Choose how many photos you plan to store in Photoreka
         </p>
 
         <div class="storage-options-grid">
@@ -36,7 +36,7 @@
             <h4 class="storage-title">Try for Free</h4>
             <div class="storage-photos">200 photos</div>
             <p class="storage-description">
-              Perfect to get started and explore Frameka features
+              Perfect to get started and explore Photoreka features
             </p>
             <div class="storage-price">Free</div>
             <p class="storage-notes">
@@ -499,7 +499,7 @@ const completeSetup = () => {
   console.log("Plan Details:", getPlanDetails());
   console.log("Total Price:", getTotalPrice());
 
-  message.success("Setup completed! Welcome to Frameka.");
+  message.success("Setup completed! Welcome to Photoreka.");
   router.push("/dashboard");
 };
 

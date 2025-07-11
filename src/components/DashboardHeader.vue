@@ -103,7 +103,7 @@ const userMenuOptions = [
         h(
           "div",
           { class: "user-email-main" },
-          userStore.user?.email || "user@frameka.app"
+          userStore.user?.email || "user@photoreka.app"
         ),
       ]),
     key: "user-info",

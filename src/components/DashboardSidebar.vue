@@ -18,7 +18,7 @@
             </n-icon>
           </div>
           <div class="logo-text">
-            <div class="app-name">Frameka</div>
+            <div class="app-name">Photoreka</div>
             <div class="app-subtitle">Photo Lab</div>
           </div>
         </div>
@@ -129,7 +129,7 @@
             </n-icon>
           </div>
           <div v-if="!collapsed" class="logo-text">
-            <div class="app-name">Frameka</div>
+            <div class="app-name">Photoreka</div>
             <div class="app-subtitle">Photo Discovery Lab</div>
           </div>
         </div>

@@ -31,18 +31,21 @@ export const useUserStore = defineStore("user", () => {
   });
 
   // Check for existing token on store initialization
-  const initAuth = () => {
+  const initAuth = async () => {
     const savedToken = localStorage.getItem("auth_token");
     if (savedToken) {
       token.value = savedToken;
       isAuthenticated.value = true;
-      // Mock user data - in real app this would fetch from API
-      user.value = {
-        id: "mock-user-id",
-        email: "user@frameka.app",
-        name: "Usuario Demo",
-        provider: "email",
-      };
+      try {
+        const response = await api.get("/api/auth/profile");
+        user.value = response.data.user;
+      } catch (error) {
+        // Si el token no es válido, limpiar estado
+        token.value = null;
+        isAuthenticated.value = false;
+        user.value = null;
+        localStorage.removeItem("auth_token");
+      }
     }
   };
 
@@ -54,13 +57,15 @@ export const useUserStore = defineStore("user", () => {
 
     try {
       const response = await api.post("/api/auth/login", { email, password });
-      const { token: receivedToken, user: receivedUser } = response.data;
+      const { token: receivedToken } = response.data;
 
       token.value = receivedToken;
       isAuthenticated.value = true;
-      user.value = receivedUser;
-
       localStorage.setItem("auth_token", receivedToken);
+
+      // Obtener datos reales del usuario desde /profile
+      const profileResponse = await api.get("/api/auth/profile");
+      user.value = profileResponse.data.user;
 
       return { success: true };
     } catch (error: any) {
@@ -154,6 +159,7 @@ export const useUserStore = defineStore("user", () => {
   };
 
   // Initialize auth state
+  // Llamar de forma asíncrona para no bloquear la carga
   initAuth();
 
   return {

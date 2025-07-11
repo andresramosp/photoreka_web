@@ -8,7 +8,7 @@
             <n-icon size="28" color="#2563eb">
               <CameraOutline />
             </n-icon>
-            <span class="brand-name">Frameka</span>
+            <span class="brand-name">Photoreka</span>
           </div>
         </div>
         <div class="nav-actions">
@@ -182,7 +182,7 @@
     <section class="how-it-works-section">
       <div class="section-container">
         <div class="section-header">
-          <h2 class="section-title">How Frameka Works</h2>
+          <h2 class="section-title">How Photoreka Works</h2>
           <p class="section-description">
             Get started in minutes with our simple 3-step process
           </p>
@@ -235,9 +235,9 @@
           <div class="testimonial-card">
             <div class="testimonial-content">
               <p class="testimonial-text">
-                "Frameka has revolutionized how I manage my wedding photography
-                business. The AI search is incredibly accurate and saves me
-                hours every week."
+                "Photoreka has revolutionized how I manage my wedding
+                photography business. The AI search is incredibly accurate and
+                saves me hours every week."
               </p>
               <div class="testimonial-author">
                 <div class="author-avatar">
@@ -276,8 +276,8 @@
             <div class="testimonial-content">
               <p class="testimonial-text">
                 "As a travel blogger, I needed a tool that could help me find
-                the perfect shots from thousands of photos. Frameka's AI search
-                is exactly what I needed."
+                the perfect shots from thousands of photos. Photoreka's AI
+                search is exactly what I needed."
               </p>
               <div class="testimonial-author">
                 <div class="author-avatar">
@@ -333,7 +333,7 @@
               <n-icon size="24" color="#2563eb">
                 <CameraOutline />
               </n-icon>
-              <span class="brand-name">Frameka</span>
+              <span class="brand-name">Photoreka</span>
             </div>
             <p class="footer-description">
               AI-powered photo discovery and organization platform for creative
@@ -362,7 +362,7 @@
           </div>
         </div>
         <div class="footer-bottom">
-          <p class="copyright">© 2024 Frameka. All rights reserved.</p>
+          <p class="copyright">© 2024 Photoreka. All rights reserved.</p>
         </div>
       </div>
     </footer>

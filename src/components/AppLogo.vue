@@ -1,11 +1,11 @@
 <template>
-  <div class="frameka-logo" :class="{ 'logo-large': size === 'large' }">
+  <div class="photoreka-logo" :class="{ 'logo-large': size === 'large' }">
     <div class="logo-icon">
       <n-icon :size="iconSize" color="#2563eb">
         <CameraOutline />
       </n-icon>
     </div>
-    <span class="logo-text" v-if="showText">Frameka</span>
+    <span class="logo-text" v-if="showText">Photoreka</span>
   </div>
 </template>
 
@@ -36,14 +36,14 @@ export default {
 </script>
 
 <style scoped>
-.frameka-logo {
+.photoreka-logo {
   display: flex;
   align-items: center;
   gap: 12px;
   color: #2563eb;
 }
 
-.frameka-logo.logo-large {
+.photoreka-logo.logo-large {
   gap: 16px;
 }
 
@@ -69,7 +69,7 @@ export default {
 }
 
 /* Animation for the camera icon */
-.frameka-logo:hover .logo-icon {
+.photoreka-logo:hover .logo-icon {
   transform: scale(1.05);
 }
 

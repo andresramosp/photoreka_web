@@ -4,7 +4,7 @@
       <div class="profile-header">
         <h1 class="profile-title">What is your preferred style?</h1>
         <p class="profile-subtitle">
-          Help us customize your Frameka experience
+          Help us customize your Photoreka experience
         </p>
       </div>
 

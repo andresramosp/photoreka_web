@@ -170,9 +170,18 @@
                 </template>
               </n-button>
             </div>
+            <div
+              v-if="photoStore.processedPhotos.length < 100"
+              class="usage-limit-warning"
+            >
+              <WarningBadge
+                message="Search on a few photos"
+                tooltip="You have fewer than 100 photos processed. Searches may return irrelevant results."
+              />
+            </div>
             <!-- Usage Limit Warning Badge -->
             <div
-              v-if="
+              v-else-if="
                 userStore.usageLimits.search.exceeded &&
                 !userStore.usageLimits.search.dismissed
               "
@@ -657,6 +666,8 @@ import { useRouter } from "vue-router";
 // Conexión real-time para resultados incrementales
 const socket = io(import.meta.env.VITE_API_WS_URL);
 
+// Unirse al room del usuario cuando userStore.user.id esté disponible
+
 const photoStore = usePhotosStore();
 const canvasStore = useCanvasStore();
 const userStore = useUserStore();
@@ -947,23 +958,6 @@ onMounted(() => {
       });
     }
   });
-
-  socket.on("matches", (data) => {
-    Object.entries(data.results).forEach(([iter, items]) => {
-      iterationsRecord[iter] = {
-        photos: items.map((i) => i.photo),
-      };
-    });
-    hasMoreIterations.value = data.hasMore;
-    iteration.value = data.iteration + 1;
-    setTimeout(() => {
-      scrollToLast();
-    }, 0);
-    () => {};
-  });
-  socket.on("maxPageAttempts", () => {
-    maxPageAttempts.value = true;
-  });
 });
 
 onUnmounted(() => {
@@ -996,6 +990,35 @@ onMounted(() => {
 onUnmounted(() => {
   clearInterval(exampleInterval);
 });
+
+let matchesListenerRegistered = false;
+watch(
+  () => userStore.user && userStore.user.id,
+  (val) => {
+    if (val) {
+      socket.emit("join", { userId: userStore.user.id });
+      if (!matchesListenerRegistered) {
+        socket.on("matches", (data) => {
+          Object.entries(data.results).forEach(([iter, items]) => {
+            iterationsRecord[iter] = {
+              photos: items.map((i) => i.photo),
+            };
+          });
+          hasMoreIterations.value = data.hasMore;
+          iteration.value = data.iteration + 1;
+          setTimeout(() => {
+            scrollToLast();
+          }, 0);
+        });
+        socket.on("maxPageAttempts", () => {
+          maxPageAttempts.value = true;
+        });
+        matchesListenerRegistered = true;
+      }
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>

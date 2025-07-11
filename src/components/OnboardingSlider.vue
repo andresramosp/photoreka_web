@@ -11,7 +11,7 @@
   >
     <template #header>
       <div class="onboarding-header">
-        <h2 class="onboarding-title">Welcome to Frameka</h2>
+        <h2 class="onboarding-title">Welcome to Photoreka</h2>
         <p class="onboarding-subtitle">
           Let's get you started with your photo management journey
         </p>
@@ -47,7 +47,7 @@
               <div class="slide-text">
                 <h3 class="slide-title">Add your photos</h3>
                 <p class="slide-description">
-                  Frameka is a photo catalog manager designed to handle very
+                  Photoreka is a photo catalog manager designed to handle very
                   large collections. You can upload your photos in batches at
                   your own pace, from different platforms or locally. No stress,
                   just seamless organization.

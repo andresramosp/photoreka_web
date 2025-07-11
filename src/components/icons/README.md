@@ -68,7 +68,7 @@ const menuOptions = [
    - Filled: Solid icons (for emphasis)
 3. **Fallback**: If an icon doesn't exist in Ionicons5, use `@vicons/fluent` or `@vicons/material`
 
-## Common Icons Used in Frameka
+## Common Icons Used in Photoreka
 
 ### Navigation
 

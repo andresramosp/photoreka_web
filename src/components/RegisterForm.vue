@@ -1,6 +1,6 @@
 <template>
   <div class="register-form">
-    <div class="form-header">Join the Frameka community</div>
+    <div class="form-header">Join the Photoreka community</div>
 
     <AuthProviders mode="register" />
 
