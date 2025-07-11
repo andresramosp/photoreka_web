@@ -51,6 +51,12 @@
 
         <!-- Floating Add Photos Button -->
         <FloatingAddPhotosButton />
+
+        <!-- Onboarding Slider -->
+        <OnboardingSlider
+          v-model="showOnboarding"
+          @finish="onOnboardingFinish"
+        />
       </template>
     </n-message-provider>
   </n-config-provider>
@@ -65,6 +71,7 @@ import DashboardSidebar from "./components/DashboardSidebar.vue";
 import DashboardHeader from "./components/DashboardHeader.vue";
 import FloatingAddPhotosButton from "./components/FloatingAddPhotosButton.vue";
 import { usePhotosStore } from "@/stores/photos.js";
+import OnboardingSlider from "./components/OnboardingSlider.vue";
 
 const photosStore = usePhotosStore();
 
@@ -94,6 +101,7 @@ const themeOverrides = {
 
 const mobileMenuOpen = ref(false);
 const isMobile = ref(false);
+const showOnboarding = ref(true); // Mock to always show for now
 
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value;
@@ -129,6 +137,12 @@ watch(
 onUnmounted(() => {
   window.removeEventListener("resize", checkIsMobile);
 });
+
+const onOnboardingFinish = () => {
+  showOnboarding.value = false;
+  // TODO: Set user preference to not show onboarding again
+  console.log("Onboarding completed!");
+};
 </script>
 
 <style scoped>
