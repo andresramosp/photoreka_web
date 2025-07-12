@@ -13,7 +13,12 @@
                 <div
                   class="type-pill"
                   :class="{ active: activeSearchType === 'semantic' }"
-                  @click="setSearchType('semantic')"
+                  @click="!isSearching && setSearchType('semantic')"
+                  :aria-disabled="isSearching"
+                  :tabindex="isSearching ? -1 : 0"
+                  :style="
+                    isSearching ? 'pointer-events: none; opacity: 0.5;' : ''
+                  "
                 >
                   <n-icon size="14" class="type-icon">
                     <DocumentOutline />
@@ -29,7 +34,12 @@
                 <div
                   class="type-pill"
                   :class="{ active: activeSearchType === 'tags' }"
-                  @click="setSearchType('tags')"
+                  @click="!isSearching && setSearchType('tags')"
+                  :aria-disabled="isSearching"
+                  :tabindex="isSearching ? -1 : 0"
+                  :style="
+                    isSearching ? 'pointer-events: none; opacity: 0.5;' : ''
+                  "
                 >
                   <n-icon size="16" class="type-icon">
                     <TagOutlined />
@@ -44,7 +54,12 @@
                 <div
                   class="type-pill"
                   :class="{ active: activeSearchType === 'topological' }"
-                  @click="setSearchType('topological')"
+                  @click="!isSearching && setSearchType('topological')"
+                  :aria-disabled="isSearching"
+                  :tabindex="isSearching ? -1 : 0"
+                  :style="
+                    isSearching ? 'pointer-events: none; opacity: 0.5;' : ''
+                  "
                 >
                   <n-icon size="16" class="type-icon">
                     <MapOutline />
@@ -67,7 +82,12 @@
                 <div
                   class="mode-pill premium-pill"
                   :class="{ active: searchMode === 'logical' }"
-                  @click="searchMode = 'logical'"
+                  @click="!isSearching && (searchMode = 'logical')"
+                  :aria-disabled="isSearching"
+                  :tabindex="isSearching ? -1 : 0"
+                  :style="
+                    isSearching ? 'pointer-events: none; opacity: 0.5;' : ''
+                  "
                 >
                   <n-icon size="14" class="mode-icon">
                     <CheckOutlined />
@@ -83,7 +103,12 @@
                 <div
                   class="mode-pill premium-pill"
                   :class="{ active: searchMode === 'flexible' }"
-                  @click="searchMode = 'flexible'"
+                  @click="!isSearching && (searchMode = 'flexible')"
+                  :aria-disabled="isSearching"
+                  :tabindex="isSearching ? -1 : 0"
+                  :style="
+                    isSearching ? 'pointer-events: none; opacity: 0.5;' : ''
+                  "
                 >
                   <n-icon size="16" class="mode-icon">
                     <PencilOutline />
@@ -99,7 +124,12 @@
                 <div
                   class="mode-pill"
                   :class="{ active: searchMode === 'low_precision' }"
-                  @click="searchMode = 'low_precision'"
+                  @click="!isSearching && (searchMode = 'low_precision')"
+                  :aria-disabled="isSearching"
+                  :tabindex="isSearching ? -1 : 0"
+                  :style="
+                    isSearching ? 'pointer-events: none; opacity: 0.5;' : ''
+                  "
                 >
                   <n-icon size="16" class="mode-icon">
                     <PencilOutline />
@@ -208,7 +238,8 @@
               <div class="tags-group">
                 <n-select
                   ref="tagIncSelect"
-                  v-model:value="includedTags"
+                  :value="includedTags"
+                  @update:value="handleIncludedTagsChange"
                   multiple
                   filterable
                   clearable
@@ -219,7 +250,6 @@
                   :max-tag-count="5"
                   class="tags-select include-tags"
                   @search="onSearchInputIncluded"
-                  @update:value="handleTagSelected"
                 >
                   <template #empty>
                     <div style="padding: 8px; color: #888">
@@ -231,7 +261,8 @@
               <div class="tags-group">
                 <n-select
                   ref="tagExcSelect"
-                  v-model:value="excludedTags"
+                  :value="excludedTags"
+                  @update:value="handleExcludedTagsChange"
                   multiple
                   filterable
                   clearable
@@ -241,7 +272,6 @@
                   :max-tag-count="5"
                   class="tags-select exclude-tags"
                   @search="onSearchInputExcluded"
-                  @update:value="handleTagSelected"
                 >
                   <template #empty>
                     <div style="padding: 8px; color: #888">
@@ -349,34 +379,34 @@
             <div class="topological-grid">
               <div class="topological-area">
                 <n-input
-                  v-model:value="topological.left"
+                  :value="topological.left"
+                  @input="updateTopologicalLeft"
                   type="textarea"
                   placeholder="Left side objects..."
                   :autosize="{ minRows: 1, maxRows: 2 }"
                   class="topological-input"
-                  @input="onSearchChange"
                   :key="`topological-left-${activeSearchType}`"
                 />
               </div>
               <div class="topological-area">
                 <n-input
-                  v-model:value="topological.center"
+                  :value="topological.center"
+                  @input="updateTopologicalCenter"
                   type="textarea"
                   placeholder="Center objects..."
                   :autosize="{ minRows: 1, maxRows: 2 }"
                   class="topological-input center-input"
-                  @input="onSearchChange"
                   :key="`topological-center-${activeSearchType}`"
                 />
               </div>
               <div class="topological-area">
                 <n-input
-                  v-model:value="topological.right"
+                  :value="topological.right"
+                  @input="updateTopologicalRight"
                   type="textarea"
                   placeholder="Right side objects..."
                   :autosize="{ minRows: 1, maxRows: 2 }"
                   class="topological-input"
-                  @input="onSearchChange"
                   :key="`topological-right-${activeSearchType}`"
                 />
               </div>
@@ -473,7 +503,10 @@
 
     <!-- Search Results / Empty State -->
     <div class="search-results-container">
-      <div v-if="!hasSearchQuery && !isSearching" class="search-inspiration">
+      <div
+        v-if="!hasSearchQuery && !isSearching && !searchStore.hasSearched"
+        class="search-inspiration"
+      >
         <div class="inspiration-content">
           <n-icon size="64" color="#6b7280" class="inspiration-icon">
             <svg viewBox="0 0 24 24">
@@ -528,10 +561,51 @@
       <div v-else class="search-results">
         <!-- Grid Controls -->
         <div class="grid-controls grid-controls-base">
-          <div class="results-info results-info-base">
-            <span class="results-count results-count-base"
-              >{{ searchResults.length }} photos found</span
-            >
+          <div class="controls-left">
+            <div class="results-info results-info-base">
+              <span class="results-count results-count-base">
+                {{ searchResults.length }} photos found
+              </span>
+            </div>
+            <!-- Action buttons (show when photos are selected) -->
+            <div v-if="localSelectedPhotoIds.length > 0" class="action-buttons">
+              <n-button
+                type="info"
+                size="small"
+                @click="handleAddToCollection"
+                :disabled="localSelectedPhotoIds.length === 0"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M17 14H19V17H22V19H19V22H17V19H14V17H17V14M12 18H6V16H12V18M12 14H6V12H12V14M16 10H6V8H16V10M20 6H4C2.9 6 2 6.9 2 8V20C2 21.1 2.9 22 4 22H13.35C13.13 21.37 13 20.7 13 20C13 16.69 15.69 14 19 14C19.34 14 19.67 14.03 20 14.08V8C20 6.9 19.1 6 18 6H20Z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Add to Collection ({{ localSelectedPhotoIds.length }})
+              </n-button>
+              <n-button
+                type="info"
+                size="small"
+                @click="moveToCanvas"
+                :disabled="localSelectedPhotoIds.length === 0"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M17 14H19V17H22V19H19V22H17V19H14V17H17V14M12 18H6V16H12V18M12 14H6V12H12V14M16 10H6V8H16V10M20 6H4C2.9 6 2 6.9 2 8V20C2 21.1 2.9 22 4 22H13.35C13.13 21.37 13 20.7 13 20C13 16.69 15.69 14 19 14C19.34 14 19.67 14.03 20 14.08V8C20 6.9 19.1 6 18 6H20Z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Take to Canvas ({{ localSelectedPhotoIds.length }})
+              </n-button>
+            </div>
           </div>
           <div class="grid-size-controls grid-size-controls-base">
             <span class="grid-label grid-label-base">Columns:</span>
@@ -574,35 +648,6 @@
               <n-skeleton height="100%" />
             </div>
           </template>
-        </div>
-
-        <!-- Selection Info -->
-        <div
-          v-if="localSelectedPhotoIds.length > 0 && selectInfoVisible"
-          class="selection-info"
-        >
-          <n-button type="info" @click="moveToCanvas">
-            Take to Canvas
-          </n-button>
-          <n-button type="info"> Create Collection </n-button>
-
-          <span
-            >{{ localSelectedPhotoIds.length }} photo{{
-              localSelectedPhotoIds.length > 1 ? "s" : ""
-            }}
-          </span>
-          <n-button type="secondary" @click="clearSelection">
-            <template #icon>
-              <n-icon>
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z"
-                  />
-                </svg>
-              </n-icon>
-            </template>
-          </n-button>
         </div>
 
         <!-- Load More Button -->
@@ -662,6 +707,7 @@ import { CheckOutlined, TagOutlined } from "@vicons/antd";
 import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas.js";
 import { useUserStore } from "@/stores/userStore";
+import { useSearchStore } from "@/stores/searchStore";
 import { useRouter } from "vue-router";
 
 // Conexión real-time para resultados incrementales
@@ -672,6 +718,7 @@ const socket = io(import.meta.env.VITE_API_WS_URL);
 const photoStore = usePhotosStore();
 const canvasStore = useCanvasStore();
 const userStore = useUserStore();
+const searchStore = useSearchStore();
 const router = useRouter();
 
 // Estado local de selección de fotos (independiente del store global)
@@ -687,36 +734,71 @@ const isToolbarCollapsed = ref(false);
 const selectInfoVisible = ref(true);
 const lastScrollY = ref(0);
 
-// Estado de búsqueda
-const activeSearchType = ref("semantic"); // 'semantic' | 'tags' | 'topological'
-const searchMode = ref("logical"); // 'logical' | 'flexible'
+// Usar el store para el estado de búsqueda
+const activeSearchType = computed({
+  get: () => searchStore.activeSearchType,
+  set: (value) => searchStore.setSearchType(value),
+});
 
-// Semantic language
-const semanticQuery = ref("");
+const searchMode = computed({
+  get: () => searchStore.searchMode,
+  set: (value) => searchStore.setSearchMode(value),
+});
+
+const isSearching = computed(() => searchStore.isSearching);
+const isLoadingMore = computed(() => searchStore.isLoadingMore);
+const searchResults = computed(() => searchStore.searchResults);
+const hasSearchQuery = computed(() => searchStore.hasSearchQuery);
+const hasMoreIterations = computed(
+  () => searchStore.currentSearchState.hasMoreIterations
+);
+
+// Computed para acceder a los valores específicos de cada tipo de búsqueda
+const semanticQuery = computed({
+  get: () => searchStore.searchStates.semantic.query,
+  set: (value) => searchStore.updateSemanticQuery(value),
+});
+
+const includedTags = computed({
+  get: () => searchStore.searchStates.tags.includedTags,
+  set: (value) =>
+    searchStore.updateTagsSearch(
+      value,
+      searchStore.searchStates.tags.excludedTags
+    ),
+});
+
+const excludedTags = computed({
+  get: () => searchStore.searchStates.tags.excludedTags,
+  set: (value) =>
+    searchStore.updateTagsSearch(
+      searchStore.searchStates.tags.includedTags,
+      value
+    ),
+});
+
+const topological = computed({
+  get: () => ({
+    left: searchStore.searchStates.topological.left,
+    center: searchStore.searchStates.topological.center,
+    right: searchStore.searchStates.topological.right,
+  }),
+  set: (value) =>
+    searchStore.updateTopologicalSearch(value.left, value.center, value.right),
+});
 
 const performanceTooltip =
   "You have exceeded your daily search limit. Strict and figurative modes operate with reduced performance. Fast mode will not be affected.";
 
-// Tags
+// Tags - mantener el composable para las sugerencias
 const {
-  includedTags,
-  excludedTags,
   includedTagSuggestions,
   excludedTagSuggestions,
   onSearchInputIncluded,
   onSearchInputExcluded,
 } = useSearchTags();
 
-// Topological (izquierda, centro, derecha)
-const topological = reactive({ left: "", center: "", right: "" });
-
 // Control de carga y paginación
-const isSearching = ref(false);
-const isLoadingMore = ref(false);
-const maxPageAttempts = ref(false);
-const hasMoreIterations = ref(false);
-const iteration = ref(1);
-let iterationsRecord = reactive({});
 const pageSize = ref(12);
 
 const warmedUp = ref(false);
@@ -751,40 +833,19 @@ const tagIncSelect = ref(null);
 const tagExcSelect = ref(null);
 
 function handleTagSelected() {
-  tagIncSelect.value.blur();
-  tagExcSelect.value.blur();
+  tagIncSelect.value?.blur();
+  tagExcSelect.value?.blur();
 }
 
-// Resultados consolidados
-const searchResults = computed(() => {
-  const keys = Object.keys(iterationsRecord)
-    .map(Number)
-    .sort((a, b) => a - b);
-  let all = [];
-  for (let i = 0; i < iteration.value; i++) {
-    const k = keys[i];
-    if (k !== undefined && iterationsRecord[k]?.photos) {
-      all.push(...iterationsRecord[k].photos);
-    }
-  }
-  // Mostrar esqueletos si está cargando inicial
-  if (isSearching.value) {
-    return Array.from({ length: pageSize.value }).map((_, i) => ({
-      id: `skeleton-${i}`,
-      isSkeleton: true,
-      src: null,
-    }));
-  }
-  // Esqueletos sólo en la primera iteración de "cargar más"
-  if (isLoadingMore.value && iteration.value === 1) {
-    return Array.from({ length: pageSize.value }).map((_, i) => ({
-      id: `skeleton-${i}`,
-      isSkeleton: true,
-      src: null,
-    }));
-  }
-  return all;
-});
+// Función para manejar cambios en tags incluidas
+function handleIncludedTagsChange(value) {
+  searchStore.updateTagsSearch(value, excludedTags.value);
+}
+
+// Función para manejar cambios en tags excluidas
+function handleExcludedTagsChange(value) {
+  searchStore.updateTagsSearch(includedTags.value, value);
+}
 
 // Helpers
 const skeletonCount = computed(() => pageSize.value);
@@ -812,21 +873,6 @@ function handleScroll() {
 
   lastScrollY.value = currentScrollY;
 }
-
-// Habilitar/deshabilitar botón de búsqueda
-const hasSearchQuery = computed(() => {
-  if (activeSearchType.value === "semantic")
-    return semanticQuery.value.trim().length > 0;
-  if (activeSearchType.value === "tags")
-    return includedTags.value.length > 0 || excludedTags.value.length > 0;
-  if (activeSearchType.value === "topological")
-    return (
-      topological.left.trim().length > 0 ||
-      topological.center.trim().length > 0 ||
-      topological.right.trim().length > 0
-    );
-  return false;
-});
 
 // Columnas del grid y paginación
 const gridColumns = ref(6);
@@ -856,23 +902,12 @@ async function moveToCanvas() {
 }
 // Cambio de tipo de búsqueda
 function setSearchType(type) {
-  activeSearchType.value = type;
-  clearSearch();
+  searchStore.setSearchType(type);
 }
-watch(activeSearchType, clearSearch);
 
-// Limpia inputs de búsqueda
+// Limpia inputs de búsqueda solo del tipo actual
 function clearSearch() {
-  semanticQuery.value = "";
-  includedTags.value = [];
-  excludedTags.value = [];
-  topological.left = "";
-  topological.center = "";
-  topological.right = "";
-  hasMoreIterations.value = false;
-  iteration.value = 1;
-  iterationsRecord = {};
-  hasMoreIterations.value = false;
+  searchStore.clearCurrentSearch();
 
   // Resetear estado del toolbar
   isToolbarCollapsed.value = false;
@@ -882,31 +917,30 @@ function clearSearch() {
 // Ejecución de búsqueda
 async function performSearch() {
   clearSelection();
-  iteration.value = 1;
-  Object.keys(iterationsRecord).forEach((k) => delete iterationsRecord[k]);
-  maxPageAttempts.value = false;
-  isSearching.value = true;
-  hasMoreIterations.value = false;
+  searchStore.resetCurrentIteration();
+  searchStore.setSearching(true);
 
   await searchPhotos();
-  isSearching.value = false;
+  searchStore.setSearching(false);
 }
 
 // Cargar más resultados
 async function loadMorePhotos() {
-  isLoadingMore.value = true;
+  searchStore.setLoadingMore(true);
   await searchPhotos();
-  isLoadingMore.value = false;
+  searchStore.setLoadingMore(false);
 }
 
 // Llamada a la API
 async function searchPhotos() {
   try {
+    const currentState = searchStore.currentSearchState;
     const options = {
-      iteration: iteration.value,
+      iteration: currentState.iteration,
       pageSize: pageSize.value,
-      searchMode: searchMode.value,
+      searchMode: searchStore.searchMode,
     };
+
     let payload;
     if (activeSearchType.value === "semantic") {
       payload = { description: semanticQuery.value, options };
@@ -918,9 +952,9 @@ async function searchPhotos() {
       };
     } else {
       payload = {
-        left: topological.left,
-        middle: topological.center,
-        right: topological.right,
+        left: topological.value.left,
+        middle: topological.value.center,
+        right: topological.value.right,
         options,
       };
     }
@@ -979,21 +1013,62 @@ onUnmounted(() => {
   socket.off("maxPageAttempts");
 });
 
-// Carousel de ejemplos
-const examples = queryExamples.logical || [];
+// Carousel de ejemplos dinámico según searchType
 const exampleIndex = ref(0);
-const currentExampleText = computed(() => examples[exampleIndex.value] || "");
 const isSliding = ref(false);
 let exampleInterval;
+
+const currentExamples = computed(() => {
+  if (activeSearchType.value === "semantic") {
+    // Modo natural language: usar ejemplos logical/flexible según searchMode
+    if (searchMode.value === "flexible" && queryExamples.flexible?.length) {
+      return queryExamples.flexible;
+    }
+    return queryExamples.logical || [];
+  } else if (activeSearchType.value === "tags") {
+    return queryExamples.tags || [];
+  } else if (activeSearchType.value === "topological") {
+    return queryExamples.topological || [];
+  }
+  return [];
+});
+
+const currentExampleText = computed(() => {
+  const ex = currentExamples.value[exampleIndex.value];
+  if (!ex) return "";
+  if (activeSearchType.value === "tags") {
+    // Mostrar como: Include: tag1, tag2 | Exclude: tag3
+    const inc = (ex.include || []).join(", ");
+    const exc = (ex.exclude || []).join(", ");
+    return `Include: ${inc}${exc ? `  |  Exclude: ${exc}` : ""}`;
+  } else if (activeSearchType.value === "topological") {
+    // Mostrar solo las cajas presentes, ej: Left: dog | Right: cat
+    const parts = [];
+    if (ex.left) parts.push(`Left: ${ex.left}`);
+    if (ex.center) parts.push(`Center: ${ex.center}`);
+    if (ex.right) parts.push(`Right: ${ex.right}`);
+    return parts.join("  |  ");
+  }
+  return ex;
+});
+
 function handleExampleClick() {
-  semanticQuery.value = currentExampleText.value;
-  performSearch();
+  if (activeSearchType.value === "semantic") {
+    semanticQuery.value = currentExampleText.value;
+    performSearch();
+  }
 }
+
 onMounted(() => {
   exampleInterval = setInterval(() => {
     isSliding.value = true;
     setTimeout(() => (isSliding.value = false), 300);
-    exampleIndex.value = (exampleIndex.value + 1) % examples.length;
+    const arr = currentExamples.value;
+    if (arr.length > 0) {
+      exampleIndex.value = (exampleIndex.value + 1) % arr.length;
+    } else {
+      exampleIndex.value = 0;
+    }
   }, 5000);
 });
 onUnmounted(() => {
@@ -1008,19 +1083,13 @@ watch(
       socket.emit("join", { userId: userStore.user.id });
       if (!matchesListenerRegistered) {
         socket.on("matches", (data) => {
-          Object.entries(data.results).forEach(([iter, items]) => {
-            iterationsRecord[iter] = {
-              photos: items.map((i) => i.photo),
-            };
-          });
-          hasMoreIterations.value = data.hasMore;
-          iteration.value = data.iteration + 1;
+          searchStore.updateSearchResults(data);
           setTimeout(() => {
             scrollToLast();
           }, 0);
         });
         socket.on("maxPageAttempts", () => {
-          maxPageAttempts.value = true;
+          searchStore.setMaxPageAttempts();
         });
         matchesListenerRegistered = true;
       }
@@ -1028,6 +1097,37 @@ watch(
   },
   { immediate: true }
 );
+
+// Función para manejar cambios en los inputs de búsqueda
+function onSearchChange() {
+  // Esta función se puede usar para triggers adicionales si es necesario
+  // pero el binding reactivo del store ya se encarga de actualizar automáticamente
+}
+
+// Función para manejar cambios en topological search
+function updateTopologicalLeft(value) {
+  searchStore.updateTopologicalSearch(
+    value,
+    topological.value.center,
+    topological.value.right
+  );
+}
+
+function updateTopologicalCenter(value) {
+  searchStore.updateTopologicalSearch(
+    topological.value.left,
+    value,
+    topological.value.right
+  );
+}
+
+function updateTopologicalRight(value) {
+  searchStore.updateTopologicalSearch(
+    topological.value.left,
+    topological.value.center,
+    value
+  );
+}
 </script>
 
 <style scoped>
@@ -1374,25 +1474,12 @@ watch(
   font-weight: 500;
 }
 
-/* Selection Info */
-.selection-info {
-  position: fixed;
-  bottom: 30px;
-  right: 41px;
-  background-color: #2563eb;
-  color: #ffffff;
-  padding: 12px 24px;
-  border-radius: 24px;
+/* Action buttons (inline with grid controls) */
+.action-buttons {
   display: flex;
   align-items: center;
-  gap: 16px;
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
-  z-index: 100;
-  font-weight: 500;
-}
-
-.selection-info span {
-  font-size: 14px;
+  gap: 8px;
+  margin-left: 24px;
 }
 
 /* Search Inspiration */
@@ -1791,5 +1878,9 @@ watch(
   .tags-row {
     gap: 16px;
   }
+}
+.controls-left {
+  display: flex;
+  align-items: center;
 }
 </style>

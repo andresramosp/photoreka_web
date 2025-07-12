@@ -152,5 +152,29 @@
     "A stone wall covered in moss",
     "A silhouette against the sunset",
     "A calm lake surrounded by trees"
+  ],
+  "tags": [
+    { "include": ["dog"], "exclude": ["cat"] },
+    { "include": ["beach", "sunset"], "exclude": ["people"] },
+    { "include": ["mountain", "snow"], "exclude": ["car"] },
+    { "include": ["portrait"], "exclude": ["group"] },
+    { "include": ["city", "night"], "exclude": ["rain"] },
+    { "include": ["child", "balloon"], "exclude": ["adult"] },
+    { "include": ["forest"], "exclude": ["building"] },
+    { "include": ["lake", "boat"], "exclude": ["clouds"] },
+    { "include": ["wedding"], "exclude": ["crowd"] },
+    { "include": ["flower"], "exclude": ["bee"] }
+  ],
+  "topological": [
+    { "left": "dog", "right": "cat" },
+    { "left": "tree", "center": "person" },
+    { "center": "car", "right": "bicycle" },
+    { "left": "mountain", "right": "lake" },
+    { "left": "child", "center": "balloon" },
+    { "center": "boat", "right": "dock" },
+    { "left": "person", "right": "lamp post" },
+    { "left": "building", "center": "statue" },
+    { "center": "dog", "right": "tree" },
+    { "left": "runner", "center": "finish line" }
   ]
 }
