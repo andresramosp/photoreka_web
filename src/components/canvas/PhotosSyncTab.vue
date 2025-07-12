@@ -36,7 +36,7 @@
               </svg>
             </n-icon>
           </div>
-          <h3 class="dropzone-title">Upload photos to add to canvas</h3>
+          <h3 class="dropzone-title">Import photos to add to canvas</h3>
           <p class="dropzone-subtitle">
             Drag and drop your images, or click to browse
           </p>
