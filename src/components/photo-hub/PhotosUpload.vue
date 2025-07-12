@@ -527,7 +527,6 @@ async function uploadLocalFiles(event) {
       userId: "1234",
       packageId: "preprocess",
       mode: "adding",
-      sync: true,
     });
 
     await photosStore.getOrFetch(true);
