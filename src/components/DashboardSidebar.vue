@@ -130,7 +130,7 @@
           </div>
           <div v-if="!collapsed" class="logo-text">
             <div class="app-name">Photoreka</div>
-            <div class="app-subtitle">Photo Discovery Lab</div>
+            <div class="app-subtitle">Discovery Lab</div>
           </div>
         </div>
       </div>
