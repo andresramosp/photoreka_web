@@ -559,7 +559,7 @@
             v-for="photo in searchResults"
             :key="photo.id"
             :photo="photo"
-            :selected="photoStore.selectedPhotoIds.includes(photo.id)"
+            :selected="localSelectedPhotoIds.includes(photo.id)"
             @select="togglePhotoSelection"
             @info="showPhotoInfo"
           />
@@ -578,7 +578,7 @@
 
         <!-- Selection Info -->
         <div
-          v-if="photoStore.selectedPhotoIds.length > 0 && selectInfoVisible"
+          v-if="localSelectedPhotoIds.length > 0 && selectInfoVisible"
           class="selection-info"
         >
           <n-button type="info" @click="moveToCanvas">
@@ -587,8 +587,8 @@
           <n-button type="info"> Create Collection </n-button>
 
           <span
-            >{{ photoStore.selectedPhotoIds.length }} photo{{
-              photoStore.selectedPhotoIds.length > 1 ? "s" : ""
+            >{{ localSelectedPhotoIds.length }} photo{{
+              localSelectedPhotoIds.length > 1 ? "s" : ""
             }}
           </span>
           <n-button type="secondary" @click="clearSelection">
@@ -655,6 +655,7 @@ import WarningBadge from "@/components/WarningBadge.vue";
 
 // Composable de tags y ejemplos
 import { useSearchTags } from "@/composables/useSearchTags";
+import { useLocalPhotoSelection } from "@/composables/useLocalPhotoSelection";
 import queryExamples from "@/assets/query_examples.json";
 import { DocumentOutline, MapOutline, PencilOutline } from "@vicons/ionicons5";
 import { CheckOutlined, TagOutlined } from "@vicons/antd";
@@ -672,6 +673,14 @@ const photoStore = usePhotosStore();
 const canvasStore = useCanvasStore();
 const userStore = useUserStore();
 const router = useRouter();
+
+// Estado local de selección de fotos (independiente del store global)
+const {
+  selectedPhotosRecord: localSelectedPhotosRecord,
+  selectedPhotoIds: localSelectedPhotoIds,
+  togglePhotoSelection: localTogglePhotoSelection,
+  clearAllSelections: localClearAllSelections,
+} = useLocalPhotoSelection();
 
 // Estado del toolbar colapsable
 const isToolbarCollapsed = ref(false);
@@ -827,20 +836,20 @@ function setGridColumns(n) {
 }
 
 function togglePhotoSelection(id) {
-  photoStore.togglePhotoSelection(id);
+  localTogglePhotoSelection(id);
 }
 function clearSelection() {
-  // selectedPhotos.value = [];
+  localClearAllSelections();
 }
 async function moveToCanvas() {
   await Promise.all(
-    photoStore.selectedPhotoIds.map((id) => photoStore.fetchPhoto(id))
+    localSelectedPhotoIds.value.map((id) => photoStore.fetchPhoto(id))
   );
-  const photosToAdd = photoStore.selectedPhotoIds
+  const photosToAdd = localSelectedPhotoIds.value
     .map((id) => photoStore.photos.find((p) => p.id == id))
     .filter(Boolean);
 
-  photoStore.selectedPhotosRecord = {};
+  localClearAllSelections();
   canvasStore.addPhotos(photosToAdd);
 
   router.push("/canvas");

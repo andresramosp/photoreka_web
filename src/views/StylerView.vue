@@ -111,7 +111,7 @@
             v-for="photo in searchResults"
             :key="photo.id"
             :photo="photo"
-            :selected="photoStore.selectedPhotoIds.includes(photo.id)"
+            :selected="localSelectedPhotoIds.includes(photo.id)"
             @select="togglePhotoSelection"
             @info="showPhotoInfo"
           />
@@ -130,7 +130,7 @@
 
         <!-- Selection Info -->
         <div
-          v-if="photoStore.selectedPhotoIds.length > 0 && selectInfoVisible"
+          v-if="localSelectedPhotoIds.length > 0 && selectInfoVisible"
           class="selection-info"
         >
           <n-button type="info" @click="moveToCanvas">
@@ -139,8 +139,8 @@
           <n-button type="info"> Create Collection </n-button>
 
           <span
-            >{{ photoStore.selectedPhotoIds.length }} photo{{
-              photoStore.selectedPhotoIds.length > 1 ? "s" : ""
+            >{{ localSelectedPhotoIds.length }} photo{{
+              localSelectedPhotoIds.length > 1 ? "s" : ""
             }}
           </span>
           <n-button type="secondary" @click="clearSelection">
@@ -196,6 +196,7 @@ import ExplorerTab from "@/components/styler/ExplorerTab.vue";
 
 import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas.js";
+import { useLocalPhotoSelection } from "@/composables/useLocalPhotoSelection";
 import { useRouter } from "vue-router";
 
 const socket = import.meta.env.VITE_API_WS_URL
@@ -205,6 +206,14 @@ const socket = import.meta.env.VITE_API_WS_URL
 const photoStore = usePhotosStore();
 const canvasStore = useCanvasStore();
 const router = useRouter();
+
+// Estado local de selección de fotos (independiente del store global)
+const {
+  selectedPhotosRecord: localSelectedPhotosRecord,
+  selectedPhotoIds: localSelectedPhotoIds,
+  togglePhotoSelection: localTogglePhotoSelection,
+  clearAllSelections: localClearAllSelections,
+} = useLocalPhotoSelection();
 
 // State
 const activeTab = ref("ranking");
@@ -257,11 +266,11 @@ const setGridColumns = (n) => {
 };
 
 const togglePhotoSelection = (id) => {
-  photoStore.togglePhotoSelection(id);
+  localTogglePhotoSelection(id);
 };
 
 const clearSelection = () => {
-  photoStore.selectedPhotoIds = [];
+  localClearAllSelections();
 };
 
 const showPhotoInfo = (photo) => {
@@ -270,13 +279,13 @@ const showPhotoInfo = (photo) => {
 
 const moveToCanvas = async () => {
   await Promise.all(
-    photoStore.selectedPhotoIds.map((id) => photoStore.fetchPhoto(id))
+    localSelectedPhotoIds.value.map((id) => photoStore.fetchPhoto(id))
   );
-  const photosToAdd = photoStore.selectedPhotoIds
+  const photosToAdd = localSelectedPhotoIds.value
     .map((id) => photoStore.photos.find((p) => p.id == id))
     .filter(Boolean);
 
-  photoStore.selectedPhotosRecord = {};
+  localClearAllSelections();
   canvasStore.addPhotos(photosToAdd);
 
   router.push("/canvas");

@@ -160,6 +160,6 @@ export const expansionTypeOptions = [
   { label: "Narrative", value: "story", basicOnly: false },
   { label: "Context", value: "context", basicOnly: false },
   { label: "Chromatic", value: "chromatic" },
-  { label: "Selected Tags", value: "tags", basicOnly: false },
+  { label: "Tags", value: "tags", basicOnly: false },
   // { label: "Dominant Colors", value: "chromatic_dominant", basicOnly: false },
 ];

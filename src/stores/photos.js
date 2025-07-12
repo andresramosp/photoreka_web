@@ -12,6 +12,7 @@ export const usePhotosStore = defineStore("photos", {
   }),
 
   getters: {
+    // Getter para selección global - solo para PhotoHub (PhotosCatalog y PhotosUpload)
     selectedPhotoIds: (state) =>
       Object.keys(state.selectedPhotosRecord)
         .filter((photoId) => !!state.selectedPhotosRecord[photoId])
@@ -190,6 +191,7 @@ export const usePhotosStore = defineStore("photos", {
       }
     },
 
+    // Acciones de selección global - solo para PhotoHub (PhotosCatalog y PhotosUpload)
     togglePhotoSelection(photoId) {
       this.selectedPhotosRecord[photoId] = !this.selectedPhotosRecord[photoId];
     },
