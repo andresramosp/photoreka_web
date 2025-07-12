@@ -122,7 +122,7 @@
           <p class="empty-state-description">
             Upload photos in the
             <button class="tab-link" @click="navigateToTab('upload')">
-              Prep Area
+              Lightbox
             </button>
             to see them here during processing
           </p>
@@ -464,7 +464,6 @@ const navigateToTab = (tabName) => {
 
 .empty-state-content {
   text-align: center;
-  max-width: 400px;
 }
 
 .empty-state-title {
@@ -475,7 +474,6 @@ const navigateToTab = (tabName) => {
 }
 
 .empty-state-description {
-  font-size: 16px;
   color: #ffffff73;
   margin: 0;
 }

@@ -429,13 +429,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useMessage } from "naive-ui";
 import ProfileLayout from "../components/ProfileLayout.vue";
 
 const router = useRouter();
 const message = useMessage();
+
+onMounted(() => {
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+});
 
 const selectedStorage = ref<string>("");
 const selectedPlan = ref<string>("");

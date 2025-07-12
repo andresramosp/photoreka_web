@@ -81,7 +81,6 @@
         :disabled="!acceptTerms"
         class="submit-button"
         attr-type="submit"
-        @click="handleSubmit"
       >
         Create Account
       </n-button>

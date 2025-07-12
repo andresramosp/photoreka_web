@@ -117,7 +117,7 @@
               type="info"
               class="status-tag"
             >
-              Preprocessed
+              Lightbox
             </n-tag>
           </template>
           Preprocessed photo, limited use in tools
@@ -135,10 +135,10 @@
               type="success"
               class="status-tag"
             >
-              Processed
+              Worskpace
             </n-tag>
           </template>
-          Fully processed photo, valid in all tools
+          Processed photo, valid in all tools
         </n-tooltip>
       </div>
       <!-- Duplicate indicator in footer, right-aligned -->

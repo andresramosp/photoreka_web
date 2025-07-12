@@ -53,10 +53,10 @@
         <FloatingAddPhotosButton />
 
         <!-- Onboarding Slider -->
-        <!-- <OnboardingSlider
+        <OnboardingSlider
           v-model="showOnboarding"
           @finish="onOnboardingFinish"
-        /> -->
+        />
       </template>
     </n-message-provider>
   </n-config-provider>
@@ -101,7 +101,26 @@ const themeOverrides = {
 
 const mobileMenuOpen = ref(false);
 const isMobile = ref(false);
-const showOnboarding = ref(true); // Mock to always show for now
+
+// Mostrar onboarding solo la primera vez que el usuario entra
+const showOnboarding = ref(false);
+
+// Chequea si el onboarding ya fue mostrado para este usuario
+const checkShowOnboarding = () => {
+  // Si el usuario no está autenticado, no mostrar
+  if (!userStore.isAuthenticated) {
+    showOnboarding.value = false;
+    return;
+  }
+  // Usa el id del usuario para guardar la preferencia por usuario
+  const userId = userStore.user?.id;
+  if (!userId) {
+    showOnboarding.value = false;
+    return;
+  }
+  const onboardingKey = `onboarding_shown_${userId}`;
+  showOnboarding.value = localStorage.getItem(onboardingKey) !== "true";
+};
 
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value;
@@ -120,16 +139,31 @@ onMounted(() => {
   // Espera a que el usuario esté autenticado antes de cargar las fotos
   if (userStore.isAuthenticated) {
     photosStore.getOrFetch();
+    checkShowOnboarding();
   }
 });
 
 // Watcher para cargar fotos cuando el usuario se autentica
 import { watch } from "vue";
+// Watcher para autenticación
 watch(
   () => userStore.isAuthenticated,
   (isAuth) => {
     if (isAuth) {
       photosStore.getOrFetch();
+      checkShowOnboarding();
+    } else {
+      showOnboarding.value = false;
+    }
+  }
+);
+
+// Watcher para cuando el usuario esté disponible tras login/refresh
+watch(
+  () => userStore.user?.id,
+  (userId) => {
+    if (userStore.isAuthenticated && userId) {
+      checkShowOnboarding();
     }
   }
 );
@@ -140,7 +174,13 @@ onUnmounted(() => {
 
 const onOnboardingFinish = () => {
   showOnboarding.value = false;
-  // TODO: Set user preference to not show onboarding again
+  // Guarda en localStorage que el onboarding ya fue mostrado para este usuario
+  const userId = userStore.user?.id;
+  if (userId) {
+    const onboardingKey = `onboarding_shown_${userId}`;
+    localStorage.setItem(onboardingKey, "true");
+  }
+  // TODO: Si en el futuro se guarda en backend, hacer petición aquí
   console.log("Onboarding completed!");
 };
 </script>

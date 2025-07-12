@@ -23,7 +23,7 @@
               <ArrowUpIcon />
             </n-icon>
           </div>
-          <h3 class="action-title">Upload Photos</h3>
+          <h3 class="action-title">Import Photos</h3>
           <p class="action-description">Add to your library</p>
         </div>
 

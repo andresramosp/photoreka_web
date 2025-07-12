@@ -80,9 +80,8 @@
         <BookInformation20Regular />
       </n-icon>
       <h3 class="photo-hub-title">
-        Entry point for photos into the platform. Preprocessed photos have
-        limited use in the tools. Process them to unlock their use in other
-        tools.
+        Photo upload and preview area. The photos in this section have limited
+        use in the tools. Process them to unlock full functionality.
       </h3>
     </div>
     <!-- Full Upload Dasdaopzone (show when no photos) -->
@@ -103,7 +102,7 @@
             {{
               singleViewMode
                 ? "Your Workspace is empty"
-                : "Your Prep Area is empty"
+                : "Your Lightbox is empty"
             }}
           </h3>
           <p class="dropzone-subtitle">
@@ -333,13 +332,6 @@
       style="display: none"
       @change="uploadLocalFiles"
     />
-
-    <!-- Floating Process Photos Button -->
-    <FloatingProcessPhotosButton
-      :should-show="shouldShowProcessButton"
-      :disabled="isProcessButtonDisabled"
-      @click="openAnalyzeDialog"
-    />
   </div>
 </template>
 
@@ -351,7 +343,6 @@ import pica from "pica";
 import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 import DuplicatePhotosDialog from "../DuplicatePhotosDialog.vue";
-import FloatingProcessPhotosButton from "../FloatingProcessPhotosButton.vue";
 import {
   NModal,
   NCheckbox,
@@ -372,19 +363,6 @@ const props = defineProps({
 
 const emit = defineEmits(["on-analyze"]);
 const photosStore = usePhotosStore();
-
-// Computed for floating button
-const shouldShowProcessButton = computed(() => {
-  return allPhotos.value.length > 0;
-});
-
-const isProcessButtonDisabled = computed(() => {
-  return (
-    isUploading.value ||
-    prepAreaPhotos.value.length === 0 ||
-    prepAreaPhotos.value.filter((p) => p.isCheckingDuplicates).length > 0
-  );
-});
 
 const isUploading = ref(false);
 const gridColumns = ref(8);
@@ -642,18 +620,23 @@ const handleAddToCollection = () => {
   // TODO: Implement add to collection functionality
 };
 
-const openAnalyzeDialog = () => {
-  showAnalyzeDialog.value = true;
-};
-
 const closeAnalyzeDialog = () => {
   showAnalyzeDialog.value = false;
+};
+
+const openAnalyzeDialog = () => {
+  showAnalyzeDialog.value = true;
 };
 
 const confirmAnalyze = () => {
   showAnalyzeDialog.value = false;
   emit("on-analyze", { fastMode: fastMode.value });
 };
+
+// Exponer openAnalyzeDialog para uso del componente padre
+defineExpose({
+  openAnalyzeDialog,
+});
 
 onMounted(() => {
   photosStore.checkDuplicates();

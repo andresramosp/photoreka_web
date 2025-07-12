@@ -5,7 +5,7 @@
       <div class="header-content">
         <h1 class="page-title">Photo Hub</h1>
         <p class="page-subtitle">
-          Upload, analyze, and view your photo catalog here.
+          Synchronize, review, and process your catalog here.
         </p>
       </div>
       <div class="header-actions">
@@ -54,7 +54,8 @@
         </div>
 
         <div class="tab-content-container">
-          <PhotosUpload
+          <LightboxPhotos
+            ref="lightboxRef"
             v-show="activeTab === 'upload'"
             singleViewMode
             @on-analyze="analyze"
@@ -77,7 +78,7 @@
               <n-icon size="18">
                 <DriveFolderUploadFilled color="var(--info-color)" />
               </n-icon>
-              Prep Area
+              Lightbox
             </div>
           </button>
           <button
@@ -106,8 +107,12 @@
           </button>
         </div>
         <div class="tab-content-container">
-          <PhotosUpload v-show="activeTab === 'upload'" @on-analyze="analyze" />
-          <PhotosCatalog
+          <LightboxPhotos
+            ref="lightboxRef"
+            v-show="activeTab === 'upload'"
+            @on-analyze="analyze"
+          />
+          <WorkspacePhotos
             v-show="activeTab === 'catalog'"
             @navigate-to-tab="setActiveTab"
           />
@@ -118,20 +123,27 @@
         </div>
       </template>
     </div>
+
+    <!-- Floating Process Photos Button -->
+    <FloatingProcessPhotosButton
+      :should-show="shouldShowProcessButton"
+      :disabled="isProcessButtonDisabled"
+      @click="handleProcessButtonClick"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
-import PhotosUpload from "@/components/photo-hub/PhotosUpload.vue";
+import { ref, onMounted, watch, computed } from "vue";
+import LightboxPhotos from "@/components/photo-hub/LightboxPhotos.vue";
 import ProcessingPhotos from "@/components/photo-hub/ProcessingPhotos.vue";
-import PhotosCatalog from "@/components/photo-hub/PhotosCatalog.vue";
+import WorkspacePhotos from "@/components/photo-hub/WorkspacePhotos.vue";
+import FloatingProcessPhotosButton from "@/components/FloatingProcessPhotosButton.vue";
 import { usePhotosStore } from "@/stores/photos.js";
 import api from "@/utils/axios";
 import { useMessage } from "naive-ui";
-import { ImagesOutline, MenuOutline } from "@vicons/ionicons5";
-import { DriveFolderUploadFilled, SyncAltFilled } from "@vicons/material";
-import { ProjectionScreenDismiss24Regular } from "@vicons/fluent";
+import { ImagesOutline } from "@vicons/ionicons5";
+import { DriveFolderUploadFilled } from "@vicons/material";
 import { InProgress } from "@vicons/carbon";
 
 const photosStore = usePhotosStore();
@@ -139,6 +151,26 @@ const message = useMessage();
 
 // Reactive state
 const activeTab = ref("upload");
+const lightboxRef = ref(null);
+
+// Computed for floating button - solo mostrar en tab upload
+const shouldShowProcessButton = computed(() => {
+  return activeTab.value === "upload" && photosStore.allPhotos.length > 0;
+});
+
+const isProcessButtonDisabled = computed(() => {
+  return (
+    photosStore.isUploading ||
+    photosStore.prepAreaPhotos.length === 0 ||
+    photosStore.prepAreaPhotos.filter((p) => p.isCheckingDuplicates).length > 0
+  );
+});
+
+const handleProcessButtonClick = () => {
+  if (lightboxRef.value && lightboxRef.value.openAnalyzeDialog) {
+    lightboxRef.value.openAnalyzeDialog();
+  }
+};
 
 const setActiveTab = (tab) => {
   activeTab.value = tab;
@@ -189,6 +221,7 @@ watch(activeTab, (newTab) => {
   padding: var(--spacing-2xl);
   margin: 0 auto;
   background-color: var(--bg-body);
+  position: relative;
 }
 
 /* Header Section */

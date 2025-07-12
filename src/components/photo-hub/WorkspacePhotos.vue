@@ -35,7 +35,7 @@
             <div class="step-item">
               1. Go to
               <button class="tab-link" @click="navigateToTab('upload')">
-                Prep Area
+                Lightbox
               </button>
             </div>
             <div class="step-item">

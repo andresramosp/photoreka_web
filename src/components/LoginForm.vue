@@ -61,7 +61,6 @@
         :loading="userStore.isLoading"
         class="submit-button"
         attr-type="submit"
-        @click="handleSubmit"
       >
         Log In
       </n-button>

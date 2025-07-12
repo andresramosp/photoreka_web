@@ -13,7 +13,7 @@
       <div class="onboarding-header">
         <h2 class="onboarding-title">Welcome to Photoreka</h2>
         <p class="onboarding-subtitle">
-          Let's get you started with your photo management journey
+          Let's get you started with your photo discovery journey
         </p>
       </div>
     </template>
@@ -45,12 +45,12 @@
                 </div>
               </div>
               <div class="slide-text">
-                <h3 class="slide-title">Add your photos</h3>
+                <h3 class="slide-title">1. Bring your photos</h3>
                 <p class="slide-description">
-                  Photoreka is a photo catalog manager designed to handle very
-                  large collections. You can upload your photos in batches at
-                  your own pace, from different platforms or locally. No stress,
-                  just seamless organization.
+                  Photoreka is a tool designed to work with large volumes of
+                  photos and, ideally, manage an entire body of work. You can
+                  bring your images from different platforms (Google Photos,
+                  Drive, etc.) or from your local directory.
                 </p>
               </div>
             </div>
@@ -80,12 +80,12 @@
                 </div>
               </div>
               <div class="slide-text">
-                <h3 class="slide-title">Use your preprocessed photos</h3>
+                <h3 class="slide-title">2. Preview in Lightbox</h3>
                 <p class="slide-description">
-                  Once you upload photos, they're automatically preprocessed for
-                  basic use. These optimized versions are perfect for quick
-                  tools like the Canvas editor, giving you instant access to
-                  editing capabilities.
+                  The Lightbox is where you import your photos.. You can import
+                  them in batches, at your own pace, or all at once. Newly
+                  uploaded photos are pre-processed and can be used in some
+                  tools with limitations.
                 </p>
               </div>
             </div>
@@ -122,11 +122,13 @@
                 </div>
               </div>
               <div class="slide-text">
-                <h3 class="slide-title">Unleash your catalog's potential</h3>
+                <h3 class="slide-title">3. Build your Workspace</h3>
                 <p class="slide-description">
-                  To get the most out of your catalog, analyze your photos with
-                  our powerful AI engine. Unlock natural language search,
-                  advanced canvas features, style ranking, and much more.
+                  To unleash the full potential of your catalog, allow our
+                  engine to process and understand your photos. The photos you
+                  move to the Workspace will be available for natural language
+                  search, advanced canvas features, photo relation search, style
+                  ranking, and much more...
                 </p>
               </div>
             </div>
@@ -234,7 +236,6 @@ const finish = () => {
 
 .onboarding-header {
   text-align: center;
-  margin-bottom: var(--spacing-xl);
 }
 
 .onboarding-title {
@@ -253,7 +254,7 @@ const finish = () => {
 }
 
 .onboarding-subtitle {
-  font-size: var(--font-size-md);
+  font-size: 15px;
   color: var(--text-secondary);
   margin: 0;
 }
@@ -288,7 +289,6 @@ const finish = () => {
 .slide-image {
   width: 100%;
   max-width: 500px;
-  aspect-ratio: 16/10;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -296,7 +296,6 @@ const finish = () => {
 
 .mock-screenshot {
   width: 100%;
-  height: 100%;
   border-radius: var(--radius-lg);
   border: 2px solid var(--border-color);
   background: linear-gradient(135deg, var(--bg-container), var(--bg-surface));
@@ -306,17 +305,6 @@ const finish = () => {
   gap: var(--spacing-md);
   position: relative;
   overflow: hidden;
-}
-
-.mock-screenshot::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 32px;
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-color);
 }
 
 /* Upload Screen Styles */
@@ -557,14 +545,14 @@ const finish = () => {
 }
 
 .slide-title {
-  font-size: var(--font-size-2xl);
+  font-size: 20px;
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
   margin: 0 0 var(--spacing-lg) 0;
 }
 
 .slide-description {
-  font-size: var(--font-size-md);
+  font-size: 15px;
   color: var(--text-secondary);
   line-height: var(--line-height-relaxed);
   margin: 0;

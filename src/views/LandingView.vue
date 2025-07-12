@@ -26,7 +26,7 @@
         <div class="hero-content">
           <div class="hero-text">
             <h1 class="hero-title">
-              AI-Powered Photo Discovery
+              Photo Discovery Lab
               <span class="hero-accent">Made Simple</span>
             </h1>
             <p class="hero-description">
@@ -107,7 +107,7 @@
                 <SearchOutline />
               </n-icon>
             </div>
-            <h3 class="feature-title">AI-Powered Search</h3>
+            <h3 class="feature-title">Semantic Search</h3>
             <p class="feature-description">
               Find photos instantly using natural language. Search for "sunset
               beach" or "happy moments" and discover exactly what you're looking
@@ -146,8 +146,9 @@
             </div>
             <h3 class="feature-title">Smart Curation</h3>
             <p class="feature-description">
-              Let AI automatically curate your best photos based on composition,
-              lighting, and emotional impact. Save hours of manual sorting.
+              Let our engine automatically curate your best photos based on
+              composition, lighting, and emotional impact. Save hours of manual
+              sorting.
             </p>
           </div>
           <div class="feature-card">
@@ -158,8 +159,9 @@
             </div>
             <h3 class="feature-title">Style Transfer</h3>
             <p class="feature-description">
-              Apply artistic styles to your photos with advanced AI. Transform
-              ordinary photos into artistic masterpieces with one click.
+              Apply artistic styles to your photos with advanced tools.
+              Transform ordinary photos into artistic masterpieces with one
+              click.
             </p>
           </div>
           <div class="feature-card">
