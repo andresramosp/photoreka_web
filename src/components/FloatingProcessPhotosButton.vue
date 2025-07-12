@@ -38,7 +38,7 @@ const handleClick = () => {
 
 <style scoped>
 .floating-process-button {
-  position: absolute;
+  position: fixed;
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
