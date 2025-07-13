@@ -76,7 +76,7 @@
         <div class="area-header">
           <h3 class="area-title">Curation Area</h3>
           <div class="star-filter">
-            <span class="filter-label">Rating:</span>
+            <span class="filter-label">Min. Rating:</span>
             <div class="star-buttons">
               <n-rate
                 v-model:value="minMatchScore"

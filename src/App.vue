@@ -71,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, KeepAlive, computed } from "vue";
+import { ref, onMounted, onUnmounted, KeepAlive, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { darkTheme } from "naive-ui";
 import { useUserStore } from "./stores/userStore";
@@ -152,19 +152,17 @@ onMounted(() => {
   window.addEventListener("resize", checkIsMobile);
   // Espera a que el usuario esté autenticado antes de cargar las fotos
   if (userStore.isAuthenticated) {
-    photosStore.getOrFetch();
+    photosStore.getOrFetch(true);
     checkShowOnboarding();
   }
 });
 
 // Watcher para cargar fotos cuando el usuario se autentica
-import { watch } from "vue";
-// Watcher para autenticación
 watch(
   () => userStore.isAuthenticated,
   (isAuth) => {
     if (isAuth) {
-      photosStore.getOrFetch();
+      photosStore.getOrFetch(true);
       checkShowOnboarding();
     } else {
       showOnboarding.value = false;

@@ -124,10 +124,10 @@
               <div class="slide-text">
                 <h3 class="slide-title">3. Build your Workspace</h3>
                 <p class="slide-description">
-                  To unleash the full potential of your catalog, allow our
-                  engine to process and understand your photos. The photos you
-                  move to the Workspace will be available for natural language
-                  search, advanced canvas features, photo relation search, style
+                  Allow our engine to understand your photos to unleash the full
+                  potential of your catalog. The photos you process to the
+                  Workspace will be available for natural language search,
+                  advanced canvas features, photo relation search, style
                   ranking, and much more...
                 </p>
               </div>

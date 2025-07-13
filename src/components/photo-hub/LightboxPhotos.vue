@@ -14,15 +14,22 @@
     >
       <div style="margin-bottom: 18px">
         <span>
-          You are about to process all your lightbox photos. Once started, it
-          cannot be reversed. Do you want to continue?
+          You are about to process
+          {{
+            selectedPhotoIds.length > 0
+              ? selectedPhotoIds.length
+              : filteredPhotos.length
+          }}
+          photos. Once started, it cannot be reversed. <br />
+
+          Do you want to continue?
         </span>
       </div>
       <div
         style="
           margin-bottom: 16px;
           display: flex;
-          justify-content: flex-start;
+          justify-content: flex-end;
           align-items: center;
         "
       >
@@ -253,7 +260,11 @@
             class="filter-controls"
             style="display: flex; align-items: center; gap: 12px"
           >
-            <n-checkbox v-model:checked="filterDuplicates" size="large">
+            <n-checkbox
+              v-show="hasDuplicates"
+              v-model:checked="filterDuplicates"
+              size="large"
+            >
               Filter duplicates
             </n-checkbox>
             <template v-if="props.singleViewMode">
@@ -379,6 +390,25 @@ const isFirstTimeUpload = computed(() => photosStore.allPhotos.length === 0);
 
 const fastModeOverride = ref(null);
 
+const hasDuplicates = computed(() => {
+  // Considera todas las fotos relevantes según el modo
+  let base = [];
+  if (props.singleViewMode) {
+    if (singleViewFilter.value === "all") {
+      base = allPhotos.value;
+    } else if (singleViewFilter.value === "processed") {
+      base = processedPhotos.value;
+    } else if (singleViewFilter.value === "processing") {
+      base = processingPhotos.value;
+    } else if (singleViewFilter.value === "preprocessed") {
+      base = preprocessed.value;
+    }
+  } else {
+    base = lightboxPhotos.value;
+  }
+  return base.some((photo) => photo.isDuplicate);
+});
+
 const fastMode = computed({
   get() {
     // Si hay un override manual, usarlo
@@ -415,6 +445,36 @@ const processedPhotos = computed(() => photosStore.processedPhotos);
 const processingPhotos = computed(() => photosStore.processingPhotos);
 const allPhotos = computed(() => photosStore.allPhotos);
 
+// Agrupa fotos duplicadas por grupo usando el campo duplicates
+function groupDuplicates(photos) {
+  const groupMap = new Map();
+  const added = new Set();
+  photos.forEach((photo) => {
+    if (!photo.isDuplicate) return;
+    // Creamos una clave única para el grupo de duplicados
+    const groupIds = [photo.id, ...(photo.duplicates || [])].sort((a, b) =>
+      String(a).localeCompare(String(b))
+    );
+    const groupKey = groupIds.join("-");
+    if (!groupMap.has(groupKey)) groupMap.set(groupKey, []);
+    groupMap.get(groupKey).push(photo);
+  });
+  // Devolvemos un array plano, agrupando los duplicados juntos, manteniendo el orden de aparición original
+  const result = [];
+  photos.forEach((photo) => {
+    if (!photo.isDuplicate) return;
+    const groupIds = [photo.id, ...(photo.duplicates || [])].sort((a, b) =>
+      String(a).localeCompare(String(b))
+    );
+    const groupKey = groupIds.join("-");
+    if (groupMap.has(groupKey) && !added.has(groupKey)) {
+      result.push(...groupMap.get(groupKey));
+      added.add(groupKey);
+    }
+  });
+  return result;
+}
+
 const filteredPhotos = computed(() => {
   if (props.singleViewMode) {
     let base = [];
@@ -428,12 +488,14 @@ const filteredPhotos = computed(() => {
       base = preprocessed.value;
     }
     return filterDuplicates.value
-      ? base.filter((photo) => photo.isDuplicate)
+      ? groupDuplicates(base.filter((photo) => photo.isDuplicate))
       : base;
   } else {
     // Modo normal: solo preprocesadas
     return filterDuplicates.value
-      ? lightboxPhotos.value.filter((photo) => photo.isDuplicate)
+      ? groupDuplicates(
+          lightboxPhotos.value.filter((photo) => photo.isDuplicate)
+        )
       : lightboxPhotos.value;
   }
 });
@@ -507,12 +569,15 @@ async function uploadLocalFiles(event) {
       mode: "adding",
     });
 
-    await photosStore.getOrFetch(true);
+    // await photosStore.getOrFetch(true);
     await photosStore.checkDuplicates(photoIds);
 
     // Remove checking duplicates flag
     photoIds.forEach((id) => {
-      photosStore.updatePhoto(id, { isCheckingDuplicates: false });
+      photosStore.updatePhoto(id, {
+        isCheckingDuplicates: false,
+        status: "preprocessed",
+      });
     });
   } catch (error) {
     console.error("❌ Error en la subida:", error);
@@ -584,7 +649,40 @@ function loadImage(file) {
 
 const deletePhoto = async (photoId) => {
   await photosStore.deletePhotos([photoId]);
-  // photosStore.checkDuplicates(photo.duplicates); // solo si lanzamos uno inicial
+  // Eliminar photoId de los arrays duplicates de las fotos en el store
+  photosStore.lightboxPhotos.forEach((photo) => {
+    if (Array.isArray(photo.duplicates)) {
+      const idx = photo.duplicates.indexOf(photoId);
+      if (idx !== -1) {
+        // Usar updatePhoto para que sea reactivo
+        const newDuplicates = photo.duplicates.filter((id) => id !== photoId);
+        photosStore.updatePhoto(photo.id, {
+          duplicates: newDuplicates,
+          isDuplicate: newDuplicates.length > 0, // o tu lógica para marcar duplicado
+        });
+      }
+    }
+  });
+};
+
+// Action handlers (empty for now as requested)
+const handleDeleteMultiple = () => {
+  const idsToDelete = selectedPhotoIds.value;
+  photosStore.deletePhotos(idsToDelete);
+  // Eliminar idsToDelete de los arrays duplicates de las fotos en el store
+  photosStore.lightboxPhotos.forEach((photo) => {
+    if (Array.isArray(photo.duplicates)) {
+      const newDuplicates = photo.duplicates.filter(
+        (id) => !idsToDelete.includes(id)
+      );
+      if (newDuplicates.length !== photo.duplicates.length) {
+        photosStore.updatePhoto(photo.id, {
+          duplicates: newDuplicates,
+          isDuplicate: newDuplicates.length > 0, // o tu lógica para marcar duplicado
+        });
+      }
+    }
+  });
 };
 
 const showDuplicates = (duplicates) => {
@@ -608,11 +706,6 @@ const handleSelectAll = () => {
       photosStore.selectedPhotosRecord[photo.id] = true;
     }
   });
-};
-
-// Action handlers (empty for now as requested)
-const handleDeleteMultiple = () => {
-  photosStore.deletePhotos(selectedPhotoIds.value);
 };
 
 const handleAddToCollection = () => {
