@@ -78,33 +78,22 @@
           <div class="star-filter">
             <span class="filter-label">Rating:</span>
             <div class="star-buttons">
-              <n-button
-                v-for="stars in [1, 2, 3]"
-                :key="stars"
+              <n-rate
+                v-model:value="minMatchScore"
+                :count="3"
                 size="small"
-                :type="minMatchScore === stars ? 'primary' : 'default'"
-                @click="setMinRating(stars)"
-                class="star-filter-button"
-              >
-                <template #icon>
-                  <n-icon>
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14L2 9.27l6.91-1.01L12 2z"
-                      />
-                    </svg>
-                  </n-icon>
-                </template>
-                {{ stars }}+
-              </n-button>
+                clearable
+                @update:value="onRatingChange"
+                class="star-rating"
+                :allow-half="false"
+              />
             </div>
           </div>
         </div>
 
         <div
           class="photos-grid"
-          v-if="candidatePhotos.length > 0 || isSearching"
+          v-if="filteredCandidatePhotos.length > 0 || isSearching"
         >
           <!-- Show skeletons when loading more photos -->
           <template v-if="isLoadingMore">
@@ -117,19 +106,20 @@
             </div>
           </template>
           <!-- Show skeletons while searching (only when no photos yet) -->
-          <template v-if="isSearching && candidatePhotos.length === 0">
+          <template v-if="isSearching && filteredCandidatePhotos.length === 0">
             <div v-for="n in 6" :key="`skeleton-${n}`" class="photo-skeleton">
               <n-skeleton height="100%" />
             </div>
           </template>
           <!-- Show actual photos -->
-          <template v-if="candidatePhotos.length > 0">
+          <template v-if="filteredCandidatePhotos.length > 0">
             <PhotoCard
-              v-for="photo in candidatePhotos"
+              v-for="photo in filteredCandidatePhotos"
               :key="photo.id"
               :photo="photo"
               :mode="'curation'"
               :selected="false"
+              :isThinking="isThinking"
               @select="togglePhotoSelection"
               @info="showPhotoInfo"
               @move-to-selection="moveToSelection"
@@ -155,7 +145,13 @@
             @click="searchMorePhotos"
             class="search-more-button"
             size="large"
-            :disabled="!hasMoreResults || candidatePhotos.length == 0"
+            :disabled="
+              !hasMoreResults ||
+              candidatePhotos.length == 0 ||
+              isSearching ||
+              isLoadingMore ||
+              isThinking
+            "
           >
             <template #icon>
               <n-icon>
@@ -195,7 +191,6 @@
             :key="photo.id"
             :photo="photo"
             :mode="'selection'"
-            :selected="false"
             @select="togglePhotoSelection"
             @info="showPhotoInfo"
             @move-to-curation="moveToCuration"
@@ -222,7 +217,12 @@
             :loading="isLoadingMore"
             @click="() => {}"
             size="large"
-            :disabled="curatedPhotos.length == 0"
+            :disabled="
+              curatedPhotos.length == 0 ||
+              isSearching ||
+              isLoadingMore ||
+              isThinking
+            "
           >
             <template #icon>
               <n-icon>
@@ -240,7 +240,12 @@
             :loading="isLoadingMore"
             @click="() => {}"
             size="large"
-            :disabled="curatedPhotos.length == 0"
+            :disabled="
+              curatedPhotos.length == 0 ||
+              isSearching ||
+              isLoadingMore ||
+              isThinking
+            "
           >
             <template #icon>
               <n-icon>
@@ -279,10 +284,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import {
+  ref,
+  computed,
+  onMounted,
+  onUnmounted,
+  watch,
+  defineOptions,
+} from "vue";
+
+// Define component name for KeepAlive
+defineOptions({
+  name: "CurationView",
+});
+
 import PhotoCard from "../components/photoCards/PhotoCard.vue";
 import { useUserStore } from "@/stores/userStore";
-import { NTooltip } from "naive-ui";
+import { NRate } from "naive-ui";
+
 import WarningBadge from "@/components/WarningBadge.vue";
 import api from "@/utils/axios";
 import { io } from "socket.io-client";
@@ -294,9 +313,15 @@ interface CurationPhoto {
   title: string;
   rating: number;
   reasoning: string; // AI-generated reasoning for curation
+  matchScore: number; // AI-generated match score (0 = not scored yet, 1-3 stars)
   matchingTags?: string[];
   width?: number;
   height?: number;
+  thumbnailUrl: string;
+  isUploading: boolean;
+  file: any;
+  needProcess: boolean;
+  isDuplicate: boolean;
 }
 
 // Socket connection for real-time results
@@ -309,10 +334,11 @@ const userStore = useUserStore();
 const searchQuery = ref("");
 const isSearching = ref(false);
 const isLoadingMore = ref(false);
+const isThinking = ref(false); // Esperando insights
 const hasMoreResults = ref(true);
 const candidatePhotos = ref<CurationPhoto[]>([]);
 const curatedPhotos = ref<CurationPhoto[]>([]);
-const minMatchScore = ref<number | null>(2);
+const minMatchScore = ref<number | undefined>(2);
 
 // Real-time results state
 const iterationsRecord = ref<Record<number, { photos: CurationPhoto[] }>>({});
@@ -321,6 +347,20 @@ const maxPageAttempts = ref(false);
 
 // Computed properties
 const hasSearchQuery = computed(() => searchQuery.value.trim().length > 0);
+
+// Filter candidate photos based on minimum match score
+const filteredCandidatePhotos = computed(() => {
+  if (!minMatchScore.value) {
+    return candidatePhotos.value;
+  }
+
+  const minScore = minMatchScore.value;
+  return candidatePhotos.value.filter((photo) => {
+    // Only filter photos that have been scored (matchScore > 0)
+    // Photos with matchScore = 0 are still being analyzed
+    return photo.matchScore === 0 || photo.matchScore >= minScore;
+  });
+});
 
 // Socket event handlers
 let socketListenersRegistered = false;
@@ -333,6 +373,8 @@ const registerSocketListeners = () => {
 
   // Socket for initial photo matches (fast response)
   socket.on("matches", (data) => {
+    isThinking.value = true; // Esperar insights después de matches
+
     console.log("🎯 Matches received:", data);
 
     // Update iterations record with new photo results
@@ -344,13 +386,19 @@ const registerSocketListeners = () => {
 
       const newPhotos = (items as any[]).map((item) => ({
         id: item.photo.id,
-        url: item.photo.thumbnailUrl,
+        url: item.photo.thumbnailUrl || item.photo.url,
+        thumbnailUrl: item.photo.thumbnailUrl || item.photo.url,
         title: item.photo.title || `Photo ${item.photo.id}`,
         rating: item.photo.rating || Math.floor(Math.random() * 3) + 3,
         reasoning: "Analyzing...", // Temporary until insights arrive
+        matchScore: 0, // Will be set when insights arrive
         matchingTags: item.photo.matchingTags || [],
         width: item.photo.width,
         height: item.photo.height,
+        isUploading: false,
+        file: null,
+        needProcess: false,
+        isDuplicate: false,
       }));
 
       iterationsRecord.value[iterNum].photos.push(...newPhotos);
@@ -367,6 +415,7 @@ const registerSocketListeners = () => {
 
   // Socket for insights/reasoning (enriches existing photos)
   socket.on("insights", (data) => {
+    isThinking.value = false;
     console.log("📊 Insights received:", data);
 
     // Enrich existing photos with reasoning and match scores
@@ -384,7 +433,7 @@ const registerSocketListeners = () => {
           ? {
               ...existing,
               reasoning: updated.reasoning || "No reasoning provided",
-              // Could also add matchScore if needed: matchScore: updated.matchScore,
+              matchScore: updated.matchScore || updated.photo?.matchScore || 0,
             }
           : existing;
       });
@@ -416,7 +465,8 @@ const updateCandidatePhotos = () => {
   for (let i = 0; i < currentIteration.value; i++) {
     const k = keys[i];
     if (k !== undefined && iterationsRecord.value[k]?.photos) {
-      allPhotos.push(...iterationsRecord.value[k].photos);
+      // Insert new photos at the beginning so newest are on top
+      allPhotos.unshift(...iterationsRecord.value[k].photos);
     }
   }
 
@@ -522,8 +572,21 @@ const showPhotoInfo = (photo: any) => {
   console.log("Show photo info:", photo);
 };
 
+const onRatingChange = (rating: number | undefined) => {
+  minMatchScore.value = rating;
+  console.log("Min rating filter set to:", minMatchScore.value);
+
+  // If we have candidate photos, show how many are filtered
+  if (candidatePhotos.value.length > 0) {
+    const filteredCount = filteredCandidatePhotos.value.length;
+    console.log(
+      `Showing ${filteredCount} of ${candidatePhotos.value.length} photos`
+    );
+  }
+};
+
 const setMinRating = (rating: number) => {
-  minMatchScore.value = minMatchScore.value === rating ? null : rating;
+  minMatchScore.value = minMatchScore.value === rating ? undefined : rating;
   // Here you could filter photos by rating if needed
   console.log("Min rating filter set to:", minMatchScore.value);
 };
@@ -643,15 +706,21 @@ watch(
   white-space: nowrap;
 }
 
+.star-rating {
+  font-size: 16px;
+}
+
+.star-rating :deep(.n-rate__item) {
+  margin-right: 2px;
+}
+
+.star-rating :deep(.n-rate__item .n-icon) {
+  color: #fbbf24;
+}
+
 .star-buttons {
   display: flex;
   gap: var(--spacing-xs);
-}
-
-.star-filter-button {
-  font-size: var(--font-size-xs);
-  height: 28px;
-  padding: 0 8px;
 }
 
 .area-stats {
@@ -709,7 +778,7 @@ watch(
 }
 
 .area-actions {
-  padding: var(--spacing-lg) var(--spacing-2xl);
+  padding: 12px;
   border-top: 1px solid var(--border-color);
   background-color: var(--bg-surface);
   display: flex;

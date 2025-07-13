@@ -27,7 +27,11 @@
           <n-layout class="main-layout">
             <DashboardHeader />
             <n-layout-content class="main-content">
-              <router-view />
+              <router-view v-slot="{ Component, route }">
+                <KeepAlive :include="getKeepAliveComponents()">
+                  <component :is="Component" :key="route.fullPath" />
+                </KeepAlive>
+              </router-view>
             </n-layout-content>
           </n-layout>
         </n-layout>
@@ -44,7 +48,11 @@
           <div class="mobile-content">
             <DashboardHeader @toggle-mobile-menu="toggleMobileMenu" />
             <div class="main-content mobile-main-content">
-              <router-view />
+              <router-view v-slot="{ Component, route }">
+                <KeepAlive :include="getKeepAliveComponents()">
+                  <component :is="Component" :key="route.fullPath" />
+                </KeepAlive>
+              </router-view>
             </div>
           </div>
         </div>
@@ -63,8 +71,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
-import { useRoute } from "vue-router";
+import { ref, onMounted, onUnmounted, KeepAlive, computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { darkTheme } from "naive-ui";
 import { useUserStore } from "./stores/userStore";
 import DashboardSidebar from "./components/DashboardSidebar.vue";
@@ -76,7 +84,13 @@ import OnboardingSlider from "./components/OnboardingSlider.vue";
 const photosStore = usePhotosStore();
 
 const route = useRoute();
+const router = useRouter();
 const userStore = useUserStore();
+
+// KeepAlive functionality
+const getKeepAliveComponents = () => {
+  return ["CurationView"]; // Add more component names here as needed
+};
 
 const themeOverrides = {
   common: {

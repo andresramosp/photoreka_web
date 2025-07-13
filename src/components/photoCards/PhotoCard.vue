@@ -6,9 +6,10 @@
       'curation-mode': mode === 'curation',
       'selection-mode': mode === 'selection',
     }"
-    @click="toggleSelection"
+    @click="mode !== 'curation' && toggleSelection()"
     @mouseenter="handleMouseEnter"
     @mouseleave="handleMouseLeave"
+    :style="mode === 'curation' ? 'cursor: default;' : ''"
   >
     <div class="photo-container">
       <img
@@ -17,19 +18,50 @@
         class="photo-image"
         @load="onImageLoad"
         @error="onImageError"
+        :style="shouldBlur ? 'filter: blur(8px); transition: filter 0.3s;' : ''"
       />
 
       <!-- AI Reasoning Tooltip (for curation mode) -->
       <div
-        v-if="mode === 'curation' && showTooltip"
+        v-if="mode === 'curation' && (showTooltip || showAnalyzing)"
         class="ai-reasoning-tooltip"
       >
         <p class="reasoning-text">
           {{
-            photo.reasoning ||
-            "This photo demonstrates excellent composition with balanced lighting and compelling subject matter that would work well for the intended purpose."
+            showAnalyzing
+              ? "Analyzing..."
+              : photo.reasoning ||
+                "This photo demonstrates excellent composition with balanced lighting and compelling subject matter that would work well for the intended purpose."
           }}
         </p>
+      </div>
+
+      <!-- Match Score Stars (for curation mode) -->
+      <div
+        v-if="mode === 'curation' && photo.matchScore && photo.matchScore > 0"
+        class="match-score-indicator"
+      >
+        <div class="stars">
+          <n-icon
+            v-for="star in 3"
+            :key="star"
+            :class="[
+              'star-icon',
+              {
+                filled: star <= photo.matchScore,
+                empty: star > photo.matchScore,
+              },
+            ]"
+            size="12"
+          >
+            <svg viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22L12 18.77L5.82 22L7 14.14L2 9.27l6.91-1.01L12 2z"
+              />
+            </svg>
+          </n-icon>
+        </div>
       </div>
 
       <!-- Bottom overlay with matched tags or curation actions -->
@@ -56,7 +88,7 @@
         </div>
 
         <!-- Curation actions for curation mode -->
-        <div v-if="mode === 'curation'" class="curation-actions">
+        <div v-if="mode === 'curation' && !isThinking" class="curation-actions">
           <n-button
             size="small"
             type="primary"
@@ -118,6 +150,7 @@ export interface Photo {
   title: string;
   rating: number;
   reasoning?: string;
+  matchScore?: number; // AI-generated match score (0 = not scored yet, 1-3 stars)
   matchingTags?: string[];
   width?: number;
   height?: number;
@@ -140,10 +173,20 @@ interface Emits {
   (e: "move-to-curation", photoId: string): void; // For selection mode
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props & { isThinking?: boolean }>(), {
   selected: false,
   mode: "default",
+  isThinking: false,
 });
+// Show "Analyzing..." label and blur if isThinking and reasoning is "Analyzing..."
+const showAnalyzing = computed(
+  () =>
+    props.mode === "curation" &&
+    props.isThinking &&
+    (!props.photo.reasoning || props.photo.reasoning === "Analyzing...")
+);
+
+const shouldBlur = computed(() => showAnalyzing.value);
 
 const emit = defineEmits<Emits>();
 
@@ -157,6 +200,7 @@ const uniqueMatchingTags = computed(() =>
 );
 
 const toggleSelection = () => {
+  if (props.mode === "curation") return;
   isSelected.value = !isSelected.value;
   emit("select", props.photo.id);
 };
@@ -336,6 +380,38 @@ const handleMouseLeave = () => {
   font-weight: 500;
   padding: 2px 6px;
   border-radius: 8px;
+}
+
+/* Match Score Stars */
+.match-score-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  padding: 4px 8px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.stars {
+  display: flex;
+  gap: 1px;
+}
+
+.star-icon {
+  transition: color 0.2s ease;
+}
+
+.star-icon.filled {
+  color: #fbbf24; /* Yellow for filled stars */
+}
+
+.star-icon.empty {
+  color: rgba(255, 255, 255, 0.3); /* Semi-transparent white for empty stars */
 }
 
 .selection-indicator {

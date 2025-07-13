@@ -101,6 +101,7 @@ const router = createRouter({
       component: CurationView,
       meta: {
         requiresAuth: true,
+        keepAlive: true,
       },
     },
     {
