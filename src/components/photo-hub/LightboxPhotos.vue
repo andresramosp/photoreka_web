@@ -14,8 +14,8 @@
     >
       <div style="margin-bottom: 18px">
         <span>
-          You are about to process all your preprocessed photos. Once started,
-          it cannot be reversed. Do you want to continue?
+          You are about to process all your lightbox photos. Once started, it
+          cannot be reversed. Do you want to continue?
         </span>
       </div>
       <div
@@ -390,7 +390,7 @@ const fastMode = computed({
       return false;
     }
     // Si hay menos de 8 fotos subidas, activar fast mode automáticamente
-    return prepAreaPhotos.value.length < 8;
+    return lightboxPhotos.value.length < 8;
   },
   set(value) {
     // Para casos donde se necesite override manual
@@ -406,10 +406,10 @@ const singleViewFilter = ref("all");
 // En el check 'preprocessed' queremos ver todas las usables en las tools, por lo que entran
 // las que están en proceso y por tanto preprocessed
 const preprocessed = computed(() => [
-  ...photosStore.prepAreaPhotos,
+  ...photosStore.lightboxPhotos,
   ...photosStore.processingPhotos,
 ]);
-const prepAreaPhotos = computed(() => photosStore.prepAreaPhotos);
+const lightboxPhotos = computed(() => photosStore.lightboxPhotos);
 
 const processedPhotos = computed(() => photosStore.processedPhotos);
 const processingPhotos = computed(() => photosStore.processingPhotos);
@@ -433,8 +433,8 @@ const filteredPhotos = computed(() => {
   } else {
     // Modo normal: solo preprocesadas
     return filterDuplicates.value
-      ? prepAreaPhotos.value.filter((photo) => photo.isDuplicate)
-      : prepAreaPhotos.value;
+      ? lightboxPhotos.value.filter((photo) => photo.isDuplicate)
+      : lightboxPhotos.value;
   }
 });
 

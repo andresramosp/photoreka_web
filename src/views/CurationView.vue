@@ -82,7 +82,7 @@
                 v-for="stars in [1, 2, 3]"
                 :key="stars"
                 size="small"
-                :type="selectedMinRating === stars ? 'primary' : 'default'"
+                :type="minMatchScore === stars ? 'primary' : 'default'"
                 @click="setMinRating(stars)"
                 class="star-filter-button"
               >
@@ -252,7 +252,7 @@
                 </svg>
               </n-icon>
             </template>
-            Add to Project
+            Add to Collection
           </n-button>
         </div>
       </div>
@@ -279,11 +279,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import PhotoCard from "../components/photoCards/PhotoCard.vue";
 import { useUserStore } from "@/stores/userStore";
 import { NTooltip } from "naive-ui";
 import WarningBadge from "@/components/WarningBadge.vue";
+import api from "@/utils/axios";
+import { io } from "socket.io-client";
 
 // Photo interface with curation-specific properties
 interface CurationPhoto {
@@ -297,6 +299,9 @@ interface CurationPhoto {
   height?: number;
 }
 
+// Socket connection for real-time results
+const socket = io(import.meta.env.VITE_API_WS_URL);
+
 // Stores
 const userStore = useUserStore();
 
@@ -307,106 +312,115 @@ const isLoadingMore = ref(false);
 const hasMoreResults = ref(true);
 const candidatePhotos = ref<CurationPhoto[]>([]);
 const curatedPhotos = ref<CurationPhoto[]>([]);
-const selectedMinRating = ref<number | null>(null);
+const minMatchScore = ref<number | null>(2);
+
+// Real-time results state
+const iterationsRecord = ref<Record<number, { photos: CurationPhoto[] }>>({});
+const currentIteration = ref(1);
+const maxPageAttempts = ref(false);
 
 // Computed properties
 const hasSearchQuery = computed(() => searchQuery.value.trim().length > 0);
 
-// Mock photo data with curation metadata
-const generateMockPhotos = (count: number = 6): CurationPhoto[] => {
-  const basePhotos = [
-    {
-      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop",
-      title: "Mountain Lake",
-      tags: ["landscape", "mountains", "nature", "lake", "serene"],
-    },
-    {
-      url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&h=400&fit=crop",
-      title: "Forest Valley",
-      tags: ["forest", "valley", "nature", "trees", "green"],
-    },
-    {
-      url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=600&h=400&fit=crop",
-      title: "City Skyline",
-      tags: ["architecture", "urban", "building", "modern", "skyline"],
-    },
-    {
-      url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&h=400&fit=crop",
-      title: "Desert Landscape",
-      tags: ["desert", "nature", "landscape", "sand", "dramatic"],
-    },
-    {
-      url: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=600&h=400&fit=crop",
-      title: "Ocean Waves",
-      tags: ["ocean", "waves", "water", "blue", "peaceful"],
-    },
-    {
-      url: "https://images.unsplash.com/photo-1514924013411-cbf25faa35bb?w=600&h=400&fit=crop",
-      title: "Urban Street",
-      tags: ["street", "urban", "city", "culture", "lifestyle"],
-    },
-    {
-      url: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=600&h=400&fit=crop",
-      title: "Waterfall Scene",
-      tags: ["waterfall", "nature", "rocks", "water", "landscape"],
-    },
-    {
-      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop",
-      title: "Alpine Views",
-      tags: ["alpine", "mountains", "snow", "peaks", "vista"],
-    },
-    {
-      url: "https://images.unsplash.com/photo-1485470733090-0aae1788d5af?w=600&h=400&fit=crop",
-      title: "Coastal Road",
-      tags: ["coast", "road", "cliffs", "ocean", "scenic"],
-    },
-    {
-      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop",
-      title: "Mountain Range",
-      tags: ["mountains", "range", "landscape", "nature", "horizon"],
-    },
-    {
-      url: "https://images.unsplash.com/photo-1500964757637-c85e8a162699?w=600&h=400&fit=crop",
-      title: "Beach Sunset",
-      tags: ["beach", "sunset", "golden", "waves", "serene"],
-    },
-    {
-      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop",
-      title: "Valley View",
-      tags: ["valley", "hills", "green", "landscape", "peaceful"],
-    },
-  ];
+// Socket event handlers
+let socketListenersRegistered = false;
 
-  const reasoningOptions = [
-    "Strong composition with excellent use of leading lines and natural lighting that creates visual depth",
-    "Compelling subject matter with authentic emotion and perfect timing captured at the decisive moment",
-    "Outstanding color palette that creates a cohesive visual narrative and evokes the right mood",
-    "Exceptional technical quality with sharp focus and balanced exposure throughout the frame",
-    "Unique perspective that offers fresh insight into familiar subject matter from an unexpected angle",
-    "Masterful use of depth of field to guide viewer attention to the most important elements",
-    "Perfect capturing of natural spontaneity with genuine expressions and authentic interactions",
-    "Excellent storytelling potential with rich contextual details that support the main narrative",
-    "Strong visual impact through effective use of contrast and texture that creates visual interest",
-    "Authentic atmosphere that effectively conveys mood and emotion appropriate for the intended message",
-    "Professional composition following rule of thirds with balanced elements and strong focal points",
-    "Captivating scene with natural drama and compelling visual flow that draws the eye through the frame",
-  ];
+const registerSocketListeners = () => {
+  if (socketListenersRegistered || !userStore.user?.id) return;
 
-  return Array.from({ length: count }, (_, index) => {
-    const basePhoto = basePhotos[index % basePhotos.length];
-    const rating = Math.floor(Math.random() * 3) + 3; // Rating between 3-5
+  const userId = userStore.user.id;
+  socket.emit("join", { userId: userStore.user.id });
 
-    return {
-      id: `photo-${Date.now()}-${index}`,
-      url: basePhoto.url,
-      title: basePhoto.title,
-      rating,
-      reasoning: reasoningOptions[index % reasoningOptions.length],
-      matchingTags: basePhoto.tags,
-      width: 2000 + Math.floor(Math.random() * 2000),
-      height: 1500 + Math.floor(Math.random() * 1500),
-    };
+  // Socket for initial photo matches (fast response)
+  socket.on("matches", (data) => {
+    console.log("🎯 Matches received:", data);
+
+    // Update iterations record with new photo results
+    Object.entries(data.results).forEach(([iter, items]) => {
+      const iterNum = parseInt(iter);
+      if (!iterationsRecord.value[iterNum]) {
+        iterationsRecord.value[iterNum] = { photos: [] };
+      }
+
+      const newPhotos = (items as any[]).map((item) => ({
+        id: item.photo.id,
+        url: item.photo.thumbnailUrl,
+        title: item.photo.title || `Photo ${item.photo.id}`,
+        rating: item.photo.rating || Math.floor(Math.random() * 3) + 3,
+        reasoning: "Analyzing...", // Temporary until insights arrive
+        matchingTags: item.photo.matchingTags || [],
+        width: item.photo.width,
+        height: item.photo.height,
+      }));
+
+      iterationsRecord.value[iterNum].photos.push(...newPhotos);
+    });
+
+    // Update candidate photos with all results up to current iteration
+    updateCandidatePhotos();
+
+    hasMoreResults.value = data.hasMore;
+    currentIteration.value = data.iteration + 1;
+    isSearching.value = false;
+    isLoadingMore.value = false;
   });
+
+  // Socket for insights/reasoning (enriches existing photos)
+  socket.on("insights", (data) => {
+    console.log("📊 Insights received:", data);
+
+    // Enrich existing photos with reasoning and match scores
+    Object.entries(data.results).forEach(([iter, richPhotos]) => {
+      const iterNum = parseInt(iter);
+      if (!iterationsRecord.value[iterNum]) return;
+
+      iterationsRecord.value[iterNum].photos = iterationsRecord.value[
+        iterNum
+      ].photos.map((existing) => {
+        const updated = (richPhotos as any[]).find(
+          (item) => item.photo.id === existing.id
+        );
+        return updated
+          ? {
+              ...existing,
+              reasoning: updated.reasoning || "No reasoning provided",
+              // Could also add matchScore if needed: matchScore: updated.matchScore,
+            }
+          : existing;
+      });
+    });
+
+    // Update candidate photos to reflect the new reasoning
+    updateCandidatePhotos();
+
+    console.log("✨ Photos enriched with insights");
+  });
+
+  socket.on("maxPageAttempts", () => {
+    console.log("⚠️ Max page attempts reached");
+    maxPageAttempts.value = true;
+    hasMoreResults.value = false;
+    isSearching.value = false;
+    isLoadingMore.value = false;
+  });
+
+  socketListenersRegistered = true;
+};
+
+const updateCandidatePhotos = () => {
+  const keys = Object.keys(iterationsRecord.value)
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  let allPhotos: CurationPhoto[] = [];
+  for (let i = 0; i < currentIteration.value; i++) {
+    const k = keys[i];
+    if (k !== undefined && iterationsRecord.value[k]?.photos) {
+      allPhotos.push(...iterationsRecord.value[k].photos);
+    }
+  }
+
+  candidatePhotos.value = allPhotos;
 };
 
 // Methods
@@ -414,52 +428,63 @@ const onSearchChange = () => {
   console.log("Search query changed:", searchQuery.value);
 };
 
-const performSearch = async () => {
+// Shared API call for searching photos
+const searchPhotosApi = async (isInitial = false) => {
   if (!hasSearchQuery.value) return;
 
-  isSearching.value = true;
-  candidatePhotos.value = [];
-  hasMoreResults.value = true;
+  if (isInitial) {
+    isSearching.value = true;
+    candidatePhotos.value = [];
+    iterationsRecord.value = {};
+    currentIteration.value = 1;
+    hasMoreResults.value = true;
+    maxPageAttempts.value = false;
+    console.log("Performing curation search:", searchQuery.value);
+  } else {
+    isLoadingMore.value = true;
+  }
 
-  console.log("Performing curation search:", searchQuery.value);
+  try {
+    const payload = {
+      description: searchQuery.value,
+      options: {
+        iteration: currentIteration.value,
+        pageSize: 6,
+        searchMode: "curation",
+        minMatchScore: minMatchScore.value,
+      },
+    };
+    await api.post("/api/search/semantic", payload);
+  } catch (error) {
+    if (isInitial) {
+      console.error("❌ Error performing curation search:", error);
+      isSearching.value = false;
+    } else {
+      console.error("❌ Error loading more photos:", error);
+      isLoadingMore.value = false;
+    }
+  }
+};
 
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 2000));
-
-  // Generate initial batch of photos
-  candidatePhotos.value = generateMockPhotos(6);
-  hasMoreResults.value = true;
-
-  isSearching.value = false;
+const performSearch = async () => {
+  await searchPhotosApi(true);
 };
 
 const searchMorePhotos = async () => {
-  if (isLoadingMore.value || !hasMoreResults.value) return;
-
-  isLoadingMore.value = true;
-
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-
-  // Add 6 more photos at the beginning
-  const morePhotos = generateMockPhotos(6);
-  candidatePhotos.value = [...morePhotos, ...candidatePhotos.value];
-
-  // Simulate end of results after 3 loads
-  if (candidatePhotos.value.length >= 18) {
-    hasMoreResults.value = false;
-  }
-
-  isLoadingMore.value = false;
+  if (isLoadingMore.value || !hasMoreResults.value || !hasSearchQuery.value)
+    return;
+  await searchPhotosApi(false);
 };
 
 const clearSearch = () => {
   searchQuery.value = "";
   candidatePhotos.value = [];
   curatedPhotos.value = [];
+  iterationsRecord.value = {};
+  currentIteration.value = 1;
   hasMoreResults.value = true;
+  maxPageAttempts.value = false;
 };
-
 const clearSelection = () => {
   // Move all curated photos back to candidates
   candidatePhotos.value.unshift(...curatedPhotos.value);
@@ -493,28 +518,49 @@ const togglePhotoSelection = (photoId: string) => {
   console.log("Photo selection toggled:", photoId);
 };
 
-const showPhotoInfo = (photo: CurationPhoto) => {
+const showPhotoInfo = (photo: any) => {
   console.log("Show photo info:", photo);
 };
 
 const setMinRating = (rating: number) => {
-  selectedMinRating.value = selectedMinRating.value === rating ? null : rating;
+  minMatchScore.value = minMatchScore.value === rating ? null : rating;
   // Here you could filter photos by rating if needed
-  console.log("Min rating filter set to:", selectedMinRating.value);
+  console.log("Min rating filter set to:", minMatchScore.value);
 };
+
+// Lifecycle hooks
+onMounted(() => {
+  // Register socket listeners when user is available
+  if (userStore.user?.id) {
+    registerSocketListeners();
+  }
+});
+
+onUnmounted(() => {
+  // Clean up socket listeners
+  socket.off("matches");
+  socket.off("insights");
+  socket.off("maxPageAttempts");
+});
+
+// Watch for user changes to register socket listeners
+watch(
+  () => userStore.user?.id,
+  (userId: string | undefined) => {
+    if (userId) {
+      registerSocketListeners();
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>
 .curation-container {
-  /* height: calc(100vh - 112px); */
   display: flex;
   flex-direction: column;
-  /* padding: var(--spacing-2xl);
-  background-color: var(--bg-body);
-  position: relative; */
 }
 
-/* Search Section */
 .search-section {
   background-color: transparent;
   border: none;
@@ -550,7 +596,6 @@ const setMinRating = (rating: number) => {
   height: 40px;
 }
 
-/* Main Curation Area */
 .curation-main {
   flex: 1;
   display: grid;
@@ -676,7 +721,6 @@ const setMinRating = (rating: number) => {
   min-width: 160px;
 }
 
-/* Empty State */
 .empty-state {
   flex: 1;
   display: flex;
@@ -708,7 +752,6 @@ const setMinRating = (rating: number) => {
   line-height: var(--line-height-relaxed);
 }
 
-/* Photo Skeleton */
 .photo-skeleton {
   width: 100%;
   aspect-ratio: 1;
@@ -717,7 +760,6 @@ const setMinRating = (rating: number) => {
   background-color: var(--bg-surface);
 }
 
-/* Usage Limit Warning Badge */
 .usage-limit-warning {
   display: flex;
   justify-content: center;
@@ -741,7 +783,6 @@ const setMinRating = (rating: number) => {
   flex-shrink: 0;
 }
 
-/* Responsive Design */
 @media (max-width: 1024px) {
   .curation-main {
     grid-template-columns: 1fr;

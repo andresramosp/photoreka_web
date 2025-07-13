@@ -385,7 +385,7 @@ function selectAll() {
   if (activeTab.value === "catalog" || props.isTrash) {
     selectedIds.value = photos.value.map((p) => p.id);
   } else if (activeTab.value === "sync") {
-    syncSelectedIds.value = photosStore.prepAreaPhotos.map((p) => p.id);
+    syncSelectedIds.value = photosStore.lightboxPhotos.map((p) => p.id);
   }
 }
 

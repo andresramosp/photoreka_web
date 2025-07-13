@@ -128,6 +128,7 @@
     <FloatingProcessPhotosButton
       :should-show="shouldShowProcessButton"
       :disabled="isProcessButtonDisabled"
+      :selected-count="lightboxSelectedPhotos.length"
       @click="handleProcessButtonClick"
     />
   </div>
@@ -161,8 +162,8 @@ const shouldShowProcessButton = computed(() => {
 const isProcessButtonDisabled = computed(() => {
   return (
     photosStore.isUploading ||
-    photosStore.prepAreaPhotos.length === 0 ||
-    photosStore.prepAreaPhotos.filter((p) => p.isCheckingDuplicates).length > 0
+    photosStore.lightboxPhotos.length === 0 ||
+    photosStore.lightboxPhotos.filter((p) => p.isCheckingDuplicates).length > 0
   );
 });
 
@@ -185,6 +186,15 @@ const updateTabFromHash = () => {
 };
 
 async function analyze(ev) {
+  // Usar la computed lightboxSelectedPhotos para obtener las seleccionadas en Lightbox
+  const lightboxAreaIds = photosStore.lightboxPhotos.map((p) => p.id);
+  const toProcess =
+    lightboxSelectedPhotos.value.length > 0
+      ? lightboxSelectedPhotos.value
+      : lightboxAreaIds;
+
+  if (toProcess.length === 0) return;
+
   try {
     setActiveTab("processing");
     message.success(
@@ -196,12 +206,20 @@ async function analyze(ev) {
       packageId: "process",
       mode: "adding",
       fastMode: ev.fastMode,
+      photoIds: toProcess,
     });
+    photosStore.clearAllSelections();
     photosStore.getOrFetch(true);
   } catch (error) {
     console.error("❌ Error iniciando análisis:", error);
   }
 }
+
+const lightboxSelectedPhotos = computed(() => {
+  const selectedIds = photosStore.selectedPhotoIds;
+  const lightboxAreaIds = photosStore.lightboxPhotos.map((p) => p.id);
+  return selectedIds.filter((id) => lightboxAreaIds.includes(id));
+});
 
 onMounted(() => {
   updateTabFromHash();

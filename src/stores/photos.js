@@ -18,7 +18,7 @@ export const usePhotosStore = defineStore("photos", {
         .filter((photoId) => !!state.selectedPhotosRecord[photoId])
         .map(Number),
 
-    prepAreaPhotos: (state) =>
+    lightboxPhotos: (state) =>
       state.photos.filter(
         (p) =>
           p.status == "uploaded" ||

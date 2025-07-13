@@ -120,7 +120,7 @@
               Lightbox
             </n-tag>
           </template>
-          Preprocessed photo, limited use in tools
+          Limited use in tools
         </n-tooltip>
 
         <n-tooltip
@@ -138,7 +138,7 @@
               Worskpace
             </n-tag>
           </template>
-          Processed photo, valid in all tools
+          Valid in all tools
         </n-tooltip>
       </div>
       <!-- Duplicate indicator in footer, right-aligned -->

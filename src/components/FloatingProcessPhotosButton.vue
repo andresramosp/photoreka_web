@@ -12,6 +12,9 @@
       </n-icon>
     </template>
     Process Photos
+    <span v-if="selectedCount > 0" style="margin-left: 6px; font-weight: 500"
+      >({{ selectedCount }})</span
+    >
   </n-button>
 </template>
 
@@ -26,6 +29,10 @@ const props = defineProps({
   disabled: {
     type: Boolean,
     default: false,
+  },
+  selectedCount: {
+    type: Number,
+    default: 0,
   },
 });
 

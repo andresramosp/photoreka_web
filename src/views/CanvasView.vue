@@ -339,7 +339,7 @@
           <div class="usage-limit-warning">
             <WarningBadge
               message="Basic mode"
-              tooltip="Only chromatic and general expansions are available while there are preprocessed photos on the canvas."
+              tooltip="Only chromatic and general expansions are available while there are lightbox photos on the canvas."
               :closable="true"
               @close="basicModeDismissed = true"
             />

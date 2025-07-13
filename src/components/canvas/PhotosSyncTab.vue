@@ -157,7 +157,7 @@ const totalFiles = ref(0);
 
 // Get sync photos from the store
 const syncPhotos = computed(
-  () => [...photosStore.processingPhotos, ...photosStore.prepAreaPhotos] || []
+  () => [...photosStore.processingPhotos, ...photosStore.lightboxPhotos] || []
 );
 
 const filteredPhotos = computed(() => syncPhotos.value);

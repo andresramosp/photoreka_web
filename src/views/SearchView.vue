@@ -713,8 +713,6 @@ import { useRouter } from "vue-router";
 // Conexión real-time para resultados incrementales
 const socket = io(import.meta.env.VITE_API_WS_URL);
 
-// Unirse al room del usuario cuando userStore.user.id esté disponible
-
 const photoStore = usePhotosStore();
 const canvasStore = useCanvasStore();
 const userStore = useUserStore();
@@ -731,7 +729,6 @@ const {
 
 // Estado del toolbar colapsable
 const isToolbarCollapsed = ref(false);
-const selectInfoVisible = ref(true);
 const lastScrollY = ref(0);
 
 // Usar el store para el estado de búsqueda
