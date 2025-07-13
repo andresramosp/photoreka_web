@@ -218,7 +218,7 @@
             @show-duplicates="showDuplicates"
             :show-delete="true"
             :show-name="true"
-            :show-footer="true"
+            :show-footer="gridColumns < 10"
             :showDuplicate="true"
           />
         </div>

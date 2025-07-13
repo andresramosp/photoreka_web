@@ -13,6 +13,7 @@
   >
     <div class="photo-container">
       <img
+        loading="lazy"
         :src="photo.thumbnailUrl || photo.url"
         :alt="photo.title"
         class="photo-image"

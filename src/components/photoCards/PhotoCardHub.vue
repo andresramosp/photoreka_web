@@ -20,6 +20,7 @@
     <div class="photo-container">
       <!-- Show actual image when uploaded -->
       <img
+        loading="lazy"
         :src="photo.thumbnailUrl || photo.url"
         :alt="photo.name"
         class="photo-image"
