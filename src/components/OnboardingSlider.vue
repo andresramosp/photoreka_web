@@ -351,13 +351,8 @@ const finish = () => {
     font-size: var(--font-size-base);
   }
 
-  .upload-stats {
-    position: static;
-    margin-top: var(--spacing-lg);
-  }
-
-  .ai-features {
-    grid-template-columns: 1fr;
+  .onboarding-image {
+    height: 250px;
   }
 
   .navigation-buttons {
