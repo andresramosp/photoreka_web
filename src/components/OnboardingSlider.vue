@@ -26,23 +26,11 @@
             <!-- Slide 1: Add your photos -->
             <div v-if="currentSlide === 0" class="slide-content">
               <div class="slide-image">
-                <div class="mock-screenshot upload-screen">
-                  <div class="upload-area">
-                    <div class="upload-icon">📸</div>
-                    <h4>Drag & Drop Photos</h4>
-                    <p>Or click to browse</p>
-                  </div>
-                  <div class="upload-stats">
-                    <div class="stat-item">
-                      <span class="stat-number">2,547</span>
-                      <span class="stat-label">Photos Uploaded</span>
-                    </div>
-                    <div class="stat-item">
-                      <span class="stat-number">15</span>
-                      <span class="stat-label">Collections</span>
-                    </div>
-                  </div>
-                </div>
+                <img
+                  src="https://images.unsplash.com/photo-1611224923853-80b023f02d71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                  alt="Photo upload interface"
+                  class="onboarding-image"
+                />
               </div>
               <div class="slide-text">
                 <h3 class="slide-title">1. Bring your photos</h3>
@@ -438,12 +426,17 @@ const finish = () => {
 .photo-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(45deg, #333 25%, transparent 25%),
+  background:
+    linear-gradient(45deg, #333 25%, transparent 25%),
     linear-gradient(-45deg, #333 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, #333 75%),
     linear-gradient(-45deg, transparent 75%, #333 75%);
   background-size: 20px 20px;
-  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  background-position:
+    0 0,
+    0 10px,
+    10px -10px,
+    -10px 0px;
   opacity: 0.3;
 }
 
