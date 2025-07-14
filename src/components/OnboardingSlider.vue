@@ -26,23 +26,11 @@
             <!-- Slide 1: Add your photos -->
             <div v-if="currentSlide === 0" class="slide-content">
               <div class="slide-image">
-                <div class="mock-screenshot upload-screen">
-                  <div class="upload-area">
-                    <div class="upload-icon">📸</div>
-                    <h4>Drag & Drop Photos</h4>
-                    <p>Or click to browse</p>
-                  </div>
-                  <div class="upload-stats">
-                    <div class="stat-item">
-                      <span class="stat-number">2,547</span>
-                      <span class="stat-label">Photos Uploaded</span>
-                    </div>
-                    <div class="stat-item">
-                      <span class="stat-number">15</span>
-                      <span class="stat-label">Collections</span>
-                    </div>
-                  </div>
-                </div>
+                <img
+                  src="https://images.unsplash.com/photo-1611224923853-80b023f02d71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                  alt="Photo upload interface"
+                  class="onboarding-image"
+                />
               </div>
               <div class="slide-text">
                 <h3 class="slide-title">1. Bring your photos</h3>
@@ -58,26 +46,11 @@
             <!-- Slide 2: Use your preprocessed photos -->
             <div v-if="currentSlide === 1" class="slide-content">
               <div class="slide-image">
-                <div class="mock-screenshot canvas-screen">
-                  <div class="canvas-header">
-                    <span class="canvas-title">Canvas Editor</span>
-                    <div class="canvas-tools">
-                      <div class="tool active">✂️</div>
-                      <div class="tool">🎨</div>
-                      <div class="tool">📏</div>
-                    </div>
-                  </div>
-                  <div class="canvas-area">
-                    <div class="photo-preview">
-                      <div class="photo-placeholder"></div>
-                      <div class="photo-controls">
-                        <button class="control-btn">↻</button>
-                        <button class="control-btn">⚡</button>
-                        <button class="control-btn">🔍</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <img
+                  src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                  alt="Photo editing interface"
+                  class="onboarding-image"
+                />
               </div>
               <div class="slide-text">
                 <h3 class="slide-title">2. Preview in Lightbox</h3>
@@ -93,33 +66,11 @@
             <!-- Slide 3: Unleash your catalog's potential -->
             <div v-if="currentSlide === 2" class="slide-content">
               <div class="slide-image">
-                <div class="mock-screenshot ai-screen">
-                  <div class="search-bar">
-                    <input
-                      type="text"
-                      placeholder="Search: 'sunset photos with mountains'"
-                      readonly
-                    />
-                    <div class="search-icon">🔍</div>
-                  </div>
-                  <div class="ai-features">
-                    <div class="feature-card">
-                      <div class="feature-icon">🧠</div>
-                      <h5>AI Analysis</h5>
-                      <p>Smart tagging</p>
-                    </div>
-                    <div class="feature-card">
-                      <div class="feature-icon">🎯</div>
-                      <h5>Natural Search</h5>
-                      <p>Find anything</p>
-                    </div>
-                    <div class="feature-card">
-                      <div class="feature-icon">⭐</div>
-                      <h5>Style Ranking</h5>
-                      <p>Quality scoring</p>
-                    </div>
-                  </div>
-                </div>
+                <img
+                  src="https://images.unsplash.com/photo-1587614382346-4ec70e388b28?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                  alt="AI photo organization interface"
+                  class="onboarding-image"
+                />
               </div>
               <div class="slide-text">
                 <h3 class="slide-title">3. Build your Workspace</h3>
@@ -294,250 +245,13 @@ const finish = () => {
   justify-content: center;
 }
 
-.mock-screenshot {
+.onboarding-image {
   width: 100%;
+  height: 300px;
+  object-fit: cover;
   border-radius: var(--radius-lg);
   border: 2px solid var(--border-color);
-  background: linear-gradient(135deg, var(--bg-container), var(--bg-surface));
-  padding: var(--spacing-lg);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  position: relative;
-  overflow: hidden;
-}
-
-/* Upload Screen Styles */
-.upload-screen {
-  justify-content: center;
-  align-items: center;
-}
-
-.upload-area {
-  border: 2px dashed var(--secondary-color);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-2xl);
-  background: rgba(139, 92, 246, 0.05);
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-md);
-}
-
-.upload-icon {
-  font-size: 48px;
-  margin-bottom: var(--spacing-sm);
-}
-
-.upload-area h4 {
-  color: var(--text-primary);
-  margin: 0;
-  font-size: var(--font-size-lg);
-}
-
-.upload-area p {
-  color: var(--text-secondary);
-  margin: 0;
-  font-size: var(--font-size-sm);
-}
-
-.upload-stats {
-  display: flex;
-  gap: var(--spacing-xl);
-  position: absolute;
-  bottom: var(--spacing-lg);
-  left: var(--spacing-lg);
-  right: var(--spacing-lg);
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-}
-
-.stat-number {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--primary-color);
-}
-
-.stat-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Canvas Screen Styles */
-.canvas-screen {
-  background: var(--bg-card);
-}
-
-.canvas-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-sm) 0;
-  position: absolute;
-  top: var(--spacing-lg);
-  left: var(--spacing-lg);
-  right: var(--spacing-lg);
-  z-index: 2;
-}
-
-.canvas-title {
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-}
-
-.canvas-tools {
-  display: flex;
-  gap: var(--spacing-xs);
-}
-
-.tool {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.tool.active {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
-}
-
-.canvas-area {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 40px;
-}
-
-.photo-preview {
-  width: 200px;
-  height: 150px;
-  border-radius: var(--radius-md);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  position: relative;
-  overflow: hidden;
-}
-
-.photo-placeholder {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, #333 25%, transparent 25%),
-    linear-gradient(-45deg, #333 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #333 75%),
-    linear-gradient(-45deg, transparent 75%, #333 75%);
-  background-size: 20px 20px;
-  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-  opacity: 0.3;
-}
-
-.photo-controls {
-  position: absolute;
-  bottom: var(--spacing-xs);
-  left: var(--spacing-xs);
-  right: var(--spacing-xs);
-  display: flex;
-  gap: var(--spacing-xs);
-  justify-content: center;
-}
-
-.control-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-overlay);
-  border: none;
-  color: var(--text-primary);
-  font-size: 12px;
-  cursor: pointer;
-  backdrop-filter: blur(4px);
-}
-
-/* AI Screen Styles */
-.ai-screen {
-  gap: var(--spacing-lg);
-}
-
-.search-bar {
-  position: relative;
-  margin-top: 32px;
-}
-
-.search-bar input {
-  width: 100%;
-  padding: var(--spacing-md) var(--spacing-lg);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  font-size: var(--font-size-base);
-}
-
-.search-bar input::placeholder {
-  color: var(--text-tertiary);
-}
-
-.search-icon {
-  position: absolute;
-  right: var(--spacing-md);
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-secondary);
-}
-
-.ai-features {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-md);
-  flex: 1;
-}
-
-.feature-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-lg);
-  text-align: center;
-  transition: var(--transition-normal);
-}
-
-.feature-card:hover {
-  border-color: var(--primary-color);
-  transform: translateY(-2px);
-}
-
-.feature-icon {
-  font-size: 24px;
-  margin-bottom: var(--spacing-sm);
-}
-
-.feature-card h5 {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  margin: 0 0 var(--spacing-xs) 0;
-}
-
-.feature-card p {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-  margin: 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .slide-text {
@@ -637,13 +351,8 @@ const finish = () => {
     font-size: var(--font-size-base);
   }
 
-  .upload-stats {
-    position: static;
-    margin-top: var(--spacing-lg);
-  }
-
-  .ai-features {
-    grid-template-columns: 1fr;
+  .onboarding-image {
+    height: 250px;
   }
 
   .navigation-buttons {
@@ -657,24 +366,8 @@ const finish = () => {
 }
 
 @media (max-width: 480px) {
-  .mock-screenshot {
-    padding: var(--spacing-md);
-  }
-
-  .upload-area {
-    padding: var(--spacing-lg);
-  }
-
-  .upload-icon {
-    font-size: 36px;
-  }
-
-  .stat-item {
-    gap: var(--spacing-xs);
-  }
-
-  .stat-number {
-    font-size: var(--font-size-lg);
+  .onboarding-image {
+    height: 200px;
   }
 }
 </style>

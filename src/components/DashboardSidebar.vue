@@ -230,6 +230,7 @@ import {
   CameraOutline,
   ChevronForwardOutline as ChevronRightIcon,
   ChevronBackOutline as ChevronLeftIcon,
+  ConstructOutline as ConstructionIcon,
 } from "@vicons/ionicons5";
 
 const router = useRouter();
@@ -270,7 +271,7 @@ const firstSectionOptions = computed(() => [
                   "position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 6px #22c55e; animation: pulse 2s infinite;",
               })
             : null,
-        ]
+        ],
       ),
   },
   {
@@ -281,8 +282,13 @@ const firstSectionOptions = computed(() => [
   },
 ]);
 
-// Function to create icon with premium indicator
-const createIconWithPremium = (IconComponent, color, isPremium = false) => {
+// Function to create icon with premium or coming soon indicator
+const createIconWithIndicator = (
+  IconComponent,
+  color,
+  isPremium = false,
+  isComingSoon = false,
+) => {
   return () =>
     h(
       "div",
@@ -291,7 +297,13 @@ const createIconWithPremium = (IconComponent, color, isPremium = false) => {
           "position: relative; display: flex; align-items: center; justify-content: center;",
       },
       [
-        h(NIcon, { color }, { default: () => h(IconComponent) }),
+        h(
+          NIcon,
+          { color },
+          {
+            default: () => h(IconComponent),
+          },
+        ),
         // Premium indicator (diamond shape)
         isPremium
           ? h("div", {
@@ -309,11 +321,57 @@ const createIconWithPremium = (IconComponent, color, isPremium = false) => {
               `,
             })
           : null,
-      ]
+        // Coming soon indicator (construction icon overlay)
+        isComingSoon
+          ? h(
+              "div",
+              {
+                style: `
+                position: absolute;
+                top: -2px;
+                right: -2px;
+                width: 12px;
+                height: 12px;
+                background: #6b7280;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #16161a;
+                box-shadow: 0 0 4px rgba(107, 114, 128, 0.4);
+              `,
+              },
+              [
+                h(
+                  NIcon,
+                  {
+                    size: 8,
+                    color: "#ffffff",
+                  },
+                  {
+                    default: () => h(ConstructionIcon),
+                  },
+                ),
+              ],
+            )
+          : null,
+      ],
     );
 };
 
-// Second section: Search, Canvas, Curation
+// Function to create menu label with coming soon styling
+const createMenuLabel = (label: string, isComingSoon = false) => {
+  return () =>
+    h(
+      "span",
+      {
+        style: isComingSoon ? "font-style: italic; opacity: 0.7;" : "",
+      },
+      label,
+    );
+};
+
+// Second section: Explorer, Canvas, Curation, Grids, Styler
 const secondSectionOptions = computed(() => {
   const isBlocked = appAccessMode.value === "blocked";
   const isPartial = appAccessMode.value === "partial";
@@ -321,59 +379,60 @@ const secondSectionOptions = computed(() => {
 
   return [
     {
-      label: "Search",
+      label: createMenuLabel("Explorer"),
       key: "search",
       disabled: isBlocked || isPartial,
+      comingSoon: false,
       props: isBlocked
         ? {
             title: "Add photos to your catalog",
           }
         : {},
-      icon: createIconWithPremium(SearchIcon, "#06b6d4"), // Info color for search functionality
+      icon: createIconWithIndicator(SearchIcon, "#06b6d4"), // Info color for search functionality
     },
     {
-      label: "Canvas",
+      label: createMenuLabel("Canvas"),
       key: "canvas",
       disabled: isBlocked,
+      comingSoon: false,
       props: isBlocked
         ? {
             title: "Add photos to your catalog",
           }
         : {},
-      icon: createIconWithPremium(CanvasIcon, "#8b5cf6"), // Secondary color for creative tools
+      icon: createIconWithIndicator(CanvasIcon, "#8b5cf6"), // Secondary color for creative tools
     },
     {
-      label: "Grids",
-      key: "grid-maker",
-      disabled: isBlocked,
-      props: isBlocked
-        ? {
-            title: "Add photos to your catalog",
-          }
-        : {},
-      icon: createIconWithPremium(GridIcon, "#22c55e"), // Success color for layout/organization
-    },
-    {
-      label: "Curation",
+      label: createMenuLabel("Curation"),
       key: "curation",
       disabled: isBlocked || isPartial,
+      comingSoon: false,
       props: isBlocked
         ? {
             title: "Add photos to your catalog",
           }
         : {},
-      icon: createIconWithPremium(CurationIcon, "#f59e0b", true), // Warning color for curation + premium
+      icon: createIconWithIndicator(CurationIcon, "#f59e0b", true), // Warning color for curation + premium
     },
     {
-      label: "Styler",
+      label: createMenuLabel("Grids", true),
+      key: "grid-maker",
+      disabled: true,
+      comingSoon: true,
+      props: {
+        title: "Coming soon",
+      },
+      icon: createIconWithIndicator(GridIcon, "#6b7280", false, true), // Gray color for coming soon
+    },
+    {
+      label: createMenuLabel("Styler", true),
       key: "styler",
-      disabled: isBlocked || isPartial,
-      props: isBlocked
-        ? {
-            title: "Add photos to your catalog",
-          }
-        : {},
-      icon: createIconWithPremium(StylerIcon, "#ef4444"), // Error color for advanced styling
+      disabled: true,
+      comingSoon: true,
+      props: {
+        title: "Coming soon",
+      },
+      icon: createIconWithIndicator(StylerIcon, "#6b7280", false, true), // Gray color for coming soon
     },
   ];
 });
