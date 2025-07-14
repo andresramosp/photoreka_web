@@ -66,33 +66,11 @@
             <!-- Slide 3: Unleash your catalog's potential -->
             <div v-if="currentSlide === 2" class="slide-content">
               <div class="slide-image">
-                <div class="mock-screenshot ai-screen">
-                  <div class="search-bar">
-                    <input
-                      type="text"
-                      placeholder="Search: 'sunset photos with mountains'"
-                      readonly
-                    />
-                    <div class="search-icon">🔍</div>
-                  </div>
-                  <div class="ai-features">
-                    <div class="feature-card">
-                      <div class="feature-icon">🧠</div>
-                      <h5>AI Analysis</h5>
-                      <p>Smart tagging</p>
-                    </div>
-                    <div class="feature-card">
-                      <div class="feature-icon">🎯</div>
-                      <h5>Natural Search</h5>
-                      <p>Find anything</p>
-                    </div>
-                    <div class="feature-card">
-                      <div class="feature-icon">⭐</div>
-                      <h5>Style Ranking</h5>
-                      <p>Quality scoring</p>
-                    </div>
-                  </div>
-                </div>
+                <img
+                  src="https://images.unsplash.com/photo-1587614382346-4ec70e388b28?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                  alt="AI photo organization interface"
+                  class="onboarding-image"
+                />
               </div>
               <div class="slide-text">
                 <h3 class="slide-title">3. Build your Workspace</h3>
