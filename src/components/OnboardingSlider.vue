@@ -245,6 +245,15 @@ const finish = () => {
   justify-content: center;
 }
 
+.onboarding-image {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border-color);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
 .mock-screenshot {
   width: 100%;
   border-radius: var(--radius-lg);
