@@ -72,6 +72,8 @@
 
     <!-- Compact Upload Section -->
     <div v-else class="compact-upload-section">
+      If you add photos from the Lightbox, the Canvas will be restricted to
+      General and Chromatic expansion types.
       <div class="compact-upload-buttons">
         <n-button
           type="primary"
@@ -371,7 +373,7 @@ const toggleSelection = (photoId) => {
 
 .compact-upload-section {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin-bottom: 16px;
 }
 

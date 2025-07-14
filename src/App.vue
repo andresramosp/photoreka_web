@@ -1,72 +1,75 @@
 <template>
   <n-config-provider :theme="darkTheme" :theme-overrides="themeOverrides">
-    <n-message-provider>
-      <!-- Landing Page Layout (no sidebar) -->
-      <router-view v-if="route.name === 'landing'" />
+    <n-notification-provider>
+      <n-message-provider>
+        <!-- Landing Page Layout (no sidebar) -->
+        <router-view v-if="route.name === 'landing'" />
 
-      <!-- Authentication Layout -->
-      <router-view v-else-if="!userStore.isAuthenticated" />
+        <!-- Authentication Layout -->
+        <router-view v-else-if="!userStore.isAuthenticated" />
 
-      <!-- Profile Setup Layout (authenticated but special case) -->
-      <router-view
-        v-else-if="
-          route.name === 'profile-setup' || route.name === 'storage-plan-setup'
-        "
-      />
+        <!-- Profile Setup Layout (authenticated but special case) -->
+        <router-view
+          v-else-if="
+            route.name === 'profile-setup' ||
+            route.name === 'storage-plan-setup'
+          "
+        />
 
-      <!-- Authenticated App Layout -->
-      <template v-else>
-        <!-- Desktop Layout -->
-        <n-layout
-          v-if="!isMobile"
-          has-sider
-          style="height: 100vh"
-          class="app-layout"
-        >
-          <DashboardSidebar />
-          <n-layout class="main-layout">
-            <DashboardHeader />
-            <n-layout-content class="main-content">
-              <router-view v-slot="{ Component, route }">
-                <KeepAlive :include="getKeepAliveComponents()">
-                  <component :is="Component" :key="route.fullPath" />
-                </KeepAlive>
-              </router-view>
-            </n-layout-content>
+        <!-- Authenticated App Layout -->
+        <template v-else>
+          <!-- Desktop Layout -->
+          <n-layout
+            v-if="!isMobile"
+            has-sider
+            style="height: 100vh"
+            class="app-layout"
+          >
+            <DashboardSidebar />
+            <n-layout class="main-layout">
+              <DashboardHeader />
+              <n-layout-content class="main-content">
+                <router-view v-slot="{ Component, route }">
+                  <KeepAlive :include="getKeepAliveComponents()">
+                    <component :is="Component" :key="route.fullPath" />
+                  </KeepAlive>
+                </router-view>
+              </n-layout-content>
+            </n-layout>
           </n-layout>
-        </n-layout>
 
-        <!-- Mobile Layout -->
-        <div v-else class="mobile-layout">
-          <!-- Mobile sidebar overlay - completely separate from layout -->
-          <DashboardSidebar
-            :mobile-menu-open="mobileMenuOpen"
-            @close-mobile-menu="mobileMenuOpen = false"
-          />
+          <!-- Mobile Layout -->
+          <div v-else class="mobile-layout">
+            <!-- Mobile sidebar overlay - completely separate from layout -->
+            <DashboardSidebar
+              :mobile-menu-open="mobileMenuOpen"
+              @close-mobile-menu="mobileMenuOpen = false"
+            />
 
-          <!-- Main mobile content -->
-          <div class="mobile-content">
-            <DashboardHeader @toggle-mobile-menu="toggleMobileMenu" />
-            <div class="main-content mobile-main-content">
-              <router-view v-slot="{ Component, route }">
-                <KeepAlive :include="getKeepAliveComponents()">
-                  <component :is="Component" :key="route.fullPath" />
-                </KeepAlive>
-              </router-view>
+            <!-- Main mobile content -->
+            <div class="mobile-content">
+              <DashboardHeader @toggle-mobile-menu="toggleMobileMenu" />
+              <div class="main-content mobile-main-content">
+                <router-view v-slot="{ Component, route }">
+                  <KeepAlive :include="getKeepAliveComponents()">
+                    <component :is="Component" :key="route.fullPath" />
+                  </KeepAlive>
+                </router-view>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Floating Add Photos Button -->
-        <FloatingAddPhotosButton />
+          <!-- Floating Add Photos Button -->
+          <FloatingAddPhotosButton />
 
-        <!-- Onboarding Slider -->
-        <OnboardingSlider
-          v-model="showOnboarding"
-          @finish="onOnboardingFinish"
-        />
-      </template>
-    </n-message-provider>
+          <!-- Onboarding Slider -->
+          <OnboardingSlider
+            v-model="showOnboarding"
+            @finish="onOnboardingFinish"
+          />
+        </template>
+      </n-message-provider>
+    </n-notification-provider>
   </n-config-provider>
 </template>
 

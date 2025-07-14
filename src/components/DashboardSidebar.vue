@@ -231,7 +231,9 @@ import {
   ChevronForwardOutline as ChevronRightIcon,
   ChevronBackOutline as ChevronLeftIcon,
   ConstructOutline as ConstructionIcon,
+  ConstructOutline,
 } from "@vicons/ionicons5";
+import { ConstructionOutlined, ConstructionSharp } from "@vicons/material";
 
 const router = useRouter();
 const route = useRoute();
@@ -252,8 +254,9 @@ const appAccessMode = computed(() => photosStore.appAccessMode);
 // First section: Photo Hub, Collections
 const firstSectionOptions = computed(() => [
   {
-    label: "Photo Hub",
+    label: createMenuLabel("Photo Hub"),
     key: "photo-hub",
+    // icon: createIconWithIndicator(PhotoHubIcon, "#2563eb"),
     icon: () =>
       h(
         "div",
@@ -271,14 +274,13 @@ const firstSectionOptions = computed(() => [
                   "position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 6px #22c55e; animation: pulse 2s infinite;",
               })
             : null,
-        ],
+        ]
       ),
   },
   {
-    label: "Collections",
+    label: createMenuLabel("Collections", true),
     key: "collections",
-    icon: () =>
-      h(NIcon, { color: "#f59e0b" }, { default: () => h(CollectionsIcon) }),
+    icon: createIconWithIndicator(CollectionsIcon, "#9ca3af", false, true),
   },
 ]);
 
@@ -287,7 +289,7 @@ const createIconWithIndicator = (
   IconComponent,
   color,
   isPremium = false,
-  isComingSoon = false,
+  isComingSoon = false
 ) => {
   return () =>
     h(
@@ -302,7 +304,7 @@ const createIconWithIndicator = (
           { color },
           {
             default: () => h(IconComponent),
-          },
+          }
         ),
         // Premium indicator (diamond shape)
         isPremium
@@ -345,17 +347,17 @@ const createIconWithIndicator = (
                 h(
                   NIcon,
                   {
-                    size: 8,
+                    size: 9,
                     color: "#ffffff",
                   },
                   {
-                    default: () => h(ConstructionIcon),
-                  },
+                    default: () => h(ConstructionSharp),
+                  }
                 ),
-              ],
+              ]
             )
           : null,
-      ],
+      ]
     );
 };
 
@@ -367,7 +369,7 @@ const createMenuLabel = (label: string, isComingSoon = false) => {
       {
         style: isComingSoon ? "font-style: italic; opacity: 0.7;" : "",
       },
-      label,
+      label
     );
 };
 
@@ -388,7 +390,7 @@ const secondSectionOptions = computed(() => {
             title: "Add photos to your catalog",
           }
         : {},
-      icon: createIconWithIndicator(SearchIcon, "#06b6d4"), // Info color for search functionality
+      icon: createIconWithIndicator(SearchIcon, "#60b6d4"), // Info color for search functionality
     },
     {
       label: createMenuLabel("Canvas"),
@@ -400,7 +402,7 @@ const secondSectionOptions = computed(() => {
             title: "Add photos to your catalog",
           }
         : {},
-      icon: createIconWithIndicator(CanvasIcon, "#8b5cf6"), // Secondary color for creative tools
+      icon: createIconWithIndicator(CanvasIcon, "#8b5cf6", false, false), // Secondary color for creative tools
     },
     {
       label: createMenuLabel("Curation"),
@@ -417,22 +419,20 @@ const secondSectionOptions = computed(() => {
     {
       label: createMenuLabel("Grids", true),
       key: "grid-maker",
-      disabled: true,
       comingSoon: true,
       props: {
         title: "Coming soon",
       },
-      icon: createIconWithIndicator(GridIcon, "#6b7280", false, true), // Gray color for coming soon
+      icon: createIconWithIndicator(GridIcon, "#9ca3af", false, true), // Green color for grids
     },
     {
       label: createMenuLabel("Styler", true),
       key: "styler",
-      disabled: true,
       comingSoon: true,
       props: {
         title: "Coming soon",
       },
-      icon: createIconWithIndicator(StylerIcon, "#6b7280", false, true), // Gray color for coming soon
+      icon: createIconWithIndicator(StylerIcon, "#9ca3af", false, true), // Red color for styler
     },
   ];
 });

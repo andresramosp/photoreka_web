@@ -27,7 +27,7 @@
             <div v-if="currentSlide === 0" class="slide-content">
               <div class="slide-image">
                 <img
-                  src="https://images.unsplash.com/photo-1611224923853-80b023f02d71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                  src="/src/assets/onBoarding/slide_1.png"
                   alt="Photo upload interface"
                   class="onboarding-image"
                 />
@@ -35,7 +35,7 @@
               <div class="slide-text">
                 <h3 class="slide-title">1. Bring your photos</h3>
                 <p class="slide-description">
-                  Photoreka is a tool designed to work with large volumes of
+                  Photoreka is a software designed to work with large volumes of
                   photos and manage an entire body of work. You can bring your
                   images from different platforms (Google Photos, Drive, etc.)
                   or from your local directory.
@@ -47,7 +47,7 @@
             <div v-if="currentSlide === 1" class="slide-content">
               <div class="slide-image">
                 <img
-                  src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                  src="/src/assets/onBoarding/slide_2.png"
                   alt="Photo editing interface"
                   class="onboarding-image"
                 />
@@ -67,7 +67,7 @@
             <div v-if="currentSlide === 2" class="slide-content">
               <div class="slide-image">
                 <img
-                  src="https://images.unsplash.com/photo-1587614382346-4ec70e388b28?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                  src="/src/assets/onBoarding/slide_3.png"
                   alt="AI photo organization interface"
                   class="onboarding-image"
                 />
@@ -238,7 +238,7 @@ const finish = () => {
 }
 
 .slide-image {
-  width: 100%;
+  /* width: 100%; */
   max-width: 500px;
   display: flex;
   align-items: center;
@@ -248,10 +248,11 @@ const finish = () => {
 .onboarding-image {
   width: 100%;
   height: 300px;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: var(--radius-lg);
   border: 2px solid var(--border-color);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  background: #fff;
 }
 
 .slide-text {
@@ -353,6 +354,7 @@ const finish = () => {
 
   .onboarding-image {
     height: 250px;
+    object-fit: contain;
   }
 
   .navigation-buttons {
@@ -368,6 +370,7 @@ const finish = () => {
 @media (max-width: 480px) {
   .onboarding-image {
     height: 200px;
+    object-fit: contain;
   }
 }
 </style>

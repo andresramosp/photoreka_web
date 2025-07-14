@@ -133,14 +133,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted, onBeforeUnmount, h } from "vue";
 import api from "@/utils/axios";
 import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 import PieProgress from "../PieProgress.vue";
-import { NTooltip, NSpin } from "naive-ui";
+import {
+  NTooltip,
+  NSpin,
+  NButton,
+  useMessage,
+  useNotification,
+} from "naive-ui";
 import { usePhotosStore } from "@/stores/photos"; // o donde tengas el store
 const photosStore = usePhotosStore();
+const message = useMessage();
+const notification = useNotification();
 
 const emit = defineEmits(["navigate-to-tab"]);
 
@@ -192,6 +200,48 @@ const mapProcess = (proc) => {
   };
 };
 
+// --- Notificación de procesos finalizados ---
+const FINISHED_JOBS_KEY = "notifiedFinishedJobs";
+function getNotifiedFinishedJobs() {
+  try {
+    return JSON.parse(localStorage.getItem(FINISHED_JOBS_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+function setNotifiedFinishedJobs(ids) {
+  localStorage.setItem(FINISHED_JOBS_KEY, JSON.stringify(ids));
+}
+function notifyFinished(job) {
+  let markAsRead = false;
+  const n = notification.create({
+    title: "Process Finished",
+    content: `The analysis for ${
+      job.photoCount
+    } photo(s) started on ${formatDate(job.startDate)} is complete.`,
+    meta: new Date().toLocaleString(),
+    action: () =>
+      h(
+        NButton,
+        {
+          text: true,
+          type: "primary",
+          onClick: () => {
+            markAsRead = true;
+            n.destroy();
+          },
+        },
+        { default: () => "Mark as Read" }
+      ),
+    onClose: () => {
+      if (!markAsRead) {
+        message.warning("Please mark as read");
+        return false;
+      }
+    },
+  });
+}
+
 async function loadProcesses() {
   const response = await api.get(API_URL);
 
@@ -210,6 +260,10 @@ async function loadProcesses() {
     (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
   );
 
+  // --- Notificación de procesos finalizados ---
+  let notifiedIds = getNotifiedFinishedJobs();
+  let newNotified = false;
+
   // Detectar si alguno ha pasado de "processing" a "finished"
   for (const updatedJob of processingJobs.value) {
     const previousJob = previousJobs.find((j) => j.id == updatedJob.id);
@@ -219,9 +273,25 @@ async function loadProcesses() {
       updatedJob.status === "finished"
     ) {
       await photosStore.getOrFetch(true);
+      if (!notifiedIds.includes(updatedJob.id)) {
+        notifyFinished(updatedJob);
+        notifiedIds.push(updatedJob.id);
+        newNotified = true;
+      }
       break; // solo una vez
     }
   }
+
+  // Al entrar, notificar procesos terminados no notificados
+  for (const job of processingJobs.value) {
+    if (job.status === "finished" && !notifiedIds.includes(job.id)) {
+      notifyFinished(job);
+      notifiedIds.push(job.id);
+      newNotified = true;
+    }
+  }
+
+  if (newNotified) setNotifiedFinishedJobs(notifiedIds);
 }
 
 // Inicia carga y auto-refresh

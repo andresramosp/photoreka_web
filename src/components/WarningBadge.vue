@@ -18,7 +18,7 @@
       <n-tooltip trigger="hover" placement="top">
         <template #trigger>
           <n-icon size="14">
-            <InfoIcon />
+            <InfoCircleOutlined />
           </n-icon>
         </template>
         {{ tooltip }}
@@ -31,7 +31,7 @@
       aria-label="Close warning"
     >
       <n-icon size="16">
-        <CloseIcon />
+        <CloseCircle />
       </n-icon>
     </button>
   </div>
@@ -42,7 +42,8 @@ import { ref } from "vue";
 import { NIcon, NTooltip } from "naive-ui";
 import { Warning20Filled as WarningIcon } from "@vicons/fluent";
 import { Info20Filled as InfoIcon } from "@vicons/fluent";
-import { ClosedCaption20Filled as CloseIcon } from "@vicons/fluent";
+import { CloseCircle } from "@vicons/ionicons5";
+import { InfoCircleOutlined } from "@vicons/antd";
 
 const props = defineProps({
   message: { type: String, required: true },
@@ -71,7 +72,7 @@ function handleClose() {
   border: 1px solid var(--warning-color, #ffc107);
   color: var(--warning-color, #ffc107);
   border-radius: 20px;
-  padding: 8px 16px;
+  padding: 8px 10px;
   font-size: 13px;
   font-weight: 500;
   position: relative;
@@ -91,7 +92,6 @@ function handleClose() {
   margin-left: 4px;
   display: flex;
   align-items: center;
-  color: var(--info-color, #2196f3);
 }
 .close-btn {
   background: none;

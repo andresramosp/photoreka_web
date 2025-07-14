@@ -30,7 +30,7 @@ import {
   NFormItem,
   NCheckbox,
   NMessageProvider,
-  darkTheme,
+  NNotificationProvider,
 } from "naive-ui";
 
 import App from "./App.vue";
@@ -70,6 +70,7 @@ const naive = create({
     NFormItem,
     NCheckbox,
     NMessageProvider,
+    NNotificationProvider,
   ],
 });
 

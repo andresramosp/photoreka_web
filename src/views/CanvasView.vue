@@ -345,7 +345,7 @@
             />
           </div>
         </template>
-        <n-button @click="() => {}">
+        <n-button disabled @click="() => {}">
           <template #icon>
             <n-icon size="20" color="#2563eb">
               <SaveOutline />
@@ -480,7 +480,7 @@
           </template>
         </n-button>
 
-        <n-button
+        <!-- <n-button
           :type="interactionMode === 'pan' ? 'primary' : 'default'"
           @click="toggleInteractionMode"
           size="small"
@@ -503,7 +503,7 @@
               </svg>
             </n-icon>
           </template>
-        </n-button>
+        </n-button> -->
       </n-button-group>
     </div>
     <div
