@@ -490,7 +490,7 @@ async function performSearch() {
       },
     };
 
-    await api.post("/api/photos/dialog", payload);
+    await api.post("/api/search/semantic", payload);
 
     // Results will be handled by socket listener or we can handle response directly
     // For now, let's handle response directly if no socket is set up for this dialog
