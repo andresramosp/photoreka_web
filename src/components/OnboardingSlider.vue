@@ -46,26 +46,11 @@
             <!-- Slide 2: Use your preprocessed photos -->
             <div v-if="currentSlide === 1" class="slide-content">
               <div class="slide-image">
-                <div class="mock-screenshot canvas-screen">
-                  <div class="canvas-header">
-                    <span class="canvas-title">Canvas Editor</span>
-                    <div class="canvas-tools">
-                      <div class="tool active">✂️</div>
-                      <div class="tool">🎨</div>
-                      <div class="tool">📏</div>
-                    </div>
-                  </div>
-                  <div class="canvas-area">
-                    <div class="photo-preview">
-                      <div class="photo-placeholder"></div>
-                      <div class="photo-controls">
-                        <button class="control-btn">↻</button>
-                        <button class="control-btn">⚡</button>
-                        <button class="control-btn">🔍</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <img
+                  src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                  alt="Photo editing interface"
+                  class="onboarding-image"
+                />
               </div>
               <div class="slide-text">
                 <h3 class="slide-title">2. Preview in Lightbox</h3>
