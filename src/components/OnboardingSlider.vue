@@ -48,9 +48,9 @@
                 <h3 class="slide-title">1. Bring your photos</h3>
                 <p class="slide-description">
                   Photoreka is a tool designed to work with large volumes of
-                  photos and, ideally, manage an entire body of work. You can
-                  bring your images from different platforms (Google Photos,
-                  Drive, etc.) or from your local directory.
+                  photos and manage an entire body of work. You can bring your
+                  images from different platforms (Google Photos, Drive, etc.)
+                  or from your local directory.
                 </p>
               </div>
             </div>
@@ -126,7 +126,7 @@
                 <p class="slide-description">
                   Allow our engine to understand your photos to unleash the full
                   potential of your catalog. The photos you process to the
-                  Workspace will be available for natural language search,
+                  Workspace will be available for natural language exploration,
                   advanced canvas features, photo relation search, style
                   ranking, and much more...
                 </p>
