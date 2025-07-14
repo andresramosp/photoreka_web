@@ -297,10 +297,17 @@ async function loadProcesses() {
 // Inicia carga y auto-refresh
 onMounted(async () => {
   await loadProcesses();
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
   intervalId = setInterval(loadProcesses, 5000);
 });
 onBeforeUnmount(() => {
-  if (intervalId) clearInterval(intervalId);
+  if (intervalId) {
+    clearInterval(intervalId);
+    intervalId = null;
+  }
 });
 
 // Utilidades de UI
