@@ -366,24 +366,8 @@ const finish = () => {
 }
 
 @media (max-width: 480px) {
-  .mock-screenshot {
-    padding: var(--spacing-md);
-  }
-
-  .upload-area {
-    padding: var(--spacing-lg);
-  }
-
-  .upload-icon {
-    font-size: 36px;
-  }
-
-  .stat-item {
-    gap: var(--spacing-xs);
-  }
-
-  .stat-number {
-    font-size: var(--font-size-lg);
+  .onboarding-image {
+    height: 200px;
   }
 }
 </style>
