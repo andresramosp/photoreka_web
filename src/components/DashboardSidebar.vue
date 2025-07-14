@@ -301,7 +301,7 @@ const createIconWithIndicator = (
           NIcon,
           { color },
           {
-            default: () => h(isComingSoon ? ConstructionIcon : IconComponent),
+            default: () => h(IconComponent),
           },
         ),
         // Premium indicator (diamond shape)
@@ -321,7 +321,40 @@ const createIconWithIndicator = (
               `,
             })
           : null,
-        // Coming soon indicator (construction icon is already the main icon)
+        // Coming soon indicator (construction icon overlay)
+        isComingSoon
+          ? h(
+              "div",
+              {
+                style: `
+                position: absolute;
+                top: -2px;
+                right: -2px;
+                width: 12px;
+                height: 12px;
+                background: #6b7280;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid #16161a;
+                box-shadow: 0 0 4px rgba(107, 114, 128, 0.4);
+              `,
+              },
+              [
+                h(
+                  NIcon,
+                  {
+                    size: 8,
+                    color: "#ffffff",
+                  },
+                  {
+                    default: () => h(ConstructionIcon),
+                  },
+                ),
+              ],
+            )
+          : null,
       ],
     );
 };
