@@ -1080,6 +1080,7 @@ watch(
       socket.emit("join", { userId: userStore.user.id });
       if (!matchesListenerRegistered) {
         socket.on("matches", (data) => {
+          console.log(data);
           searchStore.updateSearchResults(data);
           setTimeout(() => {
             scrollToLast();

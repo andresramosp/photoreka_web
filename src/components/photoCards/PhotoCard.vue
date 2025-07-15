@@ -37,20 +37,35 @@
         </p>
       </div>
 
-      <!-- Match Score Stars (for curation mode) -->
+      <!-- Match Score Stars (visible en todos los modos) -->
       <div
-        v-if="mode === 'curation' && photo.matchScore && photo.matchScore > 0"
+        v-if="computedStars > 0 || showLowRelevanceIcon"
         class="match-score-indicator"
       >
-        <div class="stars">
+        <!-- Icono de poca relevancia para matchPercent < 15% -->
+        <div v-if="showLowRelevanceIcon" class="low-relevance-icon">
+          <n-tooltip trigger="hover" placement="top">
+            <template #trigger>
+              <n-icon size="14" class="warning-icon">
+                <HelpIcon />
+              </n-icon>
+            </template>
+            <span
+              >Low relevance: The photo may not be relevant to this
+              criterion.</span
+            >
+          </n-tooltip>
+        </div>
+        <!-- Estrellas para matchScore > 0 -->
+        <div v-else class="stars">
           <n-icon
             v-for="star in 3"
             :key="star"
             :class="[
               'star-icon',
               {
-                filled: star <= photo.matchScore,
-                empty: star > photo.matchScore,
+                filled: star <= computedStars,
+                empty: star > computedStars,
               },
             ]"
             size="12"
@@ -135,14 +150,48 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { NIcon } from "naive-ui";
+import { NIcon, NTooltip } from "naive-ui";
 
 // Import @vicons icons from ionicons5 for reliability
 import {
   ChevronForwardOutline as ChevronRightIcon,
   ChevronBackOutline as ChevronLeftIcon,
   CheckmarkCircleOutline as CheckCircleIcon,
+  HelpCircleOutline as HelpIcon,
 } from "@vicons/ionicons5";
+
+// Calcula la cantidad de estrellas a mostrar (1-3) usando matchScore o matchPercent
+const computedStars = computed(() => {
+  if (props.photo.matchScore && props.photo.matchScore > 0) {
+    return Math.max(1, Math.min(3, props.photo.matchScore));
+  }
+  if (
+    typeof (props.photo as any).matchPercent === "number" &&
+    (props.photo as any).matchPercent >= 0
+  ) {
+    const percent = (props.photo as any).matchPercent;
+
+    if (percent < 20) return 0; // Sin estrellas ni icono
+    if (percent >= 66) return 3;
+    if (percent >= 33) return 2;
+    if (percent >= 20) return 1;
+  }
+  return 0;
+});
+
+// Mostrar icono de poca relevancia cuando matchPercent < 15%
+const showLowRelevanceIcon = computed(() => {
+  if (props.photo.matchScore && props.photo.matchScore > 0) {
+    return false; // Si hay matchScore, no mostrar icono de poca relevancia
+  }
+  if (
+    typeof (props.photo as any).matchPercent === "number" &&
+    (props.photo as any).matchPercent >= 0
+  ) {
+    return (props.photo as any).matchPercent < 20;
+  }
+  return false;
+});
 
 export interface Photo {
   id: string;
@@ -386,12 +435,12 @@ const handleMouseLeave = () => {
 /* Match Score Stars */
 .match-score-indicator {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  background-color: rgba(0, 0, 0, 0.7);
+  top: 5px;
+  right: 4px;
+
   backdrop-filter: blur(4px);
   border-radius: 12px;
-  padding: 4px 8px;
+
   z-index: 3;
   display: flex;
   align-items: center;
@@ -413,6 +462,19 @@ const handleMouseLeave = () => {
 
 .star-icon.empty {
   color: rgba(255, 255, 255, 0.3); /* Semi-transparent white for empty stars */
+}
+
+/* Low Relevance Icon */
+.low-relevance-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Warning icon style (interrogativo) */
+.warning-icon {
+  color: var(--warning-color);
+  transition: color 0.2s ease;
 }
 
 .selection-indicator {
