@@ -27,7 +27,7 @@
 
     <!-- Tabs Section -->
     <div class="tabs-container">
-      <template v-if="photosStore.catalogSingleView">
+      <!-- <template v-if="photosStore.catalogSingleView">
         <div class="tab-navigation">
           <button
             class="tab-button"
@@ -62,66 +62,73 @@
           />
           <ProcessingPhotos
             v-show="activeTab === 'processing'"
+            :key="'single-view'"
             @navigate-to-tab="setActiveTab"
           />
         </div>
-      </template>
-      <template v-else>
-        <!-- Modo normal: tabs separadas -->
-        <div class="tab-navigation">
-          <button
-            class="tab-button"
-            :class="{ active: activeTab === 'upload' }"
-            @click="setActiveTab('upload')"
-          >
-            <div class="tab-title">
-              <n-icon size="18">
-                <DriveFolderUploadFilled color="var(--info-color)" />
-              </n-icon>
-              Lightbox
-            </div>
-          </button>
-          <button
-            class="tab-button"
-            :class="{ active: activeTab === 'catalog' }"
-            @click="setActiveTab('catalog')"
-          >
-            <div class="tab-title">
-              <n-icon size="16">
-                <ImagesOutline color="var(--success-color)" />
-              </n-icon>
-              Workspace
-            </div>
-          </button>
-          <button
-            class="tab-button"
-            :class="{ active: activeTab === 'processing' }"
-            @click="setActiveTab('processing')"
-          >
-            <div class="tab-title">
-              <n-icon>
-                <InProgress color="var(--primary-color)" />
-              </n-icon>
-              Analyzing Processes
-            </div>
-          </button>
-        </div>
-        <div class="tab-content-container">
+      </template> -->
+      <div class="tab-navigation">
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'upload' }"
+          @click="setActiveTab('upload')"
+        >
+          <div class="tab-title">
+            <n-icon size="18">
+              <DriveFolderUploadFilled color="var(--info-color)" />
+            </n-icon>
+            Lightbox
+          </div>
+        </button>
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'catalog' }"
+          @click="setActiveTab('catalog')"
+        >
+          <div class="tab-title">
+            <n-icon size="16">
+              <ImagesOutline color="var(--success-color)" />
+            </n-icon>
+            Workspace
+          </div>
+        </button>
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'processing' }"
+          @click="setActiveTab('processing')"
+        >
+          <div class="tab-title">
+            <n-icon>
+              <InProgress color="var(--primary-color)" />
+            </n-icon>
+            Analyzing Processes
+          </div>
+        </button>
+      </div>
+      <div class="tab-content-container">
+        <KeepAlive>
           <LightboxPhotos
             ref="lightboxRef"
             v-show="activeTab === 'upload'"
+            key="lightbox-photos"
             @on-analyze="analyze"
           />
+        </KeepAlive>
+        <KeepAlive>
           <WorkspacePhotos
             v-show="activeTab === 'catalog'"
+            key="workspace-photos"
             @navigate-to-tab="setActiveTab"
           />
+        </KeepAlive>
+        <KeepAlive>
           <ProcessingPhotos
             v-show="activeTab === 'processing'"
+            key="processing-photos"
             @navigate-to-tab="setActiveTab"
           />
-        </div>
-      </template>
+        </KeepAlive>
+      </div>
     </div>
 
     <!-- Floating Process Photos Button -->
@@ -135,7 +142,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, watch, computed, KeepAlive } from "vue";
 import LightboxPhotos from "@/components/photo-hub/LightboxPhotos.vue";
 import ProcessingPhotos from "@/components/photo-hub/ProcessingPhotos.vue";
 import WorkspacePhotos from "@/components/photo-hub/WorkspacePhotos.vue";
@@ -175,12 +182,18 @@ const handleProcessButtonClick = () => {
 
 const setActiveTab = (tab) => {
   activeTab.value = tab;
-  window.location.hash = tab;
+  // Actualiza el hash de la URL sin recargar la página ni disparar navegación
+  if (window.location.hash.replace("#", "") !== tab) {
+    window.history.replaceState(null, "", `#${tab}`);
+  }
 };
 
 const updateTabFromHash = () => {
   const hash = window.location.hash.replace("#", "");
-  if (["upload", "processing", "catalog"].includes(hash)) {
+  if (
+    ["upload", "processing", "catalog"].includes(hash) &&
+    activeTab.value !== hash
+  ) {
     activeTab.value = hash;
   }
 };
@@ -225,12 +238,6 @@ onMounted(() => {
   updateTabFromHash();
 
   window.addEventListener("hashchange", updateTabFromHash);
-});
-
-watch(activeTab, (newTab) => {
-  if (window.location.hash.replace("#", "") !== newTab) {
-    window.location.hash = newTab;
-  }
 });
 </script>
 

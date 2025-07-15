@@ -136,7 +136,7 @@ const checkShowOnboarding = () => {
     return;
   }
   const onboardingKey = `onboarding_shown_${userId}`;
-  showOnboarding.value = true; //localStorage.getItem(onboardingKey) !== "true";
+  showOnboarding.value = localStorage.getItem(onboardingKey) !== "true";
 };
 
 const toggleMobileMenu = () => {

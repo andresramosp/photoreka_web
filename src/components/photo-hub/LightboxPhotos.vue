@@ -730,10 +730,6 @@ const confirmAnalyze = () => {
 defineExpose({
   openAnalyzeDialog,
 });
-
-onMounted(() => {
-  photosStore.checkDuplicates();
-});
 </script>
 
 <style scoped>

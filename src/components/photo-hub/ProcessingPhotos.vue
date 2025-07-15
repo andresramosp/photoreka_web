@@ -146,9 +146,12 @@ import {
   useNotification,
 } from "naive-ui";
 import { usePhotosStore } from "@/stores/photos"; // o donde tengas el store
+import { useRoute } from "vue-router";
+
 const photosStore = usePhotosStore();
 const message = useMessage();
 const notification = useNotification();
+const route = useRoute();
 
 const emit = defineEmits(["navigate-to-tab"]);
 
@@ -157,7 +160,84 @@ const API_URL = "/api/analyzer-process";
 
 // Estado de procesos
 const processingJobs = ref([]);
-let intervalId = null;
+const intervalId = ref(null); // Usar ref para evitar problemas de ciclo de vida
+const isPolling = ref(false); // Flag para evitar múltiples intervalos
+const isMounted = ref(false); // Flag para evitar código después del unmount
+const componentId = Math.random().toString(36).substring(2, 9); // ID único para debug
+// Helpers para el polling seguro
+function clearPollingInterval() {
+  if (intervalId.value) {
+    console.log(
+      `[ProcessingPhotos-${componentId}] Limpio intervalId`,
+      intervalId.value
+    );
+    clearInterval(intervalId.value);
+    intervalId.value = null;
+  } else {
+    console.log(
+      `[ProcessingPhotos-${componentId}] clearPollingInterval: No hay interval activo`
+    );
+  }
+  isPolling.value = false;
+}
+
+function startPolling() {
+  console.log(
+    `[ProcessingPhotos-${componentId}] startPolling llamado, isPolling:`,
+    isPolling.value,
+    "isMounted:",
+    isMounted.value
+  );
+
+  if (!isMounted.value) {
+    console.log(
+      `[ProcessingPhotos-${componentId}] Componente desmontado, no inicio polling`
+    );
+    return;
+  }
+
+  if (isPolling.value) {
+    console.log(
+      `[ProcessingPhotos-${componentId}] Ya hay polling activo, ignorando`
+    );
+    return;
+  }
+
+  clearPollingInterval();
+  isPolling.value = true;
+
+  const newIntervalId = setInterval(() => {
+    if (!isMounted.value) {
+      console.log(
+        `[ProcessingPhotos-${componentId}] Componente desmontado, limpiando interval`
+      );
+      clearInterval(newIntervalId);
+      return;
+    }
+    // Solo ejecutar loadProcesses si el hash es #processing
+    const hash = window.location.hash.replace("#", "");
+    if (hash === "processing") {
+      console.log(
+        `[ProcessingPhotos-${componentId}] setInterval tick (loadProcesses ejecutado)`,
+        newIntervalId,
+        new Date().toISOString()
+      );
+      loadProcesses();
+    } else {
+      console.log(
+        `[ProcessingPhotos-${componentId}] setInterval tick (NO ejecuta loadProcesses, hash actual: #${hash})`,
+        newIntervalId,
+        new Date().toISOString()
+      );
+    }
+  }, 5000);
+
+  intervalId.value = newIntervalId;
+  console.log(
+    `[ProcessingPhotos-${componentId}] Creo intervalId`,
+    intervalId.value
+  );
+}
 
 // Orden de las stages del pipeline
 const STAGES = [
@@ -243,71 +323,99 @@ function notifyFinished(job) {
 }
 
 async function loadProcesses() {
-  const response = await api.get(API_URL);
+  if (!isMounted.value) {
+    console.log(
+      `[ProcessingPhotos-${componentId}] Componente desmontado, no cargo procesos`
+    );
+    return;
+  }
 
-  const previousJobs = [...processingJobs.value]; // Clonar los anteriores
+  try {
+    const response = await api.get(API_URL);
 
-  const updated = response.data
-    .filter((proc) => !proc.isPreprocess) // && proc.mode == "adding"
-    .map((proc) => {
-      const current = processingJobs.value.find((j) => j.id === proc.id);
-      const mapped = mapProcess(proc);
-      if (current) mapped.expanded = current.expanded;
-      return mapped;
-    });
+    // Verificar nuevamente después del await
+    if (!isMounted.value) {
+      console.log(
+        `[ProcessingPhotos-${componentId}] Componente desmontado después del API call`
+      );
+      return;
+    }
 
-  processingJobs.value = updated.sort(
-    (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-  );
+    const previousJobs = [...processingJobs.value]; // Clonar los anteriores
 
-  // --- Notificación de procesos finalizados ---
-  let notifiedIds = getNotifiedFinishedJobs();
-  let newNotified = false;
+    const updated = response.data
+      .filter((proc) => !proc.isPreprocess) // && proc.mode == "adding"
+      .map((proc) => {
+        const current = processingJobs.value.find((j) => j.id === proc.id);
+        const mapped = mapProcess(proc);
+        if (current) mapped.expanded = current.expanded;
+        return mapped;
+      });
 
-  // Detectar si alguno ha pasado de "processing" a "finished"
-  for (const updatedJob of processingJobs.value) {
-    const previousJob = previousJobs.find((j) => j.id == updatedJob.id);
-    if (
-      previousJob &&
-      previousJob.status === "processing" &&
-      updatedJob.status === "finished"
-    ) {
-      await photosStore.getOrFetch(true);
-      if (!notifiedIds.includes(updatedJob.id)) {
-        notifyFinished(updatedJob);
-        notifiedIds.push(updatedJob.id);
+    processingJobs.value = updated.sort(
+      (a, b) =>
+        new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+    );
+
+    // --- Notificación de procesos finalizados ---
+    let notifiedIds = getNotifiedFinishedJobs();
+    let newNotified = false;
+
+    // Detectar si alguno ha pasado de "processing" a "finished"
+    for (const updatedJob of processingJobs.value) {
+      const previousJob = previousJobs.find((j) => j.id == updatedJob.id);
+      if (
+        previousJob &&
+        previousJob.status === "processing" &&
+        updatedJob.status === "finished"
+      ) {
+        await photosStore.getOrFetch(true);
+        if (!notifiedIds.includes(updatedJob.id)) {
+          notifyFinished(updatedJob);
+          notifiedIds.push(updatedJob.id);
+          newNotified = true;
+        }
+        break; // solo una vez
+      }
+    }
+
+    // Al entrar, notificar procesos terminados no notificados
+    for (const job of processingJobs.value) {
+      if (job.status === "finished" && !notifiedIds.includes(job.id)) {
+        notifyFinished(job);
+        notifiedIds.push(job.id);
         newNotified = true;
       }
-      break; // solo una vez
     }
-  }
 
-  // Al entrar, notificar procesos terminados no notificados
-  for (const job of processingJobs.value) {
-    if (job.status === "finished" && !notifiedIds.includes(job.id)) {
-      notifyFinished(job);
-      notifiedIds.push(job.id);
-      newNotified = true;
-    }
+    if (newNotified) setNotifiedFinishedJobs(notifiedIds);
+  } catch (error) {
+    console.error(
+      `[ProcessingPhotos-${componentId}] Error loading processes:`,
+      error
+    );
   }
-
-  if (newNotified) setNotifiedFinishedJobs(notifiedIds);
 }
 
 // Inicia carga y auto-refresh
 onMounted(async () => {
+  console.log(`[ProcessingPhotos-${componentId}] onMounted`);
+  isMounted.value = true;
   await loadProcesses();
-  if (intervalId) {
-    clearInterval(intervalId);
-    intervalId = null;
+
+  // Verificar si el componente sigue montado después del await
+  if (isMounted.value) {
+    startPolling();
+  } else {
+    console.log(
+      `[ProcessingPhotos-${componentId}] Componente desmontado durante onMounted, no inicio polling`
+    );
   }
-  intervalId = setInterval(loadProcesses, 5000);
 });
 onBeforeUnmount(() => {
-  if (intervalId) {
-    clearInterval(intervalId);
-    intervalId = null;
-  }
+  console.log(`[ProcessingPhotos-${componentId}] onBeforeUnmount`);
+  isMounted.value = false;
+  clearPollingInterval();
 });
 
 // Utilidades de UI
