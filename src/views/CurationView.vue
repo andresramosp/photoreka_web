@@ -217,12 +217,7 @@
             :loading="isLoadingMore"
             @click="() => {}"
             size="large"
-            :disabled="
-              curatedPhotos.length == 0 ||
-              isSearching ||
-              isLoadingMore ||
-              isThinking
-            "
+            :disabled="curatedPhotos.length == 0"
           >
             <template #icon>
               <n-icon>
@@ -240,12 +235,7 @@
             :loading="isLoadingMore"
             @click="() => {}"
             size="large"
-            :disabled="
-              curatedPhotos.length == 0 ||
-              isSearching ||
-              isLoadingMore ||
-              isThinking
-            "
+            :disabled="curatedPhotos.length == 0"
           >
             <template #icon>
               <n-icon>
@@ -470,7 +460,11 @@ const updateCandidatePhotos = () => {
     }
   }
 
-  candidatePhotos.value = allPhotos;
+  // Filtrar las fotos que ya están en curatedPhotos
+  const curatedIds = new Set(curatedPhotos.value.map((p) => p.id));
+  candidatePhotos.value = allPhotos.filter(
+    (photo) => !curatedIds.has(photo.id)
+  );
 };
 
 // Methods
