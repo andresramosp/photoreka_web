@@ -113,7 +113,7 @@
                   <n-icon size="16" class="mode-icon">
                     <PencilOutline />
                   </n-icon>
-                  Figurative
+                  Flexible
                   <div class="premium-indicator-pill"></div>
                 </div>
               </template>
