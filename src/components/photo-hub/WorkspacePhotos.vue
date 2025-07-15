@@ -70,7 +70,7 @@
         <div class="header-buttons compact-upload-section">
           <div class=""></div>
           <div style="display: flex; gap: 15px">
-            <!-- <n-button
+            <n-button
               type="default"
               size="medium"
               class="analyze-btn"
@@ -94,7 +94,7 @@
                 </n-icon>
               </template>
               Check duplicates
-            </n-button> -->
+            </n-button>
           </div>
         </div>
 

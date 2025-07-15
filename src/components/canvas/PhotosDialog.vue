@@ -279,6 +279,7 @@ import {
   ArrowUndoOutline as ArrowUndoIcon,
   AddOutline as AddIcon,
 } from "@vicons/ionicons5";
+import { useUserStore } from "@/stores/userStore";
 
 const props = defineProps({
   modelValue: {
@@ -310,6 +311,7 @@ const dialog = computed({
 // Stores
 const photosStore = usePhotosStore();
 const canvasStore = useCanvasStore();
+const userStore = useUserStore();
 
 // Component state
 const selectedIds = ref([]);
@@ -542,6 +544,7 @@ const socket = io(import.meta.env.VITE_API_WS_URL);
 // Fetch photos on mount
 onMounted(() => {
   // Listen for search results
+  socket.emit("join", { userId: userStore.user.id });
   socket.on("matches", (data) => {
     if (true) {
       // Extract photos from search results
