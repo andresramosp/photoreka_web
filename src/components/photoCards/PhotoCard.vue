@@ -171,10 +171,10 @@ const computedStars = computed(() => {
   ) {
     const percent = (props.photo as any).matchPercent;
 
-    if (percent < 20) return 0; // Sin estrellas ni icono
-    if (percent >= 66) return 3;
-    if (percent >= 33) return 2;
-    if (percent >= 20) return 1;
+    if (percent < 30) return 0; // Sin estrellas ni icono
+    if (percent >= 75) return 3;
+    if (percent >= 45) return 2;
+    if (percent >= 30) return 1;
   }
   return 0;
 });
@@ -188,7 +188,7 @@ const showLowRelevanceIcon = computed(() => {
     typeof (props.photo as any).matchPercent === "number" &&
     (props.photo as any).matchPercent >= 0
   ) {
-    return (props.photo as any).matchPercent < 20;
+    return (props.photo as any).matchPercent < 30;
   }
   return false;
 });
