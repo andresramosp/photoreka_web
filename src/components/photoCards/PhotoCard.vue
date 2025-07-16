@@ -59,13 +59,13 @@
         <!-- Estrellas para matchScore > 0 -->
         <div v-else class="stars">
           <n-icon
-            v-for="star in 3"
+            v-for="star in [...Array(3).keys()].reverse()"
             :key="star"
             :class="[
               'star-icon',
               {
-                filled: star <= computedStars,
-                empty: star > computedStars,
+                filled: star + 1 <= computedStars,
+                empty: star + 1 > computedStars,
               },
             ]"
             size="12"

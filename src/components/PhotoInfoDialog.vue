@@ -142,7 +142,7 @@
                 <div class="tags-list">
                   <n-tag
                     v-for="tag in photoTags.filter(
-                      (tag) => tag.group !== 'misc'
+                      (tag) => true // tag.group !== 'misc'
                     )"
                     :key="tag.id || tag.name"
                     closable
@@ -151,7 +151,7 @@
                     @close="removeTag(tag)"
                     class="photo-tag"
                   >
-                    {{ tag.name || tag }}
+                    {{ tag.name || tag }} | {{ tag.area }}
                   </n-tag>
                 </div>
               </div>
@@ -184,48 +184,80 @@
               </n-icon>
             </template>
             <div class="descriptions-section">
-              <div
-                v-if="!photoDescription && !isGeneratingDescription"
-                class="generate-section"
-              >
-                <n-button
-                  type="primary"
-                  size="large"
-                  @click="generateDescription"
-                  block
-                >
-                  <template #icon>
-                    <n-icon>
-                      <SparklesIcon />
-                    </n-icon>
-                  </template>
-                  Generate Description
-                </n-button>
-              </div>
-              <div
-                v-else-if="isGeneratingDescription"
-                class="generating-section"
-              >
-                <n-spin size="medium" />
-                <p class="generating-text">Generating AI description...</p>
-              </div>
-              <div v-else class="description-display">
-                <div class="description-content">
-                  <p>{{ photoDescription }}</p>
+              <!-- AI Generated Descriptions -->
+              <div v-if="selectedPhoto?.descriptions" class="ai-descriptions">
+                <h4 class="section-title">AI Generated Descriptions</h4>
+
+                <div class="description-item">
+                  <h5 class="description-label">Story</h5>
+                  <div class="description-content">
+                    <p>{{ selectedPhoto.descriptions.story }}</p>
+                  </div>
                 </div>
-                <n-button
-                  size="small"
-                  @click="regenerateDescription"
-                  :loading="isGeneratingDescription"
-                  class="regenerate-btn"
+
+                <div class="description-item">
+                  <h5 class="description-label">Context</h5>
+                  <div class="description-content">
+                    <p>{{ selectedPhoto.descriptions.context }}</p>
+                  </div>
+                </div>
+
+                <div class="description-item">
+                  <h5 class="description-label">Visual Accents</h5>
+                  <div class="description-content">
+                    <p>{{ selectedPhoto.descriptions.visual_accents }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Custom Description -->
+              <div class="custom-description-section">
+                <h4 class="section-title">Custom Description</h4>
+                <div
+                  v-if="!photoDescription && !isGeneratingDescription"
+                  class="generate-section"
                 >
-                  <template #icon>
-                    <n-icon>
-                      <RefreshIcon />
-                    </n-icon>
-                  </template>
-                  Regenerate
-                </n-button>
+                  <n-button
+                    type="primary"
+                    size="large"
+                    @click="generateDescription"
+                    block
+                  >
+                    <template #icon>
+                      <n-icon>
+                        <SparklesIcon />
+                      </n-icon>
+                    </template>
+                    Generate Custom Description
+                  </n-button>
+                </div>
+                <div
+                  v-else-if="isGeneratingDescription"
+                  class="generating-section"
+                >
+                  <n-spin size="medium" />
+                  <p class="generating-text">
+                    Generating custom description...
+                  </p>
+                </div>
+                <div v-else class="description-display">
+                  <div class="description-content">
+                    <p>{{ photoDescription }}</p>
+                  </div>
+                  <n-button
+                    size="small"
+                    @click="regenerateDescription"
+                    :loading="isGeneratingDescription"
+                    class="regenerate-btn"
+                  >
+                    <template #icon>
+                      <n-icon>
+                        <RefreshIcon />
+                      </n-icon>
+                    </template>
+                    Regenerate
+                  </n-button>
+                </div>
               </div>
             </div>
           </n-collapse-item>
@@ -764,6 +796,42 @@ if (typeof window !== "undefined") {
 }
 
 .descriptions-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.section-title {
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: var(--spacing-sm);
+}
+
+.ai-descriptions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.description-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.description-label {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.custom-description-section {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
