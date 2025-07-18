@@ -104,7 +104,7 @@
               />
             </template>
             <span v-if="fillType === 'embedding'">
-              <strong>Embedding:</strong> Finds photos with similar semantic
+              <strong>General:</strong> Finds photos with similar semantic
               content and composition
             </span>
             <span v-else-if="fillType === 'chromatic'">
@@ -113,7 +113,7 @@
             </span>
           </n-tooltip>
 
-          <n-tooltip trigger="hover" placement="top">
+          <!-- <n-tooltip trigger="hover" placement="top">
             <template #trigger>
               <n-select
                 v-model:value="processingMode"
@@ -133,7 +133,7 @@
               <strong>Concurrent:</strong> Faster but may generate some
               duplicate photos
             </span>
-          </n-tooltip>
+          </n-tooltip> -->
 
           <n-button
             type="primary"
@@ -183,8 +183,8 @@
               </div>
               <!-- Generating Skeleton -->
               <div v-else-if="cell.isGenerating" class="generating-cell">
-                <n-skeleton height="100%" />
-                <div class="generating-overlay">
+                <n-skeleton height="100%" width="100%" />
+                <div v-if="showSpinnerOverlay" class="generating-overlay">
                   <n-spin size="medium" />
                 </div>
               </div>
@@ -323,12 +323,15 @@ const fillType = ref<string>("embedding");
 // Configuration for processing mode
 const processingMode = ref<"sequential" | "concurrent">("sequential");
 
+// Developer option: Show spinner overlay on generating cells (for debugging/preference)
+const showSpinnerOverlay = ref(true); // Set to true to enable spinner overlay
+
 // Track deleted photos to prevent regeneration
 const deletedPhotoIds = ref<string[]>([]);
 
 // Fill type options
 const fillTypeOptions = [
-  { label: "Embedding", value: "embedding" },
+  { label: "General", value: "embedding" },
   { label: "Chromatic", value: "chromatic" },
 ];
 
@@ -1068,12 +1071,6 @@ onMounted(async () => {
   justify-content: center;
   gap: var(--spacing-sm);
   z-index: 2;
-}
-
-.generating-text {
-  font-size: 12px;
-  color: white;
-  font-weight: 500;
 }
 
 /* Filled Cell */
