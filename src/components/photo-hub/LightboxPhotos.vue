@@ -92,7 +92,7 @@
       </h3>
     </div>
     <!-- Full Upload Dasdaopzone (show when no photos) -->
-    <div v-if="allPhotos.length === 0" class="upload-section">
+    <div v-if="lightboxPhotos.length === 0" class="upload-section">
       <div class="upload-dropzone">
         <div class="dropzone-content">
           <div class="upload-icon">
@@ -602,7 +602,7 @@ async function uploadLocalFiles(event) {
       // Si falla la llamada, borrar las fotos y mostrar notificación
       await photosStore.deletePhotos(photoIds);
       message.error(
-       "There was an error processing the photos. Please try again later."
+        "There was an error processing the photos. Please try again later."
       );
       isUploading.value = false;
       event.target.value = "";

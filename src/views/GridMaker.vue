@@ -76,11 +76,11 @@
               {{ excludedPhotosCount }} excluded
               <n-tooltip trigger="hover" placement="top">
                 <template #trigger>
-                  <n-button 
-                    text 
-                    size="tiny" 
+                  <n-button
+                    text
+                    size="tiny"
                     @click="clearExcludedPhotos"
-                    style="margin-left: 4px; padding: 0; min-height: auto;"
+                    style="margin-left: 4px; padding: 0; min-height: auto"
                   >
                     <n-icon size="12">
                       <CloseOutline />
@@ -241,7 +241,7 @@
               </div> -->
               <!-- Original photo indicator -->
               <div
-                v-if="!cell.photo.sourcePhotoId"
+                v-if="!cell.photo.sourcePhotoId && !cell.photo.sourcePhotoIds"
                 class="original-photo-badge"
               >
                 <n-icon size="12"><BookmarkOutline /></n-icon>
@@ -428,13 +428,13 @@ const handlePhotoSelection = (photoIds: string[]) => {
 
 const removePhoto = (cellIndex: number) => {
   const photo = gridCells.value[cellIndex].photo;
-  
+
   if (photo) {
     // Add to deleted photos list to prevent regeneration
     if (!deletedPhotoIds.value.includes(photo.id)) {
       deletedPhotoIds.value.push(photo.id);
     }
-    
+
     gridCells.value[cellIndex].photo = null;
     message.info("Photo removed from grid and marked as excluded");
   }
@@ -442,70 +442,68 @@ const removePhoto = (cellIndex: number) => {
 
 const clearExcludedPhotos = () => {
   deletedPhotoIds.value = [];
-  message.success("Excluded photos list cleared. These photos can now be generated again.");
+  message.success(
+    "Excluded photos list cleared. These photos can now be generated again."
+  );
 };
 
-// Real function to get related photo from another photo using API
-const getPhotoFromPhoto = async (
-  sourcePhoto: any,
+// Nueva función: obtiene una foto relacionada usando varios vecinos como anchorIds
+const getPhotoFromNeighbors = async (
+  anchorIds: string[],
   criteria: string = "embedding",
   providedCurrentPhotosIds?: string[]
 ): Promise<any> => {
   try {
-    // Use provided IDs or get current photos in grid to avoid duplicates
     const gridPhotosIds = gridCells.value
       .filter((cell) => cell.photo !== null)
       .map((cell) => cell.photo.id);
-    
-    // Combine grid photos with deleted photos to prevent regeneration
     const currentPhotosIds = providedCurrentPhotosIds || [
       ...gridPhotosIds,
-      ...deletedPhotoIds.value
+      ...deletedPhotoIds.value,
     ];
-
     const response = await api.post(`/api/search/byPhotos`, {
-      anchorIds: [sourcePhoto.id], // Solo un ID en el array
-      currentPhotosIds: currentPhotosIds, // Evitar fotos ya en el grid y eliminadas
-      criteria: criteria, // "embedding" o "chromatic"
+      anchorIds,
+      currentPhotosIds,
+      criteria,
       opposite: false,
       inverted: false,
-      resultLength: 1, // Solo necesitamos una foto
+      resultLength: 1,
     });
-
     const backendPhotos = Array.isArray(response.data)
       ? response.data
       : [response.data];
-
     if (backendPhotos.length === 0) {
       throw new Error("No related photos found");
     }
-
     const relatedPhoto = backendPhotos[0];
-
-    // Add metadata to track generation
+    // Calcular la mayor profundidad de los vecinos
+    let maxDepth = 0;
+    for (const id of anchorIds) {
+      const cell = gridCells.value.find((c) => c.photo && c.photo.id === id);
+      if (cell && cell.photo && cell.photo.generationDepth)
+        maxDepth = Math.max(maxDepth, cell.photo.generationDepth);
+    }
     return {
       ...relatedPhoto,
-      sourcePhotoId: sourcePhoto.id, // Track the source photo
-      generationDepth: (sourcePhoto.generationDepth || 0) + 1, // Track generation depth
-      criteria: criteria, // Track the criteria used for generation
+      sourcePhotoIds: anchorIds,
+      generationDepth: maxDepth + 1,
+      criteria,
     };
   } catch (error) {
     console.error("Error getting related photo:", error);
-
-    // Fallback to mock photo if API fails
-    const relatedPhotoId = `fallback-${
-      sourcePhoto.id
-    }-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
+    // Fallback a mock photo si falla la API
+    const relatedPhotoId = `fallback-${anchorIds.join(
+      "-"
+    )}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     return {
       id: relatedPhotoId,
       url: `https://picsum.photos/400/400?random=${Date.now()}-${Math.random()}`,
       thumbnailUrl: `https://picsum.photos/200/200?random=${Date.now()}-${Math.random()}`,
-      title: `Fallback for ${sourcePhoto.title || sourcePhoto.name || "Photo"}`,
-      name: `Fallback for ${sourcePhoto.title || sourcePhoto.name || "Photo"}`,
-      sourcePhotoId: sourcePhoto.id,
-      generationDepth: (sourcePhoto.generationDepth || 0) + 1,
-      criteria: criteria, // Track the criteria used for generation
+      title: `Fallback for neighbors ${anchorIds.join(", ")}`,
+      name: `Fallback for neighbors ${anchorIds.join(", ")}`,
+      sourcePhotoIds: anchorIds,
+      generationDepth: 1,
+      criteria,
     };
   }
 };
@@ -562,59 +560,54 @@ const fillGapsSequential = async (photoCells: any[]) => {
   const processedCells = new Set<number>();
   const processQueue: Array<{
     cellIndex: number;
-    sourcePhoto: any;
     depth: number;
   }> = [];
 
-  // Initialize queue with all existing photos
-  photoCells.forEach(({ index, photo }) => {
+  // Inicializar la cola con los huecos adyacentes a fotos existentes
+  photoCells.forEach(({ index }) => {
     const adjacentEmpty = getAdjacentCells(index).filter(
       (adjIndex) =>
         !gridCells.value[adjIndex].photo &&
         !gridCells.value[adjIndex].isGenerating
     );
-
     adjacentEmpty.forEach((adjIndex) => {
       processQueue.push({
         cellIndex: adjIndex,
-        sourcePhoto: photo,
         depth: 0,
       });
       gridCells.value[adjIndex].isGenerating = true;
     });
   });
 
-  // Process queue sequentially
   let processedCount = 0;
   for (const item of processQueue) {
     if (processedCells.has(item.cellIndex)) continue;
-
     try {
-      // Get updated currentPhotosIds to avoid duplicates (including deleted photos)
+      // IDs de vecinos con foto
+      const neighborIds = getAdjacentCells(item.cellIndex)
+        .filter((i) => gridCells.value[i].photo)
+        .map((i) => gridCells.value[i].photo.id);
+      if (neighborIds.length === 0) {
+        gridCells.value[item.cellIndex].isGenerating = false;
+        continue;
+      }
+      // Evitar duplicados
       const gridPhotosIds = gridCells.value
         .filter((cell) => cell.photo !== null)
         .map((cell) => cell.photo.id);
-      
-      const currentPhotosIds = [
-        ...gridPhotosIds,
-        ...deletedPhotoIds.value
-      ];
-
-      const relatedPhoto = await getPhotoFromPhoto(
-        item.sourcePhoto,
+      const currentPhotosIds = [...gridPhotosIds, ...deletedPhotoIds.value];
+      const relatedPhoto = await getPhotoFromNeighbors(
+        neighborIds,
         fillType.value,
         currentPhotosIds
       );
-      relatedPhoto.generationDepth = item.depth;
-
       // Check if cell is still empty
       if (!gridCells.value[item.cellIndex].photo) {
         gridCells.value[item.cellIndex].photo = relatedPhoto;
         gridCells.value[item.cellIndex].isGenerating = false;
         processedCells.add(item.cellIndex);
         processedCount++;
-
-        // Add adjacent empty cells for recursive expansion (limit depth)
+        // Expandir recursivamente (profundidad limitada)
         if (item.depth < 3) {
           const adjacentEmpty = getAdjacentCells(item.cellIndex).filter(
             (adjIndex) =>
@@ -622,12 +615,10 @@ const fillGapsSequential = async (photoCells: any[]) => {
               !gridCells.value[adjIndex].isGenerating &&
               !processedCells.has(adjIndex)
           );
-
           adjacentEmpty.forEach((adjIndex) => {
             if (!processedCells.has(adjIndex)) {
               processQueue.push({
                 cellIndex: adjIndex,
-                sourcePhoto: relatedPhoto,
                 depth: item.depth + 1,
               });
               gridCells.value[adjIndex].isGenerating = true;
@@ -645,7 +636,6 @@ const fillGapsSequential = async (photoCells: any[]) => {
       gridCells.value[item.cellIndex].isGenerating = false;
     }
   }
-
   message.success(
     `Successfully filled ${processedCount} gaps with sequential processing!`
   );
@@ -696,11 +686,8 @@ const fillGapsConcurrent = async (photoCells: any[]) => {
       const gridPhotosIds = gridCells.value
         .filter((cell) => cell.photo !== null)
         .map((cell) => cell.photo.id);
-      
-      const currentPhotosIds = [
-        ...gridPhotosIds,
-        ...deletedPhotoIds.value
-      ];
+
+      const currentPhotosIds = [...gridPhotosIds, ...deletedPhotoIds.value];
 
       const relatedPhoto = await getPhotoFromPhoto(
         sourcePhoto,

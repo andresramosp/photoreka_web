@@ -259,7 +259,11 @@ const filteredPhotos = computed(() => {
   if (!filterDuplicates.value) {
     return processedPhotos.value;
   }
-  return processedPhotos.value.filter((photo) => photo.isDuplicate);
+   return filterDuplicates.value
+      ? groupDuplicates(
+          processedPhotos.value.filter((photo) => photo.isDuplicate)
+        )
+      : processedPhotos.value;
 });
 
 // Selection state
@@ -273,6 +277,35 @@ const allSelected = computed(() => {
     filteredPhotos.value.every((photo) => selectedPhotosRecord.value[photo.id])
   );
 });
+
+function groupDuplicates(photos) {
+  const groupMap = new Map();
+  const added = new Set();
+  photos.forEach((photo) => {
+    if (!photo.isDuplicate) return;
+    // Creamos una clave única para el grupo de duplicados
+    const groupIds = [photo.id, ...(photo.duplicates || [])].sort((a, b) =>
+      String(a).localeCompare(String(b))
+    );
+    const groupKey = groupIds.join("-");
+    if (!groupMap.has(groupKey)) groupMap.set(groupKey, []);
+    groupMap.get(groupKey).push(photo);
+  });
+  // Devolvemos un array plano, agrupando los duplicados juntos, manteniendo el orden de aparición original
+  const result = [];
+  photos.forEach((photo) => {
+    if (!photo.isDuplicate) return;
+    const groupIds = [photo.id, ...(photo.duplicates || [])].sort((a, b) =>
+      String(a).localeCompare(String(b))
+    );
+    const groupKey = groupIds.join("-");
+    if (groupMap.has(groupKey) && !added.has(groupKey)) {
+      result.push(...groupMap.get(groupKey));
+      added.add(groupKey);
+    }
+  });
+  return result;
+}
 
 // Photo selection functions
 const showPhotoInfo = async (photo) => {
