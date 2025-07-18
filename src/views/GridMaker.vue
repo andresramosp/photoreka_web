@@ -69,16 +69,71 @@
             <span class="photos-count">
               {{ filledCells }} / {{ totalCells }} photos
             </span>
+            <span v-if="generatedPhotosCount > 0" class="generated-count">
+              {{ generatedPhotosCount }} AI generated
+            </span>
+            <span v-if="excludedPhotosCount > 0" class="excluded-count">
+              {{ excludedPhotosCount }} excluded
+              <n-tooltip trigger="hover" placement="top">
+                <template #trigger>
+                  <n-button 
+                    text 
+                    size="tiny" 
+                    @click="clearExcludedPhotos"
+                    style="margin-left: 4px; padding: 0; min-height: auto;"
+                  >
+                    <n-icon size="12">
+                      <CloseOutline />
+                    </n-icon>
+                  </n-button>
+                </template>
+                Clear excluded photos list
+              </n-tooltip>
+            </span>
           </div>
         </div>
 
         <div class="control-group">
-          <n-select
-            v-model:value="fillType"
-            :options="fillTypeOptions"
-            placeholder="Fill type"
-            style="width: 180px"
-          />
+          <n-tooltip trigger="hover" placement="top">
+            <template #trigger>
+              <n-select
+                v-model:value="fillType"
+                :options="fillTypeOptions"
+                placeholder="Fill type"
+                style="width: 180px"
+              />
+            </template>
+            <span v-if="fillType === 'embedding'">
+              <strong>Embedding:</strong> Finds photos with similar semantic
+              content and composition
+            </span>
+            <span v-else-if="fillType === 'chromatic'">
+              <strong>Chromatic:</strong> Finds photos with similar colors and
+              visual style
+            </span>
+          </n-tooltip>
+
+          <n-tooltip trigger="hover" placement="top">
+            <template #trigger>
+              <n-select
+                v-model:value="processingMode"
+                :options="[
+                  { label: 'Sequential (Safe)', value: 'sequential' },
+                  { label: 'Concurrent (Fast)', value: 'concurrent' },
+                ]"
+                placeholder="Processing mode"
+                style="width: 160px"
+              />
+            </template>
+            <span v-if="processingMode === 'sequential'">
+              <strong>Sequential:</strong> Slower but guarantees no duplicate
+              photos
+            </span>
+            <span v-else>
+              <strong>Concurrent:</strong> Faster but may generate some
+              duplicate photos
+            </span>
+          </n-tooltip>
 
           <n-button
             type="primary"
@@ -161,6 +216,36 @@
                   </template>
                 </n-button>
               </div>
+              <!-- Photo info badge -->
+              <!-- <div v-if="cell.photo.sourcePhotoId" class="photo-info-badge">
+                <n-tooltip trigger="hover" placement="top">
+                  <template #trigger>
+                    <span class="generation-info">
+                      {{ cell.photo.generationDepth || 0 }}
+                      <span class="criteria-indicator">{{
+                        cell.photo.criteria === "chromatic" ? "🎨" : "🧠"
+                      }}</span>
+                    </span>
+                  </template>
+                  <span>
+                    Generation depth: {{ cell.photo.generationDepth || 0
+                    }}<br />
+                    Criteria:
+                    {{
+                      cell.photo.criteria === "chromatic"
+                        ? "Chromatic (color-based)"
+                        : "Embedding (semantic)"
+                    }}
+                  </span>
+                </n-tooltip>
+              </div> -->
+              <!-- Original photo indicator -->
+              <div
+                v-if="!cell.photo.sourcePhotoId"
+                class="original-photo-badge"
+              >
+                <n-icon size="12"><BookmarkOutline /></n-icon>
+              </div>
             </div>
           </div>
         </div>
@@ -197,9 +282,10 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted } from "vue";
-import { useMessage } from "naive-ui";
+import { useMessage, NSelect, NButton, NTooltip } from "naive-ui";
 import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
 import { usePhotosStore } from "@/stores/photos";
+import api from "@/utils/axios";
 
 // Import icons
 import {
@@ -227,13 +313,18 @@ const hoveredCols = ref(0);
 const showPhotoDialog = ref(false);
 const selectedCellIndex = ref<number | null>(null);
 const isGenerating = ref(false);
-const fillType = ref<string>("general");
+const fillType = ref<string>("embedding");
+
+// Configuration for processing mode
+const processingMode = ref<"sequential" | "concurrent">("sequential");
+
+// Track deleted photos to prevent regeneration
+const deletedPhotoIds = ref<string[]>([]);
 
 // Fill type options
 const fillTypeOptions = [
-  { label: "General", value: "general" },
-  { label: "By Color", value: "color" },
-  { label: "By Context", value: "context" },
+  { label: "Embedding", value: "embedding" },
+  { label: "Chromatic", value: "chromatic" },
 ];
 
 // Grid cells data
@@ -244,52 +335,20 @@ const gridCells = ref<
   }>
 >([]);
 
-// Mock photos for generation
-const mockPhotos = [
-  {
-    id: "mock-1",
-    url: "https://picsum.photos/400/400?random=1",
-    title: "Generated Photo 1",
-    thumbnailUrl: "https://picsum.photos/200/200?random=1",
-  },
-  {
-    id: "mock-2",
-    url: "https://picsum.photos/400/400?random=2",
-    title: "Generated Photo 2",
-    thumbnailUrl: "https://picsum.photos/200/200?random=2",
-  },
-  {
-    id: "mock-3",
-    url: "https://picsum.photos/400/400?random=3",
-    title: "Generated Photo 3",
-    thumbnailUrl: "https://picsum.photos/200/200?random=3",
-  },
-  {
-    id: "mock-4",
-    url: "https://picsum.photos/400/400?random=4",
-    title: "Generated Photo 4",
-    thumbnailUrl: "https://picsum.photos/200/200?random=4",
-  },
-  {
-    id: "mock-5",
-    url: "https://picsum.photos/400/400?random=5",
-    title: "Generated Photo 5",
-    thumbnailUrl: "https://picsum.photos/200/200?random=5",
-  },
-  {
-    id: "mock-6",
-    url: "https://picsum.photos/400/400?random=6",
-    title: "Generated Photo 6",
-    thumbnailUrl: "https://picsum.photos/200/200?random=6",
-  },
-];
-
 // Computed properties
 const totalCells = computed(() => selectedRows.value * selectedCols.value);
 
 const filledCells = computed(
   () => gridCells.value.filter((cell) => cell.photo !== null).length
 );
+
+const generatedPhotosCount = computed(
+  () =>
+    gridCells.value.filter((cell) => cell.photo && cell.photo.sourcePhotoId)
+      .length
+);
+
+const excludedPhotosCount = computed(() => deletedPhotoIds.value.length);
 
 const hasEmptyCells = computed(() =>
   gridCells.value.some((cell) => !cell.photo && !cell.isGenerating)
@@ -327,6 +386,9 @@ const createGrid = () => {
       isGenerating: false,
     }));
 
+  // Reset deleted photos when creating new grid
+  deletedPhotoIds.value = [];
+
   message.success(`Created ${selectedRows.value}×${selectedCols.value} grid`);
 };
 
@@ -337,6 +399,7 @@ const resetGrid = () => {
   hoveredRows.value = 0;
   hoveredCols.value = 0;
   gridCells.value = [];
+  deletedPhotoIds.value = []; // Reset deleted photos when creating new grid
   message.info("Grid reset");
 };
 
@@ -364,61 +427,377 @@ const handlePhotoSelection = (photoIds: string[]) => {
 };
 
 const removePhoto = (cellIndex: number) => {
-  gridCells.value[cellIndex].photo = null;
-  message.info("Photo removed from grid");
+  const photo = gridCells.value[cellIndex].photo;
+  
+  if (photo) {
+    // Add to deleted photos list to prevent regeneration
+    if (!deletedPhotoIds.value.includes(photo.id)) {
+      deletedPhotoIds.value.push(photo.id);
+    }
+    
+    gridCells.value[cellIndex].photo = null;
+    message.info("Photo removed from grid and marked as excluded");
+  }
+};
+
+const clearExcludedPhotos = () => {
+  deletedPhotoIds.value = [];
+  message.success("Excluded photos list cleared. These photos can now be generated again.");
+};
+
+// Real function to get related photo from another photo using API
+const getPhotoFromPhoto = async (
+  sourcePhoto: any,
+  criteria: string = "embedding",
+  providedCurrentPhotosIds?: string[]
+): Promise<any> => {
+  try {
+    // Use provided IDs or get current photos in grid to avoid duplicates
+    const gridPhotosIds = gridCells.value
+      .filter((cell) => cell.photo !== null)
+      .map((cell) => cell.photo.id);
+    
+    // Combine grid photos with deleted photos to prevent regeneration
+    const currentPhotosIds = providedCurrentPhotosIds || [
+      ...gridPhotosIds,
+      ...deletedPhotoIds.value
+    ];
+
+    const response = await api.post(`/api/search/byPhotos`, {
+      anchorIds: [sourcePhoto.id], // Solo un ID en el array
+      currentPhotosIds: currentPhotosIds, // Evitar fotos ya en el grid y eliminadas
+      criteria: criteria, // "embedding" o "chromatic"
+      opposite: false,
+      inverted: false,
+      resultLength: 1, // Solo necesitamos una foto
+    });
+
+    const backendPhotos = Array.isArray(response.data)
+      ? response.data
+      : [response.data];
+
+    if (backendPhotos.length === 0) {
+      throw new Error("No related photos found");
+    }
+
+    const relatedPhoto = backendPhotos[0];
+
+    // Add metadata to track generation
+    return {
+      ...relatedPhoto,
+      sourcePhotoId: sourcePhoto.id, // Track the source photo
+      generationDepth: (sourcePhoto.generationDepth || 0) + 1, // Track generation depth
+      criteria: criteria, // Track the criteria used for generation
+    };
+  } catch (error) {
+    console.error("Error getting related photo:", error);
+
+    // Fallback to mock photo if API fails
+    const relatedPhotoId = `fallback-${
+      sourcePhoto.id
+    }-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    return {
+      id: relatedPhotoId,
+      url: `https://picsum.photos/400/400?random=${Date.now()}-${Math.random()}`,
+      thumbnailUrl: `https://picsum.photos/200/200?random=${Date.now()}-${Math.random()}`,
+      title: `Fallback for ${sourcePhoto.title || sourcePhoto.name || "Photo"}`,
+      name: `Fallback for ${sourcePhoto.title || sourcePhoto.name || "Photo"}`,
+      sourcePhotoId: sourcePhoto.id,
+      generationDepth: (sourcePhoto.generationDepth || 0) + 1,
+      criteria: criteria, // Track the criteria used for generation
+    };
+  }
+};
+
+// Get adjacent cell indices for a given cell
+const getAdjacentCells = (cellIndex: number): number[] => {
+  const row = Math.floor(cellIndex / selectedCols.value);
+  const col = cellIndex % selectedCols.value;
+  const adjacent: number[] = [];
+
+  // Top
+  if (row > 0) adjacent.push((row - 1) * selectedCols.value + col);
+  // Bottom
+  if (row < selectedRows.value - 1)
+    adjacent.push((row + 1) * selectedCols.value + col);
+  // Left
+  if (col > 0) adjacent.push(row * selectedCols.value + (col - 1));
+  // Right
+  if (col < selectedCols.value - 1)
+    adjacent.push(row * selectedCols.value + (col + 1));
+
+  return adjacent;
 };
 
 const fillGaps = async () => {
   isGenerating.value = true;
 
-  // Find empty cells
-  const emptyCellIndices = gridCells.value
-    .map((cell, index) => (!cell.photo && !cell.isGenerating ? index : -1))
-    .filter((index) => index !== -1);
+  // Find cells with photos (seeds for generation)
+  const photoCells = gridCells.value
+    .map((cell, index) => (cell.photo ? { index, photo: cell.photo } : null))
+    .filter((item) => item !== null);
 
-  if (emptyCellIndices.length === 0) {
-    message.warning("No empty cells to fill");
+  if (photoCells.length === 0) {
+    message.warning("Add at least one photo to start filling gaps");
     isGenerating.value = false;
     return;
   }
 
   message.info(
-    `Generating ${emptyCellIndices.length} photos using ${fillType.value} mode...`
+    `Starting intelligent gap filling from ${photoCells.length} seed photos using ${processingMode.value} mode...`
   );
 
-  // Set cells to generating state
-  emptyCellIndices.forEach((index) => {
-    gridCells.value[index].isGenerating = true;
+  if (processingMode.value === "sequential") {
+    await fillGapsSequential(photoCells);
+  } else {
+    await fillGapsConcurrent(photoCells);
+  }
+
+  isGenerating.value = false;
+};
+
+// Sequential processing - guarantees no duplicates
+const fillGapsSequential = async (photoCells: any[]) => {
+  const processedCells = new Set<number>();
+  const processQueue: Array<{
+    cellIndex: number;
+    sourcePhoto: any;
+    depth: number;
+  }> = [];
+
+  // Initialize queue with all existing photos
+  photoCells.forEach(({ index, photo }) => {
+    const adjacentEmpty = getAdjacentCells(index).filter(
+      (adjIndex) =>
+        !gridCells.value[adjIndex].photo &&
+        !gridCells.value[adjIndex].isGenerating
+    );
+
+    adjacentEmpty.forEach((adjIndex) => {
+      processQueue.push({
+        cellIndex: adjIndex,
+        sourcePhoto: photo,
+        depth: 0,
+      });
+      gridCells.value[adjIndex].isGenerating = true;
+    });
   });
 
-  // Simulate generation with staggered delays
-  for (let i = 0; i < emptyCellIndices.length; i++) {
-    const cellIndex = emptyCellIndices[i];
+  // Process queue sequentially
+  let processedCount = 0;
+  for (const item of processQueue) {
+    if (processedCells.has(item.cellIndex)) continue;
 
-    // Random delay between 1-3 seconds
-    const delay = 1000 + Math.random() * 2000;
+    try {
+      // Get updated currentPhotosIds to avoid duplicates (including deleted photos)
+      const gridPhotosIds = gridCells.value
+        .filter((cell) => cell.photo !== null)
+        .map((cell) => cell.photo.id);
+      
+      const currentPhotosIds = [
+        ...gridPhotosIds,
+        ...deletedPhotoIds.value
+      ];
 
-    setTimeout(() => {
-      // Get random mock photo
-      const randomPhoto =
-        mockPhotos[Math.floor(Math.random() * mockPhotos.length)];
-      const generatedPhoto = {
-        ...randomPhoto,
-        id: `generated-${Date.now()}-${cellIndex}`,
-        url: `https://picsum.photos/400/400?random=${Date.now()}-${cellIndex}`,
-        thumbnailUrl: `https://picsum.photos/200/200?random=${Date.now()}-${cellIndex}`,
-      };
+      const relatedPhoto = await getPhotoFromPhoto(
+        item.sourcePhoto,
+        fillType.value,
+        currentPhotosIds
+      );
+      relatedPhoto.generationDepth = item.depth;
 
-      gridCells.value[cellIndex].photo = generatedPhoto;
-      gridCells.value[cellIndex].isGenerating = false;
+      // Check if cell is still empty
+      if (!gridCells.value[item.cellIndex].photo) {
+        gridCells.value[item.cellIndex].photo = relatedPhoto;
+        gridCells.value[item.cellIndex].isGenerating = false;
+        processedCells.add(item.cellIndex);
+        processedCount++;
 
-      // Check if all cells are done generating
-      if (i === emptyCellIndices.length - 1) {
-        isGenerating.value = false;
-        message.success("All gaps filled successfully!");
+        // Add adjacent empty cells for recursive expansion (limit depth)
+        if (item.depth < 3) {
+          const adjacentEmpty = getAdjacentCells(item.cellIndex).filter(
+            (adjIndex) =>
+              !gridCells.value[adjIndex].photo &&
+              !gridCells.value[adjIndex].isGenerating &&
+              !processedCells.has(adjIndex)
+          );
+
+          adjacentEmpty.forEach((adjIndex) => {
+            if (!processedCells.has(adjIndex)) {
+              processQueue.push({
+                cellIndex: adjIndex,
+                sourcePhoto: relatedPhoto,
+                depth: item.depth + 1,
+              });
+              gridCells.value[adjIndex].isGenerating = true;
+            }
+          });
+        }
+      } else {
+        gridCells.value[item.cellIndex].isGenerating = false;
       }
-    }, delay);
+    } catch (error) {
+      console.error(
+        `Error generating photo for cell ${item.cellIndex}:`,
+        error
+      );
+      gridCells.value[item.cellIndex].isGenerating = false;
+    }
   }
+
+  message.success(
+    `Successfully filled ${processedCount} gaps with sequential processing!`
+  );
+};
+
+// Concurrent processing with validation (original implementation)
+const fillGapsConcurrent = async (photoCells: any[]) => {
+  const processingCells = new Set<number>();
+  const processedCells = new Set<number>();
+  const processQueue: Array<{
+    cellIndex: number;
+    sourcePhoto: any;
+    depth: number;
+  }> = [];
+
+  // Initialize queue with all existing photos
+  photoCells.forEach(({ index, photo }) => {
+    const adjacentEmpty = getAdjacentCells(index).filter(
+      (adjIndex) =>
+        !gridCells.value[adjIndex].photo &&
+        !gridCells.value[adjIndex].isGenerating &&
+        !processingCells.has(adjIndex)
+    );
+
+    adjacentEmpty.forEach((adjIndex) => {
+      if (!processingCells.has(adjIndex)) {
+        processQueue.push({
+          cellIndex: adjIndex,
+          sourcePhoto: photo,
+          depth: 0,
+        });
+        processingCells.add(adjIndex);
+        gridCells.value[adjIndex].isGenerating = true;
+      }
+    });
+  });
+
+  // Process cell with validation
+  const processCell = async (item: {
+    cellIndex: number;
+    sourcePhoto: any;
+    depth: number;
+  }) => {
+    const { cellIndex, sourcePhoto, depth } = item;
+
+    try {
+      // Get current photos to avoid duplicates (including deleted photos)
+      const gridPhotosIds = gridCells.value
+        .filter((cell) => cell.photo !== null)
+        .map((cell) => cell.photo.id);
+      
+      const currentPhotosIds = [
+        ...gridPhotosIds,
+        ...deletedPhotoIds.value
+      ];
+
+      const relatedPhoto = await getPhotoFromPhoto(
+        sourcePhoto,
+        fillType.value,
+        currentPhotosIds
+      );
+      relatedPhoto.generationDepth = depth;
+
+      // Validation: check if photo already exists in grid
+      const isDuplicate = gridCells.value.some(
+        (cell) => cell.photo && cell.photo.id === relatedPhoto.id
+      );
+
+      if (isDuplicate) {
+        console.warn(
+          `Duplicate photo detected: ${relatedPhoto.id}, retrying...`
+        );
+        // Could implement retry logic here
+        gridCells.value[cellIndex].isGenerating = false;
+        return;
+      }
+
+      // Check if cell is still empty and not processed by another thread
+      if (!gridCells.value[cellIndex].photo && !processedCells.has(cellIndex)) {
+        gridCells.value[cellIndex].photo = relatedPhoto;
+        gridCells.value[cellIndex].isGenerating = false;
+        processedCells.add(cellIndex);
+
+        // Find adjacent empty cells for this new photo (recursive expansion)
+        if (depth < 3) {
+          const adjacentEmpty = getAdjacentCells(cellIndex).filter(
+            (adjIndex) =>
+              !gridCells.value[adjIndex].photo &&
+              !gridCells.value[adjIndex].isGenerating &&
+              !processingCells.has(adjIndex) &&
+              !processedCells.has(adjIndex)
+          );
+
+          adjacentEmpty.forEach((adjIndex) => {
+            if (!processingCells.has(adjIndex)) {
+              processQueue.push({
+                cellIndex: adjIndex,
+                sourcePhoto: relatedPhoto,
+                depth: depth + 1,
+              });
+              processingCells.add(adjIndex);
+              gridCells.value[adjIndex].isGenerating = true;
+            }
+          });
+        }
+      } else {
+        gridCells.value[cellIndex].isGenerating = false;
+      }
+    } catch (error) {
+      console.error(`Error generating photo for cell ${cellIndex}:`, error);
+      gridCells.value[cellIndex].isGenerating = false;
+      processingCells.delete(cellIndex);
+    }
+  };
+
+  // Process with controlled concurrency
+  const processWithConcurrency = async () => {
+    const concurrent = 3;
+    let currentIndex = 0;
+
+    const processNext = async (): Promise<void> => {
+      if (currentIndex >= processQueue.length) return;
+      const item = processQueue[currentIndex++];
+      await processCell(item);
+      return processNext();
+    };
+
+    const processors = Array(Math.min(concurrent, processQueue.length))
+      .fill(null)
+      .map(() => processNext());
+
+    await Promise.all(processors);
+  };
+
+  await processWithConcurrency();
+
+  // Process remaining items
+  while (processQueue.length > 0) {
+    const remainingItems = [...processQueue];
+    processQueue.length = 0;
+
+    for (const item of remainingItems) {
+      if (!processedCells.has(item.cellIndex)) {
+        await processCell(item);
+      }
+    }
+  }
+
+  const filledCount = processedCells.size;
+  message.success(
+    `Successfully filled ${filledCount} gaps with concurrent processing!`
+  );
 };
 
 const exportGrid = () => {
@@ -428,7 +807,7 @@ const exportGrid = () => {
   }
 
   // Simulate export process
-  message.loading("Stagingaring grid for export...", {
+  message.loading("Preparing grid for export...", {
     duration: 2000,
     onAfterLeave: () => {
       message.success("Grid exported successfully!");
@@ -601,6 +980,18 @@ onMounted(async () => {
   color: var(--text-secondary);
 }
 
+.generated-count {
+  font-size: 12px;
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.excluded-count {
+  font-size: 12px;
+  color: var(--error-color, #ff6b6b);
+  font-weight: 500;
+}
+
 /* Photo Grid */
 .photo-grid-container {
   background-color: var(--bg-surface);
@@ -716,6 +1107,57 @@ onMounted(async () => {
   background-color: rgba(0, 0, 0, 0.7) !important;
   border: none !important;
   color: white !important;
+}
+
+/* Photo Info Badges */
+.photo-info-badge {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  background-color: rgba(139, 92, 246, 0.9);
+  color: white;
+  border-radius: 12px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.photo-info-badge:hover {
+  background-color: rgba(139, 92, 246, 1);
+}
+
+.generation-info {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+}
+
+.criteria-indicator {
+  font-size: 8px;
+  opacity: 0.9;
+}
+
+.generation-depth {
+  font-size: 10px;
+}
+
+.original-photo-badge {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  background-color: rgba(34, 197, 94, 0.9);
+  color: white;
+  border-radius: 50%;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Bottom Actions */
