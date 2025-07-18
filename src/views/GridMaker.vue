@@ -162,31 +162,33 @@
             }"
           >
             <!-- Empty Cell with Add Button -->
-            <div v-if="!cell.photo && !cell.isGenerating" class="empty-cell">
-              <n-button
-                circle
-                size="large"
-                class="add-photo-btn"
-                @click="openPhotoSelector(index)"
+            <template v-if="!cell.photo">
+              <div
+                v-if="!cell.isGenerating && !isGenerating"
+                class="empty-cell"
               >
-                <template #icon>
-                  <n-icon size="24">
-                    <AddOutline />
-                  </n-icon>
-                </template>
-              </n-button>
-              <span class="cell-label">Add Photo</span>
-            </div>
-
-            <!-- Generating Skeleton -->
-            <div v-else-if="cell.isGenerating" class="generating-cell">
-              <n-skeleton height="100%" />
-              <div class="generating-overlay">
-                <n-spin size="medium" />
-                <span class="generating-text">Generating...</span>
+                <n-button
+                  circle
+                  size="large"
+                  class="add-photo-btn"
+                  @click="openPhotoSelector(index)"
+                >
+                  <template #icon>
+                    <n-icon size="24">
+                      <AddOutline />
+                    </n-icon>
+                  </template>
+                </n-button>
+                <span class="cell-label">Add Photo</span>
               </div>
-            </div>
-
+              <!-- Generating Skeleton -->
+              <div v-else-if="cell.isGenerating" class="generating-cell">
+                <n-skeleton height="100%" />
+                <div class="generating-overlay">
+                  <n-spin size="medium" />
+                </div>
+              </div>
+            </template>
             <!-- Photo Cell -->
             <div v-else class="filled-cell">
               <img
@@ -301,6 +303,9 @@ import {
 // Grid configuration
 const maxRows = 8;
 const maxCols = 8;
+
+// Profundidad máxima de recursión para el llenado de huecos
+const MAX_RECURSION_DEPTH = 5;
 
 // State
 const message = useMessage();
@@ -608,7 +613,7 @@ const fillGapsSequential = async (photoCells: any[]) => {
         processedCells.add(item.cellIndex);
         processedCount++;
         // Expandir recursivamente (profundidad limitada)
-        if (item.depth < 3) {
+        if (item.depth < MAX_RECURSION_DEPTH) {
           const adjacentEmpty = getAdjacentCells(item.cellIndex).filter(
             (adjIndex) =>
               !gridCells.value[adjIndex].photo &&
@@ -679,9 +684,17 @@ const fillGapsConcurrent = async (photoCells: any[]) => {
     sourcePhoto: any;
     depth: number;
   }) => {
-    const { cellIndex, sourcePhoto, depth } = item;
+    const { cellIndex, depth } = item;
 
     try {
+      // Obtener los IDs de todas las vecinas con foto (igual que en fillGapsSequential)
+      const neighborIds = getAdjacentCells(cellIndex)
+        .filter((i) => gridCells.value[i].photo)
+        .map((i) => gridCells.value[i].photo.id);
+      if (neighborIds.length === 0) {
+        gridCells.value[cellIndex].isGenerating = false;
+        return;
+      }
       // Get current photos to avoid duplicates (including deleted photos)
       const gridPhotosIds = gridCells.value
         .filter((cell) => cell.photo !== null)
@@ -689,8 +702,9 @@ const fillGapsConcurrent = async (photoCells: any[]) => {
 
       const currentPhotosIds = [...gridPhotosIds, ...deletedPhotoIds.value];
 
-      const relatedPhoto = await getPhotoFromPhoto(
-        sourcePhoto,
+      // Usar getPhotoFromNeighbors en vez de getPhotoFromPhoto
+      const relatedPhoto = await getPhotoFromNeighbors(
+        neighborIds,
         fillType.value,
         currentPhotosIds
       );
@@ -717,7 +731,7 @@ const fillGapsConcurrent = async (photoCells: any[]) => {
         processedCells.add(cellIndex);
 
         // Find adjacent empty cells for this new photo (recursive expansion)
-        if (depth < 3) {
+        if (depth < MAX_RECURSION_DEPTH) {
           const adjacentEmpty = getAdjacentCells(cellIndex).filter(
             (adjIndex) =>
               !gridCells.value[adjIndex].photo &&
