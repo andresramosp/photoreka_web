@@ -215,7 +215,6 @@ async function analyze(ev) {
       { duration: 5000 }
     );
     await api.post(`/api/analyzer`, {
-      userId: "1234",
       packageId: "process",
       mode: "adding",
       fastMode: ev.fastMode,

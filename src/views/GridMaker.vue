@@ -135,8 +135,8 @@
             <!-- Photo Cell -->
             <div v-else class="filled-cell">
               <img
-                :src="cell.photo.url"
-                :alt="cell.photo.title"
+                :src="cell.photo.thumbnailUrl"
+                :alt="cell.photo.name || cell.photo.title"
                 class="cell-photo"
               />
               <div class="cell-overlay">
@@ -196,9 +196,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from "vue";
+import { ref, computed, nextTick, onMounted } from "vue";
 import { useMessage } from "naive-ui";
 import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
+import { usePhotosStore } from "@/stores/photos";
 
 // Import icons
 import {
@@ -217,6 +218,7 @@ const maxCols = 8;
 
 // State
 const message = useMessage();
+const photosStore = usePhotosStore();
 const gridCreated = ref(false);
 const selectedRows = ref(0);
 const selectedCols = ref(0);
@@ -345,16 +347,16 @@ const openPhotoSelector = (cellIndex: number) => {
 
 const handlePhotoSelection = (photoIds: string[]) => {
   if (photoIds.length > 0 && selectedCellIndex.value !== null) {
-    // Mock photo data - in real app this would come from the photos store
-    const mockPhoto = {
-      id: photoIds[0],
-      url: `https://picsum.photos/400/400?random=${Date.now()}`,
-      title: `Photo ${photoIds[0]}`,
-      thumbnailUrl: `https://picsum.photos/200/200?random=${Date.now()}`,
-    };
+    // Get the actual photo from the photos store
+    const photoId = photoIds[0];
+    const photo = photosStore.photos.find((p: any) => p.id == photoId); // Use == to handle string/number comparison
 
-    gridCells.value[selectedCellIndex.value].photo = mockPhoto;
-    message.success("Photo added to grid");
+    if (photo) {
+      gridCells.value[selectedCellIndex.value].photo = photo;
+      message.success("Photo added to grid");
+    } else {
+      message.error("Selected photo not found");
+    }
   }
 
   showPhotoDialog.value = false;
@@ -448,6 +450,11 @@ const saveTemplate = () => {
     },
   });
 };
+
+// Initialize photos store when component mounts
+onMounted(async () => {
+  await photosStore.getOrFetch();
+});
 </script>
 
 <style scoped>
@@ -686,7 +693,8 @@ const saveTemplate = () => {
 .cell-photo {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background: #f5f5f5;
 }
 
 .cell-overlay {

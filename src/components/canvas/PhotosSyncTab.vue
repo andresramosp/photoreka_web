@@ -214,7 +214,6 @@ async function uploadLocalFiles(event) {
     isCheckingDuplicates.value = true;
 
     await api.post(`/api/analyzer`, {
-      userId: "1234",
       packageId: "preprocess",
       mode: "adding",
     });

@@ -387,9 +387,11 @@ import {
   NRadioGroup,
   NRadioButton,
 } from "naive-ui";
+
 import { ImagesOutline } from "@vicons/ionicons5";
 import { InProgress } from "@vicons/carbon";
 import api from "@/utils/axios";
+import { useMessage } from "naive-ui";
 
 const props = defineProps({
   singleViewMode: {
@@ -550,6 +552,8 @@ const triggerFileInput = () => {
   if (!isUploading.value) fileInput.value?.click();
 };
 
+const message = useMessage();
+
 async function uploadLocalFiles(event) {
   const selectedLocalFiles = Array.from(event.target.files);
   if (selectedLocalFiles.length === 0) return;
@@ -589,11 +593,21 @@ async function uploadLocalFiles(event) {
     });
 
     // Check duplicates and restore normal state
-    await api.post(`/api/analyzer`, {
-      userId: "1234",
-      packageId: "preprocess",
-      mode: "adding",
-    });
+    try {
+      await api.post(`/api/analyzer`, {
+        packageId: "preprocess",
+        mode: "adding",
+      });
+    } catch (error) {
+      // Si falla la llamada, borrar las fotos y mostrar notificación
+      await photosStore.deletePhotos(photoIds);
+      message.error(
+       "There was an error processing the photos. Please try again later."
+      );
+      isUploading.value = false;
+      event.target.value = "";
+      return;
+    }
 
     // await photosStore.getOrFetch(true);
     await photosStore.checkDuplicates(photoIds);
