@@ -97,6 +97,8 @@
                 mode="default"
                 @select="toggleSelection"
                 @info="showPhotoInfo"
+                :show-stars="false"
+                :show-tags="false"
               />
             </div>
 
@@ -116,7 +118,7 @@
           </n-tab-pane>
 
           <n-tab-pane name="sync" tab="From Lightbox">
-            <PhotosSyncTab
+            <PhotosLightboxTab
               :selected-ids="syncSelectedIds"
               @update:selected-ids="syncSelectedIds = $event"
               @photos-added="handlePhotosAdded"
@@ -259,7 +261,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas";
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
-import PhotosSyncTab from "./PhotosSyncTab.vue";
+import PhotosLightboxTab from "./PhotosLightboxTab.vue";
 import {
   NModal,
   NButton,

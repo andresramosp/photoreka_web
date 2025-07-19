@@ -39,7 +39,7 @@
 
       <!-- Match Score Stars (visible en todos los modos) -->
       <div
-        v-if="computedStars > 0 || showLowRelevanceIcon"
+        v-if="props.showStars && (computedStars > 0 || showLowRelevanceIcon)"
         class="match-score-indicator"
       >
         <!-- Icono de poca relevancia para matchPercent < 15% -->
@@ -85,6 +85,7 @@
         <!-- Matched tags for default mode -->
         <div
           v-if="
+            props.showTags &&
             mode === 'default' &&
             uniqueMatchingTags &&
             uniqueMatchingTags.length > 0
@@ -214,6 +215,8 @@ interface Props {
   photo: Photo;
   selected?: boolean;
   mode?: "default" | "curation" | "selection"; // Different modes for different contexts
+  showStars?: boolean; // Control visibility of match score stars
+  showTags?: boolean; // Control visibility of matched tags
 }
 
 interface Emits {
@@ -227,6 +230,8 @@ const props = withDefaults(defineProps<Props & { isThinking?: boolean }>(), {
   selected: false,
   mode: "default",
   isThinking: false,
+  showStars: true,
+  showTags: true,
 });
 // Show "Analyzing..." label and blur if isThinking and reasoning is "Analyzing..."
 const showAnalyzing = computed(

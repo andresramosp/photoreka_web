@@ -300,14 +300,16 @@ const completeProfile = () => {
   message.success(
     "Profile preferences saved! Now let's set up your storage and plan."
   );
-  router.push("/storage-plan-setup");
+  // router.push("/storage-plan-setup");
+  router.push("/dashboard");
 };
 
 const skipProfile = () => {
   message.info(
     "Profile setup skipped. Now let's set up your storage and plan."
   );
-  router.push("/storage-plan-setup");
+  // router.push("/storage-plan-setup");
+  router.push("/dashboard");
 };
 </script>
 
