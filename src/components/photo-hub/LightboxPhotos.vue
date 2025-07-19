@@ -37,7 +37,7 @@
           <n-checkbox size="large" v-model:checked="fastMode">
             Fast mode
           </n-checkbox>
-          <n-tooltip trigger="hover" placement="top">
+          <!-- <n-tooltip trigger="hover" placement="top">
             <template #trigger>
               <n-icon size="12" class="info-icon">
                 <svg viewBox="0 0 24 24">
@@ -51,7 +51,7 @@
             Fast mode is designed for uploading photos that you want to use
             immediately and has a limit of 10% of your total storage space. If
             you have a lot of photos, it's recommended to use normal mode.
-          </n-tooltip>
+          </n-tooltip> -->
         </div>
       </div>
       <div style="display: flex; gap: 14px; justify-content: center">
@@ -135,7 +135,7 @@
               </template>
               Choose Files
             </n-button>
-            <n-button type="default" size="large" class="google-photos-btn">
+            <!-- <n-button type="default" size="large" class="google-photos-btn">
               <template #icon>
                 <n-icon>
                   <svg viewBox="0 0 24 24">
@@ -147,7 +147,7 @@
                 </n-icon>
               </template>
               Import from Google Photos
-            </n-button>
+            </n-button> -->
           </div>
           <div class="file-formats">
             <span class="format-text"
@@ -180,7 +180,7 @@
             </template>
             Local Files
           </n-button>
-          <n-button
+          <!-- <n-button
             type="default"
             size="medium"
             class="compact-google-photos-btn"
@@ -196,7 +196,7 @@
               </n-icon>
             </template>
             Import Google Photos
-          </n-button>
+          </n-button> -->
         </div>
       </div>
       <div style="display: flex; gap: 15px">
@@ -416,7 +416,7 @@ const pendingPhotos = ref([]); // Array temporal para fotos subidas pero no most
 
 const isFirstTimeUpload = computed(() => photosStore.allPhotos.length === 0);
 
-const fastModeOverride = ref(null);
+const fastModeOverride = ref(true);
 
 const hasDuplicates = computed(() => {
   // Considera todas las fotos relevantes según el modo
@@ -444,11 +444,11 @@ const fastMode = computed({
       return fastModeOverride.value;
     }
     // Si es la primera vez subiendo fotos, no activar fast mode automáticamente
-    if (isFirstTimeUpload.value) {
-      return false;
-    }
-    // Si hay menos de 8 fotos subidas, activar fast mode automáticamente
-    return lightboxPhotos.value.length < 8;
+    // if (isFirstTimeUpload.value) {
+    //   return false;
+    // }
+    // // Si hay menos de 8 fotos subidas, activar fast mode automáticamente
+    // return lightboxPhotos.value.length < 8;
   },
   set(value) {
     // Para casos donde se necesite override manual

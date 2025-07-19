@@ -218,7 +218,7 @@
             @show-duplicates="showDuplicates"
             :show-delete="true"
             :show-name="true"
-            :show-footer="gridColumns < 10"
+            :show-footer="false"
             :showDuplicate="true"
           />
         </div>
@@ -259,11 +259,11 @@ const filteredPhotos = computed(() => {
   if (!filterDuplicates.value) {
     return processedPhotos.value;
   }
-   return filterDuplicates.value
-      ? groupDuplicates(
-          processedPhotos.value.filter((photo) => photo.isDuplicate)
-        )
-      : processedPhotos.value;
+  return filterDuplicates.value
+    ? groupDuplicates(
+        processedPhotos.value.filter((photo) => photo.isDuplicate)
+      )
+    : processedPhotos.value;
 });
 
 // Selection state
