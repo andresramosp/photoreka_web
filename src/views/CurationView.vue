@@ -52,7 +52,7 @@
           </n-button>
         </div>
         <!-- Usage Limit Warning Badge -->
-        <div
+        <!-- <div
           v-if="userStore.usageLimits.curation.exceeded"
           class="usage-limit-warning"
         >
@@ -60,7 +60,7 @@
             message="Free usage ended"
             tooltip="This is a premium feature, purchase credits to continue using it."
           />
-        </div>
+        </div> -->
       </div>
     </div>
 

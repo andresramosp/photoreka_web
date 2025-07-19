@@ -210,7 +210,7 @@
               />
             </div>
             <!-- Usage Limit Warning Badge -->
-            <div
+            <!-- <div
               v-else-if="
                 userStore.usageLimits.search.exceeded &&
                 !userStore.usageLimits.search.dismissed
@@ -223,7 +223,7 @@
                 :closable="true"
                 @close="userStore.dismissUsageWarning('search')"
               />
-            </div>
+            </div> -->
           </div>
         </div>
 
