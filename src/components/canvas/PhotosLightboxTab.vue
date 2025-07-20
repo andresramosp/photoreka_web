@@ -36,7 +36,7 @@
               </svg>
             </n-icon>
           </div>
-          <h3 class="dropzone-title">Import photos to add to canvas</h3>
+          <h3 class="dropzone-title">Import to Lightbox</h3>
           <p class="dropzone-subtitle">
             Drag and drop your images, or click to browse
           </p>
@@ -136,7 +136,7 @@ import pLimit from "p-limit";
 import pica from "pica";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 import { NButton, NProgress, NIcon } from "naive-ui";
-import api from "@/utils/axios";
+import { api_analyzer, api } from "@/utils/axios";
 
 const props = defineProps({
   selectedIds: {
@@ -213,7 +213,7 @@ async function uploadLocalFiles(event) {
 
     isCheckingDuplicates.value = true;
 
-    await api.post(`/api/analyzer`, {
+    await api_analyzer.post(`/api/analyzer`, {
       packageId: "preprocess",
       mode: "adding",
     });

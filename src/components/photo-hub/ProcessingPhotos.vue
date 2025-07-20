@@ -134,7 +134,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, h } from "vue";
-import api from "@/utils/axios";
+import { api } from "@/utils/axios";
 import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 import PieProgress from "../PieProgress.vue";

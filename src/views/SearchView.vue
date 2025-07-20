@@ -690,7 +690,7 @@ import {
   watch,
   nextTick,
 } from "vue";
-import api from "@/utils/axios";
+import { api } from "@/utils/axios";
 import { io } from "socket.io-client";
 import { NTooltip } from "naive-ui";
 

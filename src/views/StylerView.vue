@@ -188,7 +188,7 @@ defineOptions({ name: "StylerPage" });
 
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from "vue";
 import { io } from "socket.io-client";
-import api from "@/utils/axios";
+import { api } from "@/utils/axios";
 
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
 import RankingTab from "@/components/styler/RankingTab.vue";

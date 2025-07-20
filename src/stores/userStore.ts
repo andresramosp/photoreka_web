@@ -1,6 +1,6 @@
 import { ref } from "vue";
 import { defineStore } from "pinia";
-import api from "../utils/axios";
+import { api } from "../utils/axios";
 
 interface User {
   id: string;

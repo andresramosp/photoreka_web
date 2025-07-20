@@ -280,6 +280,8 @@ const firstSectionOptions = computed(() => [
   {
     label: createMenuLabel("Collections", true),
     key: "collections",
+    disabled:
+      appAccessMode.value === "blocked" || appAccessMode.value === "partial",
     icon: createIconWithIndicator(CollectionsIcon, "#9ca3af", false, true),
   },
 ]);
@@ -395,7 +397,7 @@ const secondSectionOptions = computed(() => {
     {
       label: createMenuLabel("Canvas"),
       key: "canvas",
-      disabled: isBlocked,
+      disabled: false,
       comingSoon: false,
       props: isBlocked
         ? {
@@ -403,6 +405,16 @@ const secondSectionOptions = computed(() => {
           }
         : {},
       icon: createIconWithIndicator(CanvasIcon, "#8b5cf6", false, false), // Secondary color for creative tools
+    },
+
+    {
+      label: createMenuLabel("Grids", true),
+      key: "grid-maker",
+      comingSoon: true,
+      props: {
+        title: "Coming soon",
+      },
+      icon: createIconWithIndicator(GridIcon, "#9ca3af", false, true), // Green color for grids
     },
     {
       label: createMenuLabel("Curation"),
@@ -417,17 +429,9 @@ const secondSectionOptions = computed(() => {
       icon: createIconWithIndicator(CurationIcon, "#f59e0b", true), // Warning color for curation + premium
     },
     {
-      label: createMenuLabel("Grids", true),
-      key: "grid-maker",
-      comingSoon: true,
-      props: {
-        title: "Coming soon",
-      },
-      icon: createIconWithIndicator(GridIcon, "#9ca3af", false, true), // Green color for grids
-    },
-    {
       label: createMenuLabel("Styler", true),
       key: "styler",
+      disabled: isBlocked || isPartial,
       comingSoon: true,
       props: {
         title: "Coming soon",

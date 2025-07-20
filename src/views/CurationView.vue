@@ -293,7 +293,7 @@ import { useUserStore } from "@/stores/userStore";
 import { NRate } from "naive-ui";
 
 import WarningBadge from "@/components/WarningBadge.vue";
-import api from "@/utils/axios";
+import { api } from "@/utils/axios";
 import { io } from "socket.io-client";
 
 // Photo interface with curation-specific properties

@@ -4,7 +4,7 @@
     <div class="welcome-section">
       <h1 class="welcome-title">Welcome back, John! 👋</h1>
       <p class="welcome-subtitle">
-        Ready to organize and enhance your photos with AI-powered tools.
+        Ready to organize and enhance your photos with Photoreka smart tools.
       </p>
     </div>
 
@@ -67,7 +67,7 @@
 
     <!-- Recent Projects and Series Section -->
     <div class="recent-projects-section">
-      <h2 class="section-title">Recent projects and series</h2>
+      <h2 class="section-title">Recent collections</h2>
 
       <!-- Empty state when blocked OR no projects available -->
       <div v-if="appAccessMode === 'blocked'" class="empty-state">
@@ -78,8 +78,7 @@
         </div>
         <h3 class="empty-state-title">Nothing here yet</h3>
         <p class="empty-state-description">
-          Upload and process more photos to start creating collections and
-          projects.
+          Upload and process photos to start creating.
         </p>
       </div>
 

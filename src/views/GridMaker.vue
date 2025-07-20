@@ -287,7 +287,7 @@ import { ref, computed, nextTick, onMounted } from "vue";
 import { useMessage, NSelect, NButton, NTooltip } from "naive-ui";
 import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
 import { usePhotosStore } from "@/stores/photos";
-import api from "@/utils/axios";
+import { api } from "@/utils/axios";
 
 // Import icons
 import {

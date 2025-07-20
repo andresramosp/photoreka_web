@@ -110,8 +110,8 @@
                 </n-icon>
                 <h3 class="empty-state-title">No photos available</h3>
                 <p class="empty-state-description">
-                  Either all photos are already on the canvas or you haven't
-                  uploaded any photos yet.
+                  You don't have any photos here. Import them to Lightbox and
+                  click Process Photos to start building your Workspace.
                 </p>
               </div>
             </div>
@@ -271,7 +271,7 @@ import {
   NTabPane,
   NSpin,
 } from "naive-ui";
-import api from "@/utils/axios";
+import { api } from "@/utils/axios";
 import { io } from "socket.io-client";
 
 // Import @vicons icons from ionicons5 for reliability
@@ -543,9 +543,7 @@ watch(
 // Socket for real-time search results
 const socket = io(import.meta.env.VITE_API_WS_URL);
 
-// Fetch photos on mount
-onMounted(() => {
-  // Listen for search results
+const registerSocketListeners = () => {
   socket.emit("join", { userId: userStore.user.id });
   socket.on("matches", (data) => {
     if (true) {
@@ -559,7 +557,25 @@ onMounted(() => {
       isSearching.value = false;
     }
   });
+};
+
+// Fetch photos on mount
+onMounted(() => {
+  // Listen for search results
+  if (userStore.user?.id) {
+    registerSocketListeners();
+  }
 });
+
+watch(
+  () => userStore.user?.id,
+  (userId) => {
+    if (userId) {
+      registerSocketListeners();
+    }
+  },
+  { immediate: true }
+);
 
 onUnmounted(() => {
   socket.off("matches");

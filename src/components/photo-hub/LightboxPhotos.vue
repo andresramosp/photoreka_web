@@ -390,7 +390,7 @@ import {
 
 import { ImagesOutline } from "@vicons/ionicons5";
 import { InProgress } from "@vicons/carbon";
-import api from "@/utils/axios";
+import { api_analyzer, api } from "@/utils/axios";
 import { useMessage } from "naive-ui";
 
 const props = defineProps({
@@ -594,7 +594,7 @@ async function uploadLocalFiles(event) {
 
     // Check duplicates and restore normal state
     try {
-      await api.post(`/api/analyzer`, {
+      await api_analyzer.post(`/api/analyzer`, {
         packageId: "preprocess",
         mode: "adding",
       });

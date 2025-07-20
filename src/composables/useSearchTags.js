@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import api from "@/utils/axios";
+import { api } from "@/utils/axios";
 
 export function useSearchTags() {
   const includedTags = ref([]);

@@ -148,7 +148,7 @@ import ProcessingPhotos from "@/components/photo-hub/ProcessingPhotos.vue";
 import WorkspacePhotos from "@/components/photo-hub/WorkspacePhotos.vue";
 import FloatingProcessPhotosButton from "@/components/FloatingProcessPhotosButton.vue";
 import { usePhotosStore } from "@/stores/photos.js";
-import api from "@/utils/axios";
+import { api, api_analyzer } from "@/utils/axios";
 import { useMessage } from "naive-ui";
 import { ImagesOutline } from "@vicons/ionicons5";
 import { DriveFolderUploadFilled } from "@vicons/material";
@@ -214,7 +214,7 @@ async function analyze(ev) {
       `The analysis of your photos has begun! You can close this window in the meantime.`,
       { duration: 5000 }
     );
-    await api.post(`/api/analyzer`, {
+    await api_analyzer.post(`/api/analyzer`, {
       packageId: "process",
       mode: "adding",
       fastMode: ev.fastMode,

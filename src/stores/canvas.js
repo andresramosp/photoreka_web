@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import api from "@/utils/axios";
+import { api } from "@/utils/axios";
 
 const PHOTO_WIDTH = 150 * 1.5;
 const PHOTO_HEIGHT = 100 * 1.5;

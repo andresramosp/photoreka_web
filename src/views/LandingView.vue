@@ -338,7 +338,7 @@
               <span class="brand-name">Photoreka</span>
             </div>
             <p class="footer-description">
-              AI-powered photo discovery and organization platform for creative
+              Discovery photo assistant and organization platform for creative
               professionals.
             </p>
           </div>

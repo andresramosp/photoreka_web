@@ -18,6 +18,7 @@
 
         <div class="search-container">
           <n-input
+            disabled
             placeholder="Search photos, projects, collections..."
             class="search-input"
             size="medium"
