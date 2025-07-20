@@ -44,6 +44,7 @@
         <div
           class="action-card new-project"
           :class="{ disabled: appAccessMode === 'blocked' }"
+          @click="goToCuration"
         >
           <div class="action-icon">
             <n-icon size="32">
@@ -53,7 +54,11 @@
           <h3 class="action-title">New Curation</h3>
           <p class="action-description">Start a fresh project</p>
         </div>
-        <div class="action-card ai-search" :class="{ disabled: false }">
+        <div
+          class="action-card ai-search"
+          @click="goToPlan"
+          :class="{ disabled: false }"
+        >
           <div class="action-icon">
             <n-icon size="32">
               <SettingsIcon />
@@ -351,6 +356,16 @@ const openProject = (projectId: string) => {
 const goToCatalog = () => {
   // Navigate to photo-hub with catalog tab active
   router.push({ name: "photo-hub", hash: "#catalog" });
+};
+
+const goToCuration = () => {
+  // Navigate to photo-hub with catalog tab active
+  router.push({ name: "curation" });
+};
+
+const goToPlan = () => {
+  // Navigate to photo-hub with catalog tab active
+  router.push({ name: "plan" });
 };
 
 const goToUpload = () => {

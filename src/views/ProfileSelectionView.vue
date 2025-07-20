@@ -301,7 +301,7 @@ const completeProfile = () => {
     "Profile preferences saved! Now let's set up your storage and plan."
   );
   // router.push("/storage-plan-setup");
-  router.push("/dashboard");
+  router.push({ name: "photo-hub", hash: "#upload" });
 };
 
 const skipProfile = () => {
@@ -309,7 +309,7 @@ const skipProfile = () => {
     "Profile setup skipped. Now let's set up your storage and plan."
   );
   // router.push("/storage-plan-setup");
-  router.push("/dashboard");
+  router.push({ name: "photo-hub", hash: "#upload" });
 };
 </script>
 
