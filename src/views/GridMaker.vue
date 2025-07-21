@@ -283,7 +283,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted } from "vue";
+import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
 import { useMessage, NSelect, NButton, NTooltip } from "naive-ui";
 import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
 import { usePhotosStore } from "@/stores/photos";
@@ -329,6 +329,9 @@ const showSpinnerOverlay = ref(true); // Set to true to enable spinner overlay
 // Track deleted photos to prevent regeneration
 const deletedPhotoIds = ref<string[]>([]);
 
+// Window size tracking for responsive grid
+const windowWidth = ref(window.innerWidth);
+
 // Fill type options
 const fillTypeOptions = [
   { label: "General", value: "embedding" },
@@ -362,10 +365,13 @@ const hasEmptyCells = computed(() =>
   gridCells.value.some((cell) => !cell.photo && !cell.isGenerating)
 );
 
-const gridStyle = computed(() => ({
-  gridTemplateColumns: `repeat(${selectedCols.value}, 1fr)`,
-  gridTemplateRows: `repeat(${selectedRows.value}, 1fr)`,
-}));
+const gridStyle = computed(() => {
+  const cellSize = windowWidth.value <= 768 ? 150 : 180;
+  return {
+    gridTemplateColumns: `repeat(${selectedCols.value}, ${cellSize}px)`,
+    gridTemplateRows: `repeat(${selectedRows.value}, ${cellSize}px)`,
+  };
+});
 
 // Methods
 const updateHover = (row: number, col: number) => {
@@ -837,6 +843,17 @@ const saveTemplate = () => {
 // Initialize photos store when component mounts
 onMounted(async () => {
   await photosStore.getOrFetch();
+
+  // Add window resize listener
+  const handleResize = () => {
+    windowWidth.value = window.innerWidth;
+  };
+  window.addEventListener("resize", handleResize);
+
+  // Cleanup function will be called in onUnmounted
+  onUnmounted(() => {
+    window.removeEventListener("resize", handleResize);
+  });
 });
 </script>
 
@@ -1001,14 +1018,21 @@ onMounted(async () => {
   background-color: var(--bg-surface);
   border-radius: var(--border-radius-lg);
   padding: var(--spacing-2xl);
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 .photo-grid {
   display: grid;
   gap: var(--spacing-md);
-  width: 100%;
-  max-width: 800px;
   margin: 0 auto;
+  /* Establecer tamaño mínimo de celda */
+  grid-auto-rows: minmax(200px, 200px);
+  grid-auto-columns: minmax(200px, 200px);
+  /* El ancho será determinado por el número de columnas */
+  width: fit-content;
+  justify-content: center;
+  min-width: 100%;
 }
 
 .photo-cell {
