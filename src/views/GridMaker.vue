@@ -384,6 +384,8 @@ const windowWidth = ref(window.innerWidth);
 // Fill type options
 const fillTypeOptions = [
   { label: "General", value: "embedding" },
+  { label: "Context", value: "context" },
+  { label: "Narrative", value: "story" },
   { label: "Chromatic", value: "chromatic" },
 ];
 
@@ -495,7 +497,6 @@ const handlePhotoSelection = (photoIds: string[]) => {
 
     if (photo) {
       gridCells.value[selectedCellIndex.value].photo = photo;
-      message.success("Photo added to grid");
     } else {
       message.error("Selected photo not found");
     }
@@ -578,44 +579,12 @@ const movePhoto = async (
     return;
   }
 
-  // Obtener elementos DOM
-  const fromCell = document.querySelector(`[data-cell-index="${fromIndex}"]`);
-  const toCell = document.querySelector(`[data-cell-index="${toIndex}"]`);
-
-  if (!fromCell || !toCell) return;
-
-  // Obtener posiciones
-  const fromRect = fromCell.getBoundingClientRect();
-  const toRect = toCell.getBoundingClientRect();
-
-  // Calcular el desplazamiento
-  const deltaX = toRect.left - fromRect.left;
-  const deltaY = toRect.top - fromRect.top;
-
-  // Aplicar transformación de movimiento
-  const fromPhoto = fromCell.querySelector(".cell-photo") as HTMLElement;
-  if (fromPhoto) {
-    fromPhoto.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-    fromPhoto.style.zIndex = "100";
-  }
-
-  // Esperar a que termine la animación
-  await new Promise((resolve) => setTimeout(resolve, 300));
-
-  // Realizar el intercambio de fotos
+  // Simple swap without animation
   const fromPhotoData = gridCells.value[fromIndex].photo;
   const toPhotoData = gridCells.value[toIndex].photo;
 
   gridCells.value[fromIndex].photo = toPhotoData;
   gridCells.value[toIndex].photo = fromPhotoData;
-
-  // Resetear la transformación
-  if (fromPhoto) {
-    fromPhoto.style.transform = "";
-    fromPhoto.style.zIndex = "";
-  }
-
-  message.success("Photo moved successfully");
 };
 
 // Nueva función: obtiene una foto relacionada usando varios vecinos como anchorIds
@@ -1201,7 +1170,7 @@ onMounted(async () => {
 }
 
 .photo-cell:hover {
-  border-color: var(--primary-color);
+  /* border-color: var(--primary-color); */
 }
 
 /* Empty Cell */
@@ -1296,7 +1265,7 @@ onMounted(async () => {
   right: 0;
   bottom: 0;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.1s ease;
   z-index: 2;
   pointer-events: none;
 }
@@ -1308,7 +1277,6 @@ onMounted(async () => {
 
 .move-btn {
   background-color: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid var(--border-color) !important;
   color: var(--text-primary) !important;
   width: 28px !important;
   height: 28px !important;
@@ -1320,6 +1288,12 @@ onMounted(async () => {
 
 .move-btn:hover {
   background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+/* Forzar visibilidad de iconos en botones direccionales */
+.move-btn {
+  background-color: var(--primary-color-suppl) !important;
   color: white !important;
 }
 
@@ -1349,7 +1323,7 @@ onMounted(async () => {
 
 /* Animation for moving photos */
 .moving-photo {
-  transition: transform 0.3s ease;
+  transition: transform 0.1s ease;
   z-index: 10;
 }
 
