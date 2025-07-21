@@ -1,7 +1,7 @@
 <template>
   <div class="grid-maker-container view-container">
     <!-- Header -->
-    <div class="grid-maker-header">
+    <div v-if="!gridCreated" class="grid-maker-header">
       <h1 class="page-title">Grid Maker</h1>
       <p class="page-subtitle">
         Create custom photo grids with automatic spacing and intelligent filling
@@ -155,6 +155,7 @@
           <div
             v-for="(cell, index) in gridCells"
             :key="'grid-cell-' + index"
+            :data-cell-index="index"
             class="photo-cell"
             :class="{
               'has-photo': cell.photo,
@@ -207,14 +208,59 @@
                     <n-icon><CloseOutline /></n-icon>
                   </template>
                 </n-button>
+              </div>
+
+              <!-- Movement Controls -->
+              <div class="movement-controls">
+                <!-- Up Arrow -->
                 <n-button
+                  v-if="canMoveUp(index)"
                   circle
                   size="small"
-                  class="replace-photo-btn"
-                  @click="openPhotoSelector(index)"
+                  class="move-btn move-up"
+                  @click="movePhoto(index, 'up')"
                 >
                   <template #icon>
-                    <n-icon><SwapHorizontalOutline /></n-icon>
+                    <n-icon size="16"><ChevronUpOutline /></n-icon>
+                  </template>
+                </n-button>
+
+                <!-- Down Arrow -->
+                <n-button
+                  v-if="canMoveDown(index)"
+                  circle
+                  size="small"
+                  class="move-btn move-down"
+                  @click="movePhoto(index, 'down')"
+                >
+                  <template #icon>
+                    <n-icon size="16"><ChevronDownOutline /></n-icon>
+                  </template>
+                </n-button>
+
+                <!-- Left Arrow -->
+                <n-button
+                  v-if="canMoveLeft(index)"
+                  circle
+                  size="small"
+                  class="move-btn move-left"
+                  @click="movePhoto(index, 'left')"
+                >
+                  <template #icon>
+                    <n-icon size="16"><ChevronBackOutline /></n-icon>
+                  </template>
+                </n-button>
+
+                <!-- Right Arrow -->
+                <n-button
+                  v-if="canMoveRight(index)"
+                  circle
+                  size="small"
+                  class="move-btn move-right"
+                  @click="movePhoto(index, 'right')"
+                >
+                  <template #icon>
+                    <n-icon size="16"><ChevronForwardOutline /></n-icon>
                   </template>
                 </n-button>
               </div>
@@ -283,7 +329,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useMessage, NSelect, NButton, NTooltip } from "naive-ui";
 import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
 import { usePhotosStore } from "@/stores/photos";
@@ -295,17 +341,20 @@ import {
   BulbOutline,
   AddOutline,
   CloseOutline,
-  SwapHorizontalOutline,
   DownloadOutline,
   BookmarkOutline,
+  ChevronUpOutline,
+  ChevronDownOutline,
+  ChevronBackOutline,
+  ChevronForwardOutline,
 } from "@vicons/ionicons5";
 
 // Grid configuration
 const maxRows = 8;
 const maxCols = 8;
 
-// Profundidad máxima de recursión para el llenado de huecos
-const MAX_RECURSION_DEPTH = 5;
+// Maximum number of passes for iterative gap filling
+const MAX_FILL_PASSES = 20;
 
 // State
 const message = useMessage();
@@ -477,6 +526,98 @@ const clearExcludedPhotos = () => {
   );
 };
 
+// Movement functions
+const canMoveUp = (cellIndex: number): boolean => {
+  const row = Math.floor(cellIndex / selectedCols.value);
+  return row > 0;
+};
+
+const canMoveDown = (cellIndex: number): boolean => {
+  const row = Math.floor(cellIndex / selectedCols.value);
+  return row < selectedRows.value - 1;
+};
+
+const canMoveLeft = (cellIndex: number): boolean => {
+  const col = cellIndex % selectedCols.value;
+  return col > 0;
+};
+
+const canMoveRight = (cellIndex: number): boolean => {
+  const col = cellIndex % selectedCols.value;
+  return col < selectedCols.value - 1;
+};
+
+const movePhoto = async (
+  fromIndex: number,
+  direction: "up" | "down" | "left" | "right"
+) => {
+  const row = Math.floor(fromIndex / selectedCols.value);
+  const col = fromIndex % selectedCols.value;
+
+  let toIndex: number;
+
+  switch (direction) {
+    case "up":
+      toIndex = (row - 1) * selectedCols.value + col;
+      break;
+    case "down":
+      toIndex = (row + 1) * selectedCols.value + col;
+      break;
+    case "left":
+      toIndex = row * selectedCols.value + (col - 1);
+      break;
+    case "right":
+      toIndex = row * selectedCols.value + (col + 1);
+      break;
+    default:
+      return;
+  }
+
+  // Verificar que el índice de destino es válido
+  if (toIndex < 0 || toIndex >= gridCells.value.length) {
+    return;
+  }
+
+  // Obtener elementos DOM
+  const fromCell = document.querySelector(`[data-cell-index="${fromIndex}"]`);
+  const toCell = document.querySelector(`[data-cell-index="${toIndex}"]`);
+
+  if (!fromCell || !toCell) return;
+
+  // Obtener posiciones
+  const fromRect = fromCell.getBoundingClientRect();
+  const toRect = toCell.getBoundingClientRect();
+
+  // Calcular el desplazamiento
+  const deltaX = toRect.left - fromRect.left;
+  const deltaY = toRect.top - fromRect.top;
+
+  // Aplicar transformación de movimiento
+  const fromPhoto = fromCell.querySelector(".cell-photo") as HTMLElement;
+  if (fromPhoto) {
+    fromPhoto.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+    fromPhoto.style.zIndex = "100";
+  }
+
+  // Esperar a que termine la animación
+  await new Promise((resolve) => setTimeout(resolve, 300));
+
+  // Realizar el intercambio de fotos
+  const fromPhotoData = gridCells.value[fromIndex].photo;
+  const toPhotoData = gridCells.value[toIndex].photo;
+
+  gridCells.value[fromIndex].photo = toPhotoData;
+  gridCells.value[toIndex].photo = fromPhotoData;
+
+  // Resetear la transformación
+  if (fromPhoto) {
+    fromPhoto.style.transform = "";
+    fromPhoto.style.zIndex = "";
+  }
+
+  message.success("Photo moved successfully");
+};
+
 // Nueva función: obtiene una foto relacionada usando varios vecinos como anchorIds
 const getPhotoFromNeighbors = async (
   anchorIds: string[],
@@ -587,139 +728,154 @@ const fillGaps = async () => {
 
 // Sequential processing - guarantees no duplicates
 const fillGapsSequential = async (photoCells: any[]) => {
-  const processedCells = new Set<number>();
-  const processQueue: Array<{
-    cellIndex: number;
-    depth: number;
-  }> = [];
-
-  // Inicializar la cola con los huecos adyacentes a fotos existentes
-  photoCells.forEach(({ index }) => {
-    const adjacentEmpty = getAdjacentCells(index).filter(
-      (adjIndex) =>
-        !gridCells.value[adjIndex].photo &&
-        !gridCells.value[adjIndex].isGenerating
-    );
-    adjacentEmpty.forEach((adjIndex) => {
-      processQueue.push({
-        cellIndex: adjIndex,
-        depth: 0,
-      });
-      gridCells.value[adjIndex].isGenerating = true;
-    });
-  });
-
   let processedCount = 0;
-  for (const item of processQueue) {
-    if (processedCells.has(item.cellIndex)) continue;
-    try {
-      // IDs de vecinos con foto
-      const neighborIds = getAdjacentCells(item.cellIndex)
-        .filter((i) => gridCells.value[i].photo)
-        .map((i) => gridCells.value[i].photo.id);
-      if (neighborIds.length === 0) {
-        gridCells.value[item.cellIndex].isGenerating = false;
-        continue;
+  let passNumber = 0;
+  const maxPasses = 20; // Límite de seguridad para evitar bucles infinitos
+
+  // Función auxiliar para obtener celdas vacías adyacentes a fotos
+  const getEmptyCellsAdjacentToPhotos = (): number[] => {
+    const emptyCells = new Set<number>();
+
+    // Recorrer todas las celdas que tienen foto
+    gridCells.value.forEach((cell, index) => {
+      if (cell.photo && !cell.isGenerating) {
+        // Encontrar celdas vacías adyacentes
+        const adjacentEmpty = getAdjacentCells(index).filter(
+          (adjIndex) =>
+            !gridCells.value[adjIndex].photo &&
+            !gridCells.value[adjIndex].isGenerating
+        );
+        adjacentEmpty.forEach((adjIndex) => emptyCells.add(adjIndex));
       }
-      // Evitar duplicados
-      const gridPhotosIds = gridCells.value
-        .filter((cell) => cell.photo !== null)
-        .map((cell) => cell.photo.id);
-      const currentPhotosIds = [...gridPhotosIds, ...deletedPhotoIds.value];
-      const relatedPhoto = await getPhotoFromNeighbors(
-        neighborIds,
-        fillType.value,
-        currentPhotosIds
-      );
-      // Check if cell is still empty
-      if (!gridCells.value[item.cellIndex].photo) {
-        gridCells.value[item.cellIndex].photo = relatedPhoto;
-        gridCells.value[item.cellIndex].isGenerating = false;
-        processedCells.add(item.cellIndex);
-        processedCount++;
-        // Expandir recursivamente (profundidad limitada)
-        if (item.depth < MAX_RECURSION_DEPTH) {
-          const adjacentEmpty = getAdjacentCells(item.cellIndex).filter(
-            (adjIndex) =>
-              !gridCells.value[adjIndex].photo &&
-              !gridCells.value[adjIndex].isGenerating &&
-              !processedCells.has(adjIndex)
-          );
-          adjacentEmpty.forEach((adjIndex) => {
-            if (!processedCells.has(adjIndex)) {
-              processQueue.push({
-                cellIndex: adjIndex,
-                depth: item.depth + 1,
-              });
-              gridCells.value[adjIndex].isGenerating = true;
-            }
-          });
-        }
-      } else {
-        gridCells.value[item.cellIndex].isGenerating = false;
-      }
-    } catch (error) {
-      console.error(
-        `Error generating photo for cell ${item.cellIndex}:`,
-        error
-      );
-      gridCells.value[item.cellIndex].isGenerating = false;
+    });
+
+    return Array.from(emptyCells);
+  };
+
+  // Procesar celdas en pasadas iterativas
+  while (passNumber < maxPasses) {
+    passNumber++;
+
+    // Encontrar celdas vacías que están adyacentes a fotos existentes
+    const emptyCellsToFill = getEmptyCellsAdjacentToPhotos();
+
+    if (emptyCellsToFill.length === 0) {
+      // No hay más celdas para llenar
+      break;
     }
+
+    console.log(
+      `Pass ${passNumber}: Processing ${emptyCellsToFill.length} cells`
+    );
+
+    // Marcar celdas como "generando"
+    emptyCellsToFill.forEach((cellIndex) => {
+      gridCells.value[cellIndex].isGenerating = true;
+    });
+
+    // Procesar cada celda vacía en esta pasada
+    for (const cellIndex of emptyCellsToFill) {
+      try {
+        // Obtener IDs de vecinos con foto
+        const neighborIds = getAdjacentCells(cellIndex)
+          .filter((i) => gridCells.value[i].photo)
+          .map((i) => gridCells.value[i].photo.id);
+
+        if (neighborIds.length === 0) {
+          gridCells.value[cellIndex].isGenerating = false;
+          continue;
+        }
+
+        // Evitar duplicados
+        const gridPhotosIds = gridCells.value
+          .filter((cell) => cell.photo !== null)
+          .map((cell) => cell.photo.id);
+        const currentPhotosIds = [...gridPhotosIds, ...deletedPhotoIds.value];
+
+        // Generar foto relacionada
+        const relatedPhoto = await getPhotoFromNeighbors(
+          neighborIds,
+          fillType.value,
+          currentPhotosIds
+        );
+
+        // Asignar profundidad basada en el número de pasada
+        relatedPhoto.generationDepth = passNumber;
+
+        // Verificar que la celda sigue vacía y asignar la foto
+        if (!gridCells.value[cellIndex].photo) {
+          gridCells.value[cellIndex].photo = relatedPhoto;
+          processedCount++;
+        }
+
+        gridCells.value[cellIndex].isGenerating = false;
+      } catch (error) {
+        console.error(
+          `Error generating photo for cell ${cellIndex} in pass ${passNumber}:`,
+          error
+        );
+        gridCells.value[cellIndex].isGenerating = false;
+      }
+    }
+
+    // Pequeña pausa entre pasadas para permitir que la UI se actualice
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
+
+  if (passNumber >= maxPasses) {
+    console.warn(
+      "Reached maximum number of passes, some cells may remain empty"
+    );
+  }
+
   message.success(
-    `Successfully filled ${processedCount} gaps with sequential processing!`
+    `Successfully filled ${processedCount} gaps in ${passNumber} passes with sequential processing!`
   );
 };
 
 // Concurrent processing with validation (original implementation)
 const fillGapsConcurrent = async (photoCells: any[]) => {
-  const processingCells = new Set<number>();
-  const processedCells = new Set<number>();
-  const processQueue: Array<{
-    cellIndex: number;
-    sourcePhoto: any;
-    depth: number;
-  }> = [];
+  let processedCount = 0;
+  let passNumber = 0;
+  const maxPasses = 20; // Límite de seguridad para evitar bucles infinitos
+  const concurrentLimit = 3; // Número máximo de celdas a procesar concurrentemente
 
-  // Initialize queue with all existing photos
-  photoCells.forEach(({ index, photo }) => {
-    const adjacentEmpty = getAdjacentCells(index).filter(
-      (adjIndex) =>
-        !gridCells.value[adjIndex].photo &&
-        !gridCells.value[adjIndex].isGenerating &&
-        !processingCells.has(adjIndex)
-    );
+  // Función auxiliar para obtener celdas vacías adyacentes a fotos
+  const getEmptyCellsAdjacentToPhotos = (): number[] => {
+    const emptyCells = new Set<number>();
 
-    adjacentEmpty.forEach((adjIndex) => {
-      if (!processingCells.has(adjIndex)) {
-        processQueue.push({
-          cellIndex: adjIndex,
-          sourcePhoto: photo,
-          depth: 0,
-        });
-        processingCells.add(adjIndex);
-        gridCells.value[adjIndex].isGenerating = true;
+    // Recorrer todas las celdas que tienen foto
+    gridCells.value.forEach((cell, index) => {
+      if (cell.photo && !cell.isGenerating) {
+        // Encontrar celdas vacías adyacentes
+        const adjacentEmpty = getAdjacentCells(index).filter(
+          (adjIndex) =>
+            !gridCells.value[adjIndex].photo &&
+            !gridCells.value[adjIndex].isGenerating
+        );
+        adjacentEmpty.forEach((adjIndex) => emptyCells.add(adjIndex));
       }
     });
-  });
 
-  // Process cell with validation
-  const processCell = async (item: {
-    cellIndex: number;
-    sourcePhoto: any;
-    depth: number;
-  }) => {
-    const { cellIndex, depth } = item;
+    return Array.from(emptyCells);
+  };
 
+  // Función para procesar una celda
+  const processCell = async (
+    cellIndex: number,
+    depth: number
+  ): Promise<boolean> => {
     try {
-      // Obtener los IDs de todas las vecinas con foto (igual que en fillGapsSequential)
+      // Obtener los IDs de todas las vecinas con foto
       const neighborIds = getAdjacentCells(cellIndex)
         .filter((i) => gridCells.value[i].photo)
         .map((i) => gridCells.value[i].photo.id);
+
       if (neighborIds.length === 0) {
         gridCells.value[cellIndex].isGenerating = false;
-        return;
+        return false;
       }
+
       // Get current photos to avoid duplicates (including deleted photos)
       const gridPhotosIds = gridCells.value
         .filter((cell) => cell.photo !== null)
@@ -742,87 +898,73 @@ const fillGapsConcurrent = async (photoCells: any[]) => {
 
       if (isDuplicate) {
         console.warn(
-          `Duplicate photo detected: ${relatedPhoto.id}, retrying...`
+          `Duplicate photo detected: ${relatedPhoto.id}, skipping...`
         );
-        // Could implement retry logic here
         gridCells.value[cellIndex].isGenerating = false;
-        return;
+        return false;
       }
 
-      // Check if cell is still empty and not processed by another thread
-      if (!gridCells.value[cellIndex].photo && !processedCells.has(cellIndex)) {
+      // Check if cell is still empty
+      if (!gridCells.value[cellIndex].photo) {
         gridCells.value[cellIndex].photo = relatedPhoto;
         gridCells.value[cellIndex].isGenerating = false;
-        processedCells.add(cellIndex);
-
-        // Find adjacent empty cells for this new photo (recursive expansion)
-        if (depth < MAX_RECURSION_DEPTH) {
-          const adjacentEmpty = getAdjacentCells(cellIndex).filter(
-            (adjIndex) =>
-              !gridCells.value[adjIndex].photo &&
-              !gridCells.value[adjIndex].isGenerating &&
-              !processingCells.has(adjIndex) &&
-              !processedCells.has(adjIndex)
-          );
-
-          adjacentEmpty.forEach((adjIndex) => {
-            if (!processingCells.has(adjIndex)) {
-              processQueue.push({
-                cellIndex: adjIndex,
-                sourcePhoto: relatedPhoto,
-                depth: depth + 1,
-              });
-              processingCells.add(adjIndex);
-              gridCells.value[adjIndex].isGenerating = true;
-            }
-          });
-        }
+        return true;
       } else {
         gridCells.value[cellIndex].isGenerating = false;
+        return false;
       }
     } catch (error) {
       console.error(`Error generating photo for cell ${cellIndex}:`, error);
       gridCells.value[cellIndex].isGenerating = false;
-      processingCells.delete(cellIndex);
+      return false;
     }
   };
 
-  // Process with controlled concurrency
-  const processWithConcurrency = async () => {
-    const concurrent = 3;
-    let currentIndex = 0;
+  // Procesar celdas en pasadas iterativas con concurrencia controlada
+  while (passNumber < maxPasses) {
+    passNumber++;
 
-    const processNext = async (): Promise<void> => {
-      if (currentIndex >= processQueue.length) return;
-      const item = processQueue[currentIndex++];
-      await processCell(item);
-      return processNext();
-    };
+    // Encontrar celdas vacías que están adyacentes a fotos existentes
+    const emptyCellsToFill = getEmptyCellsAdjacentToPhotos();
 
-    const processors = Array(Math.min(concurrent, processQueue.length))
-      .fill(null)
-      .map(() => processNext());
-
-    await Promise.all(processors);
-  };
-
-  await processWithConcurrency();
-
-  // Process remaining items
-  while (processQueue.length > 0) {
-    const remainingItems = [...processQueue];
-    processQueue.length = 0;
-
-    for (const item of remainingItems) {
-      if (!processedCells.has(item.cellIndex)) {
-        await processCell(item);
-      }
+    if (emptyCellsToFill.length === 0) {
+      // No hay más celdas para llenar
+      break;
     }
+
+    console.log(
+      `Pass ${passNumber}: Processing ${emptyCellsToFill.length} cells concurrently`
+    );
+
+    // Marcar celdas como "generando"
+    emptyCellsToFill.forEach((cellIndex) => {
+      gridCells.value[cellIndex].isGenerating = true;
+    });
+
+    // Procesar celdas en lotes con concurrencia controlada
+    for (let i = 0; i < emptyCellsToFill.length; i += concurrentLimit) {
+      const batch = emptyCellsToFill.slice(i, i + concurrentLimit);
+
+      const promises = batch.map((cellIndex) =>
+        processCell(cellIndex, passNumber)
+      );
+
+      const results = await Promise.all(promises);
+      processedCount += results.filter((success) => success).length;
+    }
+
+    // Pequeña pausa entre pasadas para permitir que la UI se actualice
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
-  const filledCount = processedCells.size;
+  if (passNumber >= maxPasses) {
+    console.warn(
+      "Reached maximum number of passes, some cells may remain empty"
+    );
+  }
+
   message.success(
-    `Successfully filled ${filledCount} gaps with concurrent processing!`
+    `Successfully filled ${processedCount} gaps in ${passNumber} passes with concurrent processing!`
   );
 };
 
@@ -936,8 +1078,8 @@ onMounted(async () => {
 
 .grid-preview {
   display: grid;
-  grid-template-rows: repeat(8, 24px);
-  gap: 2px;
+  grid-template-rows: repeat(8, 32px);
+  gap: 4px;
   padding: var(--spacing-lg);
   background-color: var(--bg-surface);
   border-radius: var(--border-radius-lg);
@@ -946,13 +1088,13 @@ onMounted(async () => {
 
 .grid-row {
   display: grid;
-  grid-template-columns: repeat(8, 24px);
+  grid-template-columns: repeat(8, 32px);
   gap: 2px;
 }
 
 .grid-cell {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   background-color: var(--bg-container);
   border: 1px solid var(--border-color);
   border-radius: 4px;
@@ -1121,6 +1263,7 @@ onMounted(async () => {
   height: 100%;
   object-fit: contain;
   background: #f5f5f5;
+  transition: transform 0.3s ease;
 }
 
 .cell-overlay {
@@ -1131,6 +1274,7 @@ onMounted(async () => {
   gap: 4px;
   opacity: 0;
   transition: opacity 0.3s ease;
+  z-index: 3;
 }
 
 .photo-cell:hover .cell-overlay {
@@ -1142,6 +1286,71 @@ onMounted(async () => {
   background-color: rgba(0, 0, 0, 0.7) !important;
   border: none !important;
   color: white !important;
+}
+
+/* Movement Controls */
+.movement-controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.photo-cell:hover .movement-controls {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.move-btn {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  transition: background-color 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  position: absolute;
+}
+
+.move-btn:hover {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.move-up {
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.move-down {
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.move-left {
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.move-right {
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Animation for moving photos */
+.moving-photo {
+  transition: transform 0.3s ease;
+  z-index: 10;
 }
 
 /* Photo Info Badges */

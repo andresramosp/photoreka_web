@@ -408,13 +408,13 @@ const secondSectionOptions = computed(() => {
     },
 
     {
-      label: createMenuLabel("Grids", true),
+      label: createMenuLabel("Grids"),
       key: "grid-maker",
-      comingSoon: true,
+      comingSoon: false,
       props: {
         title: "Coming soon",
       },
-      icon: createIconWithIndicator(GridIcon, "#9ca3af", false, true), // Green color for grids
+      icon: createIconWithIndicator(GridIcon, "#15803d", false, false), // Green color for grids
     },
     {
       label: createMenuLabel("Curation"),

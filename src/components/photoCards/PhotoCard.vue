@@ -245,7 +245,7 @@ const shouldBlur = computed(() => showAnalyzing.value);
 
 const emit = defineEmits<Emits>();
 
-const isSelected = ref(props.selected);
+const isSelected = computed(() => props.selected);
 const imageLoaded = ref(false);
 const imageError = ref(false);
 const showTooltip = ref(false);
@@ -256,7 +256,6 @@ const uniqueMatchingTags = computed(() =>
 
 const toggleSelection = () => {
   if (props.mode === "curation") return;
-  isSelected.value = !isSelected.value;
   emit("select", props.photo.id);
 };
 
