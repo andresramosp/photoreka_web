@@ -366,7 +366,23 @@ const hasEmptyCells = computed(() =>
 );
 
 const gridStyle = computed(() => {
-  const cellSize = windowWidth.value <= 768 ? 150 : 180;
+  const minCellSize = 120;
+  const maxCellSize = minCellSize + 150;
+
+  // Calcular el ancho disponible del contenedor (asumiendo padding de 32px a cada lado)
+  const containerPadding = 64; // 32px * 2
+  const gridGap = 16; // var(--spacing-md) típicamente es 16px
+  const availableWidth = windowWidth.value - containerPadding;
+  const totalGapWidth = (selectedCols.value - 1) * gridGap;
+  const availableForCells = availableWidth - totalGapWidth;
+
+  // Calcular el tamaño óptimo de celda
+  const optimalCellSize = Math.floor(availableForCells / selectedCols.value);
+  const cellSize = Math.min(
+    Math.max(optimalCellSize, minCellSize),
+    maxCellSize
+  );
+
   return {
     gridTemplateColumns: `repeat(${selectedCols.value}, ${cellSize}px)`,
     gridTemplateRows: `repeat(${selectedRows.value}, ${cellSize}px)`,
@@ -1026,9 +1042,6 @@ onMounted(async () => {
   display: grid;
   gap: var(--spacing-md);
   margin: 0 auto;
-  /* Establecer tamaño mínimo de celda */
-  grid-auto-rows: minmax(200px, 200px);
-  grid-auto-columns: minmax(200px, 200px);
   /* El ancho será determinado por el número de columnas */
   width: fit-content;
   justify-content: center;
