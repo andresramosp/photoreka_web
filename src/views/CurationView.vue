@@ -107,7 +107,11 @@
 
         <div
           class="photos-grid"
-          v-if="filteredCandidatePhotos.length > 0 || isSearching"
+          v-if="
+            filteredCandidatePhotos.length > 0 ||
+            isSearching ||
+            !maxPageAttempts
+          "
         >
           <!-- Show skeletons when loading more photos -->
           <template v-if="isLoadingMore">
@@ -150,6 +154,7 @@
               />
             </svg>
           </n-icon>
+
           <p class="empty-text">No photos to review</p>
         </div>
 
@@ -352,7 +357,7 @@ const isThinking = ref(false); // Esperando insights
 const hasMoreResults = ref(true);
 const candidatePhotos = ref([]);
 const curatedPhotos = ref([]);
-const minMatchScore = ref(1);
+const minMatchScore = ref(2);
 const minResults = ref(6);
 
 // Options for the min results select
@@ -376,6 +381,12 @@ const showReturnButton = computed(() => {
 
 // Filter candidate photos based on minimum match score
 const filteredCandidatePhotos = computed(() => {
+  if (isSearching.value || isLoadingMore.value || isThinking.value) {
+    return candidatePhotos.value.filter((photo) => {
+      return photo.reasoning == "Analyzing...";
+    });
+  }
+
   if (!minMatchScore.value) {
     return candidatePhotos.value;
   }
@@ -476,6 +487,7 @@ const registerSocketListeners = () => {
     console.log("⚠️ Max page attempts reached");
     maxPageAttempts.value = true;
     isSearching.value = false;
+
     isLoadingMore.value = false;
 
     // Show notification asking if user wants to continue searching
@@ -567,13 +579,14 @@ const showMaxPageAttemptsNotification = () => {
 const searchPhotosApi = async (isInitial = false) => {
   if (!hasSearchQuery.value) return;
 
+  maxPageAttempts.value = false;
+
   if (isInitial) {
     isSearching.value = true;
     candidatePhotos.value = [];
     iterationsRecord.value = {};
     currentIteration.value = 1;
     hasMoreResults.value = true;
-    maxPageAttempts.value = false;
     console.log("Performing curation search:", searchQuery.value);
   } else {
     isLoadingMore.value = true;
@@ -619,6 +632,7 @@ const clearSearch = () => {
   iterationsRecord.value = {};
   currentIteration.value = 1;
   hasMoreResults.value = true;
+
   maxPageAttempts.value = false;
   minResults.value = 1; // Reset to default
 };
