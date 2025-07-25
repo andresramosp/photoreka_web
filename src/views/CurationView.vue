@@ -75,18 +75,31 @@
       <div class="curation-area">
         <div class="area-header">
           <h3 class="area-title">Curation Area</h3>
-          <div class="star-filter">
-            <span class="filter-label">Min. Rating:</span>
-            <div class="star-buttons">
-              <n-rate
-                v-model:value="minMatchScore"
-                :readonly="isSearching || isLoadingMore || isThinking"
-                :count="3"
+          <div class="filters-row">
+            <div class="star-filter">
+              <span class="filter-label">Min. Rating:</span>
+              <div class="star-buttons">
+                <n-rate
+                  v-model:value="minMatchScore"
+                  :readonly="isSearching || isLoadingMore || isThinking"
+                  :count="3"
+                  size="small"
+                  clearable
+                  @update:value="onRatingChange"
+                  class="star-rating"
+                  :allow-half="false"
+                />
+              </div>
+            </div>
+            <div class="results-filter">
+              <span class="filter-label">Min. Results:</span>
+              <n-select
+                v-model:value="minResults"
+                :options="resultsOptions"
+                :disabled="isSearching || isLoadingMore || isThinking"
                 size="small"
-                clearable
-                @update:value="onRatingChange"
-                class="star-rating"
-                :allow-half="false"
+                class="results-select"
+                @update:value="onResultsChange"
               />
             </div>
           </div>
@@ -142,7 +155,7 @@
 
         <div class="area-actions">
           <n-button
-            :loading="isLoadingMore"
+            :loading="isSearching || isLoadingMore || isThinking"
             @click="searchMorePhotos"
             class="search-more-button"
             size="large"
@@ -283,6 +296,7 @@ import {
   onUnmounted,
   watch,
   defineOptions,
+  h,
 } from "vue";
 
 // Define component name for KeepAlive
@@ -293,7 +307,7 @@ defineOptions({
 import PhotoCard from "../components/photoCards/PhotoCard.vue";
 import { useUserStore } from "@/stores/userStore";
 import { useQueryExamples } from "@/composables/useQueryExamples";
-import { NRate } from "naive-ui";
+import { NRate, NSelect, useNotification } from "naive-ui";
 import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas.js";
 import { useRouter } from "vue-router";
@@ -305,6 +319,7 @@ import { io } from "socket.io-client";
 const canvasStore = useCanvasStore();
 const photoStore = usePhotosStore();
 const router = useRouter();
+const notification = useNotification();
 
 // Llevar las fotos seleccionadas a Canvas
 async function moveToCanvas() {
@@ -338,6 +353,13 @@ const hasMoreResults = ref(true);
 const candidatePhotos = ref([]);
 const curatedPhotos = ref([]);
 const minMatchScore = ref(2);
+const minResults = ref(1);
+
+// Options for the min results select
+const resultsOptions = Array.from({ length: 10 }, (_, i) => ({
+  label: (i + 1).toString(),
+  value: i + 1,
+}));
 
 // Real-time results state
 const iterationsRecord = ref({});
@@ -455,6 +477,9 @@ const registerSocketListeners = () => {
     maxPageAttempts.value = true;
     isSearching.value = false;
     isLoadingMore.value = false;
+
+    // Show notification asking if user wants to continue searching
+    showMaxPageAttemptsNotification();
   });
 
   socketListenersRegistered = true;
@@ -493,6 +518,49 @@ const onSearchChange = () => {
   console.log("Search query changed:", searchQuery.value);
 };
 
+const showMaxPageAttemptsNotification = () => {
+  notification.warning({
+    title: "Search Limit Reached",
+    content:
+      "We've reached the maximum number of search attempts. Would you like to continue searching for more photos?",
+    action: () => {
+      return h("div", { style: "display: flex; gap: 8px; margin-top: 8px;" }, [
+        h(
+          "button",
+          {
+            style:
+              "padding: 4px 12px; background: #18a058; color: white; border: none; border-radius: 4px; cursor: pointer;",
+            onClick: () => {
+              continueSearching();
+              notification.destroyAll();
+            },
+          },
+          "Continue"
+        ),
+        h(
+          "button",
+          {
+            style:
+              "padding: 4px 12px; background: #d03050; color: white; border: none; border-radius: 4px; cursor: pointer;",
+            onClick: () => {
+              notification.destroyAll();
+            },
+          },
+          "Stop"
+        ),
+      ]);
+    },
+    duration: 0, // Keep notification until user responds
+    closable: true,
+  });
+};
+
+const continueSearching = async () => {
+  maxPageAttempts.value = false;
+  hasMoreResults.value = true;
+  await searchMorePhotos();
+};
+
 // Shared API call for searching photos
 const searchPhotosApi = async (isInitial = false) => {
   if (!hasSearchQuery.value) return;
@@ -517,6 +585,7 @@ const searchPhotosApi = async (isInitial = false) => {
         pageSize: 6,
         searchMode: "curation",
         minMatchScore: minMatchScore.value,
+        minResults: minResults.value,
       },
     };
     await api.post("/api/search/semantic", payload);
@@ -549,6 +618,7 @@ const clearSearch = () => {
   currentIteration.value = 1;
   hasMoreResults.value = true;
   maxPageAttempts.value = false;
+  minResults.value = 1; // Reset to default
 };
 const clearSelection = () => {
   // Move all curated photos back to candidates, restoring original positions
@@ -634,10 +704,9 @@ const onRatingChange = (rating) => {
   }
 };
 
-const setMinRating = (rating) => {
-  minMatchScore.value = minMatchScore.value === rating ? undefined : rating;
-  // Here you could filter photos by rating if needed
-  console.log("Min rating filter set to:", minMatchScore.value);
+const onResultsChange = (results) => {
+  minResults.value = results;
+  console.log("Min results filter set to:", minResults.value);
 };
 
 // Lifecycle hooks
@@ -752,6 +821,23 @@ const {
   border-bottom: 1px solid var(--border-color);
   background-color: var(--bg-surface);
   min-height: 40px;
+}
+
+.filters-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xl);
+}
+
+.star-filter,
+.results-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.results-select {
+  min-width: 80px;
 }
 
 .area-title {
@@ -982,6 +1068,23 @@ const {
     flex-direction: column;
     align-items: stretch;
     gap: var(--spacing-sm);
+  }
+
+  .filters-row {
+    justify-content: space-between;
+    gap: var(--spacing-md);
+  }
+
+  .results-filter {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--spacing-xs);
+  }
+
+  .star-filter {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
   }
 
   .area-stats {
