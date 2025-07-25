@@ -555,24 +555,18 @@ const handleMouseLeave = () => {
 /* New photo highlight - thick and bright border with glow */
 .photo-card.is-new {
   border: 3px solid #22d3ee;
-  box-shadow: 
-    0 0 0 1px #22d3ee40,
-    0 0 20px rgba(34, 211, 238, 0.4),
+  box-shadow: 0 0 0 1px #22d3ee40, 0 0 20px rgba(34, 211, 238, 0.4),
     0 4px 12px rgba(34, 211, 238, 0.2);
   animation: newPhotoGlow 2s ease-in-out infinite alternate;
 }
 
 @keyframes newPhotoGlow {
   0% {
-    box-shadow: 
-      0 0 0 1px #22d3ee40,
-      0 0 15px rgba(34, 211, 238, 0.3),
+    box-shadow: 0 0 0 1px #22d3ee40, 0 0 15px rgba(34, 211, 238, 0.3),
       0 4px 12px rgba(34, 211, 238, 0.15);
   }
   100% {
-    box-shadow: 
-      0 0 0 1px #22d3ee60,
-      0 0 25px rgba(34, 211, 238, 0.5),
+    box-shadow: 0 0 0 1px #22d3ee60, 0 0 25px rgba(34, 211, 238, 0.5),
       0 4px 12px rgba(34, 211, 238, 0.25);
   }
 }
