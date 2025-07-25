@@ -359,6 +359,7 @@ const candidatePhotos = ref([]);
 const curatedPhotos = ref([]);
 const minMatchScore = ref(2);
 const minResults = ref(6);
+const iterationFinished = ref(false);
 
 // Options for the min results select
 const resultsOptions = Array.from({ length: 10 }, (_, i) => ({
@@ -381,7 +382,7 @@ const showReturnButton = computed(() => {
 
 // Filter candidate photos based on minimum match score
 const filteredCandidatePhotos = computed(() => {
-  if (isSearching.value || isLoadingMore.value || isThinking.value) {
+  if (!iterationFinished.value) {
     return candidatePhotos.value.filter((photo) => {
       return photo.reasoning == "Analyzing...";
     });
@@ -479,7 +480,8 @@ const registerSocketListeners = () => {
 
     // Update candidate photos to reflect the new reasoning
     updateCandidatePhotos();
-
+    debugger;
+    iterationFinished.value = data.finished;
     console.log("✨ Photos enriched with insights");
   });
 
@@ -536,8 +538,6 @@ const showMaxPageAttemptsNotification = () => {
     (photo) => photo.matchScore >= minMatchScore.value
   ).length;
 
-  const photosStillNeeded = Math.max(0, minResults.value - currentValidPhotos);
-
   notification.warning({
     title: "Search Limit Reached",
     content: `After several iterations, no photos were found. We suggest lowering the minimum score.`,
@@ -580,7 +580,7 @@ const searchPhotosApi = async (isInitial = false) => {
   if (!hasSearchQuery.value) return;
 
   maxPageAttempts.value = false;
-
+  iterationFinished.value = false;
   if (isInitial) {
     isSearching.value = true;
     candidatePhotos.value = [];
@@ -632,6 +632,7 @@ const clearSearch = () => {
   iterationsRecord.value = {};
   currentIteration.value = 1;
   hasMoreResults.value = true;
+  iterationFinished.value = false;
 
   maxPageAttempts.value = false;
   minResults.value = 1; // Reset to default
