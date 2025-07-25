@@ -80,6 +80,7 @@
             <div class="star-buttons">
               <n-rate
                 v-model:value="minMatchScore"
+                :readonly="isSearching || isLoadingMore || isThinking"
                 :count="3"
                 size="small"
                 clearable
@@ -212,7 +213,7 @@
 
         <div class="area-actions">
           <n-button
-            @click="() => {}"
+            @click="moveToCanvas"
             size="large"
             :disabled="curatedPhotos.length == 0"
           >
@@ -226,7 +227,7 @@
                 </svg>
               </n-icon>
             </template>
-            Take to Canvas
+            View in Canvas
           </n-button>
           <n-button
             @click="() => {}"
@@ -274,7 +275,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import {
   ref,
   computed,
@@ -293,28 +294,33 @@ import PhotoCard from "../components/photoCards/PhotoCard.vue";
 import { useUserStore } from "@/stores/userStore";
 import { useQueryExamples } from "@/composables/useQueryExamples";
 import { NRate } from "naive-ui";
+import { usePhotosStore } from "@/stores/photos";
+import { useCanvasStore } from "@/stores/canvas.js";
+import { useRouter } from "vue-router";
 
 import WarningBadge from "@/components/WarningBadge.vue";
 import { api } from "@/utils/axios";
 import { io } from "socket.io-client";
 
-// Photo interface with curation-specific properties
-interface CurationPhoto {
-  id: string;
-  url: string;
-  title: string;
-  rating: number;
-  reasoning: string; // AI-generated reasoning for curation
-  matchScore: number; // AI-generated match score (0 = not scored yet, 1-3 stars)
-  matchingTags?: string[];
-  width?: number;
-  height?: number;
-  thumbnailUrl: string;
-  isUploading: boolean;
-  file: any;
-  needProcess: boolean;
-  isDuplicate: boolean;
-  originalIndex?: number; // To maintain original position when returning from selection
+const canvasStore = useCanvasStore();
+const photoStore = usePhotosStore();
+const router = useRouter();
+
+// Llevar las fotos seleccionadas a Canvas
+async function moveToCanvas() {
+  // Buscar los datos completos de las fotos por id (si no están ya en el store)
+  await Promise.all(
+    curatedPhotos.value.map((photo) => photoStore.fetchPhoto(photo.id))
+  );
+  // Obtener los objetos completos de las fotos
+  const photosToAdd = curatedPhotos.value
+    .map((photo) => photoStore.photos.find((p) => p.id == photo.id) || photo)
+    .filter(Boolean);
+
+  // Agregar al canvas
+  canvasStore.addPhotos(photosToAdd);
+  // Navegar al canvas
+  router.push("/canvas");
 }
 
 // Socket connection for real-time results
@@ -329,12 +335,12 @@ const isSearching = ref(false);
 const isLoadingMore = ref(false);
 const isThinking = ref(false); // Esperando insights
 const hasMoreResults = ref(true);
-const candidatePhotos = ref<CurationPhoto[]>([]);
-const curatedPhotos = ref<CurationPhoto[]>([]);
-const minMatchScore = ref<number | undefined>(2);
+const candidatePhotos = ref([]);
+const curatedPhotos = ref([]);
+const minMatchScore = ref(2);
 
 // Real-time results state
-const iterationsRecord = ref<Record<number, { photos: CurationPhoto[] }>>({});
+const iterationsRecord = ref({});
 const currentIteration = ref(1);
 const maxPageAttempts = ref(false);
 
@@ -382,7 +388,7 @@ const registerSocketListeners = () => {
         iterationsRecord.value[iterNum] = { photos: [] };
       }
 
-      const newPhotos = (items as any[]).map((item, index) => ({
+      const newPhotos = items.map((item, index) => ({
         id: item.photo.id,
         url: item.photo.thumbnailUrl || item.photo.url,
         thumbnailUrl: item.photo.thumbnailUrl || item.photo.url,
@@ -425,7 +431,7 @@ const registerSocketListeners = () => {
       iterationsRecord.value[iterNum].photos = iterationsRecord.value[
         iterNum
       ].photos.map((existing) => {
-        const updated = (richPhotos as any[]).find(
+        const updated = richPhotos.find(
           (item) => item.photo.id === existing.id
         );
         return updated
@@ -459,7 +465,7 @@ const updateCandidatePhotos = () => {
     .map(Number)
     .sort((a, b) => a - b);
 
-  let allPhotos: CurationPhoto[] = [];
+  let allPhotos = [];
   for (let i = 0; i < currentIteration.value; i++) {
     const k = keys[i];
     if (k !== undefined && iterationsRecord.value[k]?.photos) {
@@ -570,7 +576,7 @@ const clearSelection = () => {
   });
 };
 
-const moveToSelection = (photoId: string) => {
+const moveToSelection = (photoId) => {
   const photoIndex = candidatePhotos.value.findIndex((p) => p.id === photoId);
   if (photoIndex === -1) return;
 
@@ -588,7 +594,7 @@ const moveToSelection = (photoId: string) => {
   });
 };
 
-const moveToCuration = (photoId: string) => {
+const moveToCuration = (photoId) => {
   const photoIndex = curatedPhotos.value.findIndex((p) => p.id === photoId);
   if (photoIndex === -1) return;
 
@@ -607,15 +613,15 @@ const moveToCuration = (photoId: string) => {
   }
 };
 
-const togglePhotoSelection = (photoId: string) => {
+const togglePhotoSelection = (photoId) => {
   console.log("Photo selection toggled:", photoId);
 };
 
-const showPhotoInfo = (photo: any) => {
+const showPhotoInfo = (photo) => {
   console.log("Show photo info:", photo);
 };
 
-const onRatingChange = (rating: number | undefined) => {
+const onRatingChange = (rating) => {
   minMatchScore.value = rating;
   console.log("Min rating filter set to:", minMatchScore.value);
 
@@ -628,7 +634,7 @@ const onRatingChange = (rating: number | undefined) => {
   }
 };
 
-const setMinRating = (rating: number) => {
+const setMinRating = (rating) => {
   minMatchScore.value = minMatchScore.value === rating ? undefined : rating;
   // Here you could filter photos by rating if needed
   console.log("Min rating filter set to:", minMatchScore.value);
@@ -652,7 +658,7 @@ onUnmounted(() => {
 // Watch for user changes to register socket listeners
 watch(
   () => userStore.user?.id,
-  (userId: string | undefined) => {
+  (userId) => {
     if (userId) {
       registerSocketListeners();
     }
@@ -663,11 +669,7 @@ watch(
 // Query examples functionality
 const searchType = ref("curation");
 
-function handleCurationExampleClick(
-  example: any,
-  exampleText: string,
-  searchType: string
-) {
+function handleCurationExampleClick(example, exampleText, searchType) {
   if (searchType === "curation") {
     searchQuery.value = exampleText;
     performSearch();
@@ -865,7 +867,7 @@ const {
 
 .empty-content {
   text-align: center;
-  max-width: 400px;
+  max-width: 600px;
 }
 
 .empty-icon {

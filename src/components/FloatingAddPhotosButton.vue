@@ -58,8 +58,8 @@ const handleClick = async () => {
 <style scoped>
 .floating-add-button {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 10px;
+  right: 10px;
   z-index: 1000;
   width: 56px;
   height: 56px;

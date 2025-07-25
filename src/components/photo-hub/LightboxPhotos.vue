@@ -231,7 +231,7 @@
     </div>
 
     <!-- Uploaded Photos -->
-    <div v-if="allPhotos.length > 0" class="uploaded-photos-section">
+    <div v-if="lightboxPhotos.length > 0" class="uploaded-photos-section">
       <div class="grid-controls grid-controls-base">
         <div class="controls-left">
           <div class="results-info results-info-base">
