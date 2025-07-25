@@ -5,6 +5,7 @@
       selected: isSelected,
       'curation-mode': mode === 'curation',
       'selection-mode': mode === 'selection',
+      'is-new': props.isNew,
     }"
     @click="mode !== 'curation' && toggleSelection()"
     @mouseenter="handleMouseEnter"
@@ -212,6 +213,7 @@ export interface Photo {
   file: any;
   needProcess: boolean;
   isDuplicate: boolean;
+  isNew?: boolean; // Flag to mark newly arrived photos
 }
 
 interface Props {
@@ -221,6 +223,7 @@ interface Props {
   showStars?: boolean; // Control visibility of match score stars
   showTags?: boolean; // Control visibility of matched tags
   showReturnButton?: boolean; // Control visibility of return button in selection mode
+  isNew?: boolean; // Mark photo as newly arrived
 }
 
 interface Emits {
@@ -237,6 +240,7 @@ const props = withDefaults(defineProps<Props & { isThinking?: boolean }>(), {
   showStars: true,
   showTags: true,
   showReturnButton: true,
+  isNew: false,
 });
 // Show "Analyzing..." label and blur if isThinking and reasoning is "Analyzing..."
 const showAnalyzing = computed(
@@ -546,5 +550,30 @@ const handleMouseLeave = () => {
 
 .photo-card.duplicate {
   border-color: #f59e0b;
+}
+
+/* New photo highlight - thick and bright border with glow */
+.photo-card.is-new {
+  border: 3px solid #22d3ee;
+  box-shadow: 
+    0 0 0 1px #22d3ee40,
+    0 0 20px rgba(34, 211, 238, 0.4),
+    0 4px 12px rgba(34, 211, 238, 0.2);
+  animation: newPhotoGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes newPhotoGlow {
+  0% {
+    box-shadow: 
+      0 0 0 1px #22d3ee40,
+      0 0 15px rgba(34, 211, 238, 0.3),
+      0 4px 12px rgba(34, 211, 238, 0.15);
+  }
+  100% {
+    box-shadow: 
+      0 0 0 1px #22d3ee60,
+      0 0 25px rgba(34, 211, 238, 0.5),
+      0 4px 12px rgba(34, 211, 238, 0.25);
+  }
 }
 </style>

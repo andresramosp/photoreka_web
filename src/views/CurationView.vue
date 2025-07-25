@@ -138,6 +138,9 @@
               :mode="'curation'"
               :selected="false"
               :isThinking="isThinking"
+              :isNew="
+                photo.isNew && photo.matchScore >= (minMatchScore.value || 1)
+              "
               @select="togglePhotoSelection"
               @info="showPhotoInfo"
               @move-to-selection="moveToSelection"
@@ -438,6 +441,7 @@ const registerSocketListeners = () => {
         needProcess: false,
         isDuplicate: false,
         originalIndex: undefined, // Will be set in updateCandidatePhotos
+        isNew: true, // Mark as new photo
       }));
 
       iterationsRecord.value[iterNum].photos.push(...newPhotos);
@@ -480,9 +484,13 @@ const registerSocketListeners = () => {
 
     // Update candidate photos to reflect the new reasoning
     updateCandidatePhotos();
-    debugger;
     iterationFinished.value = data.finished;
     console.log("✨ Photos enriched with insights");
+
+    // Remove isNew flag after 3 seconds for photos that meet the rating criteria
+    setTimeout(() => {
+      removeNewFlagFromQualifyingPhotos();
+    }, 3000);
   });
 
   socket.on("maxPageAttempts", () => {
@@ -527,6 +535,26 @@ const updateCandidatePhotos = () => {
   candidatePhotos.value = filteredPhotos;
 };
 
+const removeNewFlagFromQualifyingPhotos = () => {
+  // Remove isNew flag from photos that meet the rating criteria
+  Object.keys(iterationsRecord.value).forEach((iter) => {
+    const iterNum = parseInt(iter);
+    if (iterationsRecord.value[iterNum]?.photos) {
+      iterationsRecord.value[iterNum].photos = iterationsRecord.value[
+        iterNum
+      ].photos.map((photo) => {
+        if (photo.isNew && photo.matchScore >= (minMatchScore.value || 1)) {
+          return { ...photo, isNew: false };
+        }
+        return photo;
+      });
+    }
+  });
+
+  // Update candidate photos to reflect the changes
+  updateCandidatePhotos();
+};
+
 // Methods
 const onSearchChange = () => {
   console.log("Search query changed:", searchQuery.value);
@@ -540,7 +568,7 @@ const showMaxPageAttemptsNotification = () => {
 
   notification.warning({
     title: "Search Limit Reached",
-    content: `After several iterations, no photos were found. We suggest lowering the minimum score.`,
+    content: `After several iterations, no more photos were found. We suggest lowering the minimum score.`,
     action: () => {
       return h("div", { style: "display: flex; gap: 8px; margin-top: 8px;" }, [
         h(
@@ -656,9 +684,15 @@ const clearSelection = () => {
         photo.originalIndex,
         candidatePhotos.value.length
       );
-      candidatePhotos.value.splice(targetIndex, 0, photo);
+      candidatePhotos.value.splice(targetIndex, 0, {
+        ...photo,
+        isNew: false, // Remove new flag when returning photos
+      });
     } else {
-      candidatePhotos.value.unshift(photo);
+      candidatePhotos.value.unshift({
+        ...photo,
+        isNew: false, // Remove new flag when returning photos
+      });
     }
   });
 };
@@ -677,7 +711,7 @@ const moveToSelection = (photoId) => {
   // Add to curated at the beginning (most recent first)
   curatedPhotos.value.unshift({
     ...photo,
-    // Mark for animation (could be used in PhotoCard)
+    isNew: false, // Remove new flag when moving to selection
   });
 };
 
@@ -694,9 +728,15 @@ const moveToCuration = (photoId) => {
       photo.originalIndex,
       candidatePhotos.value.length
     );
-    candidatePhotos.value.splice(targetIndex, 0, photo);
+    candidatePhotos.value.splice(targetIndex, 0, {
+      ...photo,
+      isNew: false, // Remove new flag when returning to curation
+    });
   } else {
-    candidatePhotos.value.unshift(photo);
+    candidatePhotos.value.unshift({
+      ...photo,
+      isNew: false, // Remove new flag when returning to curation
+    });
   }
 };
 
