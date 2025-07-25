@@ -91,7 +91,7 @@
                 />
               </div>
             </div>
-            <div class="results-filter">
+            <!-- <div class="results-filter">
               <span class="filter-label">Min. Results:</span>
               <n-select
                 v-model:value="minResults"
@@ -101,7 +101,7 @@
                 class="results-select"
                 @update:value="onResultsChange"
               />
-            </div>
+            </div> -->
           </div>
         </div>
 
@@ -352,8 +352,8 @@ const isThinking = ref(false); // Esperando insights
 const hasMoreResults = ref(true);
 const candidatePhotos = ref([]);
 const curatedPhotos = ref([]);
-const minMatchScore = ref(2);
-const minResults = ref(1);
+const minMatchScore = ref(1);
+const minResults = ref(6);
 
 // Options for the min results select
 const resultsOptions = Array.from({ length: 10 }, (_, i) => ({
@@ -519,10 +519,16 @@ const onSearchChange = () => {
 };
 
 const showMaxPageAttemptsNotification = () => {
+  // Calcular cuántas fotos válidas tenemos actualmente
+  const currentValidPhotos = candidatePhotos.value.filter(
+    (photo) => photo.matchScore >= minMatchScore.value
+  ).length;
+
+  const photosStillNeeded = Math.max(0, minResults.value - currentValidPhotos);
+
   notification.warning({
     title: "Search Limit Reached",
-    content:
-      "We've reached the maximum number of search attempts. Would you like to continue searching for more photos?",
+    content: `After several iterations, no photos were found. We suggest lowering the minimum score.`,
     action: () => {
       return h("div", { style: "display: flex; gap: 8px; margin-top: 8px;" }, [
         h(
@@ -531,7 +537,7 @@ const showMaxPageAttemptsNotification = () => {
             style:
               "padding: 4px 12px; background: #18a058; color: white; border: none; border-radius: 4px; cursor: pointer;",
             onClick: () => {
-              continueSearching();
+              searchPhotosApi(false);
               notification.destroyAll();
             },
           },
@@ -543,22 +549,18 @@ const showMaxPageAttemptsNotification = () => {
             style:
               "padding: 4px 12px; background: #d03050; color: white; border: none; border-radius: 4px; cursor: pointer;",
             onClick: () => {
+              minMatchScore.value = Math.max(1, minMatchScore.value - 1);
+              searchPhotosApi(false);
               notification.destroyAll();
             },
           },
-          "Stop"
+          "Reduce score"
         ),
       ]);
     },
     duration: 0, // Keep notification until user responds
     closable: true,
   });
-};
-
-const continueSearching = async () => {
-  maxPageAttempts.value = false;
-  hasMoreResults.value = true;
-  await searchMorePhotos();
 };
 
 // Shared API call for searching photos
@@ -585,7 +587,7 @@ const searchPhotosApi = async (isInitial = false) => {
         pageSize: 6,
         searchMode: "curation",
         minMatchScore: minMatchScore.value,
-        minResults: minResults.value,
+        // minResults: minResults
       },
     };
     await api.post("/api/search/semantic", payload);
