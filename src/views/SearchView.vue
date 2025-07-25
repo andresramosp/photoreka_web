@@ -701,6 +701,7 @@ import WarningBadge from "@/components/WarningBadge.vue";
 // Composable de tags y ejemplos
 import { useSearchTags } from "@/composables/useSearchTags";
 import { useLocalPhotoSelection } from "@/composables/useLocalPhotoSelection";
+import { useQueryExamples } from "@/composables/useQueryExamples";
 import queryExamples from "@/assets/query_examples.json";
 import { DocumentOutline, MapOutline, PencilOutline } from "@vicons/ionicons5";
 import { CheckOutlined, TagOutlined } from "@vicons/antd";
@@ -1010,67 +1011,21 @@ onUnmounted(() => {
   socket.off("maxPageAttempts");
 });
 
-// Carousel de ejemplos dinámico según searchType
-const exampleIndex = ref(0);
-const isSliding = ref(false);
-let exampleInterval;
-
-const currentExamples = computed(() => {
-  if (activeSearchType.value === "semantic") {
-    // Modo natural language: usar ejemplos logical/flexible según searchMode
-    if (searchMode.value === "flexible" && queryExamples.flexible?.length) {
-      return queryExamples.flexible;
-    }
-    return queryExamples.logical || [];
-  } else if (activeSearchType.value === "tags") {
-    return queryExamples.tags || [];
-  } else if (activeSearchType.value === "topological") {
-    return queryExamples.topological || [];
-  }
-  return [];
-});
-
-const currentExampleText = computed(() => {
-  const ex = currentExamples.value[exampleIndex.value];
-  if (!ex) return "";
-  if (activeSearchType.value === "tags") {
-    // Mostrar como: Include: tag1, tag2 | Exclude: tag3
-    const inc = (ex.include || []).join(", ");
-    const exc = (ex.exclude || []).join(", ");
-    return `Include: ${inc}${exc ? `  |  Exclude: ${exc}` : ""}`;
-  } else if (activeSearchType.value === "topological") {
-    // Mostrar solo las cajas presentes, ej: Left: dog | Right: cat
-    const parts = [];
-    if (ex.left) parts.push(`Left: ${ex.left}`);
-    if (ex.center) parts.push(`Center: ${ex.center}`);
-    if (ex.right) parts.push(`Right: ${ex.right}`);
-    return parts.join("  |  ");
-  }
-  return ex;
-});
-
-function handleExampleClick() {
-  if (activeSearchType.value === "semantic") {
-    semanticQuery.value = currentExampleText.value;
+// Carousel de ejemplos dinámico usando composable
+function handleSearchExampleClick(example, exampleText, searchType) {
+  if (searchType === "semantic") {
+    semanticQuery.value = exampleText;
     performSearch();
   }
 }
 
-onMounted(() => {
-  exampleInterval = setInterval(() => {
-    isSliding.value = true;
-    setTimeout(() => (isSliding.value = false), 300);
-    const arr = currentExamples.value;
-    if (arr.length > 0) {
-      exampleIndex.value = (exampleIndex.value + 1) % arr.length;
-    } else {
-      exampleIndex.value = 0;
-    }
-  }, 5000);
-});
-onUnmounted(() => {
-  clearInterval(exampleInterval);
-});
+const {
+  exampleIndex,
+  isSliding,
+  currentExamples,
+  currentExampleText,
+  handleExampleClick,
+} = useQueryExamples(activeSearchType, searchMode, handleSearchExampleClick);
 
 let matchesListenerRegistered = false;
 watch(

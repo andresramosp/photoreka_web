@@ -122,7 +122,10 @@
         </div>
 
         <!-- Selection actions for selection mode -->
-        <div v-if="mode === 'selection'" class="selection-actions">
+        <div
+          v-if="mode === 'selection' && props.showReturnButton"
+          class="selection-actions"
+        >
           <n-button
             size="small"
             type="warning"
@@ -217,6 +220,7 @@ interface Props {
   mode?: "default" | "curation" | "selection"; // Different modes for different contexts
   showStars?: boolean; // Control visibility of match score stars
   showTags?: boolean; // Control visibility of matched tags
+  showReturnButton?: boolean; // Control visibility of return button in selection mode
 }
 
 interface Emits {
@@ -232,6 +236,7 @@ const props = withDefaults(defineProps<Props & { isThinking?: boolean }>(), {
   isThinking: false,
   showStars: true,
   showTags: true,
+  showReturnButton: true,
 });
 // Show "Analyzing..." label and blur if isThinking and reasoning is "Analyzing..."
 const showAnalyzing = computed(

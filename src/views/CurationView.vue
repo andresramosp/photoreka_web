@@ -146,11 +146,7 @@
             class="search-more-button"
             size="large"
             :disabled="
-              !hasMoreResults ||
-              candidatePhotos.length == 0 ||
-              isSearching ||
-              isLoadingMore ||
-              isThinking
+              !hasMoreResults || isSearching || isLoadingMore || isThinking
             "
           >
             <template #icon>
@@ -191,6 +187,8 @@
             :key="photo.id"
             :photo="photo"
             :mode="'selection'"
+            :isThinking="isThinking"
+            :showReturnButton="showReturnButton"
             @select="togglePhotoSelection"
             @info="showPhotoInfo"
             @move-to-curation="moveToCuration"
@@ -214,7 +212,6 @@
 
         <div class="area-actions">
           <n-button
-            :loading="isLoadingMore"
             @click="() => {}"
             size="large"
             :disabled="curatedPhotos.length == 0"
@@ -232,7 +229,6 @@
             Take to Canvas
           </n-button>
           <n-button
-            :loading="isLoadingMore"
             @click="() => {}"
             size="large"
             :disabled="curatedPhotos.length == 0"
@@ -265,9 +261,14 @@
           </svg>
         </n-icon>
         <h2 class="empty-title">Start Curating Photos</h2>
-        <p class="empty-description">
-          Enter a search topic above to find photos for curation
-        </p>
+
+        <div class="carousel-container">
+          <div class="carousel-item" :class="{ sliding: isSliding }">
+            <button class="example-card" @click="handleExampleClick">
+              <p class="example-text">{{ currentExampleText }}</p>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -290,6 +291,7 @@ defineOptions({
 
 import PhotoCard from "../components/photoCards/PhotoCard.vue";
 import { useUserStore } from "@/stores/userStore";
+import { useQueryExamples } from "@/composables/useQueryExamples";
 import { NRate } from "naive-ui";
 
 import WarningBadge from "@/components/WarningBadge.vue";
@@ -312,6 +314,7 @@ interface CurationPhoto {
   file: any;
   needProcess: boolean;
   isDuplicate: boolean;
+  originalIndex?: number; // To maintain original position when returning from selection
 }
 
 // Socket connection for real-time results
@@ -337,6 +340,11 @@ const maxPageAttempts = ref(false);
 
 // Computed properties
 const hasSearchQuery = computed(() => searchQuery.value.trim().length > 0);
+
+// Calculate if return button should be shown (not during loading states)
+const showReturnButton = computed(() => {
+  return !isThinking.value && !isSearching.value && !isLoadingMore.value;
+});
 
 // Filter candidate photos based on minimum match score
 const filteredCandidatePhotos = computed(() => {
@@ -374,7 +382,7 @@ const registerSocketListeners = () => {
         iterationsRecord.value[iterNum] = { photos: [] };
       }
 
-      const newPhotos = (items as any[]).map((item) => ({
+      const newPhotos = (items as any[]).map((item, index) => ({
         id: item.photo.id,
         url: item.photo.thumbnailUrl || item.photo.url,
         thumbnailUrl: item.photo.thumbnailUrl || item.photo.url,
@@ -389,6 +397,7 @@ const registerSocketListeners = () => {
         file: null,
         needProcess: false,
         isDuplicate: false,
+        originalIndex: undefined, // Will be set in updateCandidatePhotos
       }));
 
       iterationsRecord.value[iterNum].photos.push(...newPhotos);
@@ -438,7 +447,6 @@ const registerSocketListeners = () => {
   socket.on("maxPageAttempts", () => {
     console.log("⚠️ Max page attempts reached");
     maxPageAttempts.value = true;
-    hasMoreResults.value = false;
     isSearching.value = false;
     isLoadingMore.value = false;
   });
@@ -462,9 +470,16 @@ const updateCandidatePhotos = () => {
 
   // Filtrar las fotos que ya están en curatedPhotos
   const curatedIds = new Set(curatedPhotos.value.map((p) => p.id));
-  candidatePhotos.value = allPhotos.filter(
-    (photo) => !curatedIds.has(photo.id)
-  );
+  const filteredPhotos = allPhotos.filter((photo) => !curatedIds.has(photo.id));
+
+  // Assign original indices to maintain position when photos are moved back
+  filteredPhotos.forEach((photo, index) => {
+    if (photo.originalIndex === undefined) {
+      photo.originalIndex = index;
+    }
+  });
+
+  candidatePhotos.value = filteredPhotos;
 };
 
 // Methods
@@ -530,9 +545,29 @@ const clearSearch = () => {
   maxPageAttempts.value = false;
 };
 const clearSelection = () => {
-  // Move all curated photos back to candidates
-  candidatePhotos.value.unshift(...curatedPhotos.value);
+  // Move all curated photos back to candidates, restoring original positions
+  const photosToRestore = [...curatedPhotos.value];
   curatedPhotos.value = [];
+
+  // Sort by original index to restore proper order
+  photosToRestore.sort((a, b) => {
+    const indexA = a.originalIndex ?? Infinity;
+    const indexB = b.originalIndex ?? Infinity;
+    return indexA - indexB;
+  });
+
+  // Insert each photo at its original position
+  photosToRestore.forEach((photo) => {
+    if (typeof photo.originalIndex === "number" && photo.originalIndex >= 0) {
+      const targetIndex = Math.min(
+        photo.originalIndex,
+        candidatePhotos.value.length
+      );
+      candidatePhotos.value.splice(targetIndex, 0, photo);
+    } else {
+      candidatePhotos.value.unshift(photo);
+    }
+  });
 };
 
 const moveToSelection = (photoId: string) => {
@@ -540,10 +575,14 @@ const moveToSelection = (photoId: string) => {
   if (photoIndex === -1) return;
 
   const photo = candidatePhotos.value[photoIndex];
+
+  // Store the original index to restore position later
+  photo.originalIndex = photoIndex;
+
   candidatePhotos.value.splice(photoIndex, 1);
 
-  // Add to curated with animation class
-  curatedPhotos.value.push({
+  // Add to curated at the beginning (most recent first)
+  curatedPhotos.value.unshift({
     ...photo,
     // Mark for animation (could be used in PhotoCard)
   });
@@ -555,7 +594,17 @@ const moveToCuration = (photoId: string) => {
 
   const photo = curatedPhotos.value[photoIndex];
   curatedPhotos.value.splice(photoIndex, 1);
-  candidatePhotos.value.unshift(photo);
+
+  // Restore to original position if available, otherwise add to beginning
+  if (typeof photo.originalIndex === "number" && photo.originalIndex >= 0) {
+    const targetIndex = Math.min(
+      photo.originalIndex,
+      candidatePhotos.value.length
+    );
+    candidatePhotos.value.splice(targetIndex, 0, photo);
+  } else {
+    candidatePhotos.value.unshift(photo);
+  }
 };
 
 const togglePhotoSelection = (photoId: string) => {
@@ -610,6 +659,28 @@ watch(
   },
   { immediate: true }
 );
+
+// Query examples functionality
+const searchType = ref("curation");
+
+function handleCurationExampleClick(
+  example: any,
+  exampleText: string,
+  searchType: string
+) {
+  if (searchType === "curation") {
+    searchQuery.value = exampleText;
+    performSearch();
+  }
+}
+
+const {
+  exampleIndex,
+  isSliding,
+  currentExamples,
+  currentExampleText,
+  handleExampleClick,
+} = useQueryExamples(searchType, ref("strict"), handleCurationExampleClick);
 </script>
 
 <style scoped>
@@ -805,7 +876,7 @@ watch(
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
-  margin: 0 0 var(--spacing-md) 0;
+  margin: 0 0 0 0;
 }
 
 .empty-description {
@@ -929,5 +1000,73 @@ watch(
     padding: var(--spacing-2xl);
     margin: var(--spacing-md);
   }
+}
+
+/* Search Examples Styles */
+.search-examples {
+  text-align: left;
+  margin-top: var(--spacing-xl);
+}
+
+.examples-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffffd1;
+  margin: 0 0 var(--spacing-lg) 0;
+  text-align: center;
+}
+
+.examples-carousel {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: var(--spacing-sm) 0;
+}
+
+.carousel-container {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-item {
+  width: 100%;
+  opacity: 1;
+  transform: translateX(0);
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.carousel-item.sliding {
+  opacity: 0;
+  transform: translateX(-80px);
+}
+
+.example-card {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.example-card:hover .example-text {
+  color: #2563eb;
+  transform: scale(1.02);
+}
+
+.example-text {
+  font-size: 16px;
+  color: #ffffff73;
+  line-height: 1.4;
+  text-align: center;
+  font-style: italic;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>
