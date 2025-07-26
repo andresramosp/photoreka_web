@@ -6,7 +6,9 @@
         <router-view v-if="route.name === 'landing'" />
 
         <!-- Authentication Layout -->
-        <router-view v-else-if="!userStore.isAuthenticated" />
+        <router-view
+          v-else-if="!userStore.isAuthenticated && route.name === 'auth'"
+        />
 
         <!-- Profile Setup Layout (authenticated but special case) -->
         <router-view
@@ -165,6 +167,10 @@ watch(
   () => userStore.isAuthenticated,
   (isAuth) => {
     if (isAuth) {
+      // Si el usuario se autentica pero aún está en la página de auth, redirigir inmediatamente
+      if (route.name === "auth") {
+        router.replace("/dashboard");
+      }
       photosStore.getOrFetch(true);
       checkShowOnboarding();
     } else {
@@ -181,6 +187,17 @@ watch(
       checkShowOnboarding();
     }
   }
+);
+
+// Watcher adicional para forzar redirección si el usuario autenticado está en auth
+watch(
+  [() => userStore.isAuthenticated, () => route.name],
+  ([isAuth, routeName]) => {
+    if (isAuth && routeName === "auth") {
+      router.replace("/dashboard");
+    }
+  },
+  { immediate: true }
 );
 
 onUnmounted(() => {

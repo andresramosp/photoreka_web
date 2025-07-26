@@ -184,7 +184,8 @@ const handleSubmit = async () => {
 
     if (result.success) {
       message.success("Welcome back!");
-      router.push("/dashboard");
+      // Usar replace para evitar que quede en el historial y forzar navegación inmediata
+      router.replace("/dashboard");
     } else {
       message.error(result.error || "Error logging in");
     }

@@ -13,8 +13,14 @@
         </div>
         <div class="nav-actions">
           <n-button text @click="goToAuth('login')"> Login </n-button>
-          <n-button type="primary" @click="goToAuth('signup')">
+          <!-- <n-button type="primary" @click="goToAuth('signup')">
             Sign Up
+          </n-button> -->
+          <n-button type="primary" size="large" @click="goToAuth('signup')">
+            <template #icon>
+              <n-icon><RocketOutline /></n-icon>
+            </template>
+            Request Access
           </n-button>
         </div>
       </div>
@@ -34,53 +40,58 @@
               powerful search capabilities, and creative tools. Discover hidden
               gems in your collection and create stunning visual stories.
             </p>
-            <div class="hero-actions">
-              <n-button type="primary" size="large" @click="goToAuth('signup')">
-                <template #icon>
-                  <n-icon><RocketOutline /></n-icon>
-                </template>
-                Start Free Trial
-              </n-button>
-              <n-button size="large" quaternary @click="scrollToDemo">
-                <template #icon>
-                  <n-icon><PlayOutline /></n-icon>
-                </template>
-                Watch Demo
-              </n-button>
-            </div>
-            <div class="hero-stats">
-              <div class="stat">
-                <span class="stat-number">10K+</span>
-                <span class="stat-label">Photos Organized</span>
-              </div>
-              <div class="stat">
-                <span class="stat-number">500+</span>
-                <span class="stat-label">Happy Users</span>
-              </div>
-              <div class="stat">
-                <span class="stat-number">99%</span>
-                <span class="stat-label">Accuracy Rate</span>
-              </div>
-            </div>
           </div>
           <div class="hero-visual">
-            <div class="video-container" ref="demoSection">
-              <video
-                class="demo-video"
-                :src="demoVideoUrl"
-                controls
-                @play="onVideoPlay"
-              >
-                Your browser does not support the video tag.
-              </video>
-              <div
-                class="video-overlay"
-                v-if="!videoPlaying"
-                @click="playVideo"
-              >
-                <n-icon size="64" color="#ffffff">
-                  <PlayCircleOutline />
-                </n-icon>
+            <div class="video-tabs-container" ref="demoSection">
+              <div class="video-tabs">
+                <div
+                  v-for="(tab, index) in videoTabs"
+                  :key="index"
+                  class="video-tab"
+                  :class="{ active: activeTab === index }"
+                  @click="setActiveTab(index)"
+                >
+                  <div class="tab-header">
+                    <n-icon
+                      size="20"
+                      :color="activeTab === index ? '#2563eb' : '#6b7280'"
+                    >
+                      <component :is="tab.icon" />
+                    </n-icon>
+                    <span class="tab-title">{{ tab.title }}</span>
+                  </div>
+                  <div class="tab-progress" v-if="activeTab === index">
+                    <div
+                      class="progress-bar"
+                      :style="{ width: `${videoProgress}%` }"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              <div class="video-container">
+                <video
+                  ref="videoPlayer"
+                  class="demo-video"
+                  :src="videoTabs[activeTab].videoUrl"
+                  @timeupdate="updateProgress"
+                  @ended="onVideoEnded"
+                  @play="onVideoPlay"
+                  @loadeddata="onVideoLoaded"
+                  muted
+                  loop
+                  preload="metadata"
+                >
+                  Your browser does not support the video tag.
+                </video>
+                <div
+                  class="video-overlay"
+                  v-if="!videoPlaying"
+                  @click="playVideo"
+                >
+                  <n-icon size="64" color="#ffffff">
+                    <PlayCircleOutline />
+                  </n-icon>
+                </div>
               </div>
             </div>
           </div>
@@ -228,7 +239,7 @@
     </section>
 
     <!-- Testimonials Section -->
-    <section class="testimonials-section">
+    <!-- <section class="testimonials-section">
       <div class="section-container">
         <div class="section-header">
           <h2 class="section-title">Loved by Photographers Worldwide</h2>
@@ -296,10 +307,10 @@
           </div>
         </div>
       </div>
-    </section>
+    </section> -->
 
     <!-- CTA Section -->
-    <section class="cta-section">
+    <!-- <section class="cta-section">
       <div class="section-container">
         <div class="cta-content">
           <h2 class="cta-title">Ready to Transform Your Photo Workflow?</h2>
@@ -324,12 +335,12 @@
           <p class="cta-note">No credit card required • 14-day free trial</p>
         </div>
       </div>
-    </section>
+    </section> -->
 
     <!-- Footer -->
     <footer class="landing-footer">
       <div class="footer-container">
-        <div class="footer-content">
+        <!-- <div class="footer-content">
           <div class="footer-brand">
             <div class="logo">
               <n-icon size="24" color="#2563eb">
@@ -362,7 +373,7 @@
               <a href="#" class="link">Privacy</a>
             </div>
           </div>
-        </div>
+        </div> -->
         <div class="footer-bottom">
           <p class="copyright">© 2024 Photoreka. All rights reserved.</p>
         </div>
@@ -372,7 +383,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { NButton, NIcon, NAvatar } from "naive-ui";
 import {
@@ -392,11 +403,38 @@ import { Workspace } from "@vicons/carbon";
 
 const router = useRouter();
 const demoSection = ref(null);
+const videoPlayer = ref(null);
 const videoPlaying = ref(false);
+const activeTab = ref(0);
+const videoProgress = ref(0);
 
-// Video URL from Pexels
-const demoVideoUrl =
-  "https://videos.pexels.com/video-files/15162384/15162384-hd_720_1280_30fps.mp4";
+// Video tabs with different use cases
+const videoTabs = ref([
+  {
+    title: "Smart Search",
+    icon: SearchOutline,
+    videoUrl:
+      "https://videos.pexels.com/video-files/856048/856048-sd_640_360_30fps.mp4", // 8s
+  },
+  {
+    title: "Photo Organization",
+    icon: AppsOutline,
+    videoUrl:
+      "https://videos.pexels.com/video-files/856051/856051-sd_640_360_30fps.mp4", // 9s
+  },
+  {
+    title: "Creative Tools",
+    icon: ColorPaletteOutline,
+    videoUrl:
+      "https://videos.pexels.com/video-files/856052/856052-sd_640_360_30fps.mp4", // 8s
+  },
+  {
+    title: "Collection Management",
+    icon: ImagesOutline,
+    videoUrl:
+      "https://videos.pexels.com/video-files/856053/856053-sd_640_360_30fps.mp4", // 9s
+  },
+]);
 
 const goToAuth = (mode = "login") => {
   router.push({ name: "auth", query: { mode } });
@@ -406,10 +444,22 @@ const scrollToDemo = () => {
   demoSection.value?.scrollIntoView({ behavior: "smooth" });
 };
 
+const setActiveTab = (index) => {
+  activeTab.value = index;
+  videoProgress.value = 0;
+  videoPlaying.value = false;
+  if (videoPlayer.value) {
+    videoPlayer.value.currentTime = 0;
+    videoPlayer.value.load(); // Force reload the video
+    setTimeout(() => {
+      videoPlayer.value.play().catch(console.log);
+    }, 100);
+  }
+};
+
 const playVideo = () => {
-  const video = demoSection.value?.querySelector("video");
-  if (video) {
-    video.play();
+  if (videoPlayer.value) {
+    videoPlayer.value.play().catch(console.log);
   }
 };
 
@@ -417,8 +467,40 @@ const onVideoPlay = () => {
   videoPlaying.value = true;
 };
 
+const onVideoLoaded = () => {
+  // Video is loaded and ready to play
+  console.log("Video loaded successfully");
+};
+
+const updateProgress = () => {
+  if (videoPlayer.value) {
+    const progress =
+      (videoPlayer.value.currentTime / videoPlayer.value.duration) * 100;
+    videoProgress.value = progress || 0;
+  }
+};
+
+const onVideoEnded = () => {
+  videoProgress.value = 100;
+  // Auto-switch to next tab after video ends
+  setTimeout(() => {
+    const nextTab = (activeTab.value + 1) % videoTabs.value.length;
+    setActiveTab(nextTab);
+  }, 1000);
+};
+
+// Watch for tab changes to reset video
+watch(activeTab, () => {
+  videoProgress.value = 0;
+});
+
 onMounted(() => {
-  // Any initialization logic here
+  // Start playing the first video automatically after a short delay
+  setTimeout(() => {
+    if (videoPlayer.value) {
+      videoPlayer.value.play().catch(console.log);
+    }
+  }, 500);
 });
 </script>
 
@@ -486,10 +568,10 @@ onMounted(() => {
 }
 
 .hero-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 80px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  text-align: center;
 }
 
 .hero-title {
@@ -543,6 +625,78 @@ onMounted(() => {
 
 .hero-visual {
   position: relative;
+  width: 100%;
+  max-width: none;
+}
+
+.video-tabs-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.video-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.video-tab {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.video-tab:hover {
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.video-tab.active {
+  background: rgba(37, 99, 235, 0.15);
+  border: 1px solid var(--primary-color);
+}
+
+.tab-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.tab-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+}
+
+.video-tab.active .tab-title {
+  color: var(--primary-color);
+}
+
+.tab-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(37, 99, 235, 0.2);
+  border-radius: 0 0 8px 8px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #8b5cf6);
+  border-radius: 0 0 8px 8px;
+  transition: width 0.1s ease;
 }
 
 .video-container {
@@ -550,11 +704,14 @@ onMounted(() => {
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(37, 99, 235, 0.3);
+  width: 100%;
+  aspect-ratio: 16 / 9;
 }
 
 .demo-video {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
   display: block;
 }
 
@@ -581,7 +738,7 @@ onMounted(() => {
 .how-it-works-section,
 .testimonials-section,
 .cta-section {
-  padding: 80px 0;
+  padding: 50px 0;
 }
 
 .section-container {
@@ -830,9 +987,7 @@ onMounted(() => {
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .hero-content {
-    grid-template-columns: 1fr;
-    gap: 48px;
-    text-align: center;
+    gap: 40px;
   }
 
   .hero-title {
@@ -847,6 +1002,19 @@ onMounted(() => {
   .hero-stats {
     justify-content: center;
     gap: 32px;
+  }
+
+  .video-tabs {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .video-tab {
+    padding: 8px 12px;
+  }
+
+  .tab-title {
+    font-size: 12px;
   }
 
   .section-title {
