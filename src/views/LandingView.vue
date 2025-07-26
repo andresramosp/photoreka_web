@@ -78,7 +78,6 @@
                   @play="onVideoPlay"
                   @loadeddata="onVideoLoaded"
                   muted
-                  loop
                   preload="metadata"
                 >
                   Your browser does not support the video tag.
@@ -101,138 +100,131 @@
 
     <!-- Features Section -->
     <section class="features-section">
-      <div class="section-container">
-        <div class="section-header">
-          <h2 class="section-title">
-            Powerful Features for Photo Professionals
-          </h2>
-          <p class="section-description">
-            Everything you need to organize, discover, and enhance your photo
-            collection
+      <div class="floating-header">
+        <h2 class="floating-title">
+          Powerful Features for Photo Professionals
+        </h2>
+        <p class="floating-description">
+          Everything you need to organize, discover, and enhance your photo
+          collection
+        </p>
+      </div>
+      <div class="floating-features">
+        <div class="floating-feature-card">
+          <div class="feature-icon">
+            <n-icon size="40" color="#2563eb">
+              <SearchOutline />
+            </n-icon>
+          </div>
+          <h3 class="feature-title">Semantic Search</h3>
+          <p class="feature-description">
+            Find photos instantly using natural language. Search for "sunset
+            beach" or "happy moments" and discover exactly what you're looking
+            for.
           </p>
         </div>
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon">
-              <n-icon size="40" color="#2563eb">
-                <SearchOutline />
-              </n-icon>
-            </div>
-            <h3 class="feature-title">Semantic Search</h3>
-            <p class="feature-description">
-              Find photos instantly using natural language. Search for "sunset
-              beach" or "happy moments" and discover exactly what you're looking
-              for.
-            </p>
+        <div class="floating-feature-card">
+          <div class="feature-icon">
+            <n-icon size="40" color="#8b5cf6">
+              <Workspace />
+            </n-icon>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">
-              <n-icon size="40" color="#8b5cf6">
-                <Workspace />
-              </n-icon>
-            </div>
-            <h3 class="feature-title">Interactive Canvas</h3>
-            <p class="feature-description">
-              Create stunning photo layouts and compositions with our intuitive
-              canvas tool. Perfect for mood boards and creative projects.
-            </p>
+          <h3 class="feature-title">Interactive Canvas</h3>
+          <p class="feature-description">
+            Create stunning photo layouts and compositions with our intuitive
+            canvas tool. Perfect for mood boards and creative projects.
+          </p>
+        </div>
+        <div class="floating-feature-card">
+          <div class="feature-icon">
+            <n-icon size="40" color="#22c55e">
+              <AppsOutline />
+            </n-icon>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">
-              <n-icon size="40" color="#22c55e">
-                <AppsOutline />
-              </n-icon>
-            </div>
-            <h3 class="feature-title">Grid Maker</h3>
-            <p class="feature-description">
-              Generate beautiful photo grids automatically. Choose from various
-              layouts and export high-quality compositions for social media.
-            </p>
+          <h3 class="feature-title">Grid Maker</h3>
+          <p class="feature-description">
+            Generate beautiful photo grids automatically. Choose from various
+            layouts and export high-quality compositions for social media.
+          </p>
+        </div>
+        <div class="floating-feature-card">
+          <div class="feature-icon">
+            <n-icon size="40" color="#f59e0b">
+              <ImagesOutline />
+            </n-icon>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">
-              <n-icon size="40" color="#f59e0b">
-                <ImagesOutline />
-              </n-icon>
-            </div>
-            <h3 class="feature-title">Smart Curation</h3>
-            <p class="feature-description">
-              Let our engine automatically curate your best photos based on
-              composition, lighting, and emotional impact. Save hours of manual
-              sorting.
-            </p>
+          <h3 class="feature-title">Smart Curation</h3>
+          <p class="feature-description">
+            Let our engine automatically curate your best photos based on
+            composition, lighting, and emotional impact. Save hours of manual
+            sorting.
+          </p>
+        </div>
+        <div class="floating-feature-card">
+          <div class="feature-icon">
+            <n-icon size="40" color="#ef4444">
+              <ColorPaletteOutline />
+            </n-icon>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">
-              <n-icon size="40" color="#ef4444">
-                <ColorPaletteOutline />
-              </n-icon>
-            </div>
-            <h3 class="feature-title">Style Transfer</h3>
-            <p class="feature-description">
-              Apply artistic styles to your photos with advanced tools.
-              Transform ordinary photos into artistic masterpieces with one
-              click.
-            </p>
+          <h3 class="feature-title">Style Transfer</h3>
+          <p class="feature-description">
+            Apply artistic styles to your photos with advanced tools. Transform
+            ordinary photos into artistic masterpieces with one click.
+          </p>
+        </div>
+        <div class="floating-feature-card">
+          <div class="feature-icon">
+            <n-icon size="40" color="#06b6d4">
+              <CloudUploadOutline />
+            </n-icon>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">
-              <n-icon size="40" color="#06b6d4">
-                <CloudUploadOutline />
-              </n-icon>
-            </div>
-            <h3 class="feature-title">Cloud Sync</h3>
-            <p class="feature-description">
-              Seamlessly sync your photos across all devices. Access your entire
-              collection anywhere with automatic backup and organization.
-            </p>
-          </div>
+          <h3 class="feature-title">Cloud Sync</h3>
+          <p class="feature-description">
+            Seamlessly sync your photos across all devices. Access your entire
+            collection anywhere with automatic backup and organization.
+          </p>
         </div>
       </div>
     </section>
 
     <!-- How It Works Section -->
     <section class="how-it-works-section">
-      <div class="section-container">
-        <div class="section-header">
-          <h2 class="section-title">How Photoreka Works</h2>
-          <p class="section-description">
-            Get started in minutes with our simple 3-step process
-          </p>
+      <div class="floating-header">
+        <h2 class="floating-title">How Photoreka Works</h2>
+        <p class="floating-description">
+          Get started in minutes with our simple 3-step process
+        </p>
+      </div>
+      <div class="floating-steps">
+        <div class="floating-step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3 class="step-title">Upload Your Photos</h3>
+            <p class="step-description">
+              Simply drag and drop your photos or connect your existing photo
+              library. We support all major formats and cloud storage providers.
+            </p>
+          </div>
         </div>
-        <div class="steps-container">
-          <div class="step">
-            <div class="step-number">1</div>
-            <div class="step-content">
-              <h3 class="step-title">Upload Your Photos</h3>
-              <p class="step-description">
-                Simply drag and drop your photos or connect your existing photo
-                library. We support all major formats and cloud storage
-                providers.
-              </p>
-            </div>
+        <div class="floating-step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3 class="step-title">AI Analysis</h3>
+            <p class="step-description">
+              Our advanced AI analyzes your photos for content, quality, and
+              emotional impact. This process creates searchable tags and
+              intelligent organization.
+            </p>
           </div>
-          <div class="step">
-            <div class="step-number">2</div>
-            <div class="step-content">
-              <h3 class="step-title">AI Analysis</h3>
-              <p class="step-description">
-                Our advanced AI analyzes your photos for content, quality, and
-                emotional impact. This process creates searchable tags and
-                intelligent organization.
-              </p>
-            </div>
-          </div>
-          <div class="step">
-            <div class="step-number">3</div>
-            <div class="step-content">
-              <h3 class="step-title">Discover & Create</h3>
-              <p class="step-description">
-                Use powerful search, create stunning layouts, and discover
-                hidden gems in your collection. Share your creations with the
-                world.
-              </p>
-            </div>
+        </div>
+        <div class="floating-step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3 class="step-title">Discover & Create</h3>
+            <p class="step-description">
+              Use powerful search, create stunning layouts, and discover hidden
+              gems in your collection. Share your creations with the world.
+            </p>
           </div>
         </div>
       </div>
@@ -445,21 +437,38 @@ const scrollToDemo = () => {
 };
 
 const setActiveTab = (index) => {
+  console.log(`Setting active tab to: ${index}`);
   activeTab.value = index;
   videoProgress.value = 0;
   videoPlaying.value = false;
+
   if (videoPlayer.value) {
     videoPlayer.value.currentTime = 0;
     videoPlayer.value.load(); // Force reload the video
+
+    // Wait a bit for the video to load, then play
     setTimeout(() => {
-      videoPlayer.value.play().catch(console.log);
-    }, 100);
+      videoPlayer.value
+        .play()
+        .then(() => {
+          console.log("Video started playing");
+          videoPlaying.value = true;
+        })
+        .catch((error) => {
+          console.log("Error playing video:", error);
+        });
+    }, 200);
   }
 };
 
 const playVideo = () => {
   if (videoPlayer.value) {
-    videoPlayer.value.play().catch(console.log);
+    videoPlayer.value
+      .play()
+      .then(() => {
+        videoPlaying.value = true;
+      })
+      .catch(console.log);
   }
 };
 
@@ -481,12 +490,17 @@ const updateProgress = () => {
 };
 
 const onVideoEnded = () => {
+  console.log("Video ended, switching to next tab");
   videoProgress.value = 100;
+  videoPlaying.value = false;
+
   // Auto-switch to next tab after video ends
+  const nextTab = (activeTab.value + 1) % videoTabs.value.length;
+  console.log(`Switching from tab ${activeTab.value} to tab ${nextTab}`);
+
   setTimeout(() => {
-    const nextTab = (activeTab.value + 1) % videoTabs.value.length;
     setActiveTab(nextTab);
-  }, 1000);
+  }, 300);
 };
 
 // Watch for tab changes to reset video
@@ -498,7 +512,12 @@ onMounted(() => {
   // Start playing the first video automatically after a short delay
   setTimeout(() => {
     if (videoPlayer.value) {
-      videoPlayer.value.play().catch(console.log);
+      videoPlayer.value
+        .play()
+        .then(() => {
+          videoPlaying.value = true;
+        })
+        .catch(console.log);
     }
   }, 500);
 });
@@ -533,24 +552,30 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .nav-brand .logo {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 .brand-name {
   font-size: 20px;
   font-weight: 600;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .nav-actions {
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-shrink: 0;
 }
 
 /* Hero Section */
@@ -738,7 +763,122 @@ onMounted(() => {
 .how-it-works-section,
 .testimonials-section,
 .cta-section {
-  padding: 50px 0;
+  padding-bottom: 60px;
+  position: relative;
+}
+
+/* Floating Headers */
+.floating-header {
+  text-align: center;
+  margin-bottom: 80px;
+  padding: 0 24px;
+}
+
+.floating-title {
+  font-size: 40px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
+.floating-description {
+  font-size: 18px;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Floating Features */
+.floating-features {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 32px;
+  padding: 0 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.floating-feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 32px 24px;
+  text-align: center;
+  transition: all 0.4s ease;
+  width: 320px;
+  max-width: 100%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.floating-feature-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(37, 99, 235, 0.05),
+    rgba(139, 92, 246, 0.05)
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.floating-feature-card:hover::before {
+  opacity: 1;
+}
+
+.floating-feature-card:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.25);
+}
+
+/* Floating Steps */
+.floating-steps {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 60px;
+  padding: 0 24px;
+  flex-wrap: wrap;
+}
+
+.floating-step {
+  text-align: center;
+  max-width: 300px;
+  position: relative;
+  background: rgba(37, 99, 235, 0.05);
+  border-radius: 24px;
+  padding: 40px 24px;
+  transition: all 0.4s ease;
+  border: 1px solid rgba(37, 99, 235, 0.1);
+}
+
+.floating-step:hover {
+  transform: translateY(-6px);
+  background: rgba(37, 99, 235, 0.1);
+  border-color: var(--primary-color);
+  box-shadow: 0 16px 32px rgba(37, 99, 235, 0.2);
+}
+
+.floating-step:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  right: -30px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24px;
+  color: var(--primary-color);
+  font-weight: bold;
 }
 
 .section-container {
@@ -766,7 +906,7 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-/* Features Grid */
+/* Features Grid (legacy - keeping for other sections) */
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -819,7 +959,7 @@ onMounted(() => {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color), #8b5cf6);
   color: white;
   font-size: 24px;
   font-weight: 700;
@@ -827,6 +967,13 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   margin: 0 auto 24px;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+  transition: all 0.3s ease;
+}
+
+.floating-step:hover .step-number {
+  transform: scale(1.1);
+  box-shadow: 0 12px 32px rgba(37, 99, 235, 0.4);
 }
 
 .step-title {
@@ -985,6 +1132,26 @@ onMounted(() => {
 }
 
 /* Mobile Responsive */
+@media (max-width: 1024px) {
+  .video-tabs {
+    display: none; /* Hide video tabs on tablets and smaller */
+  }
+
+  .floating-features {
+    gap: 24px;
+    padding: 0 20px;
+  }
+
+  .floating-feature-card {
+    width: calc(50% - 12px);
+    min-width: 280px;
+  }
+
+  .nav-container {
+    padding: 0 20px;
+  }
+}
+
 @media (max-width: 768px) {
   .hero-content {
     gap: 40px;
@@ -1007,6 +1174,7 @@ onMounted(() => {
   .video-tabs {
     flex-direction: column;
     gap: 4px;
+    display: none; /* Hide video tabs on mobile */
   }
 
   .video-tab {
@@ -1017,8 +1185,43 @@ onMounted(() => {
     font-size: 12px;
   }
 
-  .section-title {
+  .floating-title {
     font-size: 32px;
+  }
+
+  .floating-features {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 0 16px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .floating-feature-card {
+    width: calc(100% - 32px);
+    max-width: 400px;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .floating-steps {
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    padding: 0 16px;
+  }
+
+  .floating-step {
+    max-width: 100%;
+  }
+
+  .floating-step:not(:last-child)::after {
+    content: "↓";
+    right: 50%;
+    transform: translateX(50%);
+    top: auto;
+    bottom: -20px;
   }
 
   .features-grid,
@@ -1047,10 +1250,70 @@ onMounted(() => {
 
   .nav-container {
     padding: 0 16px;
+    gap: 8px;
+  }
+
+  .nav-actions {
+    gap: 8px;
+  }
+
+  .brand-name {
+    font-size: 18px;
   }
 
   .section-container {
     padding: 0 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .floating-features {
+    padding: 0 12px;
+  }
+
+  .floating-feature-card {
+    width: calc(100% - 24px);
+    padding: 24px 20px;
+  }
+
+  .floating-header {
+    padding: 0 12px;
+  }
+
+  .floating-steps {
+    padding: 0 12px;
+  }
+
+  .nav-container {
+    padding: 0 12px;
+    height: 56px;
+  }
+
+  .nav-actions {
+    gap: 6px;
+  }
+
+  .brand-name {
+    font-size: 16px;
+  }
+
+  /* Hide login text on very small screens, keep only button */
+  .nav-actions .n-button:first-child {
+    display: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .nav-container {
+    padding: 0 8px;
+  }
+
+  .brand-name {
+    font-size: 14px;
+  }
+
+  .nav-brand .logo {
+    gap: 8px;
   }
 }
 </style>

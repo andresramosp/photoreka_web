@@ -32,7 +32,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch, onMounted } from "vue";
+import { useRoute } from "vue-router";
 import AuthLayout from "../components/AuthLayout.vue";
 import LoginForm from "../components/LoginForm.vue";
 import RegisterForm from "../components/RegisterForm.vue";
@@ -40,10 +41,22 @@ import RegisterForm from "../components/RegisterForm.vue";
 type AuthMode = "login" | "register";
 
 const currentMode = ref<AuthMode>("register");
+const route = useRoute();
 
 const handleSwitchMode = (mode: AuthMode) => {
   currentMode.value = mode;
 };
+
+// Set currentMode from query param on mount and when route changes
+const setModeFromQuery = () => {
+  const mode = route.query.mode;
+  if (mode === "login" || mode === "register") {
+    currentMode.value = mode as AuthMode;
+  }
+};
+
+onMounted(setModeFromQuery);
+watch(() => route.query.mode, setModeFromQuery);
 </script>
 
 <style scoped>
