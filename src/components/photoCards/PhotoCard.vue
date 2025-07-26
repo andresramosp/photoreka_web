@@ -31,7 +31,7 @@
         <p class="reasoning-text">
           {{
             showAnalyzing
-              ? "Analyzing..."
+              ? "Reviewing..."
               : photo.reasoning ||
                 "This photo demonstrates excellent composition with balanced lighting and compelling subject matter that would work well for the intended purpose."
           }}
@@ -242,12 +242,12 @@ const props = withDefaults(defineProps<Props & { isThinking?: boolean }>(), {
   showReturnButton: true,
   isNew: false,
 });
-// Show "Analyzing..." label and blur if isThinking and reasoning is "Analyzing..."
+// Show "Reviewing..." label and blur if isThinking and reasoning is "Reviewing..."
 const showAnalyzing = computed(
   () =>
     props.mode === "curation" &&
     props.isThinking &&
-    (!props.photo.reasoning || props.photo.reasoning === "Analyzing...")
+    (!props.photo.reasoning || props.photo.reasoning === "Reviewing...")
 );
 
 const shouldBlur = computed(() => showAnalyzing.value);

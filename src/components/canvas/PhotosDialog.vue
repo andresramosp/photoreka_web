@@ -545,7 +545,7 @@ const socket = io(import.meta.env.VITE_API_WS_URL);
 
 const registerSocketListeners = () => {
   socket.emit("join", { userId: userStore.user.id });
-  socket.on("matches", (data) => {
+  socket.on("search-matches", (data) => {
     if (true) {
       // Extract photos from search results
       const photos = [];
@@ -578,7 +578,7 @@ watch(
 );
 
 onUnmounted(() => {
-  socket.off("matches");
+  socket.off("search-matches");
   socket.disconnect();
 });
 </script>

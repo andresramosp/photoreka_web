@@ -6,7 +6,7 @@
         <n-input
           v-model:value="searchQuery"
           type="textarea"
-          placeholder="Describe the photos you want to curate... e.g., 'urban architecture with people' or 'nature landscapes at sunset'"
+          placeholder="Describe the concept or theme to search for photos"
           :autosize="{ minRows: 1, maxRows: 2 }"
           class="search-input"
           @input="onSearchChange"
@@ -138,9 +138,7 @@
               :mode="'curation'"
               :selected="false"
               :isThinking="isThinking"
-              :isNew="
-                photo.isNew && photo.matchScore >= (minMatchScore.value || 1)
-              "
+              :isNew="newlyArrivedPhotos.has(photo.id)"
               @select="togglePhotoSelection"
               @info="showPhotoInfo"
               @move-to-selection="moveToSelection"
@@ -287,7 +285,7 @@
         <div class="carousel-container">
           <div class="carousel-item" :class="{ sliding: isSliding }">
             <button class="example-card" @click="handleExampleClick">
-              <p class="example-text">{{ currentExampleText }}</p>
+              <p class="example-text">«{{ currentExampleText }}»</p>
             </button>
           </div>
         </div>
@@ -320,7 +318,6 @@ import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas.js";
 import { useRouter } from "vue-router";
 
-import WarningBadge from "@/components/WarningBadge.vue";
 import { api } from "@/utils/axios";
 import { io } from "socket.io-client";
 
@@ -374,6 +371,7 @@ const resultsOptions = Array.from({ length: 10 }, (_, i) => ({
 const iterationsRecord = ref({});
 const currentIteration = ref(1);
 const maxPageAttempts = ref(false);
+const newlyArrivedPhotos = ref(new Set());
 
 // Computed properties
 const hasSearchQuery = computed(() => searchQuery.value.trim().length > 0);
@@ -387,7 +385,7 @@ const showReturnButton = computed(() => {
 const filteredCandidatePhotos = computed(() => {
   if (!iterationFinished.value) {
     return candidatePhotos.value.filter((photo) => {
-      return photo.reasoning == "Analyzing...";
+      return photo.reasoning == "Reviewing...";
     });
   }
 
@@ -413,7 +411,7 @@ const registerSocketListeners = () => {
   socket.emit("join", { userId: userStore.user.id });
 
   // Socket for initial photo matches (fast response)
-  socket.on("matches", (data) => {
+  socket.on("curation-matches", (data) => {
     isThinking.value = true; // Esperar insights después de matches
 
     console.log("🎯 Matches received:", data);
@@ -431,7 +429,7 @@ const registerSocketListeners = () => {
         thumbnailUrl: item.photo.thumbnailUrl || item.photo.url,
         title: item.photo.title || `Photo ${item.photo.id}`,
         rating: item.photo.rating || Math.floor(Math.random() * 3) + 3,
-        reasoning: "Analyzing...", // Temporary until insights arrive
+        reasoning: "Reviewing...", // Temporary until insights arrive
         matchScore: 0, // Will be set when insights arrive
         matchingTags: item.photo.matchingTags || [],
         width: item.photo.width,
@@ -443,6 +441,8 @@ const registerSocketListeners = () => {
         originalIndex: undefined, // Will be set in updateCandidatePhotos
         isNew: true, // Mark as new photo
       }));
+
+      // Don't add to newlyArrivedPhotos yet - wait for insights
 
       iterationsRecord.value[iterNum].photos.push(...newPhotos);
     });
@@ -472,13 +472,17 @@ const registerSocketListeners = () => {
         const updated = richPhotos.find(
           (item) => item.photo.id === existing.id
         );
-        return updated
-          ? {
-              ...existing,
-              reasoning: updated.reasoning || "No reasoning provided",
-              matchScore: updated.matchScore || updated.photo?.matchScore || 0,
-            }
-          : existing;
+        if (updated) {
+          // Add to newly arrived photos when insights arrive (photo is now complete)
+          newlyArrivedPhotos.value.add(existing.id);
+
+          return {
+            ...existing,
+            reasoning: updated.reasoning || "No reasoning provided",
+            matchScore: updated.matchScore || updated.photo?.matchScore || 0,
+          };
+        }
+        return existing;
       });
     });
 
@@ -536,23 +540,11 @@ const updateCandidatePhotos = () => {
 };
 
 const removeNewFlagFromQualifyingPhotos = () => {
-  // Remove isNew flag from photos that meet the rating criteria
-  Object.keys(iterationsRecord.value).forEach((iter) => {
-    const iterNum = parseInt(iter);
-    if (iterationsRecord.value[iterNum]?.photos) {
-      iterationsRecord.value[iterNum].photos = iterationsRecord.value[
-        iterNum
-      ].photos.map((photo) => {
-        if (photo.isNew && photo.matchScore >= (minMatchScore.value || 1)) {
-          return { ...photo, isNew: false };
-        }
-        return photo;
-      });
-    }
+  // Remove photos from newly arrived set after timeout
+  const photosToRemove = Array.from(newlyArrivedPhotos.value);
+  photosToRemove.forEach((photoId) => {
+    newlyArrivedPhotos.value.delete(photoId);
   });
-
-  // Update candidate photos to reflect the changes
-  updateCandidatePhotos();
 };
 
 // Methods
@@ -615,6 +607,7 @@ const searchPhotosApi = async (isInitial = false) => {
     iterationsRecord.value = {};
     currentIteration.value = 1;
     hasMoreResults.value = true;
+    newlyArrivedPhotos.value.clear(); // Clear newly arrived photos set
     console.log("Performing curation search:", searchQuery.value);
   } else {
     isLoadingMore.value = true;
@@ -661,6 +654,7 @@ const clearSearch = () => {
   currentIteration.value = 1;
   hasMoreResults.value = true;
   iterationFinished.value = false;
+  newlyArrivedPhotos.value.clear(); // Clear newly arrived photos set
 
   maxPageAttempts.value = false;
   minResults.value = 1; // Reset to default
@@ -669,6 +663,11 @@ const clearSelection = () => {
   // Move all curated photos back to candidates, restoring original positions
   const photosToRestore = [...curatedPhotos.value];
   curatedPhotos.value = [];
+
+  // Remove any returned photos from newly arrived set
+  photosToRestore.forEach((photo) => {
+    newlyArrivedPhotos.value.delete(photo.id);
+  });
 
   // Sort by original index to restore proper order
   photosToRestore.sort((a, b) => {
@@ -708,6 +707,9 @@ const moveToSelection = (photoId) => {
 
   candidatePhotos.value.splice(photoIndex, 1);
 
+  // Remove from newly arrived photos set when moving to selection
+  newlyArrivedPhotos.value.delete(photoId);
+
   // Add to curated at the beginning (most recent first)
   curatedPhotos.value.unshift({
     ...photo,
@@ -721,6 +723,8 @@ const moveToCuration = (photoId) => {
 
   const photo = curatedPhotos.value[photoIndex];
   curatedPhotos.value.splice(photoIndex, 1);
+
+  // Don't add back to newly arrived photos set when returning from selection
 
   // Restore to original position if available, otherwise add to beginning
   if (typeof photo.originalIndex === "number" && photo.originalIndex >= 0) {
@@ -776,7 +780,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   // Clean up socket listeners
-  socket.off("matches");
+  socket.off("curation-matches");
   socket.off("insights");
   socket.off("maxPageAttempts");
 });

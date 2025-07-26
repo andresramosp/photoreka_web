@@ -1007,7 +1007,7 @@ onUnmounted(() => {
     scrollContainer.value.removeEventListener("scroll", handleScroll);
   }
 
-  socket.off("matches");
+  socket.off("search-matches");
   socket.off("maxPageAttempts");
 });
 
@@ -1034,7 +1034,7 @@ watch(
     if (val) {
       socket.emit("join", { userId: userStore.user.id });
       if (!matchesListenerRegistered) {
-        socket.on("matches", (data) => {
+        socket.on("search-matches", (data) => {
           console.log(data);
           searchStore.updateSearchResults(data);
           setTimeout(() => {
