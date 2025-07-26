@@ -564,7 +564,11 @@
           <div class="controls-left">
             <div class="results-info results-info-base">
               <span class="results-count results-count-base">
-                {{ searchResults.length }} photos found
+                {{ filteredSearchResults.length }} photos found
+                <span v-if="minStarRating > 0" class="filter-applied">
+                  ({{ filteredSearchResults.length }} of
+                  {{ searchResults.length }} with {{ minStarRating }}+ stars)
+                </span>
               </span>
             </div>
             <!-- Action buttons (show when photos are selected) -->
@@ -607,19 +611,39 @@
               </n-button>
             </div>
           </div>
-          <div class="grid-size-controls grid-size-controls-base">
-            <span class="grid-label grid-label-base">Columns:</span>
-            <n-button-group>
-              <n-button
-                v-for="size in [3, 4, 5, 6]"
-                :key="size"
-                :type="gridColumns === size ? 'primary' : 'default'"
-                size="small"
-                @click="setGridColumns(size)"
-              >
-                {{ size }}
-              </n-button>
-            </n-button-group>
+
+          <div class="controls-right">
+            <!-- Star Filter -->
+            <div class="star-filter">
+              <span class="filter-label">Min. Rating:</span>
+              <div class="star-buttons">
+                <n-rate
+                  v-model:value="minStarRating"
+                  :readonly="isSearching || isLoadingMore"
+                  :count="3"
+                  size="small"
+                  clearable
+                  @update:value="onStarFilterChange"
+                  class="star-rating"
+                  :allow-half="false"
+                />
+              </div>
+            </div>
+
+            <div class="grid-size-controls grid-size-controls-base">
+              <span class="grid-label grid-label-base">Columns:</span>
+              <n-button-group>
+                <n-button
+                  v-for="size in [3, 4, 5, 6]"
+                  :key="size"
+                  :type="gridColumns === size ? 'primary' : 'default'"
+                  size="small"
+                  @click="setGridColumns(size)"
+                >
+                  {{ size }}
+                </n-button>
+              </n-button-group>
+            </div>
           </div>
         </div>
 
@@ -630,9 +654,11 @@
         >
           <!-- Photo Cards -->
           <PhotoCard
-            v-for="photo in searchResults"
+            v-for="photo in filteredSearchResults"
             :key="photo.id"
             :photo="photo"
+            :computed-stars="photo.computedStars"
+            :show-low-relevance-icon="photo.showLowRelevanceIcon"
             :selected="localSelectedPhotoIds.includes(photo.id)"
             @select="togglePhotoSelection"
             @info="showPhotoInfo"
@@ -692,7 +718,7 @@ import {
 } from "vue";
 import { api } from "@/utils/axios";
 import { io } from "socket.io-client";
-import { NTooltip } from "naive-ui";
+import { NTooltip, NRate } from "naive-ui";
 
 // Componentes e íconos
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
@@ -710,6 +736,7 @@ import { useCanvasStore } from "@/stores/canvas.js";
 import { useUserStore } from "@/stores/userStore";
 import { useSearchStore } from "@/stores/searchStore";
 import { useRouter } from "vue-router";
+import { usePhotoScored } from "@/composables/usePhotoScored";
 
 // Conexión real-time para resultados incrementales
 const socket = io(import.meta.env.VITE_API_WS_URL);
@@ -719,6 +746,9 @@ const canvasStore = useCanvasStore();
 const userStore = useUserStore();
 const searchStore = useSearchStore();
 const router = useRouter();
+
+// Photo scoring utilities
+const { computePhotoStars, shouldShowLowRelevanceIcon } = usePhotoScored();
 
 // Estado local de selección de fotos (independiente del store global)
 const {
@@ -750,6 +780,24 @@ const hasSearchQuery = computed(() => searchStore.hasSearchQuery);
 const hasMoreIterations = computed(
   () => searchStore.currentSearchState.hasMoreIterations
 );
+
+// Computed properties for photos with pre-computed stars and filtering
+const photosWithComputedStars = computed(() => {
+  return searchResults.value.map((photo) => ({
+    ...photo,
+    computedStars: computePhotoStars(photo),
+    showLowRelevanceIcon: shouldShowLowRelevanceIcon(photo),
+  }));
+});
+
+const filteredSearchResults = computed(() => {
+  if (minStarRating.value === 0) {
+    return photosWithComputedStars.value;
+  }
+  return photosWithComputedStars.value.filter(
+    (photo) => photo.computedStars >= minStarRating.value
+  );
+});
 
 // Computed para acceder a los valores específicos de cada tipo de búsqueda
 const semanticQuery = computed({
@@ -875,8 +923,17 @@ function handleScroll() {
 // Columnas del grid y paginación
 const gridColumns = ref(6);
 
+// Star filter for minimum rating
+const minStarRating = ref(1);
+
 function setGridColumns(n) {
   gridColumns.value = n;
+}
+
+// Star filter handler
+function onStarFilterChange(rating) {
+  minStarRating.value = rating || 0;
+  console.log("Min star rating filter set to:", minStarRating.value);
 }
 
 function togglePhotoSelection(id) {
@@ -906,6 +963,9 @@ function setSearchType(type) {
 // Limpia inputs de búsqueda solo del tipo actual
 function clearSearch() {
   searchStore.clearCurrentSearch();
+
+  // Reset star filter
+  minStarRating.value = 0;
 
   // Resetear estado del toolbar
   isToolbarCollapsed.value = false;
@@ -1435,6 +1495,43 @@ function updateTopologicalRight(value) {
   margin-left: 24px;
 }
 
+/* Controls right container */
+.controls-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Star Filter */
+.star-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffffd1;
+  white-space: nowrap;
+}
+
+.star-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.star-rating {
+  --n-item-color-active: #fbbf24;
+  --n-item-color: rgba(255, 255, 255, 0.3);
+}
+
+.filter-applied {
+  color: #ffffff73;
+  font-size: 12px;
+  margin-left: 4px;
+}
+
 /* Search Inspiration */
 .search-inspiration {
   display: flex;
@@ -1634,6 +1731,19 @@ function updateTopologicalRight(value) {
     padding: 8px 10px;
   }
 
+  /* Star filter responsive */
+  .controls-right {
+    gap: 12px;
+  }
+
+  .star-filter {
+    gap: 6px;
+  }
+
+  .filter-label {
+    font-size: 12px;
+  }
+
   /* Note: Grid responsive styles moved to global.scss */
 
   .selection-info {
@@ -1676,6 +1786,19 @@ function updateTopologicalRight(value) {
   .mode-icon {
     width: 10px;
     height: 10px;
+  }
+
+  /* Star filter mobile responsive */
+  .controls-right {
+    gap: 8px;
+  }
+
+  .star-filter {
+    gap: 4px;
+  }
+
+  .filter-label {
+    font-size: 10px;
   }
 
   .search-input-row,

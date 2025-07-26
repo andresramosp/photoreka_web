@@ -165,37 +165,19 @@ import {
   HelpCircleOutline as HelpIcon,
 } from "@vicons/ionicons5";
 
+import { usePhotoScored } from "@/composables/usePhotoScored.js";
+
+// Photo scoring composable
+const { computePhotoStars, shouldShowLowRelevanceIcon } = usePhotoScored();
+
 // Calcula la cantidad de estrellas a mostrar (1-3) usando matchScore o matchPercent
 const computedStars = computed(() => {
-  if (props.photo.matchScore && props.photo.matchScore > 0) {
-    return Math.max(1, Math.min(3, props.photo.matchScore));
-  }
-  if (
-    typeof (props.photo as any).matchPercent === "number" &&
-    (props.photo as any).matchPercent >= 0
-  ) {
-    const percent = (props.photo as any).matchPercent;
-
-    if (percent < 30) return 0; // Sin estrellas ni icono
-    if (percent >= 75) return 3;
-    if (percent >= 45) return 2;
-    if (percent >= 30) return 1;
-  }
-  return 0;
+  return props.computedStars ?? computePhotoStars(props.photo);
 });
 
-// Mostrar icono de poca relevancia cuando matchPercent < 15%
+// Mostrar icono de poca relevancia cuando matchPercent < 30%
 const showLowRelevanceIcon = computed(() => {
-  if (props.photo.matchScore && props.photo.matchScore > 0) {
-    return false; // Si hay matchScore, no mostrar icono de poca relevancia
-  }
-  if (
-    typeof (props.photo as any).matchPercent === "number" &&
-    (props.photo as any).matchPercent >= 0
-  ) {
-    return (props.photo as any).matchPercent < 30;
-  }
-  return false;
+  return props.showLowRelevanceIcon ?? shouldShowLowRelevanceIcon(props.photo);
 });
 
 export interface Photo {
@@ -224,6 +206,8 @@ interface Props {
   showTags?: boolean; // Control visibility of matched tags
   showReturnButton?: boolean; // Control visibility of return button in selection mode
   isNew?: boolean; // Mark photo as newly arrived
+  computedStars?: number; // Pre-computed stars (0-3)
+  showLowRelevanceIcon?: boolean; // Pre-computed low relevance indicator
 }
 
 interface Emits {
