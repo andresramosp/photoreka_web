@@ -555,7 +555,7 @@ onMounted(() => {
 
 /* Hero Section */
 .hero-section {
-  padding: 120px 0 80px;
+  padding: 80px 0 80px;
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -593,7 +593,7 @@ onMounted(() => {
   font-size: 18px;
   line-height: 1.6;
   color: var(--text-secondary);
-  margin-bottom: 32px;
+  margin-bottom: 64px;
 }
 
 .hero-actions {
