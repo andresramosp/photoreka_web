@@ -49,8 +49,7 @@
       <!-- Accordion Sections -->
       <div class="info-sections">
         <n-collapse :default-expanded-names="['metadata']">
-          <!-- Metadata Section -->
-          <n-collapse-item title="Metadata" name="metadata">
+          <!-- <n-collapse-item title="Metadata" name="metadata">
             <template #header-extra>
               <n-icon>
                 <InfoIcon />
@@ -128,7 +127,7 @@
                 <span class="value">{{ selectedPhoto?.iso || "Unknown" }}</span>
               </div>
             </div>
-          </n-collapse-item>
+          </n-collapse-item> -->
 
           <!-- Tags Section -->
           <n-collapse-item title="Tags" name="tags">
@@ -177,14 +176,13 @@
           </n-collapse-item>
 
           <!-- Descriptions Section -->
-          <n-collapse-item title="Descriptions" name="descriptions">
+          <!-- <n-collapse-item title="Descriptions" name="descriptions">
             <template #header-extra>
               <n-icon>
                 <DocumentTextIcon />
               </n-icon>
             </template>
             <div class="descriptions-section">
-              <!-- AI Generated Descriptions -->
               <div v-if="selectedPhoto?.descriptions" class="ai-descriptions">
                 <h4 class="section-title">AI Generated Descriptions</h4>
 
@@ -210,7 +208,6 @@
                 </div>
               </div>
 
-              <!-- Custom Description -->
               <div class="custom-description-section">
                 <h4 class="section-title">Custom Description</h4>
                 <div
@@ -260,7 +257,7 @@
                 </div>
               </div>
             </div>
-          </n-collapse-item>
+          </n-collapse-item> -->
 
           <!-- Notes Section -->
           <n-collapse-item title="Notes" name="notes">
