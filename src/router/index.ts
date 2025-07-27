@@ -151,6 +151,10 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore();
 
+  if (to.path === "/") {
+    next();
+  }
+
   // Check if route requires authentication
   if (to.meta.requiresAuth && !userStore.isAuthenticated) {
     next("/auth");
@@ -160,11 +164,7 @@ router.beforeEach((to, from, next) => {
     next("/dashboard");
   }
   // If accessing root and not authenticated, go to auth
-  else if (to.path === "/" && !userStore.isAuthenticated) {
-    next("/auth");
-  } else {
-    next();
-  }
+  else next();
 });
 
 export default router;
