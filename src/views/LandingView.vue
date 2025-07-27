@@ -411,15 +411,14 @@ const showRequestDialog = ref(false);
 // Video tabs with different use cases
 const videoTabs = ref([
   {
+    title: "Canvas",
+    icon: ColorPaletteOutline,
+    videoUrl: new URL("@/assets/videos/canvas_1.mp4", import.meta.url).href, // local video
+  },
+  {
     title: "Explorer",
     icon: SearchOutline,
     videoUrl: new URL("@/assets/videos/explorer_1.mp4", import.meta.url).href, // local video
-  },
-  {
-    title: "Canvas",
-    icon: ColorPaletteOutline,
-    videoUrl:
-      "https://videos.pexels.com/video-files/856051/856051-sd_640_360_30fps.mp4", // 9s
   },
   {
     title: "Curation",
