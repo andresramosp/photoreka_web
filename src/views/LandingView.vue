@@ -34,9 +34,9 @@
             </h1>
             <p class="hero-description">
               Start making sense of your photographic body of work with our
-              powerful engine. Explore through descriptive or figurative
-              queries. Build series for artistic or documentary projects.
-              Sequence images by narrative or visual rhythm and uncover new
+              powerful engine. 🕵️‍♂️ Explore through natural language queries. 🎨
+              Build series for artistic or documentary projects. 🎞️ Sequence
+              images by narrative or chromatic similarity 🔎 Uncover new
               connections hidden in your catalog.
             </p>
           </div>
@@ -159,7 +159,7 @@
             sorting.
           </p>
         </div>
-        <div class="floating-feature-card">
+        <!-- <div class="floating-feature-card">
           <div class="feature-icon">
             <n-icon size="40" color="#ef4444">
               <ColorPaletteOutline />
@@ -182,7 +182,7 @@
             Seamlessly sync your photos across all devices. Access your entire
             collection anywhere with automatic backup and organization.
           </p>
-        </div>
+        </div> -->
       </div>
     </section>
 
@@ -208,11 +208,11 @@
         <div class="floating-step">
           <div class="step-number">2</div>
           <div class="step-content">
-            <h3 class="step-title">AI Analysis</h3>
+            <h3 class="step-title">Vision Analysis</h3>
             <p class="step-description">
-              Our advanced AI analyzes your photos for content, quality, and
-              emotional impact. This process creates searchable tags and
-              intelligent organization.
+              Our advanced computer vision algorithms your photos for content,
+              quality, and emotional impact. This process creates searchable
+              tags and intelligent organization.
             </p>
           </div>
         </div>
@@ -411,26 +411,25 @@ const showRequestDialog = ref(false);
 // Video tabs with different use cases
 const videoTabs = ref([
   {
-    title: "Smart Search",
+    title: "Explorer",
     icon: SearchOutline,
-    videoUrl:
-      "https://videos.pexels.com/video-files/856048/856048-sd_640_360_30fps.mp4", // 8s
+    videoUrl: new URL("@/assets/videos/explorer_1.mp4", import.meta.url).href, // local video
   },
   {
-    title: "Photo Organization",
-    icon: AppsOutline,
+    title: "Canvas",
+    icon: ColorPaletteOutline,
     videoUrl:
       "https://videos.pexels.com/video-files/856051/856051-sd_640_360_30fps.mp4", // 9s
   },
   {
-    title: "Creative Tools",
-    icon: ColorPaletteOutline,
+    title: "Curation",
+    icon: ImagesOutline,
     videoUrl:
       "https://videos.pexels.com/video-files/856052/856052-sd_640_360_30fps.mp4", // 8s
   },
   {
-    title: "Collection Management",
-    icon: ImagesOutline,
+    title: "Grid Maker",
+    icon: AppsOutline,
     videoUrl:
       "https://videos.pexels.com/video-files/856053/856053-sd_640_360_30fps.mp4", // 9s
   },
@@ -495,6 +494,9 @@ const onVideoPlay = () => {
 
 const onVideoLoaded = () => {
   // Video is loaded and ready to play
+  if (videoPlayer.value) {
+    videoPlayer.value.playbackRate = 1.7; // velocidad 1.5x
+  }
   console.log("Video loaded successfully");
 };
 
@@ -640,7 +642,7 @@ onMounted(() => {
 .hero-description {
   font-size: 18px;
   line-height: 1.6;
-  color: var(--text-secondary);
+  /* color: var(--text-secondary); */
   margin-bottom: 50px;
 }
 
@@ -752,13 +754,14 @@ onMounted(() => {
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(37, 99, 235, 0.3);
   width: 100%;
-  aspect-ratio: 16 / 9;
+  /* aspect-ratio: 16 / 9; */
 }
 
 .demo-video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background: #111;
   display: block;
 }
 
