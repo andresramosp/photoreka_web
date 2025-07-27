@@ -1,7 +1,7 @@
 <template>
   <div class="auth-providers">
     <div class="providers-grid">
-      <!-- <n-button
+      <n-button
         class="provider-button provider-google"
         :loading="isLoading && activeProvider === 'google'"
         @click="handleProviderLogin('google')"
@@ -23,7 +23,7 @@
           <FacebookIcon />
         </template>
         Facebook
-      </n-button> -->
+      </n-button>
     </div>
   </div>
 </template>

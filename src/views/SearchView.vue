@@ -96,7 +96,7 @@
                   <div class="premium-indicator-pill"></div>
                 </div>
               </template>
-              High precision search that prioritizes logical accuracy
+              Heavy search that prioritizes logical accuracy
             </n-tooltip>
             <n-tooltip trigger="hover" placement="top">
               <template #trigger>
@@ -137,7 +137,7 @@
                   Fast
                 </div>
               </template>
-              Quick search with basic matching for faster results
+              Shallow search with basic matching for faster results
             </n-tooltip>
           </div>
         </div>

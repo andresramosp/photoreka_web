@@ -5,10 +5,7 @@
       <div class="nav-container">
         <div class="nav-brand">
           <div class="logo">
-            <n-icon size="28" color="#2563eb">
-              <CameraOutline />
-            </n-icon>
-            <span class="brand-name">Photoreka</span>
+            <img :src="logoName" alt="Photoreka" class="logo-image" />
           </div>
         </div>
         <div class="nav-actions">
@@ -32,13 +29,15 @@
         <div class="hero-content">
           <div class="hero-text">
             <h1 class="hero-title">
-              Photo Discovery Lab
-              <span class="hero-accent">Made Simple</span>
+              Photo
+              <span class="hero-accent">Curation Lab</span>
             </h1>
             <p class="hero-description">
-              Transform your photo library with intelligent organization,
-              powerful search capabilities, and creative tools. Discover hidden
-              gems in your collection and create stunning visual stories.
+              Start making sense of your photographic body of work with our
+              powerful engine. Explore through descriptive or figurative
+              queries. Build series for artistic or documentary projects.
+              Sequence images by narrative or visual rhythm and uncover new
+              connections hidden in your catalog.
             </p>
           </div>
           <div class="hero-visual">
@@ -371,6 +370,12 @@
         </div>
       </div>
     </footer>
+
+    <!-- Request Access Dialog -->
+    <RequestAccessDialog
+      v-model:show="showRequestDialog"
+      @success="onRequestSuccess"
+    />
   </div>
 </template>
 
@@ -392,6 +397,8 @@ import {
   LogInOutline,
 } from "@vicons/ionicons5";
 import { Workspace } from "@vicons/carbon";
+import logoName from "@/assets/logo_name.png";
+import RequestAccessDialog from "@/components/RequestAccessDialog.vue";
 
 const router = useRouter();
 const demoSection = ref(null);
@@ -399,6 +406,7 @@ const videoPlayer = ref(null);
 const videoPlaying = ref(false);
 const activeTab = ref(0);
 const videoProgress = ref(0);
+const showRequestDialog = ref(false);
 
 // Video tabs with different use cases
 const videoTabs = ref([
@@ -429,11 +437,20 @@ const videoTabs = ref([
 ]);
 
 const goToAuth = (mode = "login") => {
-  router.push({ name: "auth", query: { mode } });
+  if (mode === "signup") {
+    showRequestDialog.value = true;
+  } else {
+    router.push({ name: "auth", query: { mode } });
+  }
 };
 
 const scrollToDemo = () => {
   demoSection.value?.scrollIntoView({ behavior: "smooth" });
+};
+
+const onRequestSuccess = () => {
+  // Optional: could add analytics tracking here
+  console.log("Access request submitted successfully");
 };
 
 const setActiveTab = (index) => {
@@ -564,6 +581,12 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
+.logo-image {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+}
+
 .brand-name {
   font-size: 20px;
   font-weight: 600;
@@ -618,7 +641,7 @@ onMounted(() => {
   font-size: 18px;
   line-height: 1.6;
   color: var(--text-secondary);
-  margin-bottom: 64px;
+  margin-bottom: 50px;
 }
 
 .hero-actions {
@@ -667,7 +690,6 @@ onMounted(() => {
   background: var(--bg-card);
   border-radius: 12px;
   padding: 8px;
-  border: 1px solid var(--border-color);
 }
 
 .video-tab {

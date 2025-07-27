@@ -19,12 +19,12 @@ import LandingView from "@/views/LandingView.vue";
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // {
+    //   path: "/",
+    //   redirect: "/landing",
+    // },
     {
       path: "/",
-      redirect: "/landing",
-    },
-    {
-      path: "/landing",
       name: "landing",
       component: LandingView,
       meta: {

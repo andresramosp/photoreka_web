@@ -1,11 +1,8 @@
 <template>
   <div class="photoreka-logo" :class="{ 'logo-large': size === 'large' }">
     <div class="logo-icon">
-      <n-icon :size="iconSize" color="#2563eb">
-        <CameraOutline />
-      </n-icon>
+      <img :src="logoName" alt="Photoreka" class="logo-image" />
     </div>
-    <span class="logo-text" v-if="showText">Photoreka</span>
   </div>
 </template>
 
@@ -13,6 +10,7 @@
 import { computed } from "vue";
 import { NIcon } from "naive-ui";
 import { CameraOutline } from "@vicons/ionicons5";
+import logoName from "@/assets/logo_name_sub_curation_lab.png";
 
 interface Props {
   size?: "normal" | "large";
@@ -39,8 +37,10 @@ export default {
 .photoreka-logo {
   display: flex;
   align-items: center;
+  opacity: 0.8;
   gap: 12px;
   color: #2563eb;
+  justify-content: center;
 }
 
 .photoreka-logo.logo-large {
@@ -53,6 +53,16 @@ export default {
   justify-content: center;
   flex-shrink: 0;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logo-image {
+  height: 170px;
+  width: auto;
+  object-fit: contain;
+}
+
+.logo-large .logo-image {
+  height: 100px;
 }
 
 .logo-text {

@@ -18,7 +18,7 @@
             </n-icon>
           </div>
           <div class="logo-text">
-            <div class="app-name">Photoreka</div>
+            <img :src="logoName" alt="Photoreka" class="logo-brand-image" />
             <div class="app-subtitle">Photo Lab</div>
           </div>
         </div>
@@ -123,14 +123,14 @@
       </div>
       <div class="logo-container">
         <div class="logo clickable-logo" @click="goToDashboard">
-          <div class="logo-icon">
+          <div v-if="collapsed" class="logo-icon">
             <n-icon size="28" color="#2563eb">
               <CameraOutline />
             </n-icon>
           </div>
           <div v-if="!collapsed" class="logo-text">
-            <div class="app-name">Photoreka</div>
-            <div class="app-subtitle">Discovery Lab</div>
+            <img :src="logoName" alt="Photoreka" class="logo-brand-image" />
+            <!-- <div class="app-subtitle">Discovery Lab</div> -->
           </div>
         </div>
       </div>
@@ -213,6 +213,7 @@ import type { MenuOption } from "naive-ui";
 import { usePhotosStore } from "@/stores/photos.js";
 
 import { Workspace as CanvasIcon } from "@vicons/carbon";
+import logoName from "@/assets/logo_name_sub_curation_lab.png";
 
 // Import @vicons icons from ionicons5 for reliability
 import {
@@ -584,6 +585,19 @@ onUnmounted(() => {
   transition: background-color 0.2s ease;
 }
 
+.logo-image {
+  height: 170px;
+  width: auto;
+  object-fit: contain;
+}
+
+.logo-brand-image {
+  height: 54px;
+  width: auto;
+  opacity: 0.8;
+  object-fit: contain;
+}
+
 .logo-icon:hover {
   background-color: rgba(37, 99, 235, 0.15);
 }
@@ -593,6 +607,10 @@ onUnmounted(() => {
   white-space: nowrap;
   overflow: hidden;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
 }
 
 .app-name {

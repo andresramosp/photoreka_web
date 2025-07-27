@@ -4,7 +4,7 @@
       <div class="auth-content">
         <div class="auth-header">
           <AppLogo size="large" />
-          <p class="auth-subtitle">Your photo discovery lab</p>
+          <!-- <p class="auth-subtitle">Your photo discovery lab</p> -->
         </div>
 
         <div class="auth-form-container">

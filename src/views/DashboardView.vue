@@ -44,15 +44,15 @@
         <div
           class="action-card new-project"
           :class="{ disabled: appAccessMode === 'blocked' }"
-          @click="goToCuration"
+          @click="goToCanvas"
         >
           <div class="action-icon">
             <n-icon size="32">
-              <AddIcon />
+              <Workspace />
             </n-icon>
           </div>
-          <h3 class="action-title">New Curation</h3>
-          <p class="action-description">Start a fresh project</p>
+          <h3 class="action-title">New Canvas</h3>
+          <p class="action-description">Start a fresh canvas</p>
         </div>
         <div
           class="action-card ai-search"
@@ -341,6 +341,7 @@ import {
   ImageOutline as PhotoHubIcon,
   SettingsOutline as SettingsIcon,
 } from "@vicons/ionicons5";
+import { Workspace } from "@vicons/carbon";
 
 const router = useRouter();
 const photosStore = usePhotosStore();
@@ -358,9 +359,9 @@ const goToCatalog = () => {
   router.push({ name: "photo-hub", hash: "#catalog" });
 };
 
-const goToCuration = () => {
+const goToCanvas = () => {
   // Navigate to photo-hub with catalog tab active
-  router.push({ name: "curation" });
+  router.push({ name: "canvas" });
 };
 
 const goToPlan = () => {
