@@ -7,13 +7,12 @@
     :closable="false"
     :bordered="false"
   >
+    <template #icon>
+      <DuplicateOutline />
+    </template>
     <template #header>
       <div class="dialog-header">
         <h2 class="dialog-title">Duplicate Photos</h2>
-        <p class="dialog-subtitle">
-          Found {{ duplicatePhotos.length }} duplicate
-          {{ duplicatePhotos.length === 1 ? "photo" : "photos" }}
-        </p>
       </div>
     </template>
 
@@ -171,6 +170,7 @@ import {
   SparklesOutline as CleanIcon,
   WarningOutline as WarningIcon,
   CheckmarkDoneOutline as ProcessedIcon,
+  DuplicateOutline,
 } from "@vicons/ionicons5";
 
 const props = defineProps({

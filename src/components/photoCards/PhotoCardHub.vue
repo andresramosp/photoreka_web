@@ -76,6 +76,25 @@
           <CheckCircleIcon />
         </n-icon>
       </div>
+
+      <!-- Duplicate indicator in top-left corner when footer is hidden -->
+      <n-tooltip
+        v-if="photo.isDuplicate && showDuplicate && !showFooter"
+        trigger="hover"
+        placement="top"
+      >
+        <template #trigger>
+          <div
+            class="duplicate-indicator top-left-duplicate-indicator"
+            @click.stop="showDuplicates"
+          >
+            <n-icon size="16">
+              <DuplicateOutline />
+            </n-icon>
+          </div>
+        </template>
+        Click to view duplicates
+      </n-tooltip>
     </div>
 
     <!-- File name in top-right corner of photo (if showName) -->
@@ -172,6 +191,7 @@ import { NIcon, NSpin, NTooltip } from "naive-ui";
 import {
   InformationCircleOutline as InfoIcon,
   WarningOutline as WarningIcon,
+  DuplicateOutline,
   CheckmarkCircleOutline as CheckCircleIcon,
   TrashOutline as DeleteIcon,
 } from "@vicons/ionicons5";
@@ -345,12 +365,75 @@ const onImageError = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
 }
 
 .footer-duplicate-indicator {
   position: static;
   margin-left: auto;
   margin-right: 0;
+}
+
+.top-left-duplicate-indicator {
+  position: absolute;
+  top: 5px;
+  left: 8px;
+  z-index: 4;
+}
+
+/* Variantes responsivas para el indicador de duplicados */
+@container photo-card (max-width: 200px) {
+  .top-left-duplicate-indicator {
+    width: 18px;
+    height: 18px;
+    top: 5px;
+    left: 6px;
+  }
+
+  .top-left-duplicate-indicator .n-icon {
+    font-size: 14px !important;
+  }
+}
+
+@container photo-card (max-width: 150px) {
+  .top-left-duplicate-indicator {
+    width: 13px;
+    height: 13px;
+    top: 2px;
+    left: 4px;
+  }
+
+  .top-left-duplicate-indicator .n-icon {
+    font-size: 12px !important;
+  }
+}
+
+/* Soporte para navegadores sin container queries */
+@media (max-width: 768px) {
+  .top-left-duplicate-indicator {
+    width: 22px;
+    height: 22px;
+    top: 6px;
+    left: 6px;
+  }
+
+  .top-left-duplicate-indicator .n-icon {
+    font-size: 14px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-left-duplicate-indicator {
+    width: 18px;
+    height: 18px;
+    top: 4px;
+    left: 4px;
+  }
+
+  .top-left-duplicate-indicator .n-icon {
+    font-size: 12px !important;
+  }
 }
 
 /* Processing overlay */
@@ -396,7 +479,7 @@ const onImageError = () => {
 .selection-indicator {
   position: absolute;
   top: 8px;
-  left: 8px;
+  right: 8px;
   background-color: rgba(139, 92, 246, 0.9);
   border-radius: 50%;
   width: 32px;
@@ -405,6 +488,60 @@ const onImageError = () => {
   align-items: center;
   justify-content: center;
   z-index: 4;
+}
+
+/* Variantes responsivas para el indicador de selección */
+@container photo-card (max-width: 200px) {
+  .selection-indicator {
+    width: 26px;
+    height: 26px;
+    top: 6px;
+    right: 6px;
+  }
+
+  .selection-indicator .n-icon {
+    font-size: 16px !important;
+  }
+}
+
+@container photo-card (max-width: 150px) {
+  .selection-indicator {
+    width: 22px;
+    height: 22px;
+    top: 4px;
+    right: 4px;
+  }
+
+  .selection-indicator .n-icon {
+    font-size: 14px !important;
+  }
+}
+
+/* Soporte para navegadores sin container queries - selection indicator */
+@media (max-width: 768px) {
+  .selection-indicator {
+    width: 26px;
+    height: 26px;
+    top: 6px;
+    right: 6px;
+  }
+
+  .selection-indicator .n-icon {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .selection-indicator {
+    width: 22px;
+    height: 22px;
+    top: 4px;
+    right: 4px;
+  }
+
+  .selection-indicator .n-icon {
+    font-size: 14px !important;
+  }
 }
 
 /* Photo footer */
