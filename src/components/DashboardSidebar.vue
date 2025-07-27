@@ -213,7 +213,7 @@ import type { MenuOption } from "naive-ui";
 import { usePhotosStore } from "@/stores/photos.js";
 
 import { Workspace as CanvasIcon } from "@vicons/carbon";
-import logoName from "@/assets/logo_name_sub_curation_lab.png";
+import logoName from "@/assets/logo_name_sub_curation_lab_blue.png";
 
 // Import @vicons icons from ionicons5 for reliability
 import {
