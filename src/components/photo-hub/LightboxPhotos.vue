@@ -629,7 +629,7 @@ async function uploadLocalFiles(event) {
 
 async function processAndUploadFile(file) {
   const [resizedBlob, thumbnailBlob] = await Promise.all([
-    resizeImage(file, 1500),
+    resizeImage(file, 1500, 512000),
     resizeImage(file, 800),
   ]);
 
@@ -666,7 +666,8 @@ async function processAndUploadFile(file) {
   return photo;
 }
 
-async function resizeImage(file, targetWidth) {
+async function resizeImage(file, targetWidth, maxSizeBytes = 512000) {
+  // 0.5MB = 512000 bytes
   const img = await loadImage(file);
   const canvas = document.createElement("canvas");
   const scale = targetWidth / img.width;
@@ -674,7 +675,31 @@ async function resizeImage(file, targetWidth) {
   canvas.height = img.height * scale;
 
   await picaInstance.resize(img, canvas);
-  const blob = await picaInstance.toBlob(canvas, "image/jpeg", 0.9);
+
+  // Si maxSizeBytes es null, usar calidad fija como antes
+  if (!maxSizeBytes) {
+    const blob = await picaInstance.toBlob(canvas, "image/jpeg", 0.9);
+    return blob;
+  }
+
+  // Compresión iterativa para no superar el tamaño máximo
+  let quality = 0.9;
+  let blob;
+  let attempts = 0;
+  const maxAttempts = 10;
+  const qualityDecrement = 0.1;
+
+  do {
+    blob = await picaInstance.toBlob(canvas, "image/jpeg", quality);
+
+    if (blob.size <= maxSizeBytes || attempts >= maxAttempts) {
+      break;
+    }
+
+    quality = Math.max(0.1, quality - qualityDecrement);
+    attempts++;
+  } while (quality > 0.1);
+
   return blob;
 }
 
