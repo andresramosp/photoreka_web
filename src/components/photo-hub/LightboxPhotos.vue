@@ -563,19 +563,49 @@ async function uploadLocalFiles(event) {
   uploadedCount.value = 0;
 
   const photosToUpload = [];
+  const failedUploads = [];
 
   try {
-    await Promise.all(
-      selectedLocalFiles.map((file) =>
-        limit(() =>
-          processAndUploadFile(file).then((photo) => {
+    const uploadPromises = selectedLocalFiles.map((file) =>
+      limit(() =>
+        processAndUploadFile(file)
+          .then((photo) => {
             if (photo) photosToUpload.push(photo);
           })
-        )
+          .catch((error) => {
+            console.error(`❌ Failed to upload ${file.name}:`, error);
+            failedUploads.push({ file: file.name, error: error.message });
+            // Incrementar el contador incluso para archivos fallidos
+            uploadedCount.value++;
+          })
       )
     );
 
+    await Promise.all(uploadPromises);
+
+    // Mostrar resumen de la subida
+    if (failedUploads.length > 0) {
+      console.warn(
+        `⚠️ Upload completed with ${failedUploads.length} failures:`,
+        failedUploads
+      );
+      message.warning(
+        `${photosToUpload.length} photos uploaded successfully. ${failedUploads.length} photos failed to upload.`
+      );
+    } else {
+      console.log(
+        `✅ All ${photosToUpload.length} photos uploaded successfully`
+      );
+    }
+
     isUploading.value = false;
+
+    // Solo proceder si tenemos fotos exitosas
+    if (photosToUpload.length === 0) {
+      message.error("No photos were uploaded successfully.");
+      event.target.value = "";
+      return;
+    }
 
     // Ahora que terminó la subida, añadir todas las fotos al store solo si showUploadProgress es false
     if (photosStore.showUploadProgress === false) {
@@ -621,6 +651,7 @@ async function uploadLocalFiles(event) {
     });
   } catch (error) {
     console.error("❌ Error en la subida:", error);
+    message.error("An unexpected error occurred during upload.");
   } finally {
     isUploading.value = false;
     event.target.value = "";
@@ -628,42 +659,104 @@ async function uploadLocalFiles(event) {
 }
 
 async function processAndUploadFile(file) {
-  const [resizedBlob, thumbnailBlob] = await Promise.all([
-    resizeImage(file, 1500, 512000),
-    resizeImage(file, 800),
-  ]);
+  try {
+    const [resizedBlob, thumbnailBlob] = await Promise.all([
+      resizeImage(file, 1500, 512000),
+      resizeImage(file, 800),
+    ]);
 
-  // Usar el api global de axios para la petición interna
-  const response = await api.post("/api/catalog/uploadLocal", {
-    fileType: resizedBlob.type,
-    originalName: file.name,
-  });
+    // Usar el api global de axios para la petición interna
+    const response = await api.post("/api/catalog/uploadLocal", {
+      fileType: resizedBlob.type,
+      originalName: file.name,
+    });
 
-  const { uploadUrl, thumbnailUploadUrl, photo } = response.data;
+    const { uploadUrl, thumbnailUploadUrl, photo } = response.data;
 
-  await Promise.all([
-    fetch(uploadUrl, {
-      method: "PUT",
-      headers: { "Content-Type": resizedBlob.type },
-      body: resizedBlob,
-    }),
-    fetch(thumbnailUploadUrl, {
-      method: "PUT",
-      headers: { "Content-Type": thumbnailBlob.type },
-      body: thumbnailBlob,
-    }),
-  ]);
+    // Subir ambas imágenes con manejo de errores y retry
+    const uploadResults = await Promise.allSettled([
+      uploadToR2WithRetry(uploadUrl, resizedBlob, file.name, "main"),
+      uploadToR2WithRetry(
+        thumbnailUploadUrl,
+        thumbnailBlob,
+        file.name,
+        "thumbnail"
+      ),
+    ]);
 
-  photo.status = "uploaded";
-  photo.isDuplicate = false;
-  if (photosStore.showUploadProgress === false) {
-    pendingPhotos.value.push(photo);
-  } else {
-    photosStore.photos.unshift(photo);
+    // Verificar que ambas subidas fueron exitosas
+    const failedUploads = uploadResults.filter(
+      (result) => result.status === "rejected"
+    );
+    if (failedUploads.length > 0) {
+      console.error(`❌ Failed uploads for ${file.name}:`, failedUploads);
+      throw new Error(
+        `Failed to upload ${failedUploads.length} of 2 files for ${file.name}`
+      );
+    }
+
+    photo.status = "uploaded";
+    photo.isDuplicate = false;
+    if (photosStore.showUploadProgress === false) {
+      pendingPhotos.value.push(photo);
+    } else {
+      photosStore.photos.unshift(photo);
+    }
+    uploadedCount.value++;
+
+    return photo;
+  } catch (error) {
+    console.error(`❌ Error processing file ${file.name}:`, error);
+    throw error; // Re-throw para que se maneje en uploadLocalFiles
   }
-  uploadedCount.value++;
+}
 
-  return photo;
+// Nueva función para subir a R2 con retry y validación
+async function uploadToR2WithRetry(url, blob, fileName, type, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(
+        `🔄 Uploading ${type} for ${fileName} (attempt ${attempt}/${maxRetries})`
+      );
+
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": blob.type,
+          "Content-Length": blob.size.toString(),
+        },
+        body: blob,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      // Verificar que la respuesta sea exitosa
+      if (response.status >= 200 && response.status < 300) {
+        console.log(`✅ Successfully uploaded ${type} for ${fileName}`);
+        return response;
+      } else {
+        throw new Error(`Unexpected status code: ${response.status}`);
+      }
+    } catch (error) {
+      console.error(
+        `❌ Upload attempt ${attempt} failed for ${type} of ${fileName}:`,
+        error
+      );
+
+      if (attempt === maxRetries) {
+        throw new Error(
+          `Failed to upload ${type} for ${fileName} after ${maxRetries} attempts: ${error.message}`
+        );
+      }
+
+      // Esperar antes del siguiente intento (backoff exponencial)
+      const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+      console.log(`⏳ Waiting ${delay}ms before retry...`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
 }
 
 async function resizeImage(file, targetWidth, maxSizeBytes = 512000) {
