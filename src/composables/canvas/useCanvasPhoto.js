@@ -13,12 +13,39 @@ export function useCanvasPhoto(stageRef, photos, photoRefs, stageConfig) {
   const handleSelectPhoto = (photo, event) => {
     if (!selectionRectVisible()) {
       photo.selected = !photo.selected;
-      const node = photoRefs.value[photo.id]?.getNode();
-      if (node) {
-        node.moveToTop();
-        node.getLayer().batchDraw();
+
+      // SOLUCIÓN: Reorganizar todo el array de fotos para cambiar el orden de pintado
+      // La foto clickeada se mueve al final del array, lo que la hace aparecer encima
+      reorganizePhotosOrder(photo.id);
+    }
+  };
+
+  // Función para reorganizar el orden de las fotos en el array
+  const reorganizePhotosOrder = (clickedPhotoId) => {
+    const currentPhotos = [...photos.value];
+
+    // Encontrar la foto clickeada
+    const clickedPhotoIndex = currentPhotos.findIndex(
+      (p) => p.id === clickedPhotoId
+    );
+    if (clickedPhotoIndex === -1) return;
+
+    // Remover la foto clickeada de su posición actual
+    const clickedPhoto = currentPhotos.splice(clickedPhotoIndex, 1)[0];
+
+    // Si hay fotos seleccionadas, también las movemos al final (pero antes que la clickeada)
+    const selectedPhotos = [];
+    for (let i = currentPhotos.length - 1; i >= 0; i--) {
+      if (currentPhotos[i].selected && currentPhotos[i].id !== clickedPhotoId) {
+        selectedPhotos.unshift(currentPhotos.splice(i, 1)[0]);
       }
     }
+
+    // Reorganizar: fotos no seleccionadas + fotos seleccionadas + foto clickeada
+    const newPhotosOrder = [...currentPhotos, ...selectedPhotos, clickedPhoto];
+
+    // Actualizar el store - esto forzará un re-render completo del canvas
+    canvasStore.photos = newPhotosOrder;
   };
 
   const selectionRectVisible = () => false;
@@ -26,35 +53,38 @@ export function useCanvasPhoto(stageRef, photos, photoRefs, stageConfig) {
   const handleDragStart = (photo, e) => {
     e.cancelBubble = true;
 
-    // 1) Lleva primero cualquier selección previa (opcional si solo arrastras uno)
-    photos.value
-      .filter((p) => p.selected && p.id !== photo.id)
-      .forEach((p) => photoRefs.value[p.id]?.getNode().moveToTop());
+    // SOLUCIÓN: Reorganizar el orden de las fotos ANTES de que comience el drag
+    // Esto asegura que la foto arrastrada esté al final del array (encima de todas)
+    reorganizePhotosOrder(photo.id);
 
-    // 2) Mueve el que estás arrastrando al top *al final* para que esté siempre por encima
-    const node = photoRefs.value[photo.id]?.getNode();
-    if (node) {
-      node.moveToTop();
-      node.getLayer().batchDraw();
-    }
-
-    // 3) Luego tu lógica de arrastre (almacenar posiciones, etc.)
-    Object.keys(dragGroupStart).forEach((k) => delete dragGroupStart[k]);
-    if (photo.selected) {
-      photos.value.forEach((p) => {
-        if (p.selected) {
-          dragGroupStart[p.id] = { x: p.config.x, y: p.config.y };
-        }
-      });
-    } else {
-      dragGroupStart[photo.id] = { x: photo.config.x, y: photo.config.y };
-    }
+    // Esperar un frame para que se complete el re-render antes de iniciar el drag
+    setTimeout(() => {
+      // Lógica normal de arrastre
+      Object.keys(dragGroupStart).forEach((k) => delete dragGroupStart[k]);
+      if (photo.selected) {
+        photos.value.forEach((p) => {
+          if (p.selected) {
+            dragGroupStart[p.id] = { x: p.config.x, y: p.config.y };
+          }
+        });
+      } else {
+        dragGroupStart[photo.id] = { x: photo.config.x, y: photo.config.y };
+      }
+    }, 0);
   };
 
   const handleDragMove = (photo, e) => {
     const newX = e.target.x();
     const newY = e.target.y();
     const origin = dragGroupStart[photo.id];
+
+    // Validar que origin existe para evitar errores
+    if (!origin) {
+      // Si no existe origin, inicializarlo con la posición actual
+      dragGroupStart[photo.id] = { x: photo.config.x, y: photo.config.y };
+      return; // Salir y esperar al siguiente evento de drag
+    }
+
     const deltaX = newX - origin.x;
     const deltaY = newY - origin.y;
 
@@ -337,5 +367,6 @@ export function useCanvasPhoto(stageRef, photos, photoRefs, stageConfig) {
     autoAlignPhotos,
     isHoveringTrash,
     handlePhotoDrop,
+    reorganizePhotosOrder,
   };
 }
