@@ -638,7 +638,7 @@ onMounted(() => {
   font-style: italic;
 }
 .hero-title {
-  font-size: 48px;
+  font-size: 52px;
   font-weight: 700;
   line-height: 1.1;
   margin-bottom: 0px;
