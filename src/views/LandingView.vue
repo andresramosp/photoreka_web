@@ -1,165 +1,167 @@
 <template>
-  <div class="landing-page">
-    <!-- Navigation Header -->
-    <nav class="landing-nav">
-      <div class="nav-container">
-        <div class="nav-brand">
-          <div class="logo">
-            <img :src="logoName" alt="Photoreka" class="logo-image" />
+  <n-message-provider>
+    <div class="landing-page">
+      <!-- Navigation Header -->
+      <nav class="landing-nav">
+        <div class="nav-container">
+          <div class="nav-brand">
+            <div class="logo">
+              <img :src="logoName" alt="Photoreka" class="logo-image" />
+            </div>
           </div>
-        </div>
-        <div class="nav-actions">
-          <n-button text @click="goToAuth('login')"> Login </n-button>
-          <!-- <n-button type="primary" @click="goToAuth('signup')">
+          <div class="nav-actions">
+            <n-button text @click="goToAuth('login')"> Login </n-button>
+            <!-- <n-button type="primary" @click="goToAuth('signup')">
             Sign Up
           </n-button> -->
-          <n-button type="primary" size="large" @click="goToAuth('signup')">
-            <template #icon>
-              <n-icon><RocketOutline /></n-icon>
-            </template>
-            Request Access
-          </n-button>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section class="hero-section">
-      <div class="hero-container">
-        <div class="hero-content">
-          <div class="hero-text">
-            <h1 class="hero-title">
-              Photo
-              <span class="hero-accent">Curation Lab</span>
-            </h1>
-            <p class="hero-description">
-              Start making sense of your photographic body of work with our
-              powerful engine. 🕵️‍♂️ Explore through natural language queries. 🎨
-              Build series for artistic or documentary projects. 🎞️ Sequence
-              images by narrative or chromatic similarity 🔎 Uncover new
-              connections hidden in your catalog.
-            </p>
+            <n-button type="primary" size="large" @click="goToAuth('signup')">
+              <template #icon>
+                <n-icon><RocketOutline /></n-icon>
+              </template>
+              Request Access
+            </n-button>
           </div>
-          <div class="hero-visual">
-            <div class="video-tabs-container" ref="demoSection">
-              <div class="video-tabs">
-                <div
-                  v-for="(tab, index) in videoTabs"
-                  :key="index"
-                  class="video-tab"
-                  :class="{ active: activeTab === index }"
-                  @click="setActiveTab(index)"
-                >
-                  <div class="tab-header">
-                    <n-icon
-                      size="20"
-                      :color="activeTab === index ? '#2563eb' : '#6b7280'"
-                    >
-                      <component :is="tab.icon" />
-                    </n-icon>
-                    <span class="tab-title">{{ tab.title }}</span>
-                  </div>
-                  <div class="tab-progress" v-if="activeTab === index">
-                    <div
-                      class="progress-bar"
-                      :style="{ width: `${videoProgress}%` }"
-                    ></div>
+        </div>
+      </nav>
+
+      <!-- Hero Section -->
+      <section class="hero-section">
+        <div class="hero-container">
+          <div class="hero-content">
+            <div class="hero-text">
+              <h1 class="hero-title">
+                Photo
+                <span class="hero-accent">Curation Lab</span>
+              </h1>
+              <span class="hero-subtitle"
+                >Street | Documentary | Conceptual</span
+              >
+              <p class="hero-description">
+                Start making sense of your photographic body of work with our
+                powerful engine. 🕵️‍♂️ Explore through natural language queries. 🎨
+                Build series for artistic or documentary projects. 🎞️ Sequence
+                images by narrative or chromatic similarity 🔎 Uncover new
+                connections hidden in your catalog.
+              </p>
+            </div>
+            <div class="hero-visual">
+              <div class="video-tabs-container" ref="demoSection">
+                <div class="video-tabs">
+                  <div
+                    v-for="(tab, index) in videoTabs"
+                    :key="index"
+                    class="video-tab"
+                    :class="{ active: activeTab === index }"
+                    @click="setActiveTab(index)"
+                  >
+                    <div class="tab-header">
+                      <n-icon
+                        size="20"
+                        :color="activeTab === index ? '#2563eb' : '#6b7280'"
+                      >
+                        <component :is="tab.icon" />
+                      </n-icon>
+                      <span class="tab-title">{{ tab.title }}</span>
+                    </div>
+                    <div class="tab-progress" v-if="activeTab === index">
+                      <div
+                        class="progress-bar"
+                        :style="{ width: `${videoProgress}%` }"
+                      ></div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="video-container">
-                <video
-                  ref="videoPlayer"
-                  class="demo-video"
-                  :src="videoTabs[activeTab].videoUrl"
-                  @timeupdate="updateProgress"
-                  @ended="onVideoEnded"
-                  @play="onVideoPlay"
-                  @loadeddata="onVideoLoaded"
-                  muted
-                  preload="metadata"
-                >
-                  Your browser does not support the video tag.
-                </video>
-                <div
-                  class="video-overlay"
-                  v-if="!videoPlaying"
-                  @click="playVideo"
-                >
-                  <n-icon size="64" color="#ffffff">
-                    <PlayCircleOutline />
-                  </n-icon>
+                <div class="video-container">
+                  <video
+                    ref="videoPlayer"
+                    class="demo-video"
+                    :src="videoTabs[activeTab].videoUrl"
+                    @timeupdate="updateProgress"
+                    @ended="onVideoEnded"
+                    @play="onVideoPlay"
+                    @loadeddata="onVideoLoaded"
+                    muted
+                    preload="metadata"
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                  <div
+                    class="video-overlay"
+                    v-if="!videoPlaying"
+                    @click="playVideo"
+                  >
+                    <n-icon size="64" color="#ffffff">
+                      <PlayCircleOutline />
+                    </n-icon>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Features Section -->
-    <section class="features-section">
-      <div class="floating-header">
-        <h2 class="floating-title">
-          Powerful Features for Photo Professionals
-        </h2>
-        <p class="floating-description">
-          Everything you need to organize, discover, and enhance your photo
-          collection
-        </p>
-      </div>
-      <div class="floating-features">
-        <div class="floating-feature-card">
-          <div class="feature-icon">
-            <n-icon size="40" color="#2563eb">
-              <SearchOutline />
-            </n-icon>
-          </div>
-          <h3 class="feature-title">Semantic Search</h3>
-          <p class="feature-description">
-            Find photos instantly using natural language. Search for "sunset
-            beach" or "happy moments" and discover exactly what you're looking
-            for.
+      <!-- Features Section -->
+      <section class="features-section">
+        <div class="floating-header">
+          <h2 class="floating-title">Powerful Features for Photographers</h2>
+          <p class="floating-description">
+            Everything you need to organize, discover, and enhance your photo
+            collection
           </p>
         </div>
-        <div class="floating-feature-card">
-          <div class="feature-icon">
-            <n-icon size="40" color="#8b5cf6">
-              <Workspace />
-            </n-icon>
+        <div class="floating-features">
+          <div class="floating-feature-card">
+            <div class="feature-icon">
+              <n-icon size="40" color="#2563eb">
+                <SearchOutline />
+              </n-icon>
+            </div>
+            <h3 class="feature-title">Semantic Search</h3>
+            <p class="feature-description">
+              Find photos instantly using natural language. Search for "sunset
+              beach" or "happy moments" and discover exactly what you're looking
+              for.
+            </p>
           </div>
-          <h3 class="feature-title">Interactive Canvas</h3>
-          <p class="feature-description">
-            Create stunning photo layouts and compositions with our intuitive
-            canvas tool. Perfect for mood boards and creative projects.
-          </p>
-        </div>
-        <div class="floating-feature-card">
-          <div class="feature-icon">
-            <n-icon size="40" color="#22c55e">
-              <AppsOutline />
-            </n-icon>
+          <div class="floating-feature-card">
+            <div class="feature-icon">
+              <n-icon size="40" color="#8b5cf6">
+                <Workspace />
+              </n-icon>
+            </div>
+            <h3 class="feature-title">Interactive Canvas</h3>
+            <p class="feature-description">
+              Create stunning photo layouts and compositions with our intuitive
+              canvas tool. Perfect for mood boards and creative projects.
+            </p>
           </div>
-          <h3 class="feature-title">Grid Maker</h3>
-          <p class="feature-description">
-            Generate beautiful photo grids automatically. Choose from various
-            layouts and export high-quality compositions for social media.
-          </p>
-        </div>
-        <div class="floating-feature-card">
-          <div class="feature-icon">
-            <n-icon size="40" color="#f59e0b">
-              <ImagesOutline />
-            </n-icon>
+          <div class="floating-feature-card">
+            <div class="feature-icon">
+              <n-icon size="40" color="#22c55e">
+                <AppsOutline />
+              </n-icon>
+            </div>
+            <h3 class="feature-title">Grid Maker</h3>
+            <p class="feature-description">
+              Generate beautiful photo grids automatically. Choose from various
+              layouts and export high-quality compositions for social media.
+            </p>
           </div>
-          <h3 class="feature-title">Smart Curation</h3>
-          <p class="feature-description">
-            Let our engine automatically curate your best photos based on
-            composition, lighting, and emotional impact. Save hours of manual
-            sorting.
-          </p>
-        </div>
-        <!-- <div class="floating-feature-card">
+          <div class="floating-feature-card">
+            <div class="feature-icon">
+              <n-icon size="40" color="#f59e0b">
+                <ImagesOutline />
+              </n-icon>
+            </div>
+            <h3 class="feature-title">Smart Curation</h3>
+            <p class="feature-description">
+              Let our engine automatically curate your best photos based on
+              composition, lighting, and emotional impact. Save hours of manual
+              sorting.
+            </p>
+          </div>
+          <!-- <div class="floating-feature-card">
           <div class="feature-icon">
             <n-icon size="40" color="#ef4444">
               <ColorPaletteOutline />
@@ -183,54 +185,56 @@
             collection anywhere with automatic backup and organization.
           </p>
         </div> -->
-      </div>
-    </section>
+        </div>
+      </section>
 
-    <!-- How It Works Section -->
-    <section class="how-it-works-section">
-      <div class="floating-header">
-        <h2 class="floating-title">How Photoreka Works</h2>
-        <p class="floating-description">
-          Get started in minutes with our simple 3-step process
-        </p>
-      </div>
-      <div class="floating-steps">
-        <div class="floating-step">
-          <div class="step-number">1</div>
-          <div class="step-content">
-            <h3 class="step-title">Upload Your Photos</h3>
-            <p class="step-description">
-              Simply drag and drop your photos or connect your existing photo
-              library. We support all major formats and cloud storage providers.
-            </p>
+      <!-- How It Works Section -->
+      <section class="how-it-works-section">
+        <div class="floating-header">
+          <h2 class="floating-title">How Photoreka Works</h2>
+          <p class="floating-description">
+            Get started in minutes with our simple 3-step process
+          </p>
+        </div>
+        <div class="floating-steps">
+          <div class="floating-step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h3 class="step-title">Synchronize Your Photos</h3>
+              <p class="step-description">
+                Simply drag and drop your photos or connect your existing photo
+                library. We support all major formats and cloud storage
+                providers.
+              </p>
+            </div>
+          </div>
+          <div class="floating-step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h3 class="step-title">Vision Analysis</h3>
+              <p class="step-description">
+                Our computer vision algorithms analyze your photos for
+                narrative, chromatic, cultural and aesthetics aspects based on
+                your profile.
+              </p>
+            </div>
+          </div>
+          <div class="floating-step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h3 class="step-title">Discover & Create</h3>
+              <p class="step-description">
+                Use powerful natural language search, create stunning and
+                coherent grids, sequence images by different criteria, and
+                discover hidden gems in your collection.
+              </p>
+            </div>
           </div>
         </div>
-        <div class="floating-step">
-          <div class="step-number">2</div>
-          <div class="step-content">
-            <h3 class="step-title">Vision Analysis</h3>
-            <p class="step-description">
-              Our advanced computer vision algorithms your photos for content,
-              quality, and emotional impact. This process creates searchable
-              tags and intelligent organization.
-            </p>
-          </div>
-        </div>
-        <div class="floating-step">
-          <div class="step-number">3</div>
-          <div class="step-content">
-            <h3 class="step-title">Discover & Create</h3>
-            <p class="step-description">
-              Use powerful search, create stunning layouts, and discover hidden
-              gems in your collection. Share your creations with the world.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Testimonials Section -->
-    <!-- <section class="testimonials-section">
+      <!-- Testimonials Section -->
+      <!-- <section class="testimonials-section">
       <div class="section-container">
         <div class="section-header">
           <h2 class="section-title">Loved by Photographers Worldwide</h2>
@@ -300,8 +304,8 @@
       </div>
     </section> -->
 
-    <!-- CTA Section -->
-    <!-- <section class="cta-section">
+      <!-- CTA Section -->
+      <!-- <section class="cta-section">
       <div class="section-container">
         <div class="cta-content">
           <h2 class="cta-title">Ready to Transform Your Photo Workflow?</h2>
@@ -328,10 +332,10 @@
       </div>
     </section> -->
 
-    <!-- Footer -->
-    <footer class="landing-footer">
-      <div class="footer-container">
-        <!-- <div class="footer-content">
+      <!-- Footer -->
+      <footer class="landing-footer">
+        <div class="footer-container">
+          <!-- <div class="footer-content">
           <div class="footer-brand">
             <div class="logo">
               <n-icon size="24" color="#2563eb">
@@ -365,24 +369,25 @@
             </div>
           </div>
         </div> -->
-        <div class="footer-bottom">
-          <p class="copyright">© 2024 Photoreka. All rights reserved.</p>
+          <div class="footer-bottom">
+            <p class="copyright">© 2024 Photoreka. All rights reserved.</p>
+          </div>
         </div>
-      </div>
-    </footer>
+      </footer>
 
-    <!-- Request Access Dialog -->
-    <RequestAccessDialog
-      v-model:show="showRequestDialog"
-      @success="onRequestSuccess"
-    />
-  </div>
+      <!-- Request Access Dialog -->
+      <RequestAccessDialog
+        v-model:show="showRequestDialog"
+        @success="onRequestSuccess"
+      />
+    </div>
+  </n-message-provider>
 </template>
 
 <script setup>
 import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
-import { NButton, NIcon, NAvatar } from "naive-ui";
+import { NButton, NIcon, NAvatar, useMessage } from "naive-ui";
 import {
   CameraOutline,
   RocketOutline,
@@ -407,6 +412,7 @@ const videoPlaying = ref(false);
 const activeTab = ref(0);
 const videoProgress = ref(0);
 const showRequestDialog = ref(false);
+const message = useMessage();
 
 // Video tabs with different use cases
 const videoTabs = ref([
@@ -420,18 +426,18 @@ const videoTabs = ref([
     icon: SearchOutline,
     videoUrl: new URL("@/assets/videos/explorer_1.mp4", import.meta.url).href, // local video
   },
-  {
-    title: "Curation",
-    icon: ImagesOutline,
-    videoUrl:
-      "https://videos.pexels.com/video-files/856052/856052-sd_640_360_30fps.mp4", // 8s
-  },
-  {
-    title: "Grid Maker",
-    icon: AppsOutline,
-    videoUrl:
-      "https://videos.pexels.com/video-files/856053/856053-sd_640_360_30fps.mp4", // 9s
-  },
+  // {
+  //   title: "Curation",
+  //   icon: ImagesOutline,
+  //   videoUrl:
+  //     "https://videos.pexels.com/video-files/856052/856052-sd_640_360_30fps.mp4", // 8s
+  // },
+  // {
+  //   title: "Grid Maker",
+  //   icon: AppsOutline,
+  //   videoUrl:
+  //     "https://videos.pexels.com/video-files/856053/856053-sd_640_360_30fps.mp4", // 9s
+  // },
 ]);
 
 const goToAuth = (mode = "login") => {
@@ -446,10 +452,7 @@ const scrollToDemo = () => {
   demoSection.value?.scrollIntoView({ behavior: "smooth" });
 };
 
-const onRequestSuccess = () => {
-  // Optional: could add analytics tracking here
-  console.log("Access request submitted successfully");
-};
+const onRequestSuccess = () => {};
 
 const setActiveTab = (index) => {
   console.log(`Setting active tab to: ${index}`);
@@ -623,11 +626,18 @@ onMounted(() => {
   text-align: center;
 }
 
+.hero-subtitle {
+  margin-top: 8px;
+  display: block;
+  font-size: 15px;
+  color: var(--text-primary);
+  font-style: italic;
+}
 .hero-title {
   font-size: 56px;
   font-weight: 700;
   line-height: 1.1;
-  margin-bottom: 24px;
+  margin-bottom: 0px;
   color: var(--text-primary);
 }
 
