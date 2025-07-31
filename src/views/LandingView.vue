@@ -420,24 +420,27 @@ const videoTabs = ref([
     title: "Canvas",
     icon: ColorPaletteOutline,
     videoUrl: new URL("@/assets/videos/canvas_1.mp4", import.meta.url).href, // local video
+    speed: 1.9,
   },
   {
     title: "Explorer",
     icon: SearchOutline,
     videoUrl: new URL("@/assets/videos/explorer_1.mp4", import.meta.url).href, // local video
+    speed: 1.5,
   },
-  // {
-  //   title: "Curation",
-  //   icon: ImagesOutline,
-  //   videoUrl:
-  //     "https://videos.pexels.com/video-files/856052/856052-sd_640_360_30fps.mp4", // 8s
-  // },
-  // {
-  //   title: "Grid Maker",
-  //   icon: AppsOutline,
-  //   videoUrl:
-  //     "https://videos.pexels.com/video-files/856053/856053-sd_640_360_30fps.mp4", // 9s
-  // },
+  {
+    title: "Project Builder",
+    icon: ImagesOutline,
+    videoUrl: new URL("@/assets/videos/project_builder_1.mp4", import.meta.url)
+      .href, // local video
+    speed: 3.0,
+  },
+  {
+    title: "Grid Maker",
+    icon: AppsOutline,
+    videoUrl: new URL("@/assets/videos/grid_1.mp4", import.meta.url).href, // local video
+    speed: 1.4,
+  },
 ]);
 
 const goToAuth = (mode = "login") => {
@@ -497,7 +500,8 @@ const onVideoPlay = () => {
 const onVideoLoaded = () => {
   // Video is loaded and ready to play
   if (videoPlayer.value) {
-    videoPlayer.value.playbackRate = 1.7; // velocidad 1.5x
+    const currentTab = videoTabs.value[activeTab.value];
+    videoPlayer.value.playbackRate = currentTab.speed || 1.0;
   }
   console.log("Video loaded successfully");
 };
