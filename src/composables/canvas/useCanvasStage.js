@@ -63,26 +63,30 @@ export function useCanvasStage(stageRef, photos, toolbarState) {
   };
 
   const handleMouseDown = (e) => {
-    if (toolbarState.value.mouseMode !== "select" && !isHoverPhoto()) {
-      photos.value.forEach((photo) => {
-        photo.selected = false;
-      });
+    // In select mode, only start rectangle selection if clicking on empty stage
+    if (toolbarState.value.mouseMode === "select") {
+      const stage = stageRef.value.getStage();
+      if (e.target === stage) {
+        const pointer = stage.getPointerPosition();
+        const transform = stage.getAbsoluteTransform().copy();
+        transform.invert();
+        selectionStart = transform.point(pointer);
+
+        selectionRect.x = selectionStart.x;
+        selectionRect.y = selectionStart.y;
+        selectionRect.width = 0;
+        selectionRect.height = 0;
+        selectionRect.visible = true;
+        stageConfig.draggable = false;
+      }
       return;
     }
 
-    const stage = stageRef.value.getStage();
-    if (e.target === stage) {
-      const pointer = stage.getPointerPosition();
-      const transform = stage.getAbsoluteTransform().copy();
-      transform.invert();
-      selectionStart = transform.point(pointer);
-
-      selectionRect.x = selectionStart.x;
-      selectionRect.y = selectionStart.y;
-      selectionRect.width = 0;
-      selectionRect.height = 0;
-      selectionRect.visible = true;
-      stageConfig.draggable = false;
+    // In move mode, deselect all photos when clicking on empty space
+    if (!isHoverPhoto()) {
+      photos.value.forEach((photo) => {
+        photo.selected = false;
+      });
     }
   };
 

@@ -80,7 +80,6 @@ export const useCanvasStore = defineStore("canvas", {
   }),
   actions: {
     updateBasicMode() {
-      debugger;
       this.basicMode = this.photos.some(
         (p) => p.status === "preprocessed" || p.status === "processing"
       );

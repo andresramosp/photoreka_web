@@ -25,7 +25,9 @@
               width: selectionRect.width,
               height: selectionRect.height,
               stroke: secondaryColor,
-              dash: [4, 4],
+              strokeWidth: 2,
+              fill: 'rgba(37, 99, 235, 0.1)',
+              dash: [5, 3],
             }"
           />
           <!-- Fotos -->
@@ -47,18 +49,20 @@
             "
             @dragmove="handleDragMove(photo, $event)"
             @dblclick="handleSelectPhoto(photo, $event)"
-            @click="photo.hovered = !photo.hovered"
+            @click="handlePhotoClick(photo, $event)"
             @touchstart="photo.hovered = !photo.hovered"
           >
             <v-group
               :config="{}"
               @mouseover="
                 handleMouseOver(photo);
-                stageRef.getStage().container().style.cursor = 'pointer';
+                stageRef.getStage().container().style.cursor =
+                  interactionMode === 'select' ? 'pointer' : 'pointer';
               "
               @mouseout="
                 handleMouseOut(photo);
-                stageRef.getStage().container().style.cursor = '';
+                stageRef.getStage().container().style.cursor =
+                  interactionMode === 'select' ? 'crosshair' : 'default';
               "
             >
               <!-- Área de hover con padding invisible -->
@@ -480,30 +484,25 @@
           </template>
         </n-button>
 
-        <!-- <n-button
+        <n-button
           :type="interactionMode === 'pan' ? 'primary' : 'default'"
           @click="toggleInteractionMode"
           size="small"
+          :title="
+            interactionMode === 'pan'
+              ? 'Pan mode active - Click to switch to Select mode (S)'
+              : 'Select mode active - Draw rectangle to select photos, Ctrl+click for multi-select (S)'
+          "
         >
           <template #icon>
             <n-icon v-if="interactionMode === 'pan'">
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M13,1L11,3L14,6L12,8L15,11L13,13L16,16L14,18L17,21L19,19L16,16L18,14L15,11L17,9L14,6L16,4L13,1M5,4C3.89,4 3,4.89 3,6A2,2 0 0,0 5,8A2,2 0 0,0 7,6C7,4.89 6.11,4 5,4M5,10A4,4 0 0,1 1,6A4,4 0 0,1 5,2A4,4 0 0,1 9,6A4,4 0 0,1 5,10Z"
-                />
-              </svg>
+              <HandLeftOutline />
             </n-icon>
             <n-icon v-else>
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M2,2H8V4H4V8H2V2M2,16V22H8V20H4V16H2M16,2V4H20V8H22V2H16M20,16V20H16V22H22V16H20M6,6H18V18H6V6M8,8V16H16V8H8Z"
-                />
-              </svg>
+              <SelectAllFilled />
             </n-icon>
           </template>
-        </n-button> -->
+        </n-button>
       </n-button-group>
     </div>
     <div
@@ -526,6 +525,7 @@ import { useCanvasPhoto } from "@/composables/canvas/useCanvasPhoto.js";
 import { usePhotoAnimations } from "@/composables/canvas/usePhotoAnimations";
 import { useCanvasStore, expansionTypeOptions } from "@/stores/canvas.js";
 // import PhotoDetectionAreas from "@/components/canvas/PhotoControls/PhotoDetectionAreas.vue";
+import { HandLeftOutline } from "@vicons/ionicons5";
 import { usePhotosStore } from "@/stores/photos";
 import { ref, onMounted, onUnmounted, computed, h, watch } from "vue";
 import {
@@ -535,6 +535,7 @@ import {
   NSpace,
   NSwitch,
   NInputNumber,
+  NBadge,
 } from "naive-ui";
 import { storeToRefs } from "pinia";
 import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
@@ -544,6 +545,7 @@ import PhotoCenterButton from "@/components/canvas/PhotoControls/PhotoCenterButt
 import TagPillsCanvas from "@/components/canvas/TagPills/TagPillsCanvas.vue";
 import RelatedPhotosToolbar from "@/components/canvas/RelatedPhotosToolbar.vue";
 import { SaveOutline } from "@vicons/ionicons5";
+import { SelectAllFilled } from "@vicons/material";
 
 const canvasStore = useCanvasStore();
 const photosStore = usePhotosStore();
@@ -634,6 +636,11 @@ const dynamicSizeFactor = computed(() => {
   const zoom = toolbarState.value.zoomLevel || 100;
   let newFactor = baseSize * (0.8 / zoom);
   return Math.min(Math.max(newFactor, 1), 5);
+});
+
+// Count selected photos
+const selectedPhotosCount = computed(() => {
+  return photos.value.filter((photo) => photo.selected).length;
 });
 
 // Computed property to filter expansion options based on basicMode
@@ -815,6 +822,9 @@ const openConfig = () => {
 
 const toggleInteractionMode = () => {
   interactionMode.value = interactionMode.value === "pan" ? "select" : "pan";
+  // Update toolbarState.mouseMode to sync with the stage behavior
+  toolbarState.value.mouseMode =
+    interactionMode.value === "pan" ? "move" : "select";
 };
 
 // Mode selection functions
@@ -899,6 +909,81 @@ const handleClickOutside = (event) => {
   }
 };
 
+const handleKeyDown = (event) => {
+  // Delete selected photos when Delete key is pressed
+  if (event.key === "Delete" || event.key === "Backspace") {
+    deleteSelectedPhotos();
+  }
+
+  // Toggle interaction mode with 'S' key
+  if (event.key === "s" || event.key === "S") {
+    // Only if not typing in an input field
+    if (!["INPUT", "TEXTAREA"].includes(event.target.tagName)) {
+      event.preventDefault();
+      toggleInteractionMode();
+    }
+  }
+
+  // Escape key to deselect all photos
+  if (event.key === "Escape") {
+    photos.value.forEach((photo) => {
+      photo.selected = false;
+    });
+  }
+};
+
+const deleteSelectedPhotos = () => {
+  const selectedPhotos = photos.value.filter((photo) => photo.selected);
+
+  if (selectedPhotos.length === 0) {
+    return;
+  }
+
+  // Use canvas store method to move photos to trash instead of deleting them
+  const selectedPhotoIds = selectedPhotos.map((photo) => photo.id);
+  canvasStore.deletePhotos(selectedPhotoIds);
+
+  // Update stage after deletion
+  const stage = stageRef.value.getStage();
+  stage.batchDraw();
+};
+
+const handleStageClick = (event) => {
+  // If clicking on empty space (not on a photo), deselect all photos
+  // but only if we're not in select mode or if we're not doing rectangle selection
+  if (
+    event.target === event.target.getStage() &&
+    (interactionMode.value !== "select" || !selectionRect.visible)
+  ) {
+    photos.value.forEach((photo) => {
+      photo.selected = false;
+    });
+  }
+};
+
+const handlePhotoClick = (photo, event) => {
+  // Always toggle hover state
+  photo.hovered = !photo.hovered;
+
+  // In select mode, handle photo selection
+  if (interactionMode.value === "select") {
+    const isCtrlOrCmd = event.evt.ctrlKey || event.evt.metaKey;
+
+    if (isCtrlOrCmd) {
+      // Multi-select: toggle this photo's selection
+      photo.selected = !photo.selected;
+    } else {
+      // Single select: deselect all others and select this one
+      photos.value.forEach((p) => {
+        p.selected = p.id === photo.id;
+      });
+    }
+
+    // Prevent stage click handler from running
+    event.cancelBubble = true;
+  }
+};
+
 function zoomTick(direction = 1) {
   const stage = stageRef.value.getStage();
   const scaleBy = 1.11;
@@ -932,9 +1017,28 @@ watch(basicMode, (val) => {
   if (val) basicModeDismissed.value = false;
 });
 
+// Keep interactionMode and toolbarState.mouseMode in sync
+watch(
+  interactionMode,
+  (newMode) => {
+    toolbarState.value.mouseMode = newMode === "pan" ? "move" : "select";
+
+    // Update stage cursor based on interaction mode
+    if (stageRef.value) {
+      const stage = stageRef.value.getStage();
+      if (stage && stage.container()) {
+        stage.container().style.cursor =
+          newMode === "select" ? "crosshair" : "default";
+      }
+    }
+  },
+  { immediate: true }
+);
+
 onMounted(() => {
   window.addEventListener("resize", handleResize);
   document.addEventListener("click", handleClickOutside);
+  document.addEventListener("keydown", handleKeyDown);
   const stage = stageRef.value.getStage();
   stage.on("dragmove", updateStageOffset);
   updateStageOffset();
@@ -944,6 +1048,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
   document.removeEventListener("click", handleClickOutside);
+  document.removeEventListener("keydown", handleKeyDown);
 });
 </script>
 
@@ -980,6 +1085,19 @@ onUnmounted(() => {
 .bottom-left {
   left: 16px;
   bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.selection-indicator {
+  background: var(--bg-container, rgba(255, 255, 255, 0.1));
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Expandable button group styles */

@@ -594,7 +594,6 @@ onUnmounted(() => {
 .logo-brand-image {
   height: 54px;
   width: auto;
-  opacity: 0.8;
   object-fit: contain;
 }
 
