@@ -5,7 +5,7 @@ import CanvasView from "../views/CanvasView.vue";
 import SearchView from "../views/SearchView.vue";
 import CollectionsView from "../views/CollectionsView.vue";
 import PhotoHubView from "../views/PhotoHubView.vue";
-import CurationView from "../views/CurationView.vue";
+import ProjectBuilderView from "../views/ProjectBuilderView.vue";
 import SettingsView from "../views/SettingsView.vue";
 import HelpView from "../views/HelpView.vue";
 import PlanView from "../views/PlanView.vue";
@@ -13,7 +13,7 @@ import AuthView from "../views/AuthView.vue";
 import ProfileSelectionView from "../views/ProfileSelectionView.vue";
 import StoragePlanSelectionView from "../views/StoragePlanSelectionView.vue";
 import GridMaker from "@/views/GridMaker.vue";
-import StylerView from "@/views/StylerView.vue";
+import VisualLabView from "@/views/VisualLabView.vue";
 import LandingView from "@/views/LandingView.vue";
 
 const router = createRouter({
@@ -96,18 +96,18 @@ const router = createRouter({
       },
     },
     {
-      path: "/curation",
-      name: "curation",
-      component: CurationView,
+      path: "/project-builder",
+      name: "project-builder",
+      component: ProjectBuilderView,
       meta: {
         requiresAuth: true,
         keepAlive: true,
       },
     },
     {
-      path: "/styler",
-      name: "styler",
-      component: StylerView,
+      path: "/visual-lab",
+      name: "visual-lab",
+      component: VisualLabView,
       meta: {
         requiresAuth: true,
       },

@@ -94,7 +94,7 @@ const userStore = useUserStore();
 
 // KeepAlive functionality
 const getKeepAliveComponents = () => {
-  return ["CurationView"]; // Add more component names here as needed
+  return ["ProjectBuilderView"]; // Add more component names here as needed
 };
 
 const themeOverrides = {

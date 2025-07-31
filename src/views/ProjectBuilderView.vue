@@ -272,21 +272,58 @@
     <!-- Empty State -->
     <div v-else class="empty-state">
       <div class="empty-content">
-        <n-icon size="64" color="#6b7280" class="empty-icon">
-          <svg viewBox="0 0 24 24">
-            <path
-              fill="currentColor"
-              d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5l-1.5 1.5l-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16A6.5 6.5 0 0 1 3 9.5A6.5 6.5 0 0 1 9.5 3m0 2C7.01 5 5 7.01 5 9.5S7.01 14 9.5 14S14 11.99 14 9.5S11.99 5 9.5 5Z"
-            />
-          </svg>
-        </n-icon>
-        <h2 class="empty-title">Start Curating Photos</h2>
+        <n-icon
+          size="64"
+          color="#6b7280"
+          class="empty-icon"
+          :component="ImagesOutline"
+        />
 
-        <div class="carousel-container">
-          <div class="carousel-item" :class="{ sliding: isSliding }">
-            <button class="example-card" @click="handleExampleClick">
-              <p class="example-text">«{{ currentExampleText }}»</p>
-            </button>
+        <h2 class="empty-title">Start Building Projects</h2>
+        <p class="empty-description">
+          Project Builder is a tool designed to help you compile photos under a
+          concept, theme, or style. Enter what you're looking for in rich,
+          natural language.
+        </p>
+        <div class="instructions-list">
+          <div class="instruction-item">
+            <n-icon>
+              <Language />
+            </n-icon>
+
+            <span>
+              Your search will be automatically enriched with nuances and
+              associations.</span
+            >
+          </div>
+          <div class="instruction-item">
+            <n-icon>
+              <StarHalf />
+            </n-icon>
+
+            <span>
+              Each proposed photo will be accompanied by a comment and a
+              score.</span
+            >
+          </div>
+          <div class="instruction-item">
+            <n-icon>
+              <LogOutOutline />
+            </n-icon>
+            <span
+              >Select the ones you consider valid by moving them to the right
+              side of the screen.</span
+            >
+          </div>
+        </div>
+        <div class="examples-carousel">
+          <span>Try something like...</span>
+          <div class="carousel-container">
+            <div class="carousel-item" :class="{ sliding: isSliding }">
+              <button class="example-card" @click="handleExampleClick">
+                <p class="example-text">«{{ currentExampleText }}»</p>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -307,13 +344,20 @@ import {
 
 // Define component name for KeepAlive
 defineOptions({
-  name: "CurationView",
+  name: "ProjectBuilderView",
 });
 
 import PhotoCard from "../components/photoCards/PhotoCard.vue";
 import { useUserStore } from "@/stores/userStore";
 import { useQueryExamples } from "@/composables/useQueryExamples";
 import { NRate, NSelect, useNotification } from "naive-ui";
+import {
+  FolderOpenOutline,
+  ImagesOutline,
+  Language,
+  LogOutOutline,
+  StarHalf,
+} from "@vicons/ionicons5";
 import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas.js";
 import { useRouter } from "vue-router";
@@ -1030,9 +1074,32 @@ const {
 
 .empty-description {
   font-size: var(--font-size-md);
-  color: var(--text-secondary);
-  margin: 0;
+  color: var(--text-primary);
+  margin-top: 10px;
+  margin-bottom: 5px;
   line-height: var(--line-height-relaxed);
+}
+
+.instructions-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg);
+  /* background-color: rgba(107, 114, 128, 0.05); */
+  border-radius: var(--radius-md);
+  /* border: 1px solid rgba(107, 114, 128, 0.1); */
+  margin-bottom: var(--spacing-lg);
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+}
+
+.instruction-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
 }
 
 .photo-skeleton {
@@ -1183,10 +1250,17 @@ const {
 }
 
 .examples-carousel {
-  display: flex;
+  /* display: flex
+; */
   justify-content: center;
-  width: 100%;
+  /* width: 100%; */
   padding: var(--spacing-sm) 0;
+  background-color: rgba(107, 114, 128, 0.05);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(107, 114, 128, 0.1);
+  padding: var(--spacing-lg);
+  align-content: center;
+  align-items: center;
 }
 
 .carousel-container {

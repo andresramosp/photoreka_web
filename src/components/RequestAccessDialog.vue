@@ -190,7 +190,7 @@ const handleSubmit = async () => {
 
     loading.value = true;
 
-    const response = await api.post("/api/auth/request", {
+    const response = await api.post("/api/landing/request", {
       email: formData.email,
       reason: formData.reason,
       portfolioLink: formData.portfolioLink || null,

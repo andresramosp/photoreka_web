@@ -409,7 +409,7 @@ const secondSectionOptions = computed(() => {
     },
 
     {
-      label: createMenuLabel("Grids"),
+      label: createMenuLabel("Grid Maker"),
       key: "grid-maker",
       comingSoon: false,
       props: {
@@ -418,8 +418,8 @@ const secondSectionOptions = computed(() => {
       icon: createIconWithIndicator(GridIcon, "#15803d", false, false), // Green color for grids
     },
     {
-      label: createMenuLabel("Curation"),
-      key: "curation",
+      label: createMenuLabel("Project Builder"),
+      key: "project-builder",
       disabled: isBlocked || isPartial,
       comingSoon: false,
       props: isBlocked
@@ -430,8 +430,8 @@ const secondSectionOptions = computed(() => {
       icon: createIconWithIndicator(CurationIcon, "#f59e0b", true), // Warning color for curation + premium
     },
     {
-      label: createMenuLabel("Styler", true),
-      key: "styler",
+      label: createMenuLabel("Visual Lab", true),
+      key: "visual-lab",
       disabled: isBlocked || isPartial,
       comingSoon: true,
       props: {
