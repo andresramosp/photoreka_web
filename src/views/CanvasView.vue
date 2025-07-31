@@ -440,7 +440,7 @@
     <!-- Bottom Left Controls -->
     <div class="canvas-controls bottom-left">
       <n-button-group vertical>
-        <n-button @click="zoomTick(1)" size="small">
+        <n-button title="Zoom in" @click="zoomTick(1)" size="small">
           <template #icon>
             <n-icon>
               <svg viewBox="0 0 24 24">
@@ -457,7 +457,7 @@
           </template>
         </n-button>
 
-        <n-button @click="zoomTick(-1)" size="small">
+        <n-button title="Zoom out" @click="zoomTick(-1)" size="small">
           <template #icon>
             <n-icon>
               <svg viewBox="0 0 24 24">
@@ -471,7 +471,11 @@
           </template>
         </n-button>
 
-        <n-button @click="fitStageToPhotos(0.1)" size="small">
+        <n-button
+          title="Fit view to photos"
+          @click="fitStageToPhotos(0.1)"
+          size="small"
+        >
           <template #icon>
             <n-icon>
               <svg viewBox="0 0 24 24">
@@ -503,6 +507,14 @@
             </n-icon>
           </template>
         </n-button>
+
+        <n-button title="Unstack photos" @click="unstackPhotos" size="small">
+          <template #icon>
+            <n-icon>
+              <ExpandOutline />
+            </n-icon>
+          </template>
+        </n-button>
       </n-button-group>
     </div>
     <div
@@ -525,7 +537,7 @@ import { useCanvasPhoto } from "@/composables/canvas/useCanvasPhoto.js";
 import { usePhotoAnimations } from "@/composables/canvas/usePhotoAnimations";
 import { useCanvasStore, expansionTypeOptions } from "@/stores/canvas.js";
 // import PhotoDetectionAreas from "@/components/canvas/PhotoControls/PhotoDetectionAreas.vue";
-import { HandLeftOutline } from "@vicons/ionicons5";
+import { ExpandOutline, HandLeftOutline } from "@vicons/ionicons5";
 import { usePhotosStore } from "@/stores/photos";
 import { ref, onMounted, onUnmounted, computed, h, watch } from "vue";
 import {
@@ -571,7 +583,7 @@ const toolbarState = ref({
     type: "embedding",
     inverted: false,
     opposite: false,
-    autoAlign: true,
+    autoAlign: false,
     onCanvas: false,
   },
   photoOptions: {
@@ -624,7 +636,7 @@ const {
   handleDragEnd,
   handleMouseOver,
   handleMouseOut,
-  autoAlignPhotos,
+  unstackPhotos,
   isHoveringTrash,
   handlePhotoDrop,
 } = useCanvasPhoto(stageRef, photos, photoRefs, stageConfig);
