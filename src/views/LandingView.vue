@@ -30,7 +30,7 @@
           <div class="hero-content">
             <div class="hero-text">
               <h1 class="hero-title">
-                Photo
+                Photoreka
                 <span class="hero-accent">Curation Lab</span>
               </h1>
               <span class="hero-subtitle"
@@ -638,7 +638,7 @@ onMounted(() => {
   font-style: italic;
 }
 .hero-title {
-  font-size: 56px;
+  font-size: 48px;
   font-weight: 700;
   line-height: 1.1;
   margin-bottom: 0px;
