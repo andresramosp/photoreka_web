@@ -91,8 +91,20 @@
                 />
               </div>
             </div>
-            <!-- <div class="results-filter">
-              <span class="filter-label">Min. Results:</span>
+            <div class="results-filter">
+              <span class="filter-label"
+                >Min. Results
+                <n-tooltip trigger="hover" placement="top">
+                  <template #trigger>
+                    <n-icon size="12">
+                      <InfoCircleOutlined />
+                    </n-icon>
+                  </template>
+                  Mininum number or photos shown per iteration with the selected
+                  score
+                </n-tooltip></span
+              >
+
               <n-select
                 v-model:value="minResults"
                 :options="resultsOptions"
@@ -101,7 +113,7 @@
                 class="results-select"
                 @update:value="onResultsChange"
               />
-            </div> -->
+            </div>
           </div>
         </div>
 
@@ -350,7 +362,7 @@ defineOptions({
 import PhotoCard from "../components/photoCards/PhotoCard.vue";
 import { useUserStore } from "@/stores/userStore";
 import { useQueryExamples } from "@/composables/useQueryExamples";
-import { NRate, NSelect, useNotification } from "naive-ui";
+import { NRate, NSelect, useNotification, NTooltip } from "naive-ui";
 import {
   FolderOpenOutline,
   ImagesOutline,
@@ -364,6 +376,7 @@ import { useRouter } from "vue-router";
 
 import { api } from "@/utils/axios";
 import { io } from "socket.io-client";
+import { InfoCircleOutlined } from "@vicons/antd";
 
 const canvasStore = useCanvasStore();
 const photoStore = usePhotosStore();
@@ -402,11 +415,11 @@ const hasMoreResults = ref(true);
 const candidatePhotos = ref([]);
 const curatedPhotos = ref([]);
 const minMatchScore = ref(2);
-const minResults = ref(6);
+const minResults = ref(1);
 const iterationFinished = ref(false);
 
 // Options for the min results select
-const resultsOptions = Array.from({ length: 10 }, (_, i) => ({
+const resultsOptions = Array.from({ length: 6 }, (_, i) => ({
   label: (i + 1).toString(),
   value: i + 1,
 }));
@@ -665,7 +678,7 @@ const searchPhotosApi = async (isInitial = false) => {
         pageSize: 6,
         searchMode: "curation",
         minMatchScore: minMatchScore.value,
-        // minResults: minResults
+        minResults: minResults.value,
       },
     };
     await api.post("/api/search/semantic", payload);
@@ -942,7 +955,7 @@ const {
 }
 
 .results-select {
-  min-width: 80px;
+  min-width: 60px;
 }
 
 .area-title {
