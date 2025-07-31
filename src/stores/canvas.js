@@ -1,10 +1,25 @@
 import { defineStore } from "pinia";
 import { api } from "@/utils/axios";
 
-const PHOTO_WIDTH = 150 * 1.5;
-const PHOTO_HEIGHT = 100 * 1.5;
+const HORIZONTAL_PHOTO_WIDTH = 150 * 1.5;
+const HORIZONTAL_PHOTO_HEIGHT = 100 * 1.5;
+const VERTICAL_PHOTO_WIDTH = 100 * 1.5;
+const VERTICAL_PHOTO_HEIGHT = 150 * 1.5;
 
-function createPhoto(
+// Devuelve una promesa con las dimensiones de la imagen
+function getImageDimensions(url) {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = function () {
+      resolve({ width: img.width, height: img.height });
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+// Esta función ahora es async y ajusta el aspect ratio según orientación
+async function createPhoto(
   backendPhoto,
   basePosition = { x: 15, y: 15 },
   fromPhoto = false,
@@ -12,6 +27,20 @@ function createPhoto(
   index = 0
 ) {
   const hasCustomConfig = backendPhoto.config?.x != null;
+
+  // Obtener dimensiones de la imagen
+  let width = HORIZONTAL_PHOTO_WIDTH;
+  let height = HORIZONTAL_PHOTO_HEIGHT;
+  try {
+    const dims = await getImageDimensions(backendPhoto.thumbnailUrl);
+    if (dims.height > dims.width) {
+      // Vertical
+      width = VERTICAL_PHOTO_WIDTH;
+      height = VERTICAL_PHOTO_HEIGHT;
+    }
+  } catch (e) {
+    // Si falla, usar horizontal por defecto
+  }
 
   return {
     ...backendPhoto,
@@ -21,15 +50,15 @@ function createPhoto(
       ? {
           ...backendPhoto.config,
           zIndex: currentZIndex,
-          width: PHOTO_WIDTH,
-          height: PHOTO_HEIGHT,
+          width,
+          height,
           opacity: fromPhoto ? 0 : 1,
         }
       : {
-          x: basePosition.x + (index * PHOTO_WIDTH * 1) / 2,
-          y: basePosition.y + (index * PHOTO_HEIGHT * 1) / 2,
-          width: PHOTO_WIDTH,
-          height: PHOTO_HEIGHT,
+          x: basePosition.x + (index * width * 1) / 2,
+          y: basePosition.y + (index * height * 1) / 2,
+          width,
+          height,
           opacity: fromPhoto ? 0 : 1,
           zIndex: currentZIndex,
         },
@@ -56,15 +85,21 @@ export const useCanvasStore = defineStore("canvas", {
         (p) => p.status === "preprocessed" || p.status === "processing"
       );
     },
-    addPhotos(photoObjects, fromPhoto = false) {
-      photoObjects.forEach((photo, index) => {
-        if (!this.photos.some((p) => p.id == photo.id)) {
-          this.photos.push(
-            createPhoto(photo, undefined, fromPhoto, this.currentZIndex, index)
-          );
-        }
-      });
 
+    async addPhotos(photoObjects, fromPhoto = false) {
+      for (let index = 0; index < photoObjects.length; index++) {
+        const photo = photoObjects[index];
+        if (!this.photos.some((p) => p.id == photo.id)) {
+          const createdPhoto = await createPhoto(
+            photo,
+            undefined,
+            fromPhoto,
+            this.currentZIndex,
+            index
+          );
+          this.photos.push(createdPhoto);
+        }
+      }
       this.updateBasicMode();
     },
 
@@ -121,18 +156,17 @@ export const useCanvasStore = defineStore("canvas", {
           : [response.data];
 
         if (onCanvas) {
-          backendPhotos.forEach((backendPhoto) => {
+          for (const backendPhoto of backendPhotos) {
             if (!this.photos.some((photo) => photo.id === backendPhoto.id)) {
-              this.photos.push(
-                createPhoto(
-                  backendPhoto,
-                  basePosition,
-                  true,
-                  this.currentZIndex
-                )
+              const createdPhoto = await createPhoto(
+                backendPhoto,
+                basePosition,
+                true,
+                this.currentZIndex
               );
+              this.photos.push(createdPhoto);
             }
-          });
+          }
         } else {
           return backendPhotos;
         }

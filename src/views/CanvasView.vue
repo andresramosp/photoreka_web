@@ -659,7 +659,7 @@ async function handleAddPhotos(photoIds) {
   const photosToAdd = photoIds
     .map((id) => photosStore.photos.find((p) => p.id == id))
     .filter(Boolean);
-  canvasStore.addPhotos(photosToAdd);
+  await canvasStore.addPhotos(photosToAdd);
 
   fitStageToPhotos(0.8);
 }
