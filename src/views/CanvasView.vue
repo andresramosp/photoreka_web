@@ -262,18 +262,18 @@
           Add Photos
         </n-button>
 
-        <n-button @click="handleClearCanvas">
-          <template #icon>
-            <n-icon>
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z"
-                />
-              </svg>
-            </n-icon>
+        <n-tooltip placement="bottom" trigger="hover">
+          <template #trigger>
+            <n-button @click="handleClearCanvas">
+              <template #icon>
+                <n-icon>
+                  <ReloadOutline />
+                </n-icon>
+              </template>
+            </n-button>
           </template>
-        </n-button>
+          Reset canvas
+        </n-tooltip>
 
         <div class="config-menu-container" ref="configMenuRef">
           <n-button @click="openConfig">
@@ -442,81 +442,103 @@
     <!-- Bottom Left Controls -->
     <div class="canvas-controls bottom-left">
       <n-button-group vertical>
-        <n-button title="Zoom in" @click="zoomTick(1)" size="small">
-          <template #icon>
-            <n-icon>
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3S3 5.91 3 9.5S5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M12 10h-2v2H9v-2H7V9h2V7h1v2h2v1z"
-                />
-              </svg>
-            </n-icon>
+        <n-tooltip placement="right" trigger="hover">
+          <template #trigger>
+            <n-button @click="zoomTick(1)" size="small">
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3S3 5.91 3 9.5S5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+                    />
+                    <path
+                      fill="currentColor"
+                      d="M12 10h-2v2H9v-2H7V9h2V7h1v2h2v1z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+            </n-button>
           </template>
-        </n-button>
+          Zoom in
+        </n-tooltip>
 
-        <n-button title="Zoom out" @click="zoomTick(-1)" size="small">
-          <template #icon>
-            <n-icon>
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3S3 5.91 3 9.5S5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
-                />
-                <path fill="currentColor" d="M7 9h5v1H7z" />
-              </svg>
-            </n-icon>
+        <n-tooltip placement="right" trigger="hover">
+          <template #trigger>
+            <n-button @click="zoomTick(-1)" size="small">
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3S3 5.91 3 9.5S5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+                    />
+                    <path fill="currentColor" d="M7 9h5v1H7z" />
+                  </svg>
+                </n-icon>
+              </template>
+            </n-button>
           </template>
-        </n-button>
+          Zoom out
+        </n-tooltip>
 
-        <n-button
-          title="Fit view to photos"
-          @click="fitStageToPhotos(0.1)"
-          size="small"
-        >
-          <template #icon>
-            <n-icon>
-              <svg viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M9 9H15V15H9V9M11 11V13H13V11H11M2 3H8V5H4V9H2V3M22 3V9H20V5H16V3H22M2 21V15H4V19H8V21H2M22 21H16V19H20V15H22V21Z"
-                />
-              </svg>
-            </n-icon>
+        <n-tooltip placement="right" trigger="hover">
+          <template #trigger>
+            <n-button @click="fitStageToPhotos(0.1)" size="small">
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M9 9H15V15H9V9M11 11V13H13V11H11M2 3H8V5H4V9H2V3M22 3V9H20V5H16V3H22M2 21V15H4V19H8V21H2M22 21H16V19H20V15H22V21Z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+            </n-button>
           </template>
-        </n-button>
+          Fit view to photos
+        </n-tooltip>
 
-        <n-button
-          :type="interactionMode === 'pan' ? 'primary' : 'default'"
-          @click="toggleInteractionMode"
-          size="small"
-          :title="
-            interactionMode === 'pan'
-              ? 'Pan mode active - Click to switch to Select mode (S)'
-              : 'Select mode active - Draw rectangle to select photos, Ctrl+click for multi-select (S)'
-          "
-        >
-          <template #icon>
-            <n-icon v-if="interactionMode === 'pan'">
-              <HandLeftOutline />
-            </n-icon>
-            <n-icon v-else>
-              <SelectAllFilled />
-            </n-icon>
+        <n-tooltip placement="right" trigger="hover">
+          <template #trigger>
+            <n-button
+              :type="interactionMode === 'pan' ? 'primary' : 'default'"
+              @click="toggleInteractionMode"
+              size="small"
+            >
+              <template #icon>
+                <n-icon v-if="interactionMode === 'pan'">
+                  <HandLeftOutline />
+                </n-icon>
+                <n-icon v-else>
+                  <SelectAllFilled />
+                </n-icon>
+              </template>
+            </n-button>
           </template>
-        </n-button>
+          <span v-if="interactionMode === 'pan'">
+            Pan mode active - Click to switch to Select mode (S)
+          </span>
+          <span v-else>
+            Select mode active - Draw rectangle to select photos, Ctrl+click for
+            multi-select (S)
+          </span>
+        </n-tooltip>
 
-        <n-button title="Unstack photos" @click="unstackPhotos" size="small">
-          <template #icon>
-            <n-icon>
-              <ExpandOutline />
-            </n-icon>
+        <n-tooltip placement="right" trigger="hover">
+          <template #trigger>
+            <n-button @click="unstackPhotos" size="small">
+              <template #icon>
+                <n-icon>
+                  <ExpandOutline />
+                </n-icon>
+              </template>
+            </n-button>
           </template>
-        </n-button>
+          Unstack photos
+        </n-tooltip>
       </n-button-group>
     </div>
     <div
@@ -543,6 +565,9 @@ import {
   ExpandOutline,
   FolderOutline,
   HandLeftOutline,
+  RefreshOutline,
+  ReloadOutline,
+  TrashOutline,
 } from "@vicons/ionicons5";
 import { usePhotosStore } from "@/stores/photos";
 import { ref, onMounted, onUnmounted, computed, h, watch } from "vue";

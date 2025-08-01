@@ -671,7 +671,8 @@ onMounted(() => {
   font-size: 18px;
   line-height: 1.6;
   /* color: var(--text-secondary); */
-  margin-bottom: 50px;
+  margin-bottom: 40px;
+  margin-top: 30px;
 }
 
 .hero-actions {
