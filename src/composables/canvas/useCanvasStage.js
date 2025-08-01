@@ -90,6 +90,22 @@ export function useCanvasStage(stageRef, photos, toolbarState) {
     }
   };
 
+  // Touch event handlers for better mobile support
+  const handleTouchStart = (e) => {
+    // Treat touch like mouse down
+    handleMouseDown(e);
+  };
+
+  const handleTouchMove = (e) => {
+    // Treat touch move like mouse move
+    handleMouseMove(e);
+  };
+
+  const handleTouchEnd = (e) => {
+    // Treat touch end like mouse up
+    handleMouseUp(e);
+  };
+
   const handleMouseMove = (e) => {
     if (toolbarState.value.mouseMode !== "select" || !selectionRect.visible)
       return;
@@ -179,6 +195,9 @@ export function useCanvasStage(stageRef, photos, toolbarState) {
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
     applyZoom,
   };
 }

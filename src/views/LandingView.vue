@@ -33,9 +33,7 @@
                 Photoreka
                 <span class="hero-accent">Curation Lab</span>
               </h1>
-              <span class="hero-subtitle"
-                >Street | Documentary | Conceptual</span
-              >
+              <span class="hero-subtitle">Street | Documentary | Abstract</span>
               <p class="hero-description">
                 Start making sense of your photographic body of work with our
                 powerful engine. 🕵️‍♂️ Explore through natural language queries. 🎨

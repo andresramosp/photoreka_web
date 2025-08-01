@@ -14,6 +14,9 @@
         @mousemove="handleMouseMove"
         @mouseup="handleMouseUp"
         @click="handleStageClick"
+        @touchstart="handleTouchStart"
+        @touchmove="handleTouchMove"
+        @touchend="handleTouchEnd"
       >
         <v-layer>
           <!-- Rectángulo de selección -->
@@ -50,7 +53,8 @@
             @dragmove="handleDragMove(photo, $event)"
             @dblclick="handleSelectPhoto(photo, $event)"
             @click="handlePhotoClick(photo, $event)"
-            @touchstart="photo.hovered = !photo.hovered"
+            @touchstart="handlePhotoTouchStart(photo, $event)"
+            @touchend="handlePhotoTouchEnd(photo, $event)"
           >
             <v-group
               :config="{}"
@@ -97,6 +101,8 @@
                 "
                 :config="{ x: 10, y: 10 }"
                 @click="openPhotoInfo(photo, $event)"
+                @tap="openPhotoInfo(photo, $event)"
+                @touchend="openPhotoInfo(photo, $event)"
               >
                 <v-circle
                   :config="{
@@ -363,55 +369,51 @@
     <div class="canvas-controls top-center">
       <div class="btn-group-pill">
         <div class="expandable-button-group" ref="expandableGroupRef">
-          <n-button
-            :type="expansionMode === 'catalog' ? 'primary' : 'default'"
-            @click="selectCatalogMode"
-            title="Expand on catalog"
-            class="mode-button left-button"
-          >
-            <template #icon>
-              <n-icon>
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M4,4H10V10H4V4M20,4V10H14V4H20M14,15H16V13H14V11H16V13H18V11H20V13H18V15H20V18H18V20H16V18H13V15H14V15M16,15V18H18V15H16M4,20V14H10V20H4M11,14H13V16H11V14M6,6V8H8V6H6M6,16V18H8V16H6M16,6V8H18V6H16Z"
-                  />
-                </svg>
-              </n-icon>
+          <n-tooltip placement="bottom" trigger="hover">
+            <template #trigger>
+              <n-button
+                :type="expansionMode === 'catalog' ? 'primary' : 'default'"
+                @click="selectCatalogMode"
+                class="mode-button left-button"
+              >
+                <template #icon>
+                  <n-icon>
+                    <FolderOutline />
+                  </n-icon>
+                </template>
+              </n-button>
             </template>
-          </n-button>
+            Expand photos from your catalog
+          </n-tooltip>
 
           <div
             class="expandable-container"
             :class="{ expanded: canvasModeIsExpanded }"
           >
-            <n-button
-              :type="expansionMode === 'canvas' ? 'primary' : 'default'"
-              @click.stop="handleOnCanvasClick"
-              title="Expand on canvas"
-              class="mode-button right-button"
-            >
-              <template #icon>
-                <n-icon>
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M12,8L10.67,8.09C10.38,7.45 9.8,6.95 9.09,6.67L8,5L6.91,6.09C6.2,6.37 5.62,6.87 5.33,7.51L4,8L5.09,9.09C5.37,9.8 5.87,10.38 6.51,10.67L8,12L9.09,10.91C9.8,10.63 10.38,10.05 10.67,9.41L12,8M16,12L14.67,12.09C14.38,11.45 13.8,10.95 13.09,10.67L12,9L10.91,10.09C10.2,10.37 9.62,10.87 9.33,11.51L8,12L9.09,13.09C9.37,13.8 9.87,14.38 10.51,14.67L12,16L13.09,14.91C13.8,14.63 14.38,14.05 14.67,13.41L16,12M9,19H15V21H9V19Z"
-                    />
-                  </svg>
-                </n-icon>
+            <n-tooltip placement="bottom" trigger="hover">
+              <template #trigger>
+                <n-button
+                  :type="expansionMode === 'canvas' ? 'primary' : 'default'"
+                  @click.stop="handleOnCanvasClick"
+                  class="mode-button right-button"
+                >
+                  <template #icon>
+                    <n-icon> <Workspace /></n-icon>
+                  </template>
+                  <span v-if="canvasModeIsExpanded" class="button-text">{{
+                    expansionTypeOptions.find(
+                      (opt) => opt.value == toolbarState.expansion.type
+                    ).label
+                  }}</span>
+                  <n-icon v-if="canvasModeIsExpanded" class="dropdown-arrow">
+                    <svg viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M7 10l5 5 5-5z" />
+                    </svg>
+                  </n-icon>
+                </n-button>
               </template>
-              <span v-if="canvasModeIsExpanded" class="button-text">{{
-                expansionTypeOptions.find(
-                  (opt) => opt.value == toolbarState.expansion.type
-                ).label
-              }}</span>
-              <n-icon v-if="canvasModeIsExpanded" class="dropdown-arrow">
-                <svg viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M7 10l5 5 5-5z" />
-                </svg>
-              </n-icon>
-            </n-button>
+              Expand photos directly on canvas
+            </n-tooltip>
 
             <div v-if="isDropdownOpen" class="dropdown-menu" @click.stop>
               <div
@@ -537,7 +539,11 @@ import { useCanvasPhoto } from "@/composables/canvas/useCanvasPhoto.js";
 import { usePhotoAnimations } from "@/composables/canvas/usePhotoAnimations";
 import { useCanvasStore, expansionTypeOptions } from "@/stores/canvas.js";
 // import PhotoDetectionAreas from "@/components/canvas/PhotoControls/PhotoDetectionAreas.vue";
-import { ExpandOutline, HandLeftOutline } from "@vicons/ionicons5";
+import {
+  ExpandOutline,
+  FolderOutline,
+  HandLeftOutline,
+} from "@vicons/ionicons5";
 import { usePhotosStore } from "@/stores/photos";
 import { ref, onMounted, onUnmounted, computed, h, watch } from "vue";
 import {
@@ -547,7 +553,7 @@ import {
   NSpace,
   NSwitch,
   NInputNumber,
-  NBadge,
+  NTooltip,
 } from "naive-ui";
 import { storeToRefs } from "pinia";
 import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
@@ -558,6 +564,7 @@ import TagPillsCanvas from "@/components/canvas/TagPills/TagPillsCanvas.vue";
 import RelatedPhotosToolbar from "@/components/canvas/RelatedPhotosToolbar.vue";
 import { SaveOutline } from "@vicons/ionicons5";
 import { SelectAllFilled } from "@vicons/material";
+import { Workspace } from "@vicons/carbon";
 
 const canvasStore = useCanvasStore();
 const photosStore = usePhotosStore();
@@ -627,6 +634,9 @@ const {
   handleMouseDown,
   handleMouseMove,
   handleMouseUp,
+  handleTouchStart: stageHandleTouchStart,
+  handleTouchMove: stageHandleTouchMove,
+  handleTouchEnd: stageHandleTouchEnd,
 } = useCanvasStage(stageRef, photos, toolbarState);
 
 const {
@@ -973,6 +983,19 @@ const handleStageClick = (event) => {
   }
 };
 
+// Touch event handlers for better tablet/mobile support
+const handleTouchStart = (event) => {
+  stageHandleTouchStart(event);
+};
+
+const handleTouchMove = (event) => {
+  stageHandleTouchMove(event);
+};
+
+const handleTouchEnd = (event) => {
+  stageHandleTouchEnd(event);
+};
+
 const handlePhotoClick = (photo, event) => {
   // Always toggle hover state
   photo.hovered = !photo.hovered;
@@ -994,6 +1017,44 @@ const handlePhotoClick = (photo, event) => {
     // Prevent stage click handler from running
     event.cancelBubble = true;
   }
+};
+
+// Touch handlers for photos
+const handlePhotoTouchStart = (photo, event) => {
+  // Store touch start time and position for tap detection
+  const touch = event.evt.touches[0];
+  if (touch) {
+    photo._touchStartTime = Date.now();
+    photo._touchStartPos = { x: touch.clientX, y: touch.clientY };
+  }
+  event.cancelBubble = true;
+};
+
+const handlePhotoTouchEnd = (photo, event) => {
+  const touch = event.evt.changedTouches[0];
+  if (touch && photo._touchStartTime && photo._touchStartPos) {
+    const touchDuration = Date.now() - photo._touchStartTime;
+    const touchDistance = Math.sqrt(
+      Math.pow(touch.clientX - photo._touchStartPos.x, 2) +
+        Math.pow(touch.clientY - photo._touchStartPos.y, 2)
+    );
+
+    // Consider it a tap if duration < 500ms and distance < 10px
+    if (touchDuration < 500 && touchDistance < 10) {
+      // Toggle hover state on tap
+      photo.hovered = !photo.hovered;
+
+      // Handle selection in select mode
+      if (interactionMode.value === "select") {
+        photo.selected = !photo.selected;
+      }
+    }
+
+    // Clean up touch tracking
+    delete photo._touchStartTime;
+    delete photo._touchStartPos;
+  }
+  event.cancelBubble = true;
 };
 
 function zoomTick(direction = 1) {
@@ -1053,6 +1114,16 @@ onMounted(() => {
   document.addEventListener("keydown", handleKeyDown);
   const stage = stageRef.value.getStage();
   stage.on("dragmove", updateStageOffset);
+
+  // Configure Konva for better touch support
+  stage.listening(true);
+
+  // Enable touch events
+  const canvas = stage.content;
+  if (canvas) {
+    canvas.style.touchAction = "none";
+  }
+
   updateStageOffset();
   fitStageToPhotos();
 });
@@ -1071,6 +1142,13 @@ onUnmounted(() => {
   height: calc(100vh - 64px); /* Subtract header height */
   overflow: hidden;
   background: var(--bg-canvas, #1a1a1a);
+  touch-action: none; /* Disable default touch behaviors */
+  -webkit-touch-callout: none; /* Disable callout on iOS */
+  -webkit-user-select: none; /* Disable text selection */
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .canvas-controls {

@@ -2,6 +2,9 @@
   <v-group
     :config="{ x: computedX, y: computedY }"
     @click="handleClick"
+    @tap="handleClick"
+    @touchstart="handleTouchStart"
+    @touchend="handleTouchEnd"
     @mouseover="handleMouseOver"
     @mouseout="handleMouseOut"
   >
@@ -107,6 +110,17 @@ const emit = defineEmits(["click"]);
 
 const handleClick = (e) => {
   e.cancelBubble = true;
+  emit("click", props.position);
+};
+
+const handleTouchStart = (e) => {
+  e.cancelBubble = true;
+  e.evt.preventDefault();
+};
+
+const handleTouchEnd = (e) => {
+  e.cancelBubble = true;
+  e.evt.preventDefault();
   emit("click", props.position);
 };
 

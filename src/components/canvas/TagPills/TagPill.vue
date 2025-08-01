@@ -2,6 +2,9 @@
   <v-group
     :config="{ x: computedX, y: computedY }"
     @click="handleClick"
+    @tap="handleClick"
+    @touchstart="handleTouchStart"
+    @touchend="handleTouchEnd"
     @mouseover="handleMouseOver"
     @mouseout="handleMouseOut"
   >
@@ -76,6 +79,17 @@ const computedY = computed(() => (props.offsetY !== null ? props.offsetY : 10));
 
 const handleClick = (e) => {
   e.cancelBubble = true;
+  isSelected.value = !isSelected.value;
+};
+
+const handleTouchStart = (e) => {
+  e.cancelBubble = true;
+  e.evt.preventDefault();
+};
+
+const handleTouchEnd = (e) => {
+  e.cancelBubble = true;
+  e.evt.preventDefault();
   isSelected.value = !isSelected.value;
 };
 

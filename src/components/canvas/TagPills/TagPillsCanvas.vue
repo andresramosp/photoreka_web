@@ -11,10 +11,20 @@
         listening: true,
       }"
       @wheel="onWheel"
+      @touchstart="onTouchStart"
+      @touchmove="onTouchMove"
+      @touchend="onTouchEnd"
     />
 
     <!-- Grupo visible de tags, que también capta el wheel -->
-    <v-group :config="{ x: 0, y: 0 }" :clipFunc="clipFunc" @wheel="onWheel">
+    <v-group
+      :config="{ x: 0, y: 0 }"
+      :clipFunc="clipFunc"
+      @wheel="onWheel"
+      @touchstart="onTouchStart"
+      @touchmove="onTouchMove"
+      @touchend="onTouchEnd"
+    >
       <template
         v-for="(tagPhoto, index) in filteredTags"
         :key="tagPhoto.tag.id"
@@ -47,6 +57,11 @@ const scrollOffset = ref(0);
 const itemHeight = 23;
 const initialOffset = 10;
 
+// Touch scroll variables
+const touchStartY = ref(0);
+const touchStartScrollOffset = ref(0);
+const isScrolling = ref(false);
+
 const totalContentHeight = computed(
   () => initialOffset + filteredTags.value.length * itemHeight
 );
@@ -65,6 +80,36 @@ const onWheel = (e) => {
   e.evt.stopPropagation();
   const delta = e.evt.deltaY > 0 ? -itemHeight * 0.5 : itemHeight * 0.5;
   scrollOffset.value = clampScroll(scrollOffset.value + delta);
+};
+
+// Touch event handlers for scrolling
+const onTouchStart = (e) => {
+  e.cancelBubble = true;
+  const touch = e.evt.touches[0];
+  if (touch) {
+    touchStartY.value = touch.clientY;
+    touchStartScrollOffset.value = scrollOffset.value;
+    isScrolling.value = true;
+  }
+};
+
+const onTouchMove = (e) => {
+  if (!isScrolling.value) return;
+
+  e.cancelBubble = true;
+  e.evt.preventDefault();
+
+  const touch = e.evt.touches[0];
+  if (touch) {
+    const deltaY = touch.clientY - touchStartY.value;
+    const newScrollOffset = touchStartScrollOffset.value + deltaY;
+    scrollOffset.value = clampScroll(newScrollOffset);
+  }
+};
+
+const onTouchEnd = (e) => {
+  isScrolling.value = false;
+  e.cancelBubble = true;
 };
 
 const getOffsetY = (index) => {
