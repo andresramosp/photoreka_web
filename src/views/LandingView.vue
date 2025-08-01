@@ -767,16 +767,18 @@ onMounted(() => {
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(37, 99, 235, 0.3);
   width: 100%;
-  /* aspect-ratio: 16 / 9; */
+  /* aspect-ratio: 5/ 7; */
 }
 
 .demo-video {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   background: #111;
   display: block;
 }
+
+/* Specific styling for the first video (Canvas) to fill the container completely */
 
 .video-overlay {
   position: absolute;
