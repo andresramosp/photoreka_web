@@ -1,5 +1,3 @@
-import nlp from "compromise";
-
 export function hungarian(matrix) {
   const n = matrix.length;
   const m = matrix[0].length;
@@ -163,11 +161,32 @@ export function hungarian(matrix) {
 
 export function shortenTag(tag) {
   return tag;
-  const doc = nlp(tag);
+  // Note: NLP processing commented out as compromise library is not installed
+  // const doc = nlp(tag);
+  // doc.match("#Adjective").delete();
+  // doc.match("#Adverb").delete();
+  // return doc.text().trim();
+}
 
-  // Elimina adjetivos (Adjective) y adverbios (Adverb)
-  doc.match("#Adjective").delete();
-  doc.match("#Adverb").delete();
+export function isMobileDevice() {
+  const userAgent = navigator.userAgent.toLowerCase();
+  const screenWidth = window.innerWidth;
+  const screenHeight = window.innerHeight;
 
-  return doc.text().trim();
+  // Check if it's a mobile device but not a tablet
+  const isMobile =
+    /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+  const isTablet =
+    /ipad|android(?!.*mobile)|tablet|playbook|silk/i.test(userAgent) ||
+    (screenWidth >= 768 && screenHeight >= 1024) ||
+    (screenWidth >= 1024 && screenHeight >= 768);
+
+  // Also check screen size - mobile phones typically have smaller screens
+  const isSmallScreen = screenWidth < 768;
+
+  // Additional check for touch devices with small screens
+  const isTouchDevice =
+    "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
+  return (isMobile || (isSmallScreen && isTouchDevice)) && !isTablet;
 }

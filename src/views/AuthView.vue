@@ -28,20 +28,30 @@
         </Transition>
       </div>
     </div>
+
+    <!-- Mobile Notice Dialog -->
+    <MobileNoticeDialog
+      v-model:show="showMobileNotice"
+      @goHome="onMobileNoticeGoHome"
+    />
   </AuthLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import AuthLayout from "../components/AuthLayout.vue";
 import LoginForm from "../components/LoginForm.vue";
 import RegisterForm from "../components/RegisterForm.vue";
+import MobileNoticeDialog from "../components/MobileNoticeDialog.vue";
+import { isMobileDevice } from "../utils/utils.js";
 
 type AuthMode = "login" | "register";
 
 const currentMode = ref<AuthMode>("register");
+const showMobileNotice = ref(false);
 const route = useRoute();
+const router = useRouter();
 
 const handleSwitchMode = (mode: AuthMode) => {
   currentMode.value = mode;
@@ -55,7 +65,23 @@ const setModeFromQuery = () => {
   }
 };
 
-onMounted(setModeFromQuery);
+const onMobileNoticeGoHome = () => {
+  // User wants to go back to landing page
+  router.push("/");
+};
+
+// Check for mobile device on mount
+const checkMobileDevice = () => {
+  if (isMobileDevice()) {
+    showMobileNotice.value = true;
+  }
+};
+
+onMounted(() => {
+  setModeFromQuery();
+  checkMobileDevice();
+});
+
 watch(() => route.query.mode, setModeFromQuery);
 </script>
 

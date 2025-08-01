@@ -380,6 +380,12 @@
         v-model:show="showRequestDialog"
         @success="onRequestSuccess"
       />
+
+      <!-- Mobile Notice Dialog -->
+      <MobileNoticeDialog
+        v-model:show="showMobileNotice"
+        @goHome="onMobileNoticeGoHome"
+      />
     </div>
   </n-message-provider>
 </template>
@@ -404,6 +410,8 @@ import {
 import { Workspace } from "@vicons/carbon";
 import logoName from "@/assets/logo_name.png";
 import RequestAccessDialog from "@/components/RequestAccessDialog.vue";
+import MobileNoticeDialog from "@/components/MobileNoticeDialog.vue";
+import { isMobileDevice } from "@/utils/utils.js";
 
 const router = useRouter();
 const demoSection = ref(null);
@@ -412,6 +420,7 @@ const videoPlaying = ref(false);
 const activeTab = ref(0);
 const videoProgress = ref(0);
 const showRequestDialog = ref(false);
+const showMobileNotice = ref(false);
 const message = useMessage();
 
 // Video tabs with different use cases
@@ -446,6 +455,9 @@ const videoTabs = ref([
 const goToAuth = (mode = "login") => {
   if (mode === "signup") {
     showRequestDialog.value = true;
+  } else if (mode === "login" && isMobileDevice()) {
+    // Show mobile notice for login on mobile devices
+    showMobileNotice.value = true;
   } else {
     router.push({ name: "auth", query: { mode } });
   }
@@ -456,6 +468,11 @@ const scrollToDemo = () => {
 };
 
 const onRequestSuccess = () => {};
+
+const onMobileNoticeGoHome = () => {
+  // User is already on home page, just close the dialog
+  showMobileNotice.value = false;
+};
 
 const setActiveTab = (index) => {
   console.log(`Setting active tab to: ${index}`);
