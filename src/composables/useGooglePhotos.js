@@ -1,7 +1,7 @@
 // composables/useGooglePhotos.js
-import { ref, computed } from "vue";
-import { api } from "@/utils/axios";
+import { ref, computed, onMounted } from "vue";
 import { useMessage } from "naive-ui";
+import { GOOGLE_CONFIG } from "@/config/google.js";
 
 export function useGooglePhotos() {
   const message = useMessage();
@@ -12,198 +12,154 @@ export function useGooglePhotos() {
   const selectedGooglePhotos = ref([]);
   const showGoogleSelector = ref(false);
   const isLoadingGooglePhotos = ref(false);
-  const googleToken = ref(null);
-  const nextPageToken = ref(null);
-  const hasMorePhotos = ref(true);
+  const isGoogleApiLoaded = ref(false);
+  const hasMorePhotos = ref(false); // No hay paginación en Picker API
 
   // Computed para fotos seleccionadas
   const selectedGooglePhotosCount = computed(
     () => selectedGooglePhotos.value.length
   );
 
-  // Función para iniciar la autorización de Google Photos
+  // Función para cargar la API de Google Photos Picker
+  function loadGooglePhotosPickerApi() {
+    return new Promise((resolve, reject) => {
+      if (isGoogleApiLoaded.value) {
+        resolve();
+        return;
+      }
+
+      // Cargar Google API script si no está cargado
+      if (!window.google) {
+        const script = document.createElement("script");
+        script.src = "https://apis.google.com/js/api.js";
+        script.onload = () => {
+          window.gapi.load("picker", {
+            callback: () => {
+              isGoogleApiLoaded.value = true;
+              resolve();
+            },
+            onerror: reject,
+          });
+        };
+        script.onerror = reject;
+        document.head.appendChild(script);
+      } else {
+        window.gapi.load("picker", {
+          callback: () => {
+            isGoogleApiLoaded.value = true;
+            resolve();
+          },
+          onerror: reject,
+        });
+      }
+    });
+  }
+
+  // Función para iniciar la autorización de Google Photos usando Picker API
   async function triggerGooglePhotos() {
     try {
-      // Llamar al endpoint de sync que nos dará la URL de autorización
-      const response = await api.get("/api/catalog/google/sync");
-      const { authUrl } = response.data;
-
-      // Redirigir a la URL de autorización de Google
-      window.location.href = authUrl;
-    } catch (error) {
-      console.error("❌ Error initiating Google Photos auth:", error);
-      message.error("Failed to initiate Google Photos authorization");
-    }
-  }
-
-  // Función para manejar el callback de Google OAuth (se llamaría desde una ruta)
-  async function handleGoogleCallback(code) {
-    try {
-      // El callback solo nos da el accessToken, no las fotos
-      const response = await api.get(
-        `/api/catalog/google/callback?code=${code}`
-      );
-      const { accessToken } = response.data;
-      googleToken.value = accessToken;
-      isGoogleAuthorized.value = true;
-
-      // Después del callback, obtener las fotos por separado
-      await fetchGooglePhotos();
-
-      message.success("Google Photos authorized successfully!");
-      return true;
-    } catch (error) {
-      console.error("❌ Error handling Google callback:", error);
-      message.error("Failed to authorize Google Photos");
-      return false;
-    }
-  }
-
-  // Función para manejar el access_token directamente desde la URL
-  async function handleAccessToken(accessToken) {
-    try {
-      console.log(
-        "🔑 handleAccessToken llamada con token:",
-        accessToken.substring(0, 20) + "..."
-      );
-      googleToken.value = accessToken;
-      isGoogleAuthorized.value = true;
-      console.log(
-        "✅ Estado actualizado - googleToken y isGoogleAuthorized configurados"
-      );
-
-      // Obtener las fotos usando el access token
-      console.log("📞 Llamando a fetchGooglePhotos...");
-      await fetchGooglePhotos();
-
-      console.log("🏁 handleAccessToken completado exitosamente");
-      message.success("Google Photos authorized successfully!");
-      return true;
-    } catch (error) {
-      console.error("❌ Error handling access token:", error);
-      console.error("❌ Stack trace:", error.stack);
-      message.error("Failed to authorize Google Photos");
-      return false;
-    }
-  }
-
-  // Función para obtener fotos de Google Photos usando el accessToken
-  async function fetchGooglePhotos(loadMore = false) {
-    if (!googleToken.value) {
-      console.log("⚠️  No hay token disponible, iniciando autorización...");
-      await triggerGooglePhotos();
-      return;
-    }
-
-    console.log("📸 Obteniendo fotos de Google Photos...");
-    console.log("🔑 Token disponible:", googleToken.value ? "Sí" : "No");
-
-    if (!loadMore) {
       isLoadingGooglePhotos.value = true;
-      // Reset pagination when loading fresh data
-      nextPageToken.value = null;
-      hasMorePhotos.value = true;
+
+      // Cargar la API de Google Picker
+      await loadGooglePhotosPickerApi();
+
+      // Crear y mostrar el picker
+      const picker = new google.picker.PickerBuilder()
+        .addView(google.picker.ViewId.PHOTOS)
+        .setOAuthToken(await getGoogleAuthToken())
+        .setDeveloperKey(GOOGLE_CONFIG.API_KEY)
+        .setCallback(handlePickerCallback)
+        .setSize(1051, 650)
+        .build();
+
+      picker.setVisible(true);
+    } catch (error) {
+      console.error("❌ Error initiating Google Photos picker:", error);
+      message.error("Failed to open Google Photos picker");
+      isLoadingGooglePhotos.value = false;
     }
+  }
 
-    try {
-      // Construir URL con paginación
-      let url =
-        "https://photoslibrary.googleapis.com/v1/mediaItems?pageSize=50";
-      if (loadMore && nextPageToken.value) {
-        url += `&pageToken=${nextPageToken.value}`;
-      }
+  // Función para obtener el token de autenticación de Google
+  async function getGoogleAuthToken() {
+    return new Promise((resolve, reject) => {
+      window.gapi.load("auth2", () => {
+        const authInstance = window.gapi.auth2.init({
+          client_id: GOOGLE_CONFIG.CLIENT_ID,
+        });
 
-      console.log("🌐 Haciendo petición directa a Google Photos API...");
-
-      // Llamada directa a Google Photos API para obtener media items
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${googleToken.value}`,
-          "Content-Type": "application/json",
-        },
+        authInstance
+          .signIn()
+          .then((user) => {
+            const authResponse = user.getAuthResponse();
+            isGoogleAuthorized.value = true;
+            resolve(authResponse.access_token);
+          })
+          .catch(reject);
       });
+    });
+  }
 
-      if (!response.ok) {
-        throw new Error(
-          `Google API error: ${response.status} ${response.statusText}`
-        );
-      }
+  // Función para manejar la respuesta del picker
+  function handlePickerCallback(data) {
+    isLoadingGooglePhotos.value = false;
 
-      const data = await response.json();
-      console.log("✅ Respuesta recibida de Google Photos API:", data);
+    if (data.action === google.picker.Action.PICKED) {
+      const docs = data.docs;
 
-      // Transformar los datos de Google Photos al formato esperado
-      const photos = (data.mediaItems || []).map((item) => ({
-        id: item.id,
-        filename: item.filename,
-        baseUrl: item.baseUrl,
-        thumbnailUrl: `${item.baseUrl}=w300-h300-c`,
-        downloadUrl: `${item.baseUrl}=d`,
-        mimeType: item.mimeType,
-        creationTime: item.mediaMetadata?.creationTime,
-        width: item.mediaMetadata?.width,
-        height: item.mediaMetadata?.height,
+      // Transformar los documentos seleccionados al formato esperado
+      const photos = docs.map((doc) => ({
+        id: doc.id,
+        filename: doc.name,
+        url: doc.url,
+        thumbnailUrl: doc.thumbnails?.[0]?.url || doc.url,
+        downloadUrl: doc.downloadUrl || doc.url,
+        mimeType: doc.mimeType,
+        width: doc.imageMediaMetadata?.width,
+        height: doc.imageMediaMetadata?.height,
+        size: doc.sizeBytes,
       }));
 
-      // Actualizar paginación
-      nextPageToken.value = data.nextPageToken || null;
-      hasMorePhotos.value = !!data.nextPageToken;
+      googlePhotos.value = photos;
+      selectedGooglePhotos.value = [...photos]; // Auto-seleccionar todas las fotos elegidas
 
-      if (loadMore) {
-        // Agregar nuevas fotos al array existente
-        googlePhotos.value = [...googlePhotos.value, ...photos];
-      } else {
-        // Reemplazar todas las fotos
-        googlePhotos.value = photos;
-      }
+      console.log("✅ Fotos seleccionadas desde Google Photos:", photos.length);
+      message.success(`Selected ${photos.length} photos from Google Photos`);
 
-      console.log("📊 Número de fotos obtenidas:", photos.length);
-      console.log("📊 Total de fotos:", googlePhotos.value.length);
-      console.log("📄 Hay más fotos:", hasMorePhotos.value);
-
-      if (!loadMore) {
-        console.log("🚀 Estableciendo showGoogleSelector = true...");
+      // Mostrar el selector para revisión (opcional, ya que ya están seleccionadas)
+      if (photos.length > 0) {
         showGoogleSelector.value = true;
-        console.log(
-          "✅ showGoogleSelector establecido:",
-          showGoogleSelector.value
-        );
       }
-
-      if (googlePhotos.value.length === 0) {
-        console.log("⚠️ No se encontraron fotos, mostrando warning...");
-        message.warning("No photos found in your Google Photos library");
-      } else {
-        console.log("🎉 Todo listo, modal debería abrirse!");
-      }
-    } catch (error) {
-      console.error("❌ Error fetching Google Photos:", error);
-      console.error("❌ Error completo:", error.message);
-      message.error("Failed to fetch Google Photos");
-
-      // Si falla la autorización (401 o 403), resetear estado
-      if (error.message.includes("401") || error.message.includes("403")) {
-        console.log("🔄 Token expirado o sin permisos, reseteando estado...");
-        isGoogleAuthorized.value = false;
-        googleToken.value = null;
-      }
-    } finally {
-      if (!loadMore) {
-        console.log(
-          "🏁 Finalizando fetchGooglePhotos, isLoadingGooglePhotos = false"
-        );
-        isLoadingGooglePhotos.value = false;
-      }
+    } else if (data.action === google.picker.Action.CANCEL) {
+      console.log("⚠️ Usuario canceló la selección de Google Photos");
     }
   }
 
-  // Función para cargar más fotos (paginación)
-  async function loadMoreGooglePhotos() {
-    if (!hasMorePhotos.value || isLoadingGooglePhotos.value) {
-      return;
-    }
+  // Función legacy - mantener para compatibilidad pero no usar
+  async function handleGoogleCallback(code) {
+    console.warn("⚠️ handleGoogleCallback is deprecated with Picker API");
+    return false;
+  }
 
-    await fetchGooglePhotos(true);
+  // Función legacy - mantener para compatibilidad pero no usar
+  async function handleAccessToken(accessToken) {
+    console.warn("⚠️ handleAccessToken is deprecated with Picker API");
+    return false;
+  }
+
+  // Función legacy - ahora las fotos se obtienen directamente del picker
+  async function fetchGooglePhotos(loadMore = false) {
+    console.warn(
+      "⚠️ fetchGooglePhotos is deprecated with Picker API - use triggerGooglePhotos instead"
+    );
+    await triggerGooglePhotos();
+  }
+
+  // Función para cargar más fotos (no aplicable en Picker API)
+  async function loadMoreGooglePhotos() {
+    console.warn("⚠️ Pagination not available with Google Photos Picker API");
+    message.info("All available photos are already loaded");
+    return;
   }
 
   // Función para alternar selección de foto de Google
@@ -237,20 +193,18 @@ export function useGooglePhotos() {
   function closeGoogleSelector() {
     showGoogleSelector.value = false;
     selectedGooglePhotos.value = [];
-    // Reset pagination when closing
-    nextPageToken.value = null;
-    hasMorePhotos.value = true;
+    hasMorePhotos.value = false;
   }
 
   // Función para preparar las fotos seleccionadas para upload
   function prepareSelectedPhotosForUpload() {
     return selectedGooglePhotos.value.map((photo) => ({
       id: photo.id,
-      url: photo.downloadUrl || `${photo.baseUrl}=d`, // URL de descarga de Google Photos
+      url: photo.downloadUrl || photo.url,
       name: photo.filename || `google-photo-${photo.id}.jpg`,
-      token: googleToken.value,
       type: "google", // Indicar que es de Google Photos
       mimeType: photo.mimeType,
+      size: photo.size,
     }));
   }
 
@@ -264,17 +218,19 @@ export function useGooglePhotos() {
     selectedGooglePhotosCount,
     hasMorePhotos,
 
-    // Funciones
+    // Funciones principales
     triggerGooglePhotos,
-    handleGoogleCallback,
-    handleAccessToken,
-    fetchGooglePhotos,
-    loadMoreGooglePhotos,
     toggleGooglePhotoSelection,
     selectAllGooglePhotos,
     deselectAllGooglePhotos,
     isGooglePhotoSelected,
     closeGoogleSelector,
     prepareSelectedPhotosForUpload,
+
+    // Funciones legacy para compatibilidad
+    handleGoogleCallback,
+    handleAccessToken,
+    fetchGooglePhotos,
+    loadMoreGooglePhotos,
   };
 }

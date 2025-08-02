@@ -52,7 +52,7 @@
           >
             <div class="photo-wrapper">
               <img
-                :src="photo.thumbnailUrl || photo.baseUrl"
+                :src="photo.thumbnailUrl || photo.url"
                 :alt="photo.filename"
                 class="photo-image"
                 loading="lazy"
@@ -73,20 +73,9 @@
           </div>
         </div>
 
-        <!-- Load more button -->
-        <div v-if="hasMorePhotos" class="load-more-section">
-          <n-button
-            type="default"
-            size="large"
-            @click="loadMorePhotos"
-            :loading="isLoadingMore"
-          >
-            Load More Photos
-          </n-button>
-        </div>
-
-        <div v-else class="no-more-photos">
-          <span>All photos loaded</span>
+        <!-- Info message since all photos are loaded at once with Picker API -->
+        <div class="all-photos-loaded">
+          <span>All selected photos are shown above</span>
         </div>
       </div>
 
@@ -145,10 +134,7 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  hasMorePhotos: {
-    type: Boolean,
-    default: false,
-  },
+  // hasMorePhotos prop no longer needed with Picker API
 });
 
 const emit = defineEmits([
@@ -158,7 +144,7 @@ const emit = defineEmits([
   "select-all",
   "deselect-all",
   "close",
-  "load-more",
+  // "load-more" no longer needed
 ]);
 
 const isLoadingMore = ref(false);
@@ -196,20 +182,6 @@ function closeGoogleSelector() {
 
 function confirmSelection() {
   emit("confirm-selection");
-}
-
-async function loadMorePhotos() {
-  if (isLoadingMore.value) return;
-
-  isLoadingMore.value = true;
-  try {
-    emit("load-more");
-  } finally {
-    // Reset loading state after a short delay to prevent rapid clicking
-    setTimeout(() => {
-      isLoadingMore.value = false;
-    }, 1000);
-  }
 }
 </script>
 
@@ -301,6 +273,19 @@ async function loadMorePhotos() {
 }
 
 .no-more-photos span {
+  color: #ffffff73;
+  font-size: 14px;
+}
+
+.all-photos-loaded {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+  border-top: 1px solid #2c2c32;
+  margin-top: 16px;
+}
+
+.all-photos-loaded span {
   color: #ffffff73;
   font-size: 14px;
 }

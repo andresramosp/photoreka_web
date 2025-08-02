@@ -9,13 +9,11 @@
       :google-photos="googlePhotos"
       :selected-google-photos="selectedGooglePhotos"
       :is-loading-google-photos="isLoadingGooglePhotos"
-      :has-more-photos="hasMorePhotos"
       @confirm-selection="handleGooglePhotosConfirmation"
       @toggle-photo="toggleGooglePhotoSelection"
       @select-all="selectAllGooglePhotos"
       @deselect-all="deselectAllGooglePhotos"
       @close="closeGoogleSelector"
-      @load-more="loadMoreGooglePhotos"
     />
     <n-modal
       v-model:show="showAnalyzeDialog"
@@ -440,7 +438,6 @@ const {
   showGoogleSelector,
   isLoadingGooglePhotos,
   selectedGooglePhotosCount,
-  hasMorePhotos,
   triggerGooglePhotos,
   toggleGooglePhotoSelection,
   selectAllGooglePhotos,
@@ -448,8 +445,6 @@ const {
   isGooglePhotoSelected,
   closeGoogleSelector,
   prepareSelectedPhotosForUpload,
-  handleAccessToken,
-  loadMoreGooglePhotos,
 } = useGooglePhotos();
 
 // Debug: watchear showGoogleSelector
@@ -714,60 +709,12 @@ defineExpose({
   openAnalyzeDialog,
 });
 
-// Manejar el access_token de Google Photos cuando el componente se monta
+// Con Google Photos Picker API ya no necesitamos manejar callbacks en la URL
+// La API maneja todo internamente
 onMounted(() => {
-  console.log("🚀 LightboxPhotos onMounted ejecutándose...");
-  console.log("🌐 URL completa:", window.location.href);
-  console.log("🔗 Hash:", window.location.hash);
-
-  let accessToken = null;
-  const fullHash = window.location.hash;
-
-  if (fullHash) {
-    // Para URL como #upload?access_token=...
-    if (fullHash.includes("?")) {
-      const parts = fullHash.split("?");
-      if (parts.length > 1) {
-        const queryParams = new URLSearchParams(parts[1]);
-        accessToken = queryParams.get("access_token");
-        console.log("🔍 Búsqueda en query params:", {
-          queryString: parts[1],
-          accessToken: accessToken ? "Encontrado" : "No encontrado",
-        });
-      }
-    }
-
-    // Respaldo: buscar directamente en el hash
-    if (!accessToken) {
-      const hashWithoutHash = fullHash.startsWith("#")
-        ? fullHash.substring(1)
-        : fullHash;
-      const urlParams = new URLSearchParams(hashWithoutHash);
-      accessToken = urlParams.get("access_token");
-      console.log("🔍 Búsqueda directa en hash:", {
-        hashWithoutHash,
-        accessToken: accessToken ? "Encontrado" : "No encontrado",
-      });
-    }
-  }
-
-  if (accessToken) {
-    console.log(
-      "🔑 Access token encontrado en URL, procesando...",
-      accessToken.substring(0, 20) + "..."
-    );
-    // Limpiar la URL
-    window.history.replaceState(
-      {},
-      document.title,
-      window.location.pathname + window.location.search
-    );
-    console.log("🧹 URL limpiada, llamando a handleAccessToken...");
-    // Manejar el token
-    handleAccessToken(accessToken);
-  } else {
-    console.log("❌ No se encontró access_token en la URL");
-  }
+  console.log(
+    "� LightboxPhotos component mounted - Google Photos Picker API ready"
+  );
 });
 </script>
 
