@@ -281,17 +281,19 @@ const mapProcess = (proc) => {
 };
 
 // --- Notificación de procesos finalizados ---
-const FINISHED_JOBS_KEY = "notifiedFinishedJobs";
-function getNotifiedFinishedJobs() {
+const FIRST_PROCESS_ONBOARDING_KEY = "firstProcessOnboardingTriggered";
+
+function getFirstProcessOnboardingTriggered() {
   try {
-    return JSON.parse(localStorage.getItem(FINISHED_JOBS_KEY)) || [];
+    return JSON.parse(localStorage.getItem(FIRST_PROCESS_ONBOARDING_KEY)) || [];
   } catch {
     return [];
   }
 }
-function setNotifiedFinishedJobs(ids) {
-  localStorage.setItem(FINISHED_JOBS_KEY, JSON.stringify(ids));
+function setFirstProcessOnboardingTriggered(ids) {
+  localStorage.setItem(FIRST_PROCESS_ONBOARDING_KEY, JSON.stringify(ids));
 }
+
 function notifyFinished(job) {
   notification.create({
     title: "Process Finished",
@@ -339,9 +341,9 @@ async function loadProcesses() {
         new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
     );
 
-    // --- Notificación de procesos finalizados ---
-    let notifiedIds = getNotifiedFinishedJobs();
-    let newNotified = false;
+    // --- Notificación de procesos finalizados y onboarding del primer proceso ---
+    let onboardingTriggeredIds = getFirstProcessOnboardingTriggered();
+    let newOnboardingTriggered = false;
 
     // Detectar si alguno ha pasado de "processing" a "finished"
     for (const updatedJob of processingJobs.value) {
@@ -351,26 +353,57 @@ async function loadProcesses() {
         previousJob.status === "processing" &&
         updatedJob.status === "finished"
       ) {
+        // Verificar si este era el primer proceso antes de actualizar el store
+        const wasFirstProcess = photosStore.processedPhotos.length === 0;
+
         await photosStore.getOrFetch(true);
-        if (!notifiedIds.includes(updatedJob.id)) {
-          notifyFinished(updatedJob);
-          notifiedIds.push(updatedJob.id);
-          newNotified = true;
+
+        // Solo mostrar notificación si el proceso acaba de terminar (usuario está en la app)
+        notifyFinished(updatedJob);
+
+        // Si era el primer proceso y no se ha activado el onboarding para este proceso
+        if (
+          wasFirstProcess &&
+          !onboardingTriggeredIds.includes(updatedJob.id) &&
+          typeof window.triggerFirstProcessOnboarding === "function"
+        ) {
+          setTimeout(() => {
+            window.triggerFirstProcessOnboarding();
+          }, 1500); // Pequeño delay para que la notificación se muestre primero
+
+          onboardingTriggeredIds.push(updatedJob.id);
+          newOnboardingTriggered = true;
         }
         break; // solo una vez
       }
     }
 
-    // Al entrar, notificar procesos terminados no notificados
-    for (const job of processingJobs.value) {
-      if (job.status === "finished" && !notifiedIds.includes(job.id)) {
-        notifyFinished(job);
-        notifiedIds.push(job.id);
-        newNotified = true;
+    // Activar onboarding para el primer proceso si no se ha hecho (solo al cargar inicialmente)
+    if (
+      photosStore.processedPhotos.length > 0 && // Hay fotos procesadas
+      onboardingTriggeredIds.length === 0 && // No se ha activado onboarding para ningún proceso
+      typeof window.triggerFirstProcessOnboarding === "function"
+    ) {
+      // Buscar el proceso más antiguo terminado para marcarlo como el que activó el onboarding
+      const oldestFinishedJob = processingJobs.value
+        .filter((job) => job.status === "finished")
+        .sort(
+          (a, b) =>
+            new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+        )[0];
+
+      if (oldestFinishedJob) {
+        setTimeout(() => {
+          window.triggerFirstProcessOnboarding();
+        }, 500);
+
+        onboardingTriggeredIds.push(oldestFinishedJob.id);
+        newOnboardingTriggered = true;
       }
     }
 
-    if (newNotified) setNotifiedFinishedJobs(notifiedIds);
+    if (newOnboardingTriggered)
+      setFirstProcessOnboardingTriggered(onboardingTriggeredIds);
   } catch (error) {
     console.error(
       `[ProcessingPhotos-${componentId}] Error loading processes:`,

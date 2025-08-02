@@ -45,7 +45,7 @@
           <ul class="steps-list">
             <li>Upload your photos to the <strong>Lightbox</strong></li>
             <li>Watch your progress as you approach 100 photos</li>
-            <li>Process your first batch of 100+ photos</li>
+            <li>Analyze your first batch of 100+ photos</li>
             <li>Enjoy unrestricted access with no minimum limits thereafter</li>
           </ul>
 

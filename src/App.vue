@@ -75,6 +75,22 @@
             v-model="showOnboarding"
             @finish="onOnboardingFinish"
           />
+
+          <!-- Confetti Effect for first process completion -->
+          <ConfettiEffect
+            :show="showConfetti"
+            @hide="hideConfetti"
+            :duration="4000"
+            :colors="[
+              '#8b5cf6',
+              '#06b6d4',
+              '#10b981',
+              '#f59e0b',
+              '#ef4444',
+              '#f43f5e',
+            ]"
+            :count="120"
+          />
         </template>
       </n-message-provider>
     </n-notification-provider>
@@ -92,6 +108,7 @@ import FloatingAddPhotosButton from "./components/FloatingAddPhotosButton.vue";
 import { usePhotosStore } from "@/stores/photos.js";
 import OnboardingSlider from "./components/OnboardingSlider.vue";
 import WelcomeModal from "./components/WelcomeModal.vue";
+import ConfettiEffect from "./components/ConfettiEffect.vue";
 
 const photosStore = usePhotosStore();
 
@@ -111,25 +128,14 @@ const themeOverrides = {
     primaryColorPressed: "#1d4ed8",
     primaryColorSuppl: "#2563eb",
   },
-  Button: {
-    // colorWarning: "var(--secondary-color)",
-    // colorWarningHover: "var(--secondary-color-hover)",
-    // colorWarningPressed: "var(--secondary-color-pressed)",
-    // colorWarningSuppl: "var(--secondary-color)",
-    // textColorWarning: "#fff", // Asegura buen contraste
-    // textColorWarningHover: "#fff",
-    // textColorWarningPressed: "#fff",
-    // borderWarning: "var(--secondary-color)",
-    // borderWarningHover: "var(--secondary-color-hover)",
-    // borderWarningPressed: "var(--secondary-color-pressed)",
-  },
 };
 
 const mobileMenuOpen = ref(false);
 const isMobile = ref(false);
 
-// Mostrar onboarding solo después de procesar las primeras 100+ fotos (para después)
+// Mostrar onboarding después del primer proceso completado
 const showOnboarding = ref(false);
+const showConfetti = ref(false);
 
 // Welcome modal simple con delay para evitar parpadeos
 const showWelcomeModal = ref(false);
@@ -143,20 +149,42 @@ const checkWelcomeModal = () => {
   }, 1000); // Espera 1 segundo para que carguen las fotos
 };
 
-// Chequea si el onboarding ya fue mostrado para este usuario (para después)
+// Chequea si el onboarding ya fue mostrado para este usuario
 const checkShowOnboarding = () => {
-  // Por ahora siempre false - esto se activará después cuando tengamos 100+ fotos procesadas
+  // El onboarding solo se activa desde triggerFirstProcessOnboarding()
+  // Esta función ya no decide cuándo mostrar el onboarding
   showOnboarding.value = false;
-
-  // TODO: Implementar lógica para mostrar onboarding después de procesar 100+ fotos
-  // const userId = userStore.user?.id;
-  // if (!userId || !userStore.isAuthenticated) return;
-  // const processedPhotos = photosStore.processedPhotos.length;
-  // if (processedPhotos >= 100) {
-  //   const onboardingKey = `onboarding_shown_${userId}`;
-  //   showOnboarding.value = localStorage.getItem(onboardingKey) !== "true";
-  // }
 };
+
+// Función para mostrar onboarding cuando se completa el primer proceso
+const triggerFirstProcessOnboarding = () => {
+  const userId = userStore.user?.id;
+  if (!userId || !userStore.isAuthenticated) return;
+
+  const onboardingKey = `onboarding_shown_${userId}`;
+  const alreadyShown = localStorage.getItem(onboardingKey) === "true";
+
+  if (!alreadyShown) {
+    // Cerrar welcome modal si está abierto
+    showWelcomeModal.value = false;
+
+    // Primero mostrar el efecto de serpentinas
+    showConfetti.value = true;
+
+    // Después de un pequeño delay, mostrar el onboarding
+    setTimeout(() => {
+      showOnboarding.value = true;
+    }, 1000);
+  }
+};
+
+// Función para ocultar las serpentinas
+const hideConfetti = () => {
+  showConfetti.value = false;
+};
+
+// Hacer la función disponible globalmente para ser llamada desde ProcessingPhotos
+window.triggerFirstProcessOnboarding = triggerFirstProcessOnboarding;
 
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value;
@@ -222,6 +250,8 @@ watch(
 
 onUnmounted(() => {
   window.removeEventListener("resize", checkIsMobile);
+  // Limpiar función global
+  delete window.triggerFirstProcessOnboarding;
 });
 
 const onWelcomeFinish = () => {

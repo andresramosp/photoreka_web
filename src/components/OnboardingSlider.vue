@@ -33,12 +33,12 @@
                 />
               </div>
               <div class="slide-text">
-                <h3 class="slide-title">1. Bring your photos</h3>
+                <h3 class="slide-title">1. Continue building your Workspace</h3>
                 <p class="slide-description">
-                  Photoreka is a software designed to work with large volumes of
-                  photos and manage an entire body of work. You can bring your
-                  images from different platforms (Google Photos, Drive, etc.)
-                  or from your local directory.
+                  You've completed your first batch of images. We encourage you
+                  to continue uploading photos to get the most out of the app.
+                  You can bring your images from different platforms (Google
+                  Photos, Drive, etc.) or from your local directory.
                 </p>
               </div>
             </div>
@@ -55,10 +55,10 @@
               <div class="slide-text">
                 <h3 class="slide-title">2. Preview in Lightbox</h3>
                 <p class="slide-description">
-                  The Lightbox is where you import your photos.. You can import
-                  them in batches, at your own pace, or all at once. Newly
-                  uploaded photos are pre-processed and can be used in some
-                  tools with limitations.
+                  The Lightbox is where you import and review your photos prior
+                  to analysis. You can import them in batches, at your own pace,
+                  or all at once. The photos in Lightbox are pre-processed and
+                  can be used in some tools with limitations.
                 </p>
               </div>
             </div>
@@ -73,13 +73,12 @@
                 />
               </div>
               <div class="slide-text">
-                <h3 class="slide-title">3. Build your Workspace</h3>
+                <h3 class="slide-title">3. Experiment with the tools</h3>
                 <p class="slide-description">
-                  Allow our engine to understand your photos to unleash the full
-                  potential of your catalog. The photos you process to the
-                  Workspace will be available for natural language exploration,
-                  advanced canvas features, photo relation search, style
-                  ranking, and much more...
+                  We now invite you to try out the different tools. The photos
+                  you already have in the Workspace are available for natural
+                  language exploration, advanced canvas features, photo relation
+                  search, style ranking, and much more...
                 </p>
               </div>
             </div>
