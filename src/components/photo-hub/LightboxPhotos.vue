@@ -4,6 +4,19 @@
       v-model="showDuplicatesDialog"
       :duplicates="selectedDuplicates"
     />
+    <GooglePhotosSelector
+      v-model:show="showGoogleSelector"
+      :google-photos="googlePhotos"
+      :selected-google-photos="selectedGooglePhotos"
+      :is-loading-google-photos="isLoadingGooglePhotos"
+      :has-more-photos="hasMorePhotos"
+      @confirm-selection="handleGooglePhotosConfirmation"
+      @toggle-photo="toggleGooglePhotoSelection"
+      @select-all="selectAllGooglePhotos"
+      @deselect-all="deselectAllGooglePhotos"
+      @close="closeGoogleSelector"
+      @load-more="loadMoreGooglePhotos"
+    />
     <n-modal
       v-model:show="showAnalyzeDialog"
       preset="confirm"
@@ -135,7 +148,13 @@
               </template>
               Choose Files
             </n-button>
-            <!-- <n-button type="default" size="large" class="google-photos-btn">
+            <n-button
+              type="default"
+              size="large"
+              class="google-photos-btn"
+              @click="triggerGooglePhotos"
+              :loading="isLoadingGooglePhotos"
+            >
               <template #icon>
                 <n-icon>
                   <svg viewBox="0 0 24 24">
@@ -147,7 +166,7 @@
                 </n-icon>
               </template>
               Import from Google Photos
-            </n-button> -->
+            </n-button>
           </div>
           <div class="file-formats">
             <span class="format-text"
@@ -180,10 +199,12 @@
             </template>
             Local Files
           </n-button>
-          <!-- <n-button
+          <n-button
             type="default"
             size="medium"
             class="compact-google-photos-btn"
+            @click="triggerGooglePhotos"
+            :loading="isLoadingGooglePhotos"
           >
             <template #icon>
               <n-icon>
@@ -195,8 +216,8 @@
                 </svg>
               </n-icon>
             </template>
-            Import Google Photos
-          </n-button> -->
+            Google Photos
+          </n-button>
         </div>
       </div>
       <div style="display: flex; gap: 15px">
@@ -372,11 +393,13 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
-import pLimit from "p-limit";
-import pica from "pica";
+import { usePhotoUpload } from "@/composables/usePhotoUpload.js";
+import { useGooglePhotos } from "@/composables/useGooglePhotos.js";
+import { useImageProcessing } from "@/composables/useImageProcessing.js";
 import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 import DuplicatePhotosDialog from "../DuplicatePhotosDialog.vue";
+import GooglePhotosSelector from "../GooglePhotosSelector.vue";
 import {
   NModal,
   NCheckbox,
@@ -399,20 +422,56 @@ const props = defineProps({
 
 const emit = defineEmits(["on-analyze"]);
 const photosStore = usePhotosStore();
+const message = useMessage();
 
-const isUploading = ref(false);
+// Composables
+const {
+  isUploading,
+  uploadedCount,
+  totalFiles,
+  overallProgress,
+  handleUploadFlow,
+} = usePhotoUpload();
+
+const {
+  isGoogleAuthorized,
+  googlePhotos,
+  selectedGooglePhotos,
+  showGoogleSelector,
+  isLoadingGooglePhotos,
+  selectedGooglePhotosCount,
+  hasMorePhotos,
+  triggerGooglePhotos,
+  toggleGooglePhotoSelection,
+  selectAllGooglePhotos,
+  deselectAllGooglePhotos,
+  isGooglePhotoSelected,
+  closeGoogleSelector,
+  prepareSelectedPhotosForUpload,
+  handleAccessToken,
+  loadMoreGooglePhotos,
+} = useGooglePhotos();
+
+// Debug: watchear showGoogleSelector
+watch(showGoogleSelector, (newValue, oldValue) => {
+  console.log("🔄 showGoogleSelector cambió:", { oldValue, newValue });
+  console.log("📊 Estado actual del modal:", {
+    showGoogleSelector: newValue,
+    googlePhotosLength: googlePhotos.value.length,
+    isLoadingGooglePhotos: isLoadingGooglePhotos.value,
+  });
+});
+
+const { resizeImage, uploadToR2WithRetry } = useImageProcessing();
+
+// Variables locales del componente
 const gridColumns = ref(8);
 const fileInput = ref(null);
 const filterDuplicates = ref(false);
 const showDuplicatesDialog = ref(false);
 const selectedDuplicates = ref([]);
 
-const uploadedCount = ref(0);
-const totalFiles = ref(0);
-const pendingPhotos = ref([]); // Array temporal para fotos subidas pero no mostradas
-
 const isFirstTimeUpload = computed(() => photosStore.allPhotos.length === 0);
-
 const fastModeOverride = ref(true);
 
 const hasDuplicates = computed(() => {
@@ -537,269 +596,38 @@ const allSelected = computed(() => {
   );
 });
 
-const picaInstance = pica();
-const limit = pLimit(10);
-
-const overallProgress = computed(() => {
-  if (totalFiles.value === 0) return 0;
-  return (uploadedCount.value / totalFiles.value) * 100;
-});
-
 const triggerFileInput = () => {
   if (!isUploading.value) fileInput.value?.click();
 };
-
-const message = useMessage();
 
 async function uploadLocalFiles(event) {
   const selectedLocalFiles = Array.from(event.target.files);
   if (selectedLocalFiles.length === 0) return;
 
-  isUploading.value = true;
-  totalFiles.value = selectedLocalFiles.length;
-  uploadedCount.value = 0;
-
-  const photosToUpload = [];
-  const failedUploads = [];
-
   try {
-    const uploadPromises = selectedLocalFiles.map((file) =>
-      limit(() =>
-        processAndUploadFile(file)
-          .then((photo) => {
-            if (photo) photosToUpload.push(photo);
-          })
-          .catch((error) => {
-            console.error(`❌ Failed to upload ${file.name}:`, error);
-            failedUploads.push({ file: file.name, error: error.message });
-            // Incrementar el contador incluso para archivos fallidos
-            uploadedCount.value++;
-          })
-      )
-    );
-
-    await Promise.all(uploadPromises);
-
-    // Mostrar resumen de la subida
-    if (failedUploads.length > 0) {
-      console.warn(
-        `⚠️ Upload completed with ${failedUploads.length} failures:`,
-        failedUploads
-      );
-      message.warning(
-        `${photosToUpload.length} photos uploaded successfully. ${failedUploads.length} photos failed to upload.`
-      );
-    } else {
-      console.log(
-        `✅ All ${photosToUpload.length} photos uploaded successfully`
-      );
-    }
-
-    isUploading.value = false;
-
-    // Solo proceder si tenemos fotos exitosas
-    if (photosToUpload.length === 0) {
-      message.error("No photos were uploaded successfully.");
-      event.target.value = "";
-      return;
-    }
-
-    // Ahora que terminó la subida, añadir todas las fotos al store solo si showUploadProgress es false
-    if (photosStore.showUploadProgress === false) {
-      pendingPhotos.value.forEach((photo) => {
-        photosStore.photos.unshift(photo);
-      });
-      // Limpiar el array temporal
-      pendingPhotos.value = [];
-    }
-
-    // Set photos to checking duplicates state
-    const photoIds = photosToUpload.map((p) => p.id);
-    photoIds.forEach((id) => {
-      photosStore.updatePhoto(id, { isCheckingDuplicates: true });
-    });
-
-    // Check duplicates and restore normal state
-    try {
-      await api_analyzer.post(`/api/analyzer`, {
-        packageId: "preprocess",
-        mode: "adding",
-      });
-    } catch (error) {
-      // Si falla la llamada, borrar las fotos y mostrar notificación
-      await photosStore.deletePhotos(photoIds);
-      message.error(
-        "There was an error processing the photos. Please try again later."
-      );
-      isUploading.value = false;
-      event.target.value = "";
-      return;
-    }
-
-    // await photosStore.getOrFetch(true);
-    await photosStore.checkDuplicates(photoIds);
-
-    // Remove checking duplicates flag
-    photoIds.forEach((id) => {
-      photosStore.updatePhoto(id, {
-        isCheckingDuplicates: false,
-        status: "preprocessed",
-      });
-    });
-  } catch (error) {
-    console.error("❌ Error en la subida:", error);
-    message.error("An unexpected error occurred during upload.");
+    await handleUploadFlow(selectedLocalFiles, "local");
   } finally {
-    isUploading.value = false;
     event.target.value = "";
   }
 }
 
-async function processAndUploadFile(file) {
+// Función para Google Photos
+async function uploadGooglePhotos() {
+  const selectedPhotos = prepareSelectedPhotosForUpload();
+  if (selectedPhotos.length === 0) return;
+
+  closeGoogleSelector();
+
   try {
-    const [resizedBlob, thumbnailBlob] = await Promise.all([
-      resizeImage(file, 1500, 512000),
-      resizeImage(file, 800),
-    ]);
-
-    // Usar el api global de axios para la petición interna
-    const response = await api.post("/api/catalog/uploadLocal", {
-      fileType: resizedBlob.type,
-      originalName: file.name,
-    });
-
-    const { uploadUrl, thumbnailUploadUrl, photo } = response.data;
-
-    // Subir ambas imágenes con manejo de errores y retry
-    const uploadResults = await Promise.allSettled([
-      uploadToR2WithRetry(uploadUrl, resizedBlob, file.name, "main"),
-      uploadToR2WithRetry(
-        thumbnailUploadUrl,
-        thumbnailBlob,
-        file.name,
-        "thumbnail"
-      ),
-    ]);
-
-    // Verificar que ambas subidas fueron exitosas
-    const failedUploads = uploadResults.filter(
-      (result) => result.status === "rejected"
-    );
-    if (failedUploads.length > 0) {
-      console.error(`❌ Failed uploads for ${file.name}:`, failedUploads);
-      throw new Error(
-        `Failed to upload ${failedUploads.length} of 2 files for ${file.name}`
-      );
-    }
-
-    photo.status = "uploaded";
-    photo.isDuplicate = false;
-    if (photosStore.showUploadProgress === false) {
-      pendingPhotos.value.push(photo);
-    } else {
-      photosStore.photos.unshift(photo);
-    }
-    uploadedCount.value++;
-
-    return photo;
+    await handleUploadFlow(selectedPhotos, "google");
   } catch (error) {
-    console.error(`❌ Error processing file ${file.name}:`, error);
-    throw error; // Re-throw para que se maneje en uploadLocalFiles
+    console.error("❌ Error uploading Google Photos:", error);
   }
 }
 
-// Nueva función para subir a R2 con retry y validación
-async function uploadToR2WithRetry(url, blob, fileName, type, maxRetries = 3) {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      console.log(
-        `🔄 Uploading ${type} for ${fileName} (attempt ${attempt}/${maxRetries})`
-      );
-
-      const response = await fetch(url, {
-        method: "PUT",
-        headers: {
-          "Content-Type": blob.type,
-          "Content-Length": blob.size.toString(),
-        },
-        body: blob,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      // Verificar que la respuesta sea exitosa
-      if (response.status >= 200 && response.status < 300) {
-        console.log(`✅ Successfully uploaded ${type} for ${fileName}`);
-        return response;
-      } else {
-        throw new Error(`Unexpected status code: ${response.status}`);
-      }
-    } catch (error) {
-      console.error(
-        `❌ Upload attempt ${attempt} failed for ${type} of ${fileName}:`,
-        error
-      );
-
-      if (attempt === maxRetries) {
-        throw new Error(
-          `Failed to upload ${type} for ${fileName} after ${maxRetries} attempts: ${error.message}`
-        );
-      }
-
-      // Esperar antes del siguiente intento (backoff exponencial)
-      const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
-      console.log(`⏳ Waiting ${delay}ms before retry...`);
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-}
-
-async function resizeImage(file, targetWidth, maxSizeBytes = 512000) {
-  // 0.5MB = 512000 bytes
-  const img = await loadImage(file);
-  const canvas = document.createElement("canvas");
-  const scale = targetWidth / img.width;
-  canvas.width = targetWidth;
-  canvas.height = img.height * scale;
-
-  await picaInstance.resize(img, canvas);
-
-  // Si maxSizeBytes es null, usar calidad fija como antes
-  if (!maxSizeBytes) {
-    const blob = await picaInstance.toBlob(canvas, "image/jpeg", 0.9);
-    return blob;
-  }
-
-  // Compresión iterativa para no superar el tamaño máximo
-  let quality = 0.9;
-  let blob;
-  let attempts = 0;
-  const maxAttempts = 10;
-  const qualityDecrement = 0.1;
-
-  do {
-    blob = await picaInstance.toBlob(canvas, "image/jpeg", quality);
-
-    if (blob.size <= maxSizeBytes || attempts >= maxAttempts) {
-      break;
-    }
-
-    quality = Math.max(0.1, quality - qualityDecrement);
-    attempts++;
-  } while (quality > 0.1);
-
-  return blob;
-}
-
-function loadImage(file) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
-  });
+// Función para manejar la confirmación de selección de Google Photos
+function handleGooglePhotosConfirmation() {
+  uploadGooglePhotos();
 }
 
 const deletePhoto = async (photoId) => {
@@ -884,6 +712,62 @@ const confirmAnalyze = () => {
 // Exponer openAnalyzeDialog para uso del componente padre
 defineExpose({
   openAnalyzeDialog,
+});
+
+// Manejar el access_token de Google Photos cuando el componente se monta
+onMounted(() => {
+  console.log("🚀 LightboxPhotos onMounted ejecutándose...");
+  console.log("🌐 URL completa:", window.location.href);
+  console.log("🔗 Hash:", window.location.hash);
+
+  let accessToken = null;
+  const fullHash = window.location.hash;
+
+  if (fullHash) {
+    // Para URL como #upload?access_token=...
+    if (fullHash.includes("?")) {
+      const parts = fullHash.split("?");
+      if (parts.length > 1) {
+        const queryParams = new URLSearchParams(parts[1]);
+        accessToken = queryParams.get("access_token");
+        console.log("🔍 Búsqueda en query params:", {
+          queryString: parts[1],
+          accessToken: accessToken ? "Encontrado" : "No encontrado",
+        });
+      }
+    }
+
+    // Respaldo: buscar directamente en el hash
+    if (!accessToken) {
+      const hashWithoutHash = fullHash.startsWith("#")
+        ? fullHash.substring(1)
+        : fullHash;
+      const urlParams = new URLSearchParams(hashWithoutHash);
+      accessToken = urlParams.get("access_token");
+      console.log("🔍 Búsqueda directa en hash:", {
+        hashWithoutHash,
+        accessToken: accessToken ? "Encontrado" : "No encontrado",
+      });
+    }
+  }
+
+  if (accessToken) {
+    console.log(
+      "🔑 Access token encontrado en URL, procesando...",
+      accessToken.substring(0, 20) + "..."
+    );
+    // Limpiar la URL
+    window.history.replaceState(
+      {},
+      document.title,
+      window.location.pathname + window.location.search
+    );
+    console.log("🧹 URL limpiada, llamando a handleAccessToken...");
+    // Manejar el token
+    handleAccessToken(accessToken);
+  } else {
+    console.log("❌ No se encontró access_token en la URL");
+  }
 });
 </script>
 
