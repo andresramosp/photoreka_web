@@ -20,24 +20,31 @@ export function useGooglePhotos() {
     () => selectedGooglePhotos.value.length
   );
 
-  // Función para cargar la API de Google Photos Picker
+  // Función para cargar la API de Google Photos Picker y GIS
   function loadGooglePhotosPickerApi() {
     return new Promise((resolve, reject) => {
-      if (isGoogleApiLoaded.value) {
+      if (isGoogleApiLoaded.value && window.google && window.google.accounts) {
         resolve();
         return;
       }
 
-      // Cargar Google API script si no está cargado
-      if (!window.google) {
+      let loadedCount = 0;
+      const totalToLoad = 2;
+      function checkLoaded() {
+        loadedCount++;
+        if (loadedCount === totalToLoad) {
+          isGoogleApiLoaded.value = true;
+          resolve();
+        }
+      }
+
+      // Cargar Google API Picker
+      if (!window.google || !window.gapi) {
         const script = document.createElement("script");
         script.src = "https://apis.google.com/js/api.js";
         script.onload = () => {
           window.gapi.load("picker", {
-            callback: () => {
-              isGoogleApiLoaded.value = true;
-              resolve();
-            },
+            callback: checkLoaded,
             onerror: reject,
           });
         };
@@ -45,12 +52,20 @@ export function useGooglePhotos() {
         document.head.appendChild(script);
       } else {
         window.gapi.load("picker", {
-          callback: () => {
-            isGoogleApiLoaded.value = true;
-            resolve();
-          },
+          callback: checkLoaded,
           onerror: reject,
         });
+      }
+
+      // Cargar Google Identity Services (GIS)
+      if (!window.google || !window.google.accounts) {
+        const gisScript = document.createElement("script");
+        gisScript.src = "https://accounts.google.com/gsi/client";
+        gisScript.onload = checkLoaded;
+        gisScript.onerror = reject;
+        document.head.appendChild(gisScript);
+      } else {
+        checkLoaded();
       }
     });
   }
@@ -80,23 +95,34 @@ export function useGooglePhotos() {
     }
   }
 
-  // Función para obtener el token de autenticación de Google
+  // Función para obtener el token de autenticación de Google usando GIS
+  let tokenClient = null;
   async function getGoogleAuthToken() {
     return new Promise((resolve, reject) => {
-      window.gapi.load("auth2", () => {
-        const authInstance = window.gapi.auth2.init({
+      if (
+        !window.google ||
+        !window.google.accounts ||
+        !window.google.accounts.oauth2
+      ) {
+        reject("Google Identity Services not loaded");
+        return;
+      }
+      if (!tokenClient) {
+        tokenClient = window.google.accounts.oauth2.initTokenClient({
           client_id: GOOGLE_CONFIG.CLIENT_ID,
+          scope: "https://www.googleapis.com/auth/photoslibrary.readonly",
+          callback: (response) => {
+            if (response && response.access_token) {
+              isGoogleAuthorized.value = true;
+              resolve(response.access_token);
+            } else {
+              reject(response);
+            }
+          },
         });
-
-        authInstance
-          .signIn()
-          .then((user) => {
-            const authResponse = user.getAuthResponse();
-            isGoogleAuthorized.value = true;
-            resolve(authResponse.access_token);
-          })
-          .catch(reject);
-      });
+      }
+      // Solicitar token interactivo
+      tokenClient.requestAccessToken({ prompt: "consent" });
     });
   }
 
