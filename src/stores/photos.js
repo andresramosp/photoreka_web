@@ -112,12 +112,14 @@ export const usePhotosStore = defineStore("photos", {
         return 100;
       }
 
-      // Calculate progress based on preprocessed photos toward threshold
+      // Calculate progress based on preprocessed + processed photos toward threshold
       const preprocessedCount = state.photos.filter(
         (photo) => photo.status === "preprocessed"
       ).length;
 
-      return Math.min((preprocessedCount / MIN_PHOTOS_THRESHOLD) * 100, 100);
+      const totalProgressPhotos = preprocessedCount + processedCount;
+
+      return Math.min((totalProgressPhotos / MIN_PHOTOS_THRESHOLD) * 100, 100);
     },
   },
 
