@@ -1,8 +1,13 @@
 // stores/photos.js
+
+// Umbral mínimo de fotos requeridas para desbloquear funcionalidades
+export const MIN_PHOTOS_THRESHOLD = 10;
+
 import { defineStore } from "pinia";
 import { api } from "@/utils/axios";
 
 export const usePhotosStore = defineStore("photos", {
+  // Exponer el umbral como propiedad estática
   state: () => ({
     photos: [],
     isLoading: false,
@@ -51,28 +56,68 @@ export const usePhotosStore = defineStore("photos", {
     allPhotos: (state) => state.photos,
 
     appAccessMode: (state) => {
-      // No photos at all = blocked
-      if (state.photos.length === 0) {
-        return "blocked";
-      }
+      // Count processed photos
+      const processedCount = state.photos.filter(
+        (photo) => photo.status === "processed"
+      ).length;
 
-      // Has processed photos = full access
-      if (state.photos.some((photo) => photo.status === "processed")) {
+      // App is unlocked when user has 100+ processed photos
+      if (processedCount >= MIN_PHOTOS_THRESHOLD) {
         return "full";
       }
 
-      // Only has uploaded or processing photos = partial access
-      if (
-        state.photos.some(
-          (photo) =>
-            photo.status === "preprocessed" || photo.status === "processing"
-        )
-      ) {
-        return "partial";
+      // Otherwise blocked (eliminates partial state)
+      return "blocked";
+    },
+
+    // New getter: determines if process button should be enabled/disabled
+    processButtonState: (state) => {
+      const processedCount = state.photos.filter(
+        (photo) => photo.status === "processed"
+      ).length;
+      const preprocessedCount = state.photos.filter(
+        (photo) => photo.status === "preprocessed"
+      ).length;
+      const processingCount = state.photos.filter(
+        (photo) => photo.status === "processing"
+      ).length;
+
+      // If there are photos currently processing, show processing state
+      if (processingCount > 0) {
+        return "processing";
       }
 
-      // Default to blocked if no uploaded or processed photos
-      return "blocked";
+      // If app is already unlocked (≥100 processed photos), always enabled
+
+      if (processedCount >= MIN_PHOTOS_THRESHOLD) {
+        return "enabled";
+      }
+
+      // If app is still locked, need threshold preprocessed photos to enable button
+      if (preprocessedCount >= MIN_PHOTOS_THRESHOLD) {
+        return "enabled";
+      }
+
+      return "disabled";
+    },
+
+    // New getter: progress toward unlocking process button (0-100%)
+    processButtonProgress: (state) => {
+      const processedCount = state.photos.filter(
+        (photo) => photo.status === "processed"
+      ).length;
+
+      // If app is already unlocked, always 100% progress
+      if (processedCount >= MIN_PHOTOS_THRESHOLD) {
+        return 100;
+      }
+
+      // Calculate progress based on preprocessed photos toward threshold
+      const preprocessedCount = state.photos.filter(
+        (photo) => photo.status === "preprocessed"
+      ).length;
+
+      return Math.min((preprocessedCount / MIN_PHOTOS_THRESHOLD) * 100, 100);
     },
   },
 

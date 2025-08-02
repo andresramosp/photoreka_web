@@ -135,6 +135,8 @@
     <FloatingProcessPhotosButton
       :should-show="shouldShowProcessButton"
       :disabled="isProcessButtonDisabled"
+      :progress="processButtonProgress"
+      :button-state="processButtonState"
       :selected-count="lightboxSelectedPhotos.length"
       @click="handleProcessButtonClick"
     />
@@ -163,16 +165,50 @@ const lightboxRef = ref(null);
 
 // Computed for floating button - solo mostrar en tab upload
 const shouldShowProcessButton = computed(() => {
-  return activeTab.value === "upload" && photosStore.allPhotos.length > 0;
+  return (
+    activeTab.value === "upload" && photosStore.preprocessedPhotos.length > 0
+  );
 });
 
 const isProcessButtonDisabled = computed(() => {
   return (
-    photosStore.isUploading ||
-    photosStore.lightboxPhotos.length === 0 ||
-    photosStore.lightboxPhotos.filter((p) => p.isCheckingDuplicates).length > 0
+    photosStore.processButtonState === "disabled" ||
+    photosStore.processButtonState === "processing"
   );
 });
+
+const processButtonProgress = computed(() => {
+  return photosStore.processButtonProgress;
+});
+
+const processButtonState = computed(() => {
+  return photosStore.processButtonState;
+});
+
+// Debug watchers (temporal)
+watch(
+  () => photosStore.preprocessedPhotos.length,
+  (newCount, oldCount) => {
+    console.log(`Preprocessed photos changed: ${oldCount} → ${newCount}`);
+    console.log(`Progress: ${photosStore.processButtonProgress}%`);
+    console.log(`Button state: ${photosStore.processButtonState}`);
+  }
+);
+
+// Debug the computed values too
+watch(
+  () => processButtonProgress.value,
+  (newVal) => {
+    console.log(`processButtonProgress computed changed: ${newVal}`);
+  }
+);
+
+watch(
+  () => processButtonState.value,
+  (newVal) => {
+    console.log(`processButtonState computed changed: ${newVal}`);
+  }
+);
 
 const handleProcessButtonClick = () => {
   if (lightboxRef.value && lightboxRef.value.openAnalyzeDialog) {

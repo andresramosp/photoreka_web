@@ -42,7 +42,7 @@
               2. Upload or sync your photos from any platform
             </div>
             <div class="step-item">
-              3. Click Process Photos and follow the process evolution in the
+              3. Click Analyze Photos and follow the process evolution in the
               <button class="tab-link" @click="navigateToTab('processing')">
                 Processing
               </button>

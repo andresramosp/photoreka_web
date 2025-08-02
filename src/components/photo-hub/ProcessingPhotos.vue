@@ -293,32 +293,14 @@ function setNotifiedFinishedJobs(ids) {
   localStorage.setItem(FINISHED_JOBS_KEY, JSON.stringify(ids));
 }
 function notifyFinished(job) {
-  let markAsRead = false;
-  const n = notification.create({
+  notification.create({
     title: "Process Finished",
     content: `The analysis for ${
       job.photoCount
     } photo(s) started on ${formatDate(job.startDate)} is complete.`,
     meta: new Date().toLocaleString(),
-    action: () =>
-      h(
-        NButton,
-        {
-          text: true,
-          type: "primary",
-          onClick: () => {
-            markAsRead = true;
-            n.destroy();
-          },
-        },
-        { default: () => "Mark as Read" }
-      ),
-    onClose: () => {
-      if (!markAsRead) {
-        message.warning("Please mark as read");
-        return false;
-      }
-    },
+    closable: true,
+    type: "success",
   });
 }
 

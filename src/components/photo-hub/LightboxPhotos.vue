@@ -210,9 +210,6 @@
                 photosStore.checkDuplicates();
               }
             "
-            :disabled="
-              processedPhotos.filter((p) => !p.isUploading).length === 0
-            "
           >
             <template #icon>
               <n-icon>
@@ -287,7 +284,7 @@
             style="display: flex; align-items: center; gap: 12px"
           >
             <n-checkbox
-              v-show="hasDuplicates"
+              v-show="hasDuplicates || filteredPhotos.length == 0"
               v-model:checked="filterDuplicates"
               size="large"
             >

@@ -64,7 +64,13 @@
           <!-- Floating Add Photos Button -->
           <FloatingAddPhotosButton />
 
-          <!-- Onboarding Slider -->
+          <!-- Welcome Modal for new users -->
+          <WelcomeModal
+            v-model="showWelcomeModal"
+            @get-started="onWelcomeFinish"
+          />
+
+          <!-- Onboarding Slider (for later - after processing 100+ photos) -->
           <OnboardingSlider
             v-model="showOnboarding"
             @finish="onOnboardingFinish"
@@ -85,6 +91,7 @@ import DashboardHeader from "./components/DashboardHeader.vue";
 import FloatingAddPhotosButton from "./components/FloatingAddPhotosButton.vue";
 import { usePhotosStore } from "@/stores/photos.js";
 import OnboardingSlider from "./components/OnboardingSlider.vue";
+import WelcomeModal from "./components/WelcomeModal.vue";
 
 const photosStore = usePhotosStore();
 
@@ -121,24 +128,34 @@ const themeOverrides = {
 const mobileMenuOpen = ref(false);
 const isMobile = ref(false);
 
-// Mostrar onboarding solo la primera vez que el usuario entra
+// Mostrar onboarding solo después de procesar las primeras 100+ fotos (para después)
 const showOnboarding = ref(false);
 
-// Chequea si el onboarding ya fue mostrado para este usuario
+// Welcome modal simple con delay para evitar parpadeos
+const showWelcomeModal = ref(false);
+
+// Función para chequear y mostrar welcome modal después de un delay
+const checkWelcomeModal = () => {
+  setTimeout(() => {
+    if (userStore.isAuthenticated && photosStore.allPhotos.length === 0) {
+      showWelcomeModal.value = true;
+    }
+  }, 1000); // Espera 1 segundo para que carguen las fotos
+};
+
+// Chequea si el onboarding ya fue mostrado para este usuario (para después)
 const checkShowOnboarding = () => {
-  // Si el usuario no está autenticado, no mostrar
-  if (!userStore.isAuthenticated) {
-    showOnboarding.value = false;
-    return;
-  }
-  // Usa el id del usuario para guardar la preferencia por usuario
-  const userId = userStore.user?.id;
-  if (!userId) {
-    showOnboarding.value = false;
-    return;
-  }
-  const onboardingKey = `onboarding_shown_${userId}`;
-  showOnboarding.value = localStorage.getItem(onboardingKey) !== "true";
+  // Por ahora siempre false - esto se activará después cuando tengamos 100+ fotos procesadas
+  showOnboarding.value = false;
+
+  // TODO: Implementar lógica para mostrar onboarding después de procesar 100+ fotos
+  // const userId = userStore.user?.id;
+  // if (!userId || !userStore.isAuthenticated) return;
+  // const processedPhotos = photosStore.processedPhotos.length;
+  // if (processedPhotos >= 100) {
+  //   const onboardingKey = `onboarding_shown_${userId}`;
+  //   showOnboarding.value = localStorage.getItem(onboardingKey) !== "true";
+  // }
 };
 
 const toggleMobileMenu = () => {
@@ -159,6 +176,7 @@ onMounted(() => {
   if (userStore.isAuthenticated) {
     photosStore.getOrFetch(true);
     checkShowOnboarding();
+    checkWelcomeModal();
   }
 });
 
@@ -173,8 +191,10 @@ watch(
       }
       photosStore.getOrFetch(true);
       checkShowOnboarding();
+      checkWelcomeModal();
     } else {
       showOnboarding.value = false;
+      showWelcomeModal.value = false;
     }
   }
 );
@@ -204,6 +224,11 @@ onUnmounted(() => {
   window.removeEventListener("resize", checkIsMobile);
 });
 
+const onWelcomeFinish = () => {
+  showWelcomeModal.value = false;
+  console.log("Welcome completed!");
+};
+
 const onOnboardingFinish = () => {
   showOnboarding.value = false;
   // Guarda en localStorage que el onboarding ya fue mostrado para este usuario
@@ -212,7 +237,6 @@ const onOnboardingFinish = () => {
     const onboardingKey = `onboarding_shown_${userId}`;
     localStorage.setItem(onboardingKey, "true");
   }
-  // TODO: Si en el futuro se guarda en backend, hacer petición aquí
   console.log("Onboarding completed!");
 };
 </script>

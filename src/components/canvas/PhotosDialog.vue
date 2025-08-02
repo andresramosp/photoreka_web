@@ -111,7 +111,7 @@
                 <h3 class="empty-state-title">No photos available</h3>
                 <p class="empty-state-description">
                   You don't have any photos here. Import them to Lightbox and
-                  click Process Photos to start building your Workspace.
+                  click Analyze Photos to start building your Workspace.
                 </p>
               </div>
             </div>

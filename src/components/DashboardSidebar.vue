@@ -281,8 +281,7 @@ const firstSectionOptions = computed(() => [
   {
     label: createMenuLabel("Collections", true),
     key: "collections",
-    disabled:
-      appAccessMode.value === "blocked" || appAccessMode.value === "partial",
+    disabled: appAccessMode.value === "blocked",
     icon: createIconWithIndicator(CollectionsIcon, "#9ca3af", false, true),
   },
 ]);
@@ -379,14 +378,13 @@ const createMenuLabel = (label: string, isComingSoon = false) => {
 // Second section: Explorer, Canvas, Curation, Grids, Styler
 const secondSectionOptions = computed(() => {
   const isBlocked = appAccessMode.value === "blocked";
-  const isPartial = appAccessMode.value === "partial";
   const isFull = appAccessMode.value === "full";
 
   return [
     {
       label: createMenuLabel("Explorer"),
       key: "search",
-      disabled: isBlocked || isPartial,
+      disabled: isBlocked,
       comingSoon: false,
       props: isBlocked
         ? {
@@ -398,7 +396,7 @@ const secondSectionOptions = computed(() => {
     {
       label: createMenuLabel("Canvas"),
       key: "canvas",
-      disabled: false,
+      disabled: isBlocked,
       comingSoon: false,
       props: isBlocked
         ? {
@@ -411,6 +409,7 @@ const secondSectionOptions = computed(() => {
     {
       label: createMenuLabel("Grid Maker"),
       key: "grid-maker",
+      disabled: isBlocked,
       comingSoon: false,
       props: {
         title: "Coming soon",
@@ -420,7 +419,7 @@ const secondSectionOptions = computed(() => {
     {
       label: createMenuLabel("Project Builder"),
       key: "project-builder",
-      disabled: isBlocked || isPartial,
+      disabled: isBlocked,
       comingSoon: false,
       props: isBlocked
         ? {
@@ -429,16 +428,16 @@ const secondSectionOptions = computed(() => {
         : {},
       icon: createIconWithIndicator(CurationIcon, "#f59e0b", true), // Warning color for curation + premium
     },
-    {
-      label: createMenuLabel("Visual Lab", true),
-      key: "visual-lab",
-      disabled: isBlocked || isPartial,
-      comingSoon: true,
-      props: {
-        title: "Coming soon",
-      },
-      icon: createIconWithIndicator(StylerIcon, "#9ca3af", false, true), // Red color for styler
-    },
+    // {
+    //   label: createMenuLabel("Visual Lab", true),
+    //   key: "visual-lab",
+    //   disabled: isBlocked,
+    //   comingSoon: true,
+    //   props: {
+    //     title: "Coming soon",
+    //   },
+    //   icon: createIconWithIndicator(StylerIcon, "#9ca3af", false, true), // Red color for styler
+    // },
   ];
 });
 
