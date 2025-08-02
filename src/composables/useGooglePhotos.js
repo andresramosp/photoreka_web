@@ -107,6 +107,7 @@ export function useGooglePhotos() {
         reject("Google Identity Services not loaded");
         return;
       }
+
       if (!tokenClient) {
         tokenClient = window.google.accounts.oauth2.initTokenClient({
           client_id: GOOGLE_CONFIG.CLIENT_ID,

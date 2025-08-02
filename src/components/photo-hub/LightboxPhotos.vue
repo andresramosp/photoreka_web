@@ -4,17 +4,7 @@
       v-model="showDuplicatesDialog"
       :duplicates="selectedDuplicates"
     />
-    <GooglePhotosSelector
-      v-model:show="showGoogleSelector"
-      :google-photos="googlePhotos"
-      :selected-google-photos="selectedGooglePhotos"
-      :is-loading-google-photos="isLoadingGooglePhotos"
-      @confirm-selection="handleGooglePhotosConfirmation"
-      @toggle-photo="toggleGooglePhotoSelection"
-      @select-all="selectAllGooglePhotos"
-      @deselect-all="deselectAllGooglePhotos"
-      @close="closeGoogleSelector"
-    />
+    <!-- GooglePhotosSelector eliminado: Picker API gestiona la selección -->
     <n-modal
       v-model:show="showAnalyzeDialog"
       preset="confirm"
@@ -431,33 +421,7 @@ const {
   handleUploadFlow,
 } = usePhotoUpload();
 
-const {
-  isGoogleAuthorized,
-  googlePhotos,
-  selectedGooglePhotos,
-  showGoogleSelector,
-  isLoadingGooglePhotos,
-  selectedGooglePhotosCount,
-  triggerGooglePhotos,
-  toggleGooglePhotoSelection,
-  selectAllGooglePhotos,
-  deselectAllGooglePhotos,
-  isGooglePhotoSelected,
-  closeGoogleSelector,
-  prepareSelectedPhotosForUpload,
-} = useGooglePhotos();
-
-// Debug: watchear showGoogleSelector
-watch(showGoogleSelector, (newValue, oldValue) => {
-  console.log("🔄 showGoogleSelector cambió:", { oldValue, newValue });
-  console.log("📊 Estado actual del modal:", {
-    showGoogleSelector: newValue,
-    googlePhotosLength: googlePhotos.value.length,
-    isLoadingGooglePhotos: isLoadingGooglePhotos.value,
-  });
-});
-
-const { resizeImage, uploadToR2WithRetry } = useImageProcessing();
+const { triggerGooglePhotos, isLoadingGooglePhotos } = useGooglePhotos();
 
 // Variables locales del componente
 const gridColumns = ref(8);
@@ -606,24 +570,7 @@ async function uploadLocalFiles(event) {
   }
 }
 
-// Función para Google Photos
-async function uploadGooglePhotos() {
-  const selectedPhotos = prepareSelectedPhotosForUpload();
-  if (selectedPhotos.length === 0) return;
-
-  closeGoogleSelector();
-
-  try {
-    await handleUploadFlow(selectedPhotos, "google");
-  } catch (error) {
-    console.error("❌ Error uploading Google Photos:", error);
-  }
-}
-
-// Función para manejar la confirmación de selección de Google Photos
-function handleGooglePhotosConfirmation() {
-  uploadGooglePhotos();
-}
+// Con Picker API, la subida se puede hacer directamente tras triggerGooglePhotos si es necesario
 
 const deletePhoto = async (photoId) => {
   await photosStore.deletePhotos([photoId]);

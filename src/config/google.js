@@ -7,10 +7,10 @@
 
 export const GOOGLE_CONFIG = {
   // Replace with your actual Google API Key
-  API_KEY: import.meta.env.VITE_GOOGLE_API_KEY || "YOUR_GOOGLE_API_KEY",
+  API_KEY: import.meta.env.VITE_GOOGLE_API_KEY,
 
   // Replace with your actual Google OAuth Client ID
-  CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID",
+  CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID,
 
   // Scopes needed for Google Photos Picker
   SCOPES: ["https://www.googleapis.com/auth/photoslibrary.readonly"],
