@@ -88,7 +88,7 @@
       </n-icon>
       <h3 class="photo-hub-title">
         Photo upload and preview area. The photos in this section have limited
-        use in the tools. Process them to unlock full functionality.
+        use in the tools. Analyze them to unlock full functionality.
       </h3>
     </div>
     <!-- Full Upload Dasdaopzone (show when no photos) -->
@@ -350,7 +350,7 @@
           @show-duplicates="showDuplicates"
           :show-delete="true"
           :show-name="true"
-          :show-footer="gridColumns < 10"
+          :show-footer="false"
           :showDuplicate="true"
           :is-uploading="isUploading"
         />
