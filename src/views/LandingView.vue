@@ -2,6 +2,7 @@
   <n-message-provider>
     <div class="landing-page">
       <!-- Navigation Header -->
+
       <nav class="landing-nav">
         <div class="nav-container">
           <div class="nav-brand">
@@ -20,11 +21,16 @@
               </template>
               Request Access
             </n-button>
-            <n-button type="warning" size="large" @click="goToPlayground">
+            <n-button
+              v-if="!isMobileDevice()"
+              type="warning"
+              size="large"
+              @click="goToPlayground"
+            >
               <template #icon>
                 <n-icon><Workspace /></n-icon>
               </template>
-              Canvas Playground
+              Playground
             </n-button>
           </div>
         </div>
@@ -47,14 +53,14 @@
                 images by narrative or chromatic similarity 🔎 Uncover new
                 connections hidden in your catalog.
               </p>
-              <!-- <div class="hero-actions">
+              <div v-if="isMobileDevice()" class="hero-actions">
                 <n-button type="warning" size="medium" @click="goToPlayground">
                   <template #icon>
                     <n-icon><Workspace /></n-icon>
                   </template>
-                  Canvas Playground
+                  Playground
                 </n-button>
-              </div> -->
+              </div>
             </div>
             <div class="hero-visual">
               <div class="video-tabs-container" ref="demoSection">
@@ -476,6 +482,11 @@ const goToAuth = (mode = "login") => {
 };
 
 const goToPlayground = () => {
+  if (isMobileDevice()) {
+    // Show mobile notice for playground on mobile devices
+    showMobileNotice.value = true;
+    return;
+  }
   router.push({ name: "canvas-playground" });
 };
 
