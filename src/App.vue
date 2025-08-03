@@ -146,7 +146,7 @@ const checkWelcomeModal = () => {
     if (userStore.isAuthenticated && photosStore.allPhotos.length === 0) {
       showWelcomeModal.value = true;
     }
-  }, 2000); // Espera 1 segundo para que carguen las fotos
+  }, 3000); // Espera 1 segundo para que carguen las fotos
 };
 
 // Chequea si el onboarding ya fue mostrado para este usuario

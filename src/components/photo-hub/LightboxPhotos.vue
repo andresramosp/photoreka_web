@@ -140,7 +140,7 @@
               type="default"
               size="large"
               class="google-photos-btn"
-              @click="triggerGooglePhotos"
+              @click="handleGooglePhotosImport"
               :loading="isLoadingGooglePhotos"
             >
               <template #icon>
@@ -191,7 +191,7 @@
             type="default"
             size="medium"
             class="compact-google-photos-btn"
-            @click="triggerGooglePhotos"
+            @click="handleGooglePhotosImport"
             :loading="isLoadingGooglePhotos"
           >
             <template #icon>
@@ -421,7 +421,12 @@ const {
   handleUploadFlow,
 } = usePhotoUpload();
 
-const { triggerGooglePhotos, isLoadingGooglePhotos } = useGooglePhotos();
+const {
+  triggerGooglePhotos,
+  isLoadingGooglePhotos,
+  selectedGooglePhotos,
+  prepareSelectedPhotosForUpload,
+} = useGooglePhotos();
 
 // Variables locales del componente
 const gridColumns = ref(8);
@@ -569,6 +574,25 @@ async function uploadLocalFiles(event) {
     event.target.value = "";
   }
 }
+
+// Función mejorada para Google Photos con manejo de errores
+const handleGooglePhotosImport = async () => {
+  try {
+    await triggerGooglePhotos();
+
+    // Esperar un momento para que se procesen las fotos seleccionadas
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Si hay fotos seleccionadas, iniciar el flujo de upload automáticamente
+    if (selectedGooglePhotos.value.length > 0) {
+      const googleFiles = prepareSelectedPhotosForUpload();
+      await handleUploadFlow(googleFiles, "google");
+    }
+  } catch (error) {
+    console.error("Error importing from Google Photos:", error);
+    message.error("Failed to import photos from Google Photos");
+  }
+};
 
 // Con Picker API, la subida se puede hacer directamente tras triggerGooglePhotos si es necesario
 

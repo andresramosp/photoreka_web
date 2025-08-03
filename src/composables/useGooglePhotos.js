@@ -97,7 +97,14 @@ export function useGooglePhotos() {
 
   // Función para obtener el token de autenticación de Google usando GIS
   let tokenClient = null;
+  let storedAccessToken = null;
+
   async function getGoogleAuthToken() {
+    // Si ya tenemos un token válido, lo devolvemos
+    if (storedAccessToken) {
+      return storedAccessToken;
+    }
+
     return new Promise((resolve, reject) => {
       if (
         !window.google ||
@@ -115,6 +122,7 @@ export function useGooglePhotos() {
           callback: (response) => {
             if (response && response.access_token) {
               isGoogleAuthorized.value = true;
+              storedAccessToken = response.access_token; // Almacenar el token localmente
               resolve(response.access_token);
             } else {
               reject(response);
@@ -128,38 +136,88 @@ export function useGooglePhotos() {
   }
 
   // Función para manejar la respuesta del picker
-  function handlePickerCallback(data) {
+  async function handlePickerCallback(data) {
     isLoadingGooglePhotos.value = false;
 
     if (data.action === google.picker.Action.PICKED) {
       const docs = data.docs;
 
-      // Transformar los documentos seleccionados al formato esperado
-      const photos = docs.map((doc) => ({
-        id: doc.id,
-        filename: doc.name,
-        url: doc.url,
-        thumbnailUrl: doc.thumbnails?.[0]?.url || doc.url,
-        downloadUrl: doc.downloadUrl || doc.url,
-        mimeType: doc.mimeType,
-        width: doc.imageMediaMetadata?.width,
-        height: doc.imageMediaMetadata?.height,
-        size: doc.sizeBytes,
-      }));
+      // Extraer solo los mediaItemIds
+      const mediaItemIds = docs.map((doc) => doc.id);
 
-      googlePhotos.value = photos;
-      selectedGooglePhotos.value = [...photos]; // Auto-seleccionar todas las fotos elegidas
+      console.log("✅ Selected media items:", mediaItemIds.length);
 
-      console.log("✅ Fotos seleccionadas desde Google Photos:", photos.length);
-      message.success(`Selected ${photos.length} photos from Google Photos`);
+      try {
+        // Enviar los IDs al backend para obtener las URLs reales
+        const downloadablePhotos = await fetchDownloadableUrls(mediaItemIds);
 
-      // Mostrar el selector para revisión (opcional, ya que ya están seleccionadas)
-      if (photos.length > 0) {
-        showGoogleSelector.value = true;
+        googlePhotos.value = downloadablePhotos;
+        selectedGooglePhotos.value = [...downloadablePhotos];
+
+        message.success(
+          `Selected ${downloadablePhotos.length} photos from Google Photos`
+        );
+
+        if (downloadablePhotos.length > 0) {
+          showGoogleSelector.value = true;
+        }
+      } catch (error) {
+        console.error("❌ Error fetching downloadable URLs:", error);
+        message.error("Failed to process selected photos");
       }
     } else if (data.action === google.picker.Action.CANCEL) {
       console.log("⚠️ Usuario canceló la selección de Google Photos");
     }
+  }
+
+  // Nueva función para comunicarse con el backend
+  async function fetchDownloadableUrls(mediaItemIds) {
+    const accessToken = storedAccessToken || (await getGoogleAuthToken());
+
+    const response = await fetch("/api/catalog/google/getUrls", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        mediaItemIds: mediaItemIds,
+      }),
+    });
+
+    if (!response.ok) {
+      // Si el token expiró, intentar obtener uno nuevo
+      if (response.status === 401) {
+        storedAccessToken = null; // Limpiar token expirado
+        const newToken = await getGoogleAuthToken();
+
+        // Reintentar con el nuevo token
+        const retryResponse = await fetch("/api/catalog/google/getUrls", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${newToken}`,
+          },
+          body: JSON.stringify({
+            mediaItemIds: mediaItemIds,
+          }),
+        });
+
+        if (!retryResponse.ok) {
+          throw new Error(
+            "Failed to fetch downloadable URLs after token refresh"
+          );
+        }
+
+        const retryData = await retryResponse.json();
+        return retryData.photos;
+      }
+
+      throw new Error("Failed to fetch downloadable URLs");
+    }
+
+    const data = await response.json();
+    return data.photos;
   }
 
   // Función legacy - mantener para compatibilidad pero no usar
@@ -227,11 +285,12 @@ export function useGooglePhotos() {
   function prepareSelectedPhotosForUpload() {
     return selectedGooglePhotos.value.map((photo) => ({
       id: photo.id,
-      url: photo.downloadUrl || photo.url,
+      url: photo.downloadUrl, // URL ya procesada por el backend
       name: photo.filename || `google-photo-${photo.id}.jpg`,
       type: "google", // Indicar que es de Google Photos
       mimeType: photo.mimeType,
       size: photo.size,
+      token: storedAccessToken, // Incluir token para la descarga
     }));
   }
 

@@ -2,7 +2,7 @@
 // You need to obtain these from Google Cloud Console:
 // 1. Go to https://console.cloud.google.com/
 // 2. Create a new project or select existing one
-// 3. Enable the "Google Picker API"
+// 3. Enable the "Google Picker API" and "Google Photos Library API"
 // 4. Create credentials (API Key and OAuth 2.0 Client ID)
 
 export const GOOGLE_CONFIG = {
@@ -12,19 +12,17 @@ export const GOOGLE_CONFIG = {
   // Replace with your actual Google OAuth Client ID
   CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID,
 
-  // Scopes needed for Google Photos Picker
+  // Scopes needed for Google Photos
   SCOPES: ["https://www.googleapis.com/auth/photoslibrary.readonly"],
 
-  // Discovery docs for Google APIs
-  DISCOVERY_DOCS: [
-    "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest",
-  ],
+  // Backend endpoint for processing Google Photos
+  BACKEND_ENDPOINT: "/api/catalog/google/getUrls",
 };
 
 // Instructions for setup:
 // 1. Go to https://console.cloud.google.com/
 // 2. Create a new project or select an existing one
-// 3. Enable the Google Picker API
+// 3. Enable the Google Picker API and Google Photos Library API
 // 4. Go to "Credentials" section
 // 5. Create an API Key (for API_KEY)
 // 6. Create an OAuth 2.0 Client ID (for CLIENT_ID)
