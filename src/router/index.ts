@@ -39,6 +39,7 @@ const router = createRouter({
         requiresGuest: true,
       },
     },
+
     {
       path: "/profile-setup",
       name: "profile-setup",

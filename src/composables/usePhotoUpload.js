@@ -34,8 +34,8 @@ export function usePhotoUpload() {
 
     if (type === "google") {
       // Para Google Photos, source es { url, token, name }
-      file = await downloadGooglePhoto(source.url, source.token);
-      fileName = source.name;
+      // file = await downloadGooglePhoto(source.url, source.token);
+      // fileName = source.name;
     } else {
       // Para archivos locales, source es un File object
       file = source;
@@ -92,40 +92,6 @@ export function usePhotoUpload() {
 
     uploadedCount.value++;
     return photo;
-  }
-
-  // Función para descargar foto de Google Photos
-  async function downloadGooglePhoto(url, token) {
-    try {
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to download Google Photo: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const blob = await response.blob();
-
-      // Verificar que el blob tiene contenido
-      if (blob.size === 0) {
-        throw new Error("Downloaded photo is empty");
-      }
-
-      // Convertir blob a File object para compatibilidad
-      return new File([blob], "google-photo.jpg", {
-        type: blob.type || "image/jpeg",
-      });
-    } catch (error) {
-      console.error("❌ Error downloading Google Photo:", error);
-      throw new Error(
-        `Failed to download photo from Google Photos: ${error.message}`
-      );
-    }
   }
 
   // Flujo común de post-procesamiento
@@ -243,7 +209,6 @@ export function usePhotoUpload() {
     // Funciones
     handleUploadFlow,
     processPhotoSource,
-    downloadGooglePhoto,
     handlePostUpload,
   };
 }
