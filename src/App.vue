@@ -3,7 +3,9 @@
     <n-notification-provider>
       <n-message-provider>
         <!-- Landing Page Layout (no sidebar) -->
-        <router-view v-if="route.name === 'landing'" />
+        <router-view
+          v-if="route.name === 'landing' || route.name === 'canvas-playground'"
+        />
 
         <!-- Authentication Layout -->
         <router-view

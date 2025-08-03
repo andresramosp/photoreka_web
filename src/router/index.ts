@@ -74,6 +74,15 @@ const router = createRouter({
       },
     },
     {
+      path: "/canvas-playground",
+      name: "canvas-playground",
+      component: CanvasView,
+      meta: {
+        requiresGuest: false, // Accessible without authentication
+        playground: true,
+      },
+    },
+    {
       path: "/search",
       name: "search",
       component: SearchView,

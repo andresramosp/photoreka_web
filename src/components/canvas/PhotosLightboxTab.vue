@@ -244,7 +244,7 @@ async function processAndUploadFile(file) {
   ]);
 
   // Usar el api global de axios para la petición interna
-  const response = await api.post("/api/catalog/uploadLocal", {
+  const response = await api.post("/api/catalog/uploadPhoto", {
     fileType: resizedBlob.type,
     originalName: file.name,
   });

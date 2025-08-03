@@ -1,5 +1,5 @@
 <template>
-  <div class="canvas-container">
+  <div class="canvas-container" :class="{ 'playground-mode': isPlayground }">
     <div
       ref="canvasContainer"
       @dragover.prevent
@@ -95,6 +95,7 @@
               <!-- Info icon -->
               <v-group
                 v-if="
+                  !isPlayground &&
                   photo.hovered &&
                   toolbarState.expansion.type !== 'tags' &&
                   !toolbarState.expansion.type !== 'composition'
@@ -233,7 +234,16 @@
       @search-type-changed="onSearchTypeChanged"
     />
 
-    <PhotosDialog v-model="showPhotosDialog" @add-photos="handleAddPhotos" />
+    <PhotosDialog
+      v-if="!isPlayground"
+      v-model="showPhotosDialog"
+      @add-photos="handleAddPhotos"
+    />
+    <PlaygroundPhotosDialog
+      v-if="isPlayground"
+      v-model="showPhotosDialog"
+      @add-photos="handleAddPlaygroundPhotos"
+    />
     <PhotosDialog
       v-model="showTrashDialog"
       :is-trash="true"
@@ -244,6 +254,9 @@
       v-model="showPhotoInfoDialog"
       :selected-photo="selectedDialogPhoto"
     />
+
+    <!-- Playground Upgrade Modal -->
+    <PlaygroundUpgradeModal v-model="showPlaygroundUpgradeModal" />
 
     <!-- Top Left Controls -->
     <div class="canvas-controls top-left">
@@ -301,7 +314,7 @@
             </div>
 
             <!-- Expansion Section -->
-            <div class="config-section">
+            <div v-if="!isPlayground" class="config-section">
               <h4 class="section-title">Expansion</h4>
 
               <!-- Layout Pills -->
@@ -343,7 +356,7 @@
     </div>
 
     <!-- Top Right Controls -->
-    <div class="canvas-controls top-right">
+    <div v-if="!isPlayground" class="canvas-controls top-right">
       <n-space>
         <template v-if="basicMode && !basicModeDismissed">
           <div class="usage-limit-warning">
@@ -365,8 +378,19 @@
       >
     </div>
 
+    <!-- Playground Logo - Top Right -->
+    <div v-if="isPlayground" class="canvas-controls playground-logo">
+      <div class="logo-container-playground">
+        <img
+          :src="logoName"
+          alt="Photoreka"
+          class="logo-brand-image-playground"
+        />
+      </div>
+    </div>
+
     <!-- Top Center Mode Switch -->
-    <div class="canvas-controls top-center">
+    <div v-if="!isPlayground" class="canvas-controls top-center">
       <div class="btn-group-pill">
         <div class="expandable-button-group" ref="expandableGroupRef">
           <n-tooltip placement="bottom" trigger="hover">
@@ -570,7 +594,16 @@ import {
   TrashOutline,
 } from "@vicons/ionicons5";
 import { usePhotosStore } from "@/stores/photos";
-import { ref, onMounted, onUnmounted, computed, h, watch } from "vue";
+import {
+  ref,
+  onMounted,
+  onUnmounted,
+  computed,
+  h,
+  watch,
+  watchEffect,
+} from "vue";
+import { useRoute } from "vue-router";
 import {
   NButton,
   NButtonGroup,
@@ -587,12 +620,20 @@ import ExpandPhotoButtons from "@/components/canvas/PhotoControls/ExpandPhotoBut
 import PhotoCenterButton from "@/components/canvas/PhotoControls/PhotoCenterButton.vue";
 import TagPillsCanvas from "@/components/canvas/TagPills/TagPillsCanvas.vue";
 import RelatedPhotosToolbar from "@/components/canvas/RelatedPhotosToolbar.vue";
+import PlaygroundUpgradeModal from "@/components/PlaygroundUpgradeModal.vue";
+import PlaygroundPhotosDialog from "@/components/PlaygroundPhotosDialog.vue";
 import { SaveOutline } from "@vicons/ionicons5";
 import { SelectAllFilled } from "@vicons/material";
 import { Workspace } from "@vicons/carbon";
+import logoName from "@/assets/logo_name_sub_curation_lab_blue.png";
 
 const canvasStore = useCanvasStore();
 const photosStore = usePhotosStore();
+const route = useRoute();
+
+// Playground mode detection
+const isPlayground = computed(() => route.meta?.playground === true);
+
 // const photosStore = usePhotosStore();
 const { photos } = storeToRefs(canvasStore);
 const { basicMode } = storeToRefs(canvasStore);
@@ -616,7 +657,6 @@ const toolbarState = ref({
     inverted: false,
     opposite: false,
     autoAlign: false,
-    onCanvas: false,
   },
   photoOptions: {
     count: 1,
@@ -626,7 +666,7 @@ const toolbarState = ref({
 
 // State
 const basicModeDismissed = ref(false);
-const expansionMode = ref("catalog");
+const expansionMode = ref(isPlayground.value ? "canvas" : "catalog");
 const interactionMode = ref("pan");
 const showRelatedPhotos = ref(false);
 const showPhotosDialog = ref(false);
@@ -635,6 +675,9 @@ const showPhotoInfoDialog = ref(false);
 const selectedPhotoForToolbar = ref(null);
 const selectedDialogPhoto = ref(null);
 const isLoadingRelatedPhotos = ref(false);
+
+// Playground state
+const showPlaygroundUpgradeModal = ref(false);
 
 // Expandable dropdown state
 const canvasModeIsExpanded = ref(false);
@@ -718,7 +761,20 @@ async function handleAddPhotos(photoIds) {
   fitStageToPhotos(0.8);
 }
 
+async function handleAddPlaygroundPhotos(photosData) {
+  // For playground mode, use the canvas store like normal mode
+  await canvasStore.addPhotos(photosData);
+  fitStageToPhotos(0.8);
+}
+
 function handleAddPhotoFromPhoto(event) {
+  if (isPlayground.value) {
+    // In playground mode, show upgrade modal instead of expanding
+    event.cancelBubble = true;
+    showPlaygroundUpgradeModal.value = true;
+    return;
+  }
+
   if (expansionMode.value == "canvas") {
     handleAddPhotosToCanvas(event);
   } else {
@@ -1151,6 +1207,11 @@ onMounted(() => {
 
   updateStageOffset();
   fitStageToPhotos();
+
+  // Auto-open photos dialog in playground mode
+  if (isPlayground.value) {
+    showPhotosDialog.value = true;
+  }
 });
 
 onUnmounted(() => {
@@ -1176,6 +1237,10 @@ onUnmounted(() => {
   user-select: none;
 }
 
+.canvas-container.playground-mode {
+  height: 100vh; /* Full screen in playground mode */
+}
+
 .canvas-controls {
   position: absolute;
   z-index: 10;
@@ -1195,6 +1260,27 @@ onUnmounted(() => {
 .top-right {
   top: 16px;
   right: 16px;
+}
+
+.playground-logo {
+  top: 1px;
+  right: 4px;
+  z-index: 1000;
+}
+
+.logo-container-playground {
+  border-radius: 12px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.logo-brand-image-playground {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
 }
 
 .bottom-left {
@@ -1431,6 +1517,10 @@ onUnmounted(() => {
     right: 12px;
   }
 
+  .playground-logo {
+    right: 12px;
+  }
+
   .expandable-container.expanded {
     width: 120px; /* Slightly smaller on tablets */
   }
@@ -1452,6 +1542,18 @@ onUnmounted(() => {
 
   .top-right {
     right: 8px;
+  }
+
+  .playground-logo {
+    right: 8px;
+  }
+
+  .logo-container-playground {
+    padding: 8px;
+  }
+
+  .logo-brand-image-playground {
+    height: 24px;
   }
 
   .expandable-container.expanded {

@@ -42,11 +42,11 @@
                 connections hidden in your catalog.
               </p>
               <div class="hero-actions">
-                <n-button type="primary" size="large" @click="goToPlayground">
+                <n-button type="warning" size="medium" @click="goToPlayground">
                   <template #icon>
-                    <n-icon><PlayCircleOutline /></n-icon>
+                    <n-icon><Workspace /></n-icon>
                   </template>
-                  Try Playground
+                  Canvas Playground
                 </n-button>
               </div>
             </div>
@@ -470,7 +470,7 @@ const goToAuth = (mode = "login") => {
 };
 
 const goToPlayground = () => {
-  router.push({ name: "playground" });
+  router.push({ name: "canvas-playground" });
 };
 
 const scrollToDemo = () => {
@@ -691,6 +691,8 @@ onMounted(() => {
   display: flex;
   gap: 16px;
   margin-bottom: 48px;
+  justify-content: center;
+  align-items: center;
 }
 
 .hero-stats {
