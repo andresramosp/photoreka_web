@@ -14,7 +14,7 @@
             <!-- <n-button type="primary" @click="goToAuth('signup')">
             Sign Up
           </n-button> -->
-            <n-button type="primary" size="large" @click="goToAuth('signup')">
+            <n-button type="info" size="large" @click="goToAuth('signup')">
               <template #icon>
                 <n-icon><RocketOutline /></n-icon>
               </template>
@@ -42,7 +42,7 @@
                 connections hidden in your catalog.
               </p>
               <div class="hero-actions">
-                <n-button type="warning" size="medium" @click="goToPlayground">
+                <n-button type="primary" size="medium" @click="goToPlayground">
                   <template #icon>
                     <n-icon><Workspace /></n-icon>
                   </template>
