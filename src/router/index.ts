@@ -15,6 +15,7 @@ import StoragePlanSelectionView from "../views/StoragePlanSelectionView.vue";
 import GridMaker from "@/views/GridMaker.vue";
 import VisualLabView from "@/views/VisualLabView.vue";
 import LandingView from "@/views/LandingView.vue";
+import PlaygroundCanvasView from "@/views/PlaygroundCanvasView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -29,6 +30,14 @@ const router = createRouter({
       component: LandingView,
       meta: {
         requiresGuest: false, // Accessible to both guests and authenticated users
+      },
+    },
+    {
+      path: "/playground",
+      name: "playground",
+      component: PlaygroundCanvasView,
+      meta: {
+        requiresGuest: false, // Accessible to guests and authenticated users
       },
     },
     {

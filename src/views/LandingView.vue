@@ -41,6 +41,14 @@
                 images by narrative or chromatic similarity 🔎 Uncover new
                 connections hidden in your catalog.
               </p>
+              <div class="hero-actions">
+                <n-button type="primary" size="large" @click="goToPlayground">
+                  <template #icon>
+                    <n-icon><PlayCircleOutline /></n-icon>
+                  </template>
+                  Try Playground
+                </n-button>
+              </div>
             </div>
             <div class="hero-visual">
               <div class="video-tabs-container" ref="demoSection">
@@ -459,6 +467,10 @@ const goToAuth = (mode = "login") => {
   } else {
     router.push({ name: "auth", query: { mode } });
   }
+};
+
+const goToPlayground = () => {
+  router.push({ name: "playground" });
 };
 
 const scrollToDemo = () => {
