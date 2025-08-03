@@ -20,6 +20,12 @@
               </template>
               Request Access
             </n-button>
+            <n-button type="warning" size="large" @click="goToPlayground">
+              <template #icon>
+                <n-icon><Workspace /></n-icon>
+              </template>
+              Canvas Playground
+            </n-button>
           </div>
         </div>
       </nav>
@@ -41,14 +47,14 @@
                 images by narrative or chromatic similarity 🔎 Uncover new
                 connections hidden in your catalog.
               </p>
-              <div class="hero-actions">
-                <n-button type="primary" size="medium" @click="goToPlayground">
+              <!-- <div class="hero-actions">
+                <n-button type="warning" size="medium" @click="goToPlayground">
                   <template #icon>
                     <n-icon><Workspace /></n-icon>
                   </template>
                   Canvas Playground
                 </n-button>
-              </div>
+              </div> -->
             </div>
             <div class="hero-visual">
               <div class="video-tabs-container" ref="demoSection">
