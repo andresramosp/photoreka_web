@@ -21,7 +21,11 @@
               </n-icon>
             </template>
           </n-button>
-          <n-button size="small" @click="downloadPhoto" title="Download photo">
+          <n-button
+            size="small"
+            @click="handleDownloadPhoto"
+            title="Download photo"
+          >
             <template #icon>
               <n-icon>
                 <DownloadIcon />
@@ -319,6 +323,9 @@ import {
   CreateOutline as EditIcon,
 } from "@vicons/ionicons5";
 
+import { api } from "@/utils/axios.js";
+import { usePhotoDownload } from "@/composables/usePhotoDownload.js";
+
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -333,6 +340,7 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue"]);
 
 const message = useMessage();
+const { downloadPhoto } = usePhotoDownload();
 
 // Reactive state
 const visible = computed({
@@ -511,49 +519,8 @@ const fallbackCopyTextToClipboard = (text) => {
   }
 };
 
-const downloadPhoto = async () => {
-  const photo = props.selectedPhoto;
-  if (!photo) return;
-
-  const url = photo.originalUrl || photo.url || photo.thumbnailUrl;
-  const filename =
-    photo.filename || photo.name || `photo-${photo.id || Date.now()}.jpg`;
-
-  try {
-    // Try to fetch the image as blob for direct download
-    const response = await fetch(url);
-    const blob = await response.blob();
-
-    // Create object URL for the blob
-    const blobUrl = window.URL.createObjectURL(blob);
-
-    // Create temporary download link
-    const link = document.createElement("a");
-    link.href = blobUrl;
-    link.download = filename;
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    // Clean up the object URL
-    window.URL.revokeObjectURL(blobUrl);
-
-    message.success("Download completed");
-  } catch (error) {
-    // Fallback to original method if fetch fails
-    console.warn("Direct download failed, falling back to link method:", error);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    link.target = "_blank";
-    link.style.display = "none";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    message.success("Download started");
-  }
+const handleDownloadPhoto = () => {
+  downloadPhoto(props.selectedPhoto);
 };
 
 // Tags management
