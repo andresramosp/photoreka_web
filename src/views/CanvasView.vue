@@ -93,7 +93,7 @@
                 }"
               />
               <!-- Info icon -->
-              <v-group
+              <!-- <v-group
                 v-if="
                   !isPlayground &&
                   photo.hovered &&
@@ -125,7 +125,7 @@
                     offsetY: 9,
                   }"
                 />
-              </v-group>
+              </v-group> -->
 
               <!-- Spinner de carga -->
               <v-group
@@ -368,6 +368,23 @@
             />
           </div>
         </template>
+
+        <!-- Download Button - Only show when photos are selected -->
+        <n-button
+          v-if="selectedPhotosCount > 0"
+          type="primary"
+          :loading="isDownloading"
+          @click="handleDownloadSelectedPhotos"
+        >
+          <template #icon>
+            <n-icon size="20">
+              <CloudDownloadOutline />
+            </n-icon>
+          </template>
+          Download
+          {{ selectedPhotosCount > 1 ? `(${selectedPhotosCount})` : "" }}
+        </n-button>
+
         <n-button disabled @click="() => {}">
           <template #icon>
             <n-icon size="20" color="#2563eb">
@@ -622,14 +639,16 @@ import TagPillsCanvas from "@/components/canvas/TagPills/TagPillsCanvas.vue";
 import RelatedPhotosToolbar from "@/components/canvas/RelatedPhotosToolbar.vue";
 import PlaygroundUpgradeModal from "@/components/PlaygroundUpgradeModal.vue";
 import PlaygroundPhotosDialog from "@/components/PlaygroundPhotosDialog.vue";
-import { SaveOutline } from "@vicons/ionicons5";
+import { SaveOutline, CloudDownloadOutline } from "@vicons/ionicons5";
 import { SelectAllFilled } from "@vicons/material";
 import { Workspace } from "@vicons/carbon";
 import logoName from "@/assets/logo_name_sub_curation_lab_blue.png";
+import { usePhotoDownload } from "@/composables/usePhotoDownload.js";
 
 const canvasStore = useCanvasStore();
 const photosStore = usePhotosStore();
 const route = useRoute();
+const { downloadPhoto, downloadPhotosZip, isDownloading } = usePhotoDownload();
 
 // Playground mode detection
 const isPlayground = computed(() => route.meta?.playground === true);
@@ -971,6 +990,20 @@ const onPhotosSelected = (photoIds) => {
 const onSearchTypeChanged = (searchType) => {
   console.log("Search type changed:", searchType);
   // TODO: Update related photos based on search type
+};
+
+const handleDownloadSelectedPhotos = async () => {
+  const selectedPhotos = photos.value.filter((photo) => photo.selected);
+
+  if (selectedPhotos.length === 0) return;
+
+  if (selectedPhotos.length === 1) {
+    // Download single photo
+    await downloadPhoto(selectedPhotos[0]);
+  } else {
+    // Download multiple photos as ZIP
+    await downloadPhotosZip(selectedPhotos);
+  }
 };
 
 const openPhotoInfo = (photo, event) => {

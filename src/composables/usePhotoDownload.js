@@ -12,7 +12,7 @@ export function usePhotoDownload() {
   const downloadPhoto = async (photo) => {
     if (!photo) return;
 
-    const url = photo.originalUrl || photo.url;
+    const id = photo.id;
     const filename =
       photo.filename || photo.name || `photo-${photo.id || Date.now()}.jpg`;
 
@@ -20,7 +20,7 @@ export function usePhotoDownload() {
       const apiUrl = `/download-photo`;
       const response = await api.post(
         apiUrl,
-        { urls: [url] },
+        { ids: [id] },
         { responseType: "blob" }
       );
       const blob = response.data;
@@ -29,7 +29,7 @@ export function usePhotoDownload() {
       const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = blobUrl;
-      link.download = filename;
+      link.download = photo.originalFileName;
       link.style.display = "none";
       document.body.appendChild(link);
       link.click();
@@ -49,14 +49,12 @@ export function usePhotoDownload() {
     if (!photos || photos.length === 0) return;
     isDownloading.value = true;
     try {
-      const urls = photos
-        .map((photo) => photo.originalUrl || photo.url)
-        .filter(Boolean);
-      if (urls.length === 0) throw new Error("No valid photo URLs");
+      const ids = photos.map((photo) => photo.id).filter(Boolean);
+      if (ids.length === 0) throw new Error("No valid photo URLs");
       const apiUrl = `/download-photo`;
       const response = await api.post(
         apiUrl,
-        { urls },
+        { ids },
         { responseType: "blob" }
       );
       const blob = response.data;

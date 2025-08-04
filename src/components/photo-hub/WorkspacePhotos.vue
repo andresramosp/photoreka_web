@@ -128,6 +128,18 @@
               <n-button
                 type="info"
                 size="small"
+                @click="handleDownloadMultiple"
+                :disabled="selectedPhotoIds.length === 0 || isDownloading"
+                :loading="isDownloading"
+              >
+                <template #icon>
+                  <n-icon> <CloudDownloadOutline /> </n-icon>
+                </template>
+                Download
+              </n-button>
+              <n-button
+                type="info"
+                size="small"
                 @click="handleAddToCollection"
                 :disabled="selectedPhotoIds.length === 0"
               >
@@ -143,25 +155,7 @@
                 </template>
                 Collection
               </n-button>
-              <n-button
-                type="info"
-                size="small"
-                @click="handleDownloadMultiple"
-                :disabled="selectedPhotoIds.length === 0 || isDownloading"
-                :loading="isDownloading"
-              >
-                <template #icon>
-                  <n-icon>
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
-                      />
-                    </svg>
-                  </n-icon>
-                </template>
-                Download
-              </n-button>
+
               <n-button
                 type="info"
                 size="small"
@@ -252,6 +246,7 @@ import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
 import DuplicatePhotosDialog from "../DuplicatePhotosDialog.vue";
 import { useRouter } from "vue-router";
 import { Workspace } from "@vicons/carbon";
+import { CloudDownloadOutline } from "@vicons/ionicons5";
 
 const emit = defineEmits(["navigate-to-tab"]);
 
