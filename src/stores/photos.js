@@ -9,7 +9,7 @@ import { api } from "@/utils/axios";
 export const usePhotosStore = defineStore("photos", {
   // Exponer el umbral como propiedad estática
   state: () => ({
-    photos: [],
+    photos: null,
     isLoading: false,
     selectedPhotosRecord: {},
     catalogSingleView: false, // Nuevo modo single view
@@ -18,46 +18,60 @@ export const usePhotosStore = defineStore("photos", {
 
   getters: {
     // Getter para selección global - solo para PhotoHub (PhotosCatalog y PhotosUpload)
+
     selectedPhotoIds: (state) =>
       Object.keys(state.selectedPhotosRecord)
         .filter((photoId) => !!state.selectedPhotosRecord[photoId])
         .map(Number),
 
     lightboxPhotos: (state) =>
-      state.photos.filter(
-        (p) =>
-          p.status == "uploaded" ||
-          p.status == "preprocessing" ||
-          p.status == "preprocessed"
-        // p.status == "processing"
-      ),
+      Array.isArray(state.photos)
+        ? state.photos.filter(
+            (p) =>
+              p.status == "uploaded" ||
+              p.status == "preprocessing" ||
+              p.status == "preprocessed"
+          )
+        : [],
 
     workspacePhotos: (state) =>
-      state.photos.filter(
-        (p) => p.status == "processing" || p.status == "processed"
-      ),
+      Array.isArray(state.photos)
+        ? state.photos.filter(
+            (p) => p.status == "processing" || p.status == "processed"
+          )
+        : [],
 
     uploadedPhotos: (state) =>
-      state.photos.filter((p) => p.status == "uploaded"),
+      Array.isArray(state.photos)
+        ? state.photos.filter((p) => p.status == "uploaded")
+        : [],
 
     preProcessingPhotos: (state) =>
-      state.photos.filter((p) => p.status == "preprocessing"),
+      Array.isArray(state.photos)
+        ? state.photos.filter((p) => p.status == "preprocessing")
+        : [],
 
     preprocessedPhotos: (state) =>
-      state.photos.filter((p) => p.status == "preprocessed"),
+      Array.isArray(state.photos)
+        ? state.photos.filter((p) => p.status == "preprocessed")
+        : [],
 
     processingPhotos: (state) =>
-      state.photos.filter((p) => p.status == "processing"),
+      Array.isArray(state.photos)
+        ? state.photos.filter((p) => p.status == "processing")
+        : [],
 
     processedPhotos: (state) =>
-      state.photos.filter((p) => p.status == "processed"),
+      Array.isArray(state.photos)
+        ? state.photos.filter((p) => p.status == "processed")
+        : [],
 
     // Todas las fotos que son preprocesadas o procesadas
-    allPhotos: (state) => state.photos,
+    allPhotos: (state) => (Array.isArray(state.photos) ? state.photos : []),
 
     appAccessMode: (state) => {
       // Count processed photos
-      const processedCount = state.photos.filter(
+      const processedCount = state.photos?.filter(
         (photo) => photo.status === "processed"
       ).length;
 
@@ -72,13 +86,13 @@ export const usePhotosStore = defineStore("photos", {
 
     // New getter: determines if process button should be enabled/disabled
     processButtonState: (state) => {
-      const processedCount = state.photos.filter(
+      const processedCount = state.photos?.filter(
         (photo) => photo.status === "processed"
       ).length;
-      const preprocessedCount = state.photos.filter(
+      const preprocessedCount = state.photos?.filter(
         (photo) => photo.status === "preprocessed"
       ).length;
-      const processingCount = state.photos.filter(
+      const processingCount = state.photos?.filter(
         (photo) => photo.status === "processing"
       ).length;
 
@@ -103,7 +117,7 @@ export const usePhotosStore = defineStore("photos", {
 
     // New getter: progress toward unlocking process button (0-100%)
     processButtonProgress: (state) => {
-      const processedCount = state.photos.filter(
+      const processedCount = state.photos?.filter(
         (photo) => photo.status === "processed"
       ).length;
 
@@ -113,7 +127,7 @@ export const usePhotosStore = defineStore("photos", {
       }
 
       // Calculate progress based on preprocessed + processed photos toward threshold
-      const preprocessedCount = state.photos.filter(
+      const preprocessedCount = state.photos?.filter(
         (photo) => photo.status === "preprocessed"
       ).length;
 

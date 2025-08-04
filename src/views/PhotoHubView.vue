@@ -166,7 +166,7 @@ const lightboxRef = ref(null);
 // Computed for floating button - solo mostrar en tab upload
 const shouldShowProcessButton = computed(() => {
   return (
-    activeTab.value === "upload" && photosStore.preprocessedPhotos.length > 0
+    activeTab.value === "upload" && photosStore.preprocessedPhotos?.length > 0
   );
 });
 
@@ -187,7 +187,7 @@ const processButtonState = computed(() => {
 
 // Debug watchers (temporal)
 watch(
-  () => photosStore.preprocessedPhotos.length,
+  () => photosStore.preprocessedPhotos?.length,
   (newCount, oldCount) => {
     console.log(`Preprocessed photos changed: ${oldCount} → ${newCount}`);
     console.log(`Progress: ${photosStore.processButtonProgress}%`);

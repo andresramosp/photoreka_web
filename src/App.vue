@@ -140,15 +140,21 @@ const showOnboarding = ref(false);
 const showConfetti = ref(false);
 
 // Welcome modal simple con delay para evitar parpadeos
-const showWelcomeModal = ref(false);
 
-// Función para chequear y mostrar welcome modal después de un delay
-const checkWelcomeModal = () => {
-  setTimeout(() => {
-    if (userStore.isAuthenticated && photosStore.allPhotos.length === 0) {
-      showWelcomeModal.value = true;
-    }
-  }, 3000); // Espera 1 segundo para que carguen las fotos
+// Controla si el usuario ya cerró el WelcomeModal
+const welcomeDismissed = ref(false);
+const showWelcomeModal = computed(() => {
+  // Solo mostrar si el usuario está autenticado, no tiene fotos y no lo ha cerrado manualmente
+  return (
+    userStore.isAuthenticated &&
+    photosStore.photos?.length === 0 &&
+    !welcomeDismissed.value
+  );
+});
+
+const onWelcomeFinish = () => {
+  welcomeDismissed.value = true;
+  console.log("Welcome completed!");
 };
 
 // Chequea si el onboarding ya fue mostrado para este usuario
@@ -206,7 +212,6 @@ onMounted(() => {
   if (userStore.isAuthenticated) {
     photosStore.getOrFetch(true);
     checkShowOnboarding();
-    checkWelcomeModal();
   }
 });
 
@@ -221,7 +226,6 @@ watch(
       }
       photosStore.getOrFetch(true);
       checkShowOnboarding();
-      checkWelcomeModal();
     } else {
       showOnboarding.value = false;
       showWelcomeModal.value = false;
@@ -255,11 +259,6 @@ onUnmounted(() => {
   // Limpiar función global
   delete window.triggerFirstProcessOnboarding;
 });
-
-const onWelcomeFinish = () => {
-  showWelcomeModal.value = false;
-  console.log("Welcome completed!");
-};
 
 const onOnboardingFinish = () => {
   showOnboarding.value = false;
