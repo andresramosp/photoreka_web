@@ -98,40 +98,6 @@
                   strokeWidth: photo.selected ? 7 : 2.5,
                 }"
               />
-              <!-- Info icon -->
-              <!-- <v-group
-                v-if="
-                  !isPlayground &&
-                  photo.hovered &&
-                  toolbarState.expansion.type !== 'tags' &&
-                  !toolbarState.expansion.type !== 'composition'
-                "
-                :config="{ x: 10, y: 10 }"
-                @click="openPhotoInfo(photo, $event)"
-                @tap="openPhotoInfo(photo, $event)"
-                @touchend="openPhotoInfo(photo, $event)"
-              >
-                <v-circle
-                  :config="{
-                    radius: 5.5,
-                    stroke: 'white',
-                    strokeWidth: 1,
-                  }"
-                />
-                <v-text
-                  :config="{
-                    text: 'i',
-                    fontSize: 10.5,
-                    fill: 'white',
-                    align: 'center',
-                    verticalAlign: 'middle',
-                    width: 20,
-                    height: 20,
-                    offsetX: 10,
-                    offsetY: 9,
-                  }"
-                />
-              </v-group> -->
 
               <!-- Spinner de carga -->
               <v-group
@@ -195,6 +161,7 @@
                     toolbarState.photoOptions.spreadMode === 'circular'
                   "
                   v-if="
+                    isExpansionEnabled &&
                     expansionMode == 'canvas' &&
                     !photo.inTrash &&
                     photo.hovered &&
@@ -208,7 +175,9 @@
                 />
                 <PhotoCenterButton
                   v-else-if="
+                    isExpansionEnabled &&
                     expansionMode !== 'canvas' &&
+                    expansionMode !== null &&
                     !photo.inTrash &&
                     photo.hovered
                   "
@@ -229,7 +198,7 @@
     <!-- Related Photos Toolbar -->
     <RelatedPhotosToolbar
       ref="relatedPhotosToolbarRef"
-      v-if="showRelatedPhotos"
+      v-if="showRelatedPhotos && isExpansionEnabled"
       :base-image="selectedPhotoForToolbar"
       :is-visible="showRelatedPhotos"
       :is-loading="isLoadingRelatedPhotos"
@@ -325,10 +294,19 @@
 
             <!-- Expansion Section -->
             <div v-if="!isPlayground" class="config-section">
-              <h4 class="section-title">Expansion</h4>
+              <h4 class="section-title">
+                Expansion
+                <n-switch
+                  v-model:value="toolbarState.expansion.enabled"
+                  class="section-toggle"
+                />
+              </h4>
 
               <!-- Layout Pills -->
-              <div class="config-item">
+              <div
+                class="config-item"
+                :class="{ disabled: !toolbarState.expansion.enabled }"
+              >
                 <span class="config-label">Layout</span>
                 <div class="layout-pills">
                   <n-button
@@ -341,6 +319,7 @@
                     "
                     size="small"
                     class="layout-pill"
+                    :disabled="!toolbarState.expansion.enabled"
                     @click="toolbarState.photoOptions.spreadMode = layout"
                   >
                     {{ layout.charAt(0).toUpperCase() + layout.slice(1) }}
@@ -349,7 +328,10 @@
               </div>
 
               <!-- Photo Count -->
-              <div class="config-item">
+              <div
+                class="config-item"
+                :class="{ disabled: !toolbarState.expansion.enabled }"
+              >
                 <span class="config-label">Photos</span>
                 <n-input-number
                   v-model:value="toolbarState.photoOptions.count"
@@ -357,6 +339,7 @@
                   :max="5"
                   size="small"
                   style="width: 80px"
+                  :disabled="!toolbarState.expansion.enabled"
                 />
               </div>
             </div>
@@ -417,7 +400,10 @@
     </div>
 
     <!-- Top Center Mode Switch -->
-    <div v-if="!isPlayground" class="canvas-controls top-center">
+    <div
+      v-if="!isPlayground && isExpansionEnabled"
+      class="canvas-controls top-center"
+    >
       <div class="btn-group-pill">
         <div class="expandable-button-group" ref="expandableGroupRef">
           <n-tooltip placement="bottom" trigger="hover">
@@ -686,6 +672,7 @@ const toolbarState = ref({
     inverted: false,
     opposite: false,
     autoAlign: false,
+    enabled: true, // New property to enable/disable expansion functionality
   },
   showDots: true, // toggle grid dots background
   photoOptions: {
@@ -758,6 +745,24 @@ const dynamicSizeFactor = computed(() => {
   return Math.min(Math.max(newFactor, 1), 5);
 });
 
+// Computed property to determine if expansion mode should be available
+const isExpansionEnabled = computed(() => {
+  return toolbarState.value.expansion.enabled;
+});
+
+// Update expansionMode based on expansion enabled state
+watch(
+  () => toolbarState.value.expansion.enabled,
+  (enabled) => {
+    if (!enabled) {
+      expansionMode.value = null;
+      showRelatedPhotos.value = false;
+    } else if (expansionMode.value === null) {
+      expansionMode.value = "catalog";
+    }
+  }
+);
+
 // Count selected photos
 const selectedPhotosCount = computed(() => {
   return photos.value.filter((photo) => photo.selected).length;
@@ -798,6 +803,12 @@ async function handleAddPlaygroundPhotos(photosData) {
 }
 
 function handleAddPhotoFromPhoto(event) {
+  // Check if expansion is enabled first
+  if (!toolbarState.value.expansion.enabled) {
+    event.cancelBubble = true;
+    return;
+  }
+
   if (isPlayground.value) {
     // In playground mode, show upgrade modal instead of expanding
     event.cancelBubble = true;
@@ -962,12 +973,14 @@ const toggleInteractionMode = () => {
 
 // Mode selection functions
 const selectCatalogMode = () => {
+  if (!toolbarState.value.expansion.enabled) return;
   expansionMode.value = "catalog";
   canvasModeIsExpanded.value = false;
   isDropdownOpen.value = false;
 };
 
 const handleOnCanvasClick = () => {
+  if (!toolbarState.value.expansion.enabled) return;
   if (expansionMode.value !== "canvas") {
     // First click: switch to catalog mode and expand button
     expansionMode.value = "canvas";
@@ -1511,6 +1524,13 @@ onUnmounted(() => {
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   margin: 0 0 var(--spacing-md) 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-toggle {
+  margin-left: auto;
 }
 
 .config-item {
@@ -1522,6 +1542,11 @@ onUnmounted(() => {
 
 .config-item:last-child {
   margin-bottom: 0;
+}
+
+.config-item.disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .config-label {
