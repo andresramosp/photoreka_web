@@ -1,5 +1,11 @@
 <template>
-  <div class="canvas-container" :class="{ 'playground-mode': isPlayground }">
+  <div
+    class="canvas-container"
+    :class="{
+      'playground-mode': isPlayground,
+      'show-dots': toolbarState.showDots,
+    }"
+  >
     <div
       ref="canvasContainer"
       @dragover.prevent
@@ -310,6 +316,10 @@
               <div class="config-item">
                 <span class="config-label">Auto Align</span>
                 <n-switch v-model:value="toolbarState.expansion.autoAlign" />
+              </div>
+              <div class="config-item">
+                <span class="config-label">Show Dots</span>
+                <n-switch v-model:value="toolbarState.showDots" />
               </div>
             </div>
 
@@ -677,6 +687,7 @@ const toolbarState = ref({
     opposite: false,
     autoAlign: false,
   },
+  showDots: true, // toggle grid dots background
   photoOptions: {
     count: 1,
     spreadMode: "perpendicular",
@@ -1626,9 +1637,18 @@ onUnmounted(() => {
   transition: transform 0.2s ease, background-color 0.2s ease,
     border-color 0.2s ease;
 }
-</style>
-<style>
-.konvajs-content {
-  background: black !important;
+
+.canvas-container {
+  background-color: black !important;
+}
+
+.canvas-container.show-dots {
+  background-color: black !important;
+  background-image: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.18) 1.2px,
+    transparent 1.2px
+  );
+  background-size: 40px 40px;
 }
 </style>

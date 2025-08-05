@@ -28,15 +28,31 @@ async function createPhoto(
 ) {
   const hasCustomConfig = backendPhoto.config?.x != null;
 
-  // Obtener dimensiones de la imagen
+  // Obtener dimensiones reales de la imagen y escalar manteniendo proporción
   let width = HORIZONTAL_PHOTO_WIDTH;
   let height = HORIZONTAL_PHOTO_HEIGHT;
   try {
     const dims = await getImageDimensions(backendPhoto.thumbnailUrl);
-    if (dims.height > dims.width) {
-      // Vertical
-      width = VERTICAL_PHOTO_WIDTH;
-      height = VERTICAL_PHOTO_HEIGHT;
+    // Escalado flexible: ajusta el tamaño máximo a los valores base, manteniendo el aspect ratio
+    const maxW = HORIZONTAL_PHOTO_WIDTH;
+    const maxH = VERTICAL_PHOTO_HEIGHT;
+    const aspectRatio = dims.width / dims.height;
+    if (dims.width > dims.height) {
+      // Horizontal: limitar por ancho
+      width = Math.min(dims.width, maxW);
+      height = width / aspectRatio;
+      if (height > maxH) {
+        height = maxH;
+        width = height * aspectRatio;
+      }
+    } else {
+      // Vertical: limitar por alto
+      height = Math.min(dims.height, maxH);
+      width = height * aspectRatio;
+      if (width > maxW) {
+        width = maxW;
+        height = width / aspectRatio;
+      }
     }
   } catch (e) {
     // Si falla, usar horizontal por defecto
