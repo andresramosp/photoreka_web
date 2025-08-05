@@ -460,7 +460,7 @@ const isLoadingInsight = ref(false);
 const isHoveringInsight = ref(false);
 const currentInsightIndex = ref(0);
 // Configurable insight fetch limit per day (via VITE_INSIGHT_FETCH_LIMIT), default to 1
-const insightFetchLimit = 3;
+const insightFetchLimit = 1;
 
 const appAccessMode = computed(() => photosStore.appAccessMode);
 
