@@ -579,6 +579,7 @@
       </n-button-group>
     </div>
     <div
+      v-if="!isPlayground"
       @click="showTrashDialog = true"
       :class="['trash-zone', { hovering: isHoveringTrash }]"
     >
@@ -1671,9 +1672,9 @@ onUnmounted(() => {
   background-color: black !important;
   background-image: radial-gradient(
     circle,
-    rgba(255, 255, 255, 0.18) 1.2px,
+    rgba(255, 255, 255, 0.11) 1.2px,
     transparent 1.2px
   );
-  background-size: 40px 40px;
+  background-size: 45px 45px;
 }
 </style>

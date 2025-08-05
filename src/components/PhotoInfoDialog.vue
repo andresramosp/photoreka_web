@@ -7,7 +7,7 @@
     <template #header>
       <div class="dialog-header">
         <h3 class="photo-name">
-          {{ selectedPhoto?.name || selectedPhoto?.filename || "Untitled" }}
+          {{ selectedPhoto?.originalFileName || "Untitled" }}
         </h3>
         <div class="header-actions">
           <n-button
@@ -53,87 +53,65 @@
       <!-- Accordion Sections -->
       <div class="info-sections">
         <n-collapse :default-expanded-names="['metadata']">
-          <!-- <n-collapse-item title="Metadata" name="metadata">
+          <!-- Tags Section -->
+
+          <n-collapse-item title="Insights" name="descriptions">
             <template #header-extra>
               <n-icon>
-                <InfoIcon />
+                <DocumentTextIcon />
               </n-icon>
             </template>
-            <div class="metadata-grid">
-              <div class="metadata-item">
-                <span class="label">Date Taken:</span>
-                <span class="value">{{
-                  selectedPhoto?.created_at
-                    ? formatDate(selectedPhoto.created_at)
-                    : "Unknown"
-                }}</span>
-              </div>
-              <div class="metadata-item">
-                <span class="label">File Size:</span>
-                <span class="value">{{
-                  selectedPhoto?.size
-                    ? formatFileSize(selectedPhoto.size)
-                    : "Unknown"
-                }}</span>
-              </div>
-              <div class="metadata-item">
-                <span class="label">Dimensions:</span>
-                <span class="value">{{
-                  selectedPhoto?.width && selectedPhoto?.height
-                    ? `${selectedPhoto.width} × ${selectedPhoto.height}px`
-                    : "Unknown"
-                }}</span>
-              </div>
-              <div class="metadata-item">
-                <span class="label">Location:</span>
-                <span class="value">{{
-                  selectedPhoto?.location || "Unknown"
-                }}</span>
-              </div>
-              <div class="metadata-item">
-                <span class="label">Camera:</span>
-                <span class="value">{{
-                  selectedPhoto?.camera || "Unknown"
-                }}</span>
-              </div>
-              <div class="metadata-item">
-                <span class="label">Lens:</span>
-                <span class="value">{{
-                  selectedPhoto?.lens || "Unknown"
-                }}</span>
-              </div>
-              <div class="metadata-item">
-                <span class="label">Focal Length:</span>
-                <span class="value">{{
-                  selectedPhoto?.focalLength
-                    ? `${selectedPhoto.focalLength}mm`
-                    : "Unknown"
-                }}</span>
-              </div>
-              <div class="metadata-item">
-                <span class="label">Aperture:</span>
-                <span class="value">{{
-                  selectedPhoto?.aperture
-                    ? `f/${selectedPhoto.aperture}`
-                    : "Unknown"
-                }}</span>
-              </div>
-              <div class="metadata-item">
-                <span class="label">Shutter Speed:</span>
-                <span class="value">{{
-                  selectedPhoto?.shutterSpeed
-                    ? `${selectedPhoto.shutterSpeed}`
-                    : "Unknown"
-                }}</span>
-              </div>
-              <div class="metadata-item">
-                <span class="label">ISO:</span>
-                <span class="value">{{ selectedPhoto?.iso || "Unknown" }}</span>
+            <div class="descriptions-section">
+              <div class="custom-description-section">
+                <div
+                  v-if="!photoInsight && !isGeneratingInsight"
+                  class="generate-section"
+                >
+                  <n-button
+                    type="primary"
+                    size="medium"
+                    @click="getInsight"
+                    block
+                  >
+                    <template #icon>
+                      <n-icon>
+                        <SparklesIcon />
+                      </n-icon>
+                    </template>
+                    Get a insight
+                  </n-button>
+                </div>
+                <div v-else-if="isGeneratingInsight" class="generating-section">
+                  <n-spin size="medium" />
+                  <p class="generating-text">Reviewing the image...</p>
+                </div>
+                <div v-else class="description-display">
+                  <div class="description-content">
+                    <p>{{ photoInsight }}</p>
+                  </div>
+                  <div
+                    style="display: flex; justify-content: center; width: 100%"
+                  >
+                    <n-button
+                      size="small"
+                      @click="showNextInsight"
+                      :loading="isGeneratingInsight"
+                      class="regenerate-btn"
+                      v-if="hasMoreInsights"
+                    >
+                      <template #icon>
+                        <n-icon>
+                          <RefreshIcon />
+                        </n-icon>
+                      </template>
+                      Load more insights
+                    </n-button>
+                  </div>
+                </div>
               </div>
             </div>
-          </n-collapse-item> -->
+          </n-collapse-item>
 
-          <!-- Tags Section -->
           <n-collapse-item title="Tags" name="tags">
             <template #header-extra>
               <n-icon>
@@ -145,7 +123,7 @@
                 <div class="tags-list">
                   <n-tag
                     v-for="tag in photoTags.filter(
-                      (tag) => true // tag.group !== 'misc'
+                      (tag) => tag.group !== 'misc'
                     )"
                     :key="tag.id || tag.name"
                     closable
@@ -154,7 +132,7 @@
                     @close="removeTag(tag)"
                     class="photo-tag"
                   >
-                    {{ tag.name || tag }} | {{ tag.area }}
+                    {{ tag.name || tag }}
                   </n-tag>
                 </div>
               </div>
@@ -188,8 +166,6 @@
             </template>
             <div class="descriptions-section">
               <div v-if="selectedPhoto?.descriptions" class="ai-descriptions">
-                <h4 class="section-title">AI Generated Descriptions</h4>
-
                 <div class="description-item">
                   <h5 class="description-label">Story</h5>
                   <div class="description-content">
@@ -209,55 +185,6 @@
                   <div class="description-content">
                     <p>{{ selectedPhoto.descriptions.visual_accents }}</p>
                   </div>
-                </div>
-              </div>
-
-              <div class="custom-description-section">
-                <h4 class="section-title">Custom Description</h4>
-                <div
-                  v-if="!photoDescription && !isGeneratingDescription"
-                  class="generate-section"
-                >
-                  <n-button
-                    type="primary"
-                    size="large"
-                    @click="generateDescription"
-                    block
-                  >
-                    <template #icon>
-                      <n-icon>
-                        <SparklesIcon />
-                      </n-icon>
-                    </template>
-                    Generate Custom Description
-                  </n-button>
-                </div>
-                <div
-                  v-else-if="isGeneratingDescription"
-                  class="generating-section"
-                >
-                  <n-spin size="medium" />
-                  <p class="generating-text">
-                    Generating custom description...
-                  </p>
-                </div>
-                <div v-else class="description-display">
-                  <div class="description-content">
-                    <p>{{ photoDescription }}</p>
-                  </div>
-                  <n-button
-                    size="small"
-                    @click="regenerateDescription"
-                    :loading="isGeneratingDescription"
-                    class="regenerate-btn"
-                  >
-                    <template #icon>
-                      <n-icon>
-                        <RefreshIcon />
-                      </n-icon>
-                    </template>
-                    Regenerate
-                  </n-button>
                 </div>
               </div>
             </div>
@@ -351,8 +278,8 @@ const visible = computed({
 const photoTags = ref([]);
 const newTagName = ref("");
 const isAddingTag = ref(false);
-const photoDescription = ref("");
-const isGeneratingDescription = ref(false);
+const photoInsight = ref("");
+const isGeneratingInsight = ref(false);
 const photoNotes = ref("");
 const isSavingNotes = ref(false);
 
@@ -365,7 +292,7 @@ watch(
       photoTags.value = newPhoto.tags ? [...newPhoto.tags] : [];
 
       // Initialize description and notes if they exist
-      photoDescription.value = newPhoto.description || "";
+      photoInsight.value = newPhoto.description || "";
       photoNotes.value = newPhoto.notes || "";
 
       // Add mock metadata if missing
@@ -472,8 +399,7 @@ const handleImageError = (event) => {
 };
 
 const copyNameToClipboard = async () => {
-  const name =
-    props.selectedPhoto?.filename || props.selectedPhoto?.name || "Untitled";
+  const name = props.selectedPhoto?.originalFileName || "Untitled";
 
   try {
     // Try modern clipboard API first
@@ -584,42 +510,53 @@ const removeTag = async (tagToRemove) => {
 };
 
 // Description generation
-const generateDescription = async () => {
-  isGeneratingDescription.value = true;
+const allPhotoInsights = ref([]);
+const currentInsightIndex = ref(0);
+const hasMoreInsights = computed(
+  () =>
+    allPhotoInsights.value.length > 0 &&
+    currentInsightIndex.value < allPhotoInsights.value.length - 1
+);
 
+const getInsight = async () => {
+  isGeneratingInsight.value = true;
   try {
-    // Simulate API call for description generation
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    // Generate a realistic mock description
-    const descriptions = [
-      "This captivating image showcases excellent composition with balanced lighting and compelling subject matter. The depth of field creates a beautiful bokeh effect that draws attention to the main subject while maintaining visual interest throughout the frame.",
-      "A stunning photograph that demonstrates masterful use of natural lighting and thoughtful framing. The color palette harmoniously blends warm and cool tones, creating a visually pleasing and emotionally engaging image.",
-      "This remarkable shot captures a perfect moment with exceptional clarity and artistic vision. The photographer's attention to detail is evident in the careful consideration of elements, resulting in a well-balanced and impactful composition.",
-      "An outstanding example of photographic artistry, featuring dynamic composition and expert handling of light and shadow. The image tells a compelling visual story that resonates with viewers and showcases technical proficiency.",
-      "This beautifully crafted photograph exhibits excellent timing and composition skills. The interplay of light, color, and form creates a captivating visual narrative that demonstrates both technical expertise and creative vision.",
-    ];
-
-    photoDescription.value =
-      descriptions[Math.floor(Math.random() * descriptions.length)];
-
-    // Here you would typically call your AI service
-    // photoDescription.value = await generateAIDescription(props.selectedPhoto)
-
-    message.success("Description generated successfully");
+    if (!props.selectedPhoto?.id) {
+      throw new Error("No photo id available");
+    }
+    const { data } = await api.get(
+      `/api/catalog/photoInsight/${props.selectedPhoto.id}`
+    );
+    if (data && Array.isArray(data.insights) && data.insights.length > 0) {
+      allPhotoInsights.value = data.insights;
+      currentInsightIndex.value = 0;
+      photoInsight.value = data.insights[0];
+    } else {
+      allPhotoInsights.value = [];
+      currentInsightIndex.value = 0;
+      photoInsight.value = "No insights found for this photo.";
+      message.warning("No insights found");
+    }
   } catch (error) {
     message.error("Failed to generate description");
+    photoInsight.value = "Failed to generate description.";
+    allPhotoInsights.value = [];
+    currentInsightIndex.value = 0;
     console.error("Generate description failed:", error);
   } finally {
-    isGeneratingDescription.value = false;
+    isGeneratingInsight.value = false;
   }
 };
 
-const regenerateDescription = () => {
-  photoDescription.value = "";
-  nextTick(() => {
-    generateDescription();
-  });
+const showNextInsight = () => {
+  if (hasMoreInsights.value) {
+    isGeneratingInsight.value = true;
+    setTimeout(() => {
+      currentInsightIndex.value++;
+      photoInsight.value = allPhotoInsights.value[currentInsightIndex.value];
+      isGeneratingInsight.value = false;
+    }, 1500);
+  }
 };
 
 // Notes management
@@ -803,7 +740,6 @@ if (typeof window !== "undefined") {
 
 .generate-section {
   text-align: center;
-  padding: var(--spacing-xl);
   background: var(--bg-surface);
   border-radius: var(--radius-md);
   border: 2px dashed var(--border-color);
