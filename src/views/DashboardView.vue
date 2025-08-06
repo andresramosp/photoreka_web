@@ -46,10 +46,8 @@
             </div> -->
           </div>
           <div v-if="!isHoveringInsight" class="insight-overlay">
-            <h3 class="action-title">Did you see...?</h3>
-            <p class="action-description">
-              Discover daily eurekas in your images
-            </p>
+            <h3 class="action-title">Daily Eureka!</h3>
+            <p class="action-description">Discover insights in your images</p>
           </div>
 
           <!-- Carousel overlay -->
