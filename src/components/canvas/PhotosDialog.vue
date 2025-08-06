@@ -321,7 +321,7 @@ const syncSelectedIds = ref([]);
 const isSubmitting = ref(false);
 const searchQuery = ref("");
 const activeTab = ref("catalog");
-const isSearching = ref(true);
+const isSearching = ref(false);
 const searchResults = ref([]);
 const allCatalogPhotos = ref([]);
 

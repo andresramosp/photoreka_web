@@ -139,7 +139,7 @@ export const usePhotosStore = defineStore("photos", {
 
   actions: {
     async getOrFetch(force) {
-      if (force || (this.photos.length === 0 && !this.isLoading)) {
+      if (force || (this.photos?.length === 0 && !this.isLoading)) {
         this.isLoading = true;
         try {
           const response = await api.get(`/api/catalog`);
