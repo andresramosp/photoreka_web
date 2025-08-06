@@ -64,7 +64,7 @@
           >
             <div class="carousel-content">
               <button
-                v-if="photoInsight.insights.length > 1"
+                v-if="photoInsight && photoInsight.insights.length > 1"
                 class="carousel-arrow carousel-arrow-left"
                 @click.stop="prevInsight"
               >
@@ -76,13 +76,19 @@
               <div class="insight-text-container">
                 <transition name="insight-slide" mode="out-in">
                   <div :key="currentInsightIndex" class="insight-text-slide">
-                    <p>{{ photoInsight.insights[currentInsightIndex] }}</p>
+                    <p>
+                      {{
+                        photoInsight
+                          ? photoInsight.insights[currentInsightIndex]
+                          : ""
+                      }}
+                    </p>
                   </div>
                 </transition>
               </div>
 
               <button
-                v-if="photoInsight.insights.length > 1"
+                v-if="photoInsight && photoInsight.insights.length > 1"
                 class="carousel-arrow carousel-arrow-right"
                 @click.stop="nextInsight"
               >
@@ -93,7 +99,10 @@
             </div>
 
             <!-- Dots indicator -->
-            <div v-if="photoInsight.insights.length > 1" class="carousel-dots">
+            <div
+              v-if="photoInsight && photoInsight.insights.length > 1"
+              class="carousel-dots"
+            >
               <div
                 v-for="(_, index) in photoInsight.insights"
                 :key="index"
