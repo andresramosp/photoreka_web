@@ -252,10 +252,6 @@ const toggleSelection = () => {
   emit("select", props.photo.id);
 };
 
-const showInfo = () => {
-  emit("info", props.photo);
-};
-
 const onImageLoad = () => {
   imageLoaded.value = true;
 };

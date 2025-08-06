@@ -1,14 +1,5 @@
 <template>
   <div class="tab-content">
-    <PhotoInfoDialog
-      v-model="showPhotoInfoDialog"
-      :selected-photo="selectedDialogPhoto"
-    />
-    <DuplicatePhotosDialog
-      v-model="showDuplicatesDialog"
-      :duplicates="selectedDuplicates"
-    />
-
     <!-- Empty State (when no photos) -->
     <div v-if="processedPhotos.length == 0" class="empty-state-section">
       <div class="photo-hub-header">
@@ -98,137 +89,8 @@
           </div>
         </div>
 
-        <!-- Grid Controls -->
-        <div class="grid-controls grid-controls-base">
-          <div class="controls-left">
-            <div class="results-info results-info-base">
-              <span class="results-count results-count-base"
-                >{{ filteredPhotos.length }} photos</span
-              >
-            </div>
-            <!-- Action buttons (show when photos are selected) -->
-            <div v-if="selectedPhotoIds.length > 0" class="action-buttons">
-              <n-button
-                type="error"
-                size="small"
-                @click="handleDeleteMultiple"
-                :disabled="selectedPhotoIds.length === 0"
-              >
-                <template #icon>
-                  <n-icon>
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3H9M7 6h10v13H7V6Z"
-                      />
-                    </svg>
-                  </n-icon>
-                </template>
-              </n-button>
-              <n-button
-                type="info"
-                size="small"
-                @click="handleDownloadMultiple"
-                :disabled="selectedPhotoIds.length === 0 || isDownloading"
-                :loading="isDownloading"
-              >
-                <template #icon>
-                  <n-icon> <CloudDownloadOutline /> </n-icon>
-                </template>
-                Download
-              </n-button>
-              <n-button
-                type="info"
-                size="small"
-                @click="handleAddToCollection"
-                :disabled="selectedPhotoIds.length === 0"
-              >
-                <template #icon>
-                  <n-icon>
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M17 14H19V17H22V19H19V22H17V19H14V17H17V14M12 18H6V16H12V18M12 14H6V12H12V14M16 10H6V8H16V10M20 6H4C2.9 6 2 6.9 2 8V20C2 21.1 2.9 22 4 22H13.35C13.13 21.37 13 20.7 13 20C13 16.69 15.69 14 19 14C19.34 14 19.67 14.03 20 14.08V8C20 6.9 19.1 6 18 6H20Z"
-                      />
-                    </svg>
-                  </n-icon>
-                </template>
-                Collection
-              </n-button>
-
-              <n-button
-                type="info"
-                size="small"
-                @click="moveToCanvas"
-                :disabled="selectedPhotoIds.length === 0"
-              >
-                <template #icon>
-                  <n-icon>
-                    <Workspace />
-                  </n-icon>
-                </template>
-                Take to Canvas
-              </n-button>
-            </div>
-          </div>
-
-          <div class="controls-right">
-            <div class="filter-controls">
-              <n-checkbox v-model:checked="filterDuplicates" size="large">
-                Filter duplicates
-              </n-checkbox>
-            </div>
-            <div class="grid-size-controls grid-size-controls-base">
-              <span class="grid-label grid-label-base">Columns:</span>
-              <n-button-group>
-                <n-button
-                  v-for="size in [4, 6, 8, 10]"
-                  :key="size"
-                  :type="gridColumns === size ? 'primary' : 'default'"
-                  size="small"
-                  @click="setGridColumns(size)"
-                >
-                  {{ size }}
-                </n-button>
-              </n-button-group>
-            </div>
-            <!-- Select All button (always visible) -->
-            <n-button type="default" size="small" @click="handleSelectAll">
-              <template #icon>
-                <n-icon>
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
-                    />
-                  </svg>
-                </n-icon>
-              </template>
-              {{ allSelected ? "Deselect All" : "Select All" }}
-            </n-button>
-          </div>
-        </div>
-
-        <!-- Photo Grid -->
-        <div
-          class="photos-grid photo-grid-base"
-          :class="`grid-cols-${gridColumns}`"
-        >
-          <PhotoCardHub
-            v-for="photo in filteredPhotos"
-            :key="photo.id"
-            :photo="photo"
-            :selected="selectedPhotosRecord[photo.id]"
-            @info="showPhotoInfo"
-            @delete="deletePhoto"
-            @select="togglePhotoSelection"
-            @show-duplicates="showDuplicates"
-            :show-delete="true"
-            :show-name="true"
-            :show-footer="false"
-            :showDuplicate="true"
-          />
-        </div>
+        <!-- Photos Grid Component -->
+        <PhotosGrid :photos="filteredPhotos" />
       </div>
     </div>
   </div>
@@ -237,168 +99,22 @@
 <script setup>
 import { computed, ref } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
-import { useCanvasStore } from "@/stores/canvas.js";
-import { usePhotoDownload } from "@/composables/usePhotoDownload.js";
 
 import { BookInformation20Regular } from "@vicons/fluent";
-import PhotoInfoDialog from "../PhotoInfoDialog.vue";
-import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
-import DuplicatePhotosDialog from "../DuplicatePhotosDialog.vue";
+import PhotosGrid from "../PhotosGrid.vue";
 import { useRouter } from "vue-router";
-import { Workspace } from "@vicons/carbon";
-import { CloudDownloadOutline } from "@vicons/ionicons5";
 
 const emit = defineEmits(["navigate-to-tab"]);
 
 const photosStore = usePhotosStore();
-const canvasStore = useCanvasStore();
-const { downloadPhotosZip, isDownloading } = usePhotoDownload();
 const router = useRouter();
-// Grid columns state
-const gridColumns = ref(8);
-
-const showPhotoInfoDialog = ref(false);
-const selectedDialogPhoto = ref();
-const filterDuplicates = ref(false);
-const showDuplicatesDialog = ref(false);
-const selectedDuplicates = ref([]);
 
 // Static catalog photos for demonstration
 const processedPhotos = computed(() => photosStore.processedPhotos);
 
 const filteredPhotos = computed(() => {
-  if (!filterDuplicates.value) {
-    return processedPhotos.value;
-  }
-  return filterDuplicates.value
-    ? groupDuplicates(
-        processedPhotos.value.filter((photo) => photo.isDuplicate)
-      )
-    : processedPhotos.value;
+  return processedPhotos.value;
 });
-
-// Selection state
-const selectedPhotosRecord = computed(() => photosStore.selectedPhotosRecord);
-const selectedPhotoIds = computed(() => photosStore.selectedPhotoIds);
-
-// Check if all photos are selected
-const allSelected = computed(() => {
-  return (
-    filteredPhotos.value.length > 0 &&
-    filteredPhotos.value.every((photo) => selectedPhotosRecord.value[photo.id])
-  );
-});
-
-function groupDuplicates(photos) {
-  const groupMap = new Map();
-  const added = new Set();
-  photos.forEach((photo) => {
-    if (!photo.isDuplicate) return;
-    // Creamos una clave única para el grupo de duplicados
-    const groupIds = [photo.id, ...(photo.duplicates || [])].sort((a, b) =>
-      String(a).localeCompare(String(b))
-    );
-    const groupKey = groupIds.join("-");
-    if (!groupMap.has(groupKey)) groupMap.set(groupKey, []);
-    groupMap.get(groupKey).push(photo);
-  });
-  // Devolvemos un array plano, agrupando los duplicados juntos, manteniendo el orden de aparición original
-  const result = [];
-  photos.forEach((photo) => {
-    if (!photo.isDuplicate) return;
-    const groupIds = [photo.id, ...(photo.duplicates || [])].sort((a, b) =>
-      String(a).localeCompare(String(b))
-    );
-    const groupKey = groupIds.join("-");
-    if (groupMap.has(groupKey) && !added.has(groupKey)) {
-      result.push(...groupMap.get(groupKey));
-      added.add(groupKey);
-    }
-  });
-  return result;
-}
-
-// Photo selection functions
-const showPhotoInfo = async (photo) => {
-  const fullPhoto = await photosStore.fetchPhoto(photo.id);
-  selectedDialogPhoto.value = fullPhoto;
-  showPhotoInfoDialog.value = true;
-};
-
-const deletePhoto = async (photoId) => {
-  await photosStore.deletePhotos([photoId]);
-  // photosStore.checkDuplicates(photo.duplicates); // solo si lanzamos uno inicial
-};
-
-const showDuplicates = (duplicates) => {
-  selectedDuplicates.value = duplicates;
-  showDuplicatesDialog.value = true;
-};
-
-// Grid columns function
-const setGridColumns = (columns) => {
-  gridColumns.value = columns;
-};
-
-// Photo selection functions
-const togglePhotoSelection = (photoId) => {
-  photosStore.togglePhotoSelection(photoId);
-};
-
-// Select/Deselect all photos
-const handleSelectAll = () => {
-  const shouldDeselectAll = allSelected.value;
-  filteredPhotos.value.forEach((photo) => {
-    if (shouldDeselectAll) {
-      // Deselect all
-      photosStore.selectedPhotosRecord[photo.id] = false;
-    } else {
-      // Select all
-      photosStore.selectedPhotosRecord[photo.id] = true;
-    }
-  });
-};
-
-// Action handlers (empty for now as requested)
-const handleDeleteMultiple = () => {
-  photosStore.deletePhotos(selectedPhotoIds.value);
-};
-
-const handleAddToCollection = () => {
-  console.log("Add to collection action for photos:", selectedPhotoIds.value);
-  // TODO: Implement add to collection functionality
-};
-
-const handleDownloadMultiple = async () => {
-  try {
-    // Fetch full photo data for selected photos
-    // await Promise.all(
-    //   selectedPhotoIds.value.map((id) => photosStore.fetchPhoto(id))
-    // );
-
-    const photosToDownload = selectedPhotoIds.value
-      .map((id) => photosStore.photos.find((p) => p.id == id))
-      .filter(Boolean);
-
-    await downloadPhotosZip(photosToDownload);
-  } catch (error) {
-    console.error("Download multiple photos failed:", error);
-  }
-};
-
-async function moveToCanvas() {
-  await Promise.all(
-    photosStore.selectedPhotoIds.map((id) => photosStore.fetchPhoto(id))
-  );
-  const photosToAdd = photosStore.selectedPhotoIds
-    .map((id) => photosStore.photos.find((p) => p.id == id))
-    .filter(Boolean);
-
-  photosStore.selectedPhotosRecord = {};
-  canvasStore.addPhotos(photosToAdd);
-
-  router.push("/canvas");
-}
 
 // Navigation function for empty state
 const navigateToTab = (tabName) => {

@@ -1,114 +1,159 @@
 <template>
   <div class="collections-view view-container">
-    <!-- Header Section -->
-    <div class="collections-header">
-      <div class="header-content">
-        <h1 class="page-title">Albums</h1>
-        <p class="page-subtitle">
-          Organize your photos into beautiful albums for better management and
-          storytelling.
-        </p>
-      </div>
-    </div>
-
-    <!-- Albums Grid -->
-    <div v-if="isLoadingAlbums" class="loading-state">
-      <n-spin size="large">
-        <div class="loading-text">Loading your albums...</div>
-      </n-spin>
-    </div>
-
-    <div v-else class="albums-grid">
-      <!-- Create New Album Card (only show when there are existing albums) -->
-      <div
-        v-if="albums.length > 0"
-        class="album-card create-card"
-        @click="showCreateDialog"
-      >
-        <div class="create-preview">
-          <div class="create-icon">
-            <n-icon size="48" color="var(--primary-color)">
-              <AddOutline />
-            </n-icon>
-          </div>
-        </div>
-        <div class="album-info">
-          <h3 class="album-title">Create New Album</h3>
-          <p class="album-meta">Start organizing your photos</p>
-        </div>
-      </div>
-
-      <!-- Existing Albums -->
-      <div
-        v-for="album in albums"
-        :key="album.id"
-        class="album-card"
-        @click="openAlbum(album)"
-      >
-        <div class="album-preview">
-          <div
-            v-if="album.photos && album.photos.length > 0"
-            class="photo-stack"
-          >
-            <div
-              v-for="(photo, index) in album.photos.slice(0, 4)"
-              :key="photo.id"
-              class="photo-item"
-              :class="`photo-${index + 1}`"
-            >
-              <div
-                class="photo-placeholder"
-                :style="{ background: photo.gradient }"
-              ></div>
-            </div>
-          </div>
-          <div v-else class="empty-preview">
-            <n-icon size="40" color="#ffffff73">
-              <ImagesOutline />
-            </n-icon>
-          </div>
-        </div>
-        <div class="album-info">
-          <h3 class="album-title">{{ album.name || album.title }}</h3>
-          <p class="album-meta">
-            {{ (album.photos || []).length }} photos • Updated
-            {{ formatDate(album.updatedAt) }}
-          </p>
-        </div>
-      </div>
-
-      <!-- Empty State (when no albums exist) -->
-      <div v-if="albums.length === 0" class="empty-albums-state">
-        <div class="empty-albums-content">
-          <n-icon size="64" class="empty-albums-icon">
-            <ImagesOutline />
-          </n-icon>
-          <h3 class="empty-albums-title">No albums yet</h3>
-          <p class="empty-albums-description">
-            Create your first album to start organizing your photos into
-            beautiful collections.
-          </p>
-          <n-button
-            type="primary"
-            @click="showCreateDialog"
-            class="create-album-btn"
-          >
+    <!-- Collection View (when viewing a specific collection) -->
+    <div v-if="showCollectionView && viewingCollection" class="collection-view">
+      <!-- Collection Header -->
+      <div class="collection-header">
+        <div class="collection-header-content">
+          <n-button text @click="backToCollections" class="back-button">
             <template #icon>
               <n-icon>
-                <AddOutline />
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                  />
+                </svg>
               </n-icon>
             </template>
-            Create Your First Album
+            Back to Collections
           </n-button>
+          <h1 class="collection-title">
+            {{ viewingCollection.name || viewingCollection.title }}
+          </h1>
+          <p
+            class="collection-description"
+            v-if="viewingCollection.description"
+          >
+            {{ viewingCollection.description }}
+          </p>
+          <p class="collection-meta">
+            {{ (viewingCollection.photos || []).length }} photos • Updated
+            {{ formatDate(viewingCollection.updatedAt) }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Collection Photos Grid -->
+      <div class="collection-photos">
+        <PhotosGrid :photos="viewingCollection.photos || []" />
+      </div>
+    </div>
+
+    <!-- Collections Grid View (default view) -->
+    <div v-else>
+      <!-- Header Section -->
+      <div class="collections-header">
+        <div class="header-content">
+          <h1 class="page-title">Collections</h1>
+          <p class="page-subtitle">
+            Organize your photos into beautiful collections for better
+            management and storytelling.
+          </p>
+        </div>
+      </div>
+
+      <!-- Collections Grid -->
+      <div v-if="isLoading" class="loading-state">
+        <n-spin size="large">
+          <div class="loading-text">Loading your collections...</div>
+        </n-spin>
+      </div>
+
+      <div v-else class="collections-grid">
+        <!-- Create New Collection Card (only show when there are existing collections) -->
+        <div
+          v-if="collections.length > 0"
+          class="collection-card create-card"
+          @click="showCreateDialog"
+        >
+          <div class="create-preview">
+            <div class="create-icon">
+              <n-icon size="48" color="var(--primary-color)">
+                <AddOutline />
+              </n-icon>
+            </div>
+          </div>
+          <div class="collection-info">
+            <h3 class="collection-title">Create New Collection</h3>
+            <p class="collection-meta">Start organizing your photos</p>
+          </div>
+        </div>
+
+        <!-- Existing Collections -->
+        <div
+          v-for="collection in collections"
+          :key="collection.id"
+          class="collection-card"
+          @click="openCollection(collection)"
+        >
+          <div class="collection-preview">
+            <div
+              v-if="collection.photos && collection.photos.length > 0"
+              class="photo-stack"
+            >
+              <div
+                v-for="(photo, index) in collection.photos.slice(0, 4)"
+                :key="photo.id"
+                class="photo-item"
+                :class="`photo-${index + 1}`"
+              >
+                <div
+                  class="photo-placeholder"
+                  :style="{ background: photo.gradient }"
+                ></div>
+              </div>
+            </div>
+            <div v-else class="empty-preview">
+              <n-icon size="40" color="#ffffff73">
+                <ImagesOutline />
+              </n-icon>
+            </div>
+          </div>
+          <div class="collection-info">
+            <h3 class="collection-title">
+              {{ collection.name || collection.title }}
+            </h3>
+            <p class="collection-meta">
+              {{ (collection.photos || []).length }} photos • Updated
+              {{ formatDate(collection.updatedAt) }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Empty State (when no collections exist) -->
+        <div v-if="collections.length === 0" class="empty-collections-state">
+          <div class="empty-collections-content">
+            <n-icon size="64" class="empty-collections-icon">
+              <ImagesOutline />
+            </n-icon>
+            <h3 class="empty-collections-title">No collections yet</h3>
+            <p class="empty-collections-description">
+              Create your first collection to start organizing your photos into
+              beautiful collections.
+            </p>
+            <n-button
+              type="primary"
+              @click="showCreateDialog"
+              class="create-collection-btn"
+            >
+              <template #icon>
+                <n-icon>
+                  <AddOutline />
+                </n-icon>
+              </template>
+              Create Your First Collection
+            </n-button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Create Album Dialog -->
+    <!-- Create Collection Dialog -->
     <n-modal
       v-model:show="createDialogVisible"
       preset="dialog"
-      title="Create New Album"
+      title="Create New Collection"
       positive-text="Next: Select Photos"
       negative-text="Cancel"
       @positive-click="proceedToPhotoSelection"
@@ -119,7 +164,7 @@
           <n-form-item label="Name" path="title">
             <n-input
               v-model:value="formData.title"
-              placeholder="Enter album name..."
+              placeholder="Enter collection name..."
               maxlength="100"
               show-count
             />
@@ -149,7 +194,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
+// Computed para saber si se puede mostrar la grid de colecciones
+const isLoading = computed(() => {
+  // Si está cargando colecciones o las fotos del store no están listas
+  return (
+    isLoadingCollections.value ||
+    photosStore.isLoading ||
+    !Array.isArray(photosStore.allPhotos) ||
+    photosStore.allPhotos.length === 0
+  );
+});
 import {
   NButton,
   NIcon,
@@ -162,6 +217,7 @@ import {
 } from "naive-ui";
 import { AddOutline, ImagesOutline } from "@vicons/ionicons5";
 import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
+import PhotosGrid from "@/components/PhotosGrid.vue";
 import { api } from "@/utils/axios.js";
 import { usePhotosStore } from "@/stores/photos.js";
 
@@ -172,7 +228,9 @@ const photosStore = usePhotosStore();
 const createDialogVisible = ref(false);
 const photosDialogVisible = ref(false);
 const formRef = ref(null);
-const isCreatingAlbum = ref(false);
+const isCreatingCollection = ref(false);
+const viewingCollection = ref(null); // Collection being viewed
+const showCollectionView = ref(false); // Whether to show collection view or grid view
 
 // Form data
 const formData = ref({
@@ -188,9 +246,9 @@ const formRules = {
   },
 };
 
-// Albums data
-const albums = ref([]);
-const isLoadingAlbums = ref(false);
+// Collections data
+const collections = ref([]);
+const isLoadingCollections = ref(false);
 
 // Predefined gradients for photo placeholders
 const photoGradients = [
@@ -217,23 +275,25 @@ const assignPhotoGradients = (photos) => {
   }));
 };
 
-// Function to load albums from API
-const loadAlbums = async () => {
-  isLoadingAlbums.value = true;
+// Function to load collections from API
+const loadCollections = async () => {
+  isLoadingCollections.value = true;
   try {
     const response = await api.get("/api/collections");
 
-    // Process albums and assign gradients to photos
-    albums.value = response.data.map((album) => ({
-      ...album,
-      photos: assignPhotoGradients(album.photos || []),
-      updatedAt: new Date(album.updatedAt || album.created_at || new Date()),
+    // Process collections and assign gradients to photos
+    collections.value = response.data.map((collection) => ({
+      ...collection,
+      photos: assignPhotoGradients(collection.photos || []),
+      updatedAt: new Date(
+        collection.updatedAt || collection.created_at || new Date()
+      ),
     }));
   } catch (error) {
-    console.error("Error loading albums:", error);
-    message.error("Failed to load albums");
+    console.error("Error loading collections:", error);
+    message.error("Failed to load collections");
   } finally {
-    isLoadingAlbums.value = false;
+    isLoadingCollections.value = false;
   }
 };
 
@@ -259,7 +319,7 @@ const onPhotosSelected = async (photoIds) => {
     return;
   }
 
-  isCreatingAlbum.value = true;
+  isCreatingCollection.value = true;
 
   try {
     const payload = {
@@ -271,27 +331,41 @@ const onPhotosSelected = async (photoIds) => {
     const response = await api.post("/api/collections", payload);
 
     message.success(
-      `Album "${formData.value.title}" created successfully with ${photoIds.length} photos`
+      `Collection "${formData.value.title}" created successfully with ${photoIds.length} photos`
     );
 
     // Reset form and close dialogs
     formData.value = { title: "", description: "" };
     photosDialogVisible.value = false;
 
-    // Reload albums to show the new one
-    await loadAlbums();
+    // Reload collections to show the new one
+    await loadCollections();
   } catch (error) {
-    console.error("Error creating album:", error);
-    message.error("Failed to create album. Please try again.");
+    console.error("Error creating collection:", error);
+    message.error("Failed to create collection. Please try again.");
   } finally {
-    isCreatingAlbum.value = false;
+    isCreatingCollection.value = false;
   }
 };
 
-const openAlbum = (album) => {
-  // TODO: Navigate to album detail view
-  console.log("Opening album:", album.title);
-  message.info(`Opening "${album.title}" - This will be implemented next`);
+const openCollection = (collection) => {
+  // Obtener ids de las fotos de la colección
+  const photoIds = (collection.photos || []).map((p) => p.id);
+  // Buscar las fotos completas en el store
+  const fullPhotos = photosStore.allPhotos.filter((p) =>
+    photoIds.includes(p.id)
+  );
+  // Mantener el resto de los datos de la colección, pero reemplazar photos por las completas
+  viewingCollection.value = {
+    ...collection,
+    photos: fullPhotos,
+  };
+  showCollectionView.value = true;
+};
+
+const backToCollections = () => {
+  viewingCollection.value = null;
+  showCollectionView.value = false;
 };
 
 const formatDate = (date) => {
@@ -305,8 +379,8 @@ onMounted(async () => {
   // Initialize photos store to ensure photos are available for the dialog
   await photosStore.getOrFetch();
 
-  // Load user's albums
-  await loadAlbums();
+  // Load user's collections
+  await loadCollections();
 });
 </script>
 
@@ -339,7 +413,7 @@ onMounted(async () => {
   max-width: 600px;
 }
 
-/* Albums Grid */
+/* Collections Grid */
 .loading-state {
   display: flex;
   justify-content: center;
@@ -354,13 +428,13 @@ onMounted(async () => {
   font-size: var(--font-size-md);
 }
 
-.albums-grid {
+.collections-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
 }
 
-.album-card {
+.collection-card {
   background-color: #18181c;
   border: 1px solid #2c2c32;
   border-radius: 16px;
@@ -370,13 +444,13 @@ onMounted(async () => {
   overflow: hidden;
 }
 
-.album-card:hover {
+.collection-card:hover {
   border-color: #2563eb;
   transform: translateY(-4px);
   box-shadow: 0 12px 32px rgba(37, 99, 235, 0.2);
 }
 
-.album-preview {
+.collection-preview {
   position: relative;
   height: 120px;
   margin-bottom: 16px;
@@ -438,19 +512,19 @@ onMounted(async () => {
 }
 
 /* Hover effects for photo stack */
-.album-card:hover .photo-item.photo-1 {
+.collection-card:hover .photo-item.photo-1 {
   transform: translate(-50%, -50%) rotate(-16deg) translateY(-15px) scale(1.05);
 }
 
-.album-card:hover .photo-item.photo-2 {
+.collection-card:hover .photo-item.photo-2 {
   transform: translate(-50%, -50%) rotate(-6deg) translateY(-10px) scale(1.03);
 }
 
-.album-card:hover .photo-item.photo-3 {
+.collection-card:hover .photo-item.photo-3 {
   transform: translate(-50%, -50%) rotate(6deg) translateY(-10px) scale(1.03);
 }
 
-.album-card:hover .photo-item.photo-4 {
+.collection-card:hover .photo-item.photo-4 {
   transform: translate(-50%, -50%) rotate(16deg) translateY(-15px) scale(1.05);
 }
 
@@ -460,11 +534,11 @@ onMounted(async () => {
   justify-content: center;
 }
 
-.album-info {
+.collection-info {
   text-align: center;
 }
 
-.album-title {
+.collection-title {
   font-size: 18px;
   font-weight: 600;
   color: #ffffffd1;
@@ -472,7 +546,7 @@ onMounted(async () => {
   line-height: 1.3;
 }
 
-.album-meta {
+.collection-meta {
   font-size: 14px;
   color: #ffffff73;
   margin: 0;
@@ -516,8 +590,58 @@ onMounted(async () => {
   padding-top: var(--spacing-md);
 }
 
-/* Empty Albums State */
-.empty-albums-state {
+/* Collection View Styles */
+.collection-view {
+  padding: var(--spacing-2xl);
+  margin: 0 auto;
+  background-color: var(--bg-body);
+}
+
+.collection-header {
+  margin-bottom: var(--spacing-3xl);
+}
+
+.collection-header-content {
+  text-align: left;
+}
+
+.back-button {
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-secondary);
+  font-size: var(--font-size-md);
+}
+
+.back-button:hover {
+  color: var(--primary-color);
+}
+
+.collection-title {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+.collection-description {
+  font-size: var(--font-size-lg);
+  color: var(--text-secondary);
+  margin: 0 0 var(--spacing-sm) 0;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.collection-meta {
+  font-size: var(--font-size-md);
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+.collection-photos {
+  width: 100%;
+}
+
+/* Empty Collections State */
+.empty-collections-state {
   grid-column: 1 / -1;
   display: flex;
   justify-content: center;
@@ -526,30 +650,30 @@ onMounted(async () => {
   text-align: center;
 }
 
-.empty-albums-content {
+.empty-collections-content {
   max-width: 400px;
 }
 
-.empty-albums-icon {
+.empty-collections-icon {
   color: var(--text-tertiary);
   margin-bottom: var(--spacing-lg);
 }
 
-.empty-albums-title {
+.empty-collections-title {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   margin: 0 0 var(--spacing-md) 0;
 }
 
-.empty-albums-description {
+.empty-collections-description {
   font-size: var(--font-size-md);
   color: var(--text-secondary);
   margin: 0 0 var(--spacing-xl) 0;
   line-height: 1.5;
 }
 
-.create-album-btn {
+.create-collection-btn {
   font-size: var(--font-size-md);
   padding: var(--spacing-md) var(--spacing-xl);
 }
@@ -564,16 +688,16 @@ onMounted(async () => {
     font-size: var(--font-size-3xl);
   }
 
-  .albums-grid {
+  .collections-grid {
     grid-template-columns: 1fr;
     gap: 20px;
   }
 
-  .album-card {
+  .collection-card {
     padding: 16px;
   }
 
-  .album-preview {
+  .collection-preview {
     height: 100px;
     margin-bottom: 12px;
   }
@@ -590,13 +714,13 @@ onMounted(async () => {
 }
 
 @media (max-width: 1024px) {
-  .albums-grid {
+  .collections-grid {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
 }
 
 @media (min-width: 1600px) {
-  .albums-grid {
+  .collections-grid {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   }
 }
