@@ -46,13 +46,15 @@
             </div> -->
           </div>
           <div v-if="!isHoveringInsight" class="insight-overlay">
-            <h3 class="action-title">Did you know?</h3>
-            <p class="action-description">Discover daily insights</p>
+            <h3 class="action-title">Did you see...?</h3>
+            <p class="action-description">
+              Discover daily eurekas in your images
+            </p>
           </div>
 
           <!-- Carousel overlay -->
           <div
-            v-if="
+            v-show="
               isHoveringInsight &&
               photoInsight &&
               photoInsight.insights &&
@@ -545,7 +547,6 @@ const prevInsight = () => {
 
 const handleMouseEnter = () => {
   isHoveringInsight.value = true;
-  currentInsightIndex.value = 0;
 };
 
 const handleMouseLeave = () => {
