@@ -177,8 +177,17 @@
     <div class="recent-projects-section">
       <h2 class="section-title">Recent collections</h2>
 
-      <!-- Empty state when blocked OR no projects available -->
-      <div v-if="appAccessMode === 'blocked'" class="empty-state">
+      <!-- Loading state -->
+      <div v-if="isLoadingCollections" class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading collections...</p>
+      </div>
+
+      <!-- Empty state when blocked OR no collections available -->
+      <div
+        v-else-if="appAccessMode === 'blocked' || collections.length === 0"
+        class="empty-state"
+      >
         <div class="empty-state-icon">
           <n-icon size="64" color="var(--text-tertiary)">
             <CollectionsIcon />
@@ -186,12 +195,23 @@
         </div>
         <h3 class="empty-state-title">Nothing here yet</h3>
         <p class="empty-state-description">
-          Upload and process photos to start creating.
+          <router-link
+            v-show="appAccessMode !== 'blocked'"
+            to="/collections"
+            class="empty-state-link"
+          >
+            Manage your collections
+          </router-link>
         </p>
       </div>
 
       <div v-else class="projects-grid">
-        <div class="project-card" @click="openProject('summer-vacation')">
+        <div
+          v-for="collection in collections"
+          :key="collection.id"
+          class="project-card"
+          @click="openProject(collection.id)"
+        >
           <div class="project-preview">
             <div class="photo-stack">
               <div class="photo-item photo-1">
@@ -245,185 +265,11 @@
             </div>
           </div>
           <div class="project-info">
-            <h3 class="project-title">Summer Vacation 2024</h3>
-            <p class="project-meta">124 photos • Last updated 2 days ago</p>
-          </div>
-        </div>
-
-        <div class="project-card" @click="openProject('wedding-series')">
-          <div class="project-preview">
-            <div class="photo-stack">
-              <div class="photo-item photo-1">
-                <div
-                  class="photo-placeholder"
-                  style="
-                    background: linear-gradient(
-                      135deg,
-                      #ffecd2 0%,
-                      #fcb69f 100%
-                    );
-                  "
-                ></div>
-              </div>
-              <div class="photo-item photo-2">
-                <div
-                  class="photo-placeholder"
-                  style="
-                    background: linear-gradient(
-                      135deg,
-                      #a8edea 0%,
-                      #fed6e3 100%
-                    );
-                  "
-                ></div>
-              </div>
-              <div class="photo-item photo-3">
-                <div
-                  class="photo-placeholder"
-                  style="
-                    background: linear-gradient(
-                      135deg,
-                      #d299c2 0%,
-                      #fef9d7 100%
-                    );
-                  "
-                ></div>
-              </div>
-              <div class="photo-item photo-4">
-                <div
-                  class="photo-placeholder"
-                  style="
-                    background: linear-gradient(
-                      135deg,
-                      #89f7fe 0%,
-                      #66a6ff 100%
-                    );
-                  "
-                ></div>
-              </div>
-            </div>
-          </div>
-          <div class="project-info">
-            <h3 class="project-title">Wedding Series</h3>
-            <p class="project-meta">89 photos • Last updated 1 week ago</p>
-          </div>
-        </div>
-
-        <div class="project-card" @click="openProject('nature-photography')">
-          <div class="project-preview">
-            <div class="photo-stack">
-              <div class="photo-item photo-1">
-                <div
-                  class="photo-placeholder"
-                  style="
-                    background: linear-gradient(
-                      135deg,
-                      #667eea 0%,
-                      #764ba2 100%
-                    );
-                  "
-                ></div>
-              </div>
-              <div class="photo-item photo-2">
-                <div
-                  class="photo-placeholder"
-                  style="
-                    background: linear-gradient(
-                      135deg,
-                      #ff9a9e 0%,
-                      #fecfef 100%
-                    );
-                  "
-                ></div>
-              </div>
-              <div class="photo-item photo-3">
-                <div
-                  class="photo-placeholder"
-                  style="
-                    background: linear-gradient(
-                      135deg,
-                      #a8edea 0%,
-                      #fed6e3 100%
-                    );
-                  "
-                ></div>
-              </div>
-              <div class="photo-item photo-4">
-                <div
-                  class="photo-placeholder"
-                  style="
-                    background: linear-gradient(
-                      135deg,
-                      #fad0c4 0%,
-                      #ffd1ff 100%
-                    );
-                  "
-                ></div>
-              </div>
-            </div>
-          </div>
-          <div class="project-info">
-            <h3 class="project-title">Nature Photography</h3>
-            <p class="project-meta">267 photos • Last updated 3 days ago</p>
-          </div>
-        </div>
-
-        <div class="project-card" @click="openProject('street-photography')">
-          <div class="project-preview">
-            <div class="photo-stack">
-              <div class="photo-item photo-1">
-                <div
-                  class="photo-placeholder"
-                  style="
-                    background: linear-gradient(
-                      135deg,
-                      #667eea 0%,
-                      #764ba2 100%
-                    );
-                  "
-                ></div>
-              </div>
-              <div class="photo-item photo-2">
-                <div
-                  class="photo-placeholder"
-                  style="
-                    background: linear-gradient(
-                      135deg,
-                      #f093fb 0%,
-                      #f5576c 100%
-                    );
-                  "
-                ></div>
-              </div>
-              <div class="photo-item photo-3">
-                <div
-                  class="photo-placeholder"
-                  style="
-                    background: linear-gradient(
-                      135deg,
-                      #4facfe 0%,
-                      #00f2fe 100%
-                    );
-                  "
-                ></div>
-              </div>
-              <div class="photo-item photo-4">
-                <div
-                  class="photo-placeholder"
-                  style="
-                    background: linear-gradient(
-                      135deg,
-                      #43e97b 0%,
-                      #38f9d7 100%
-                    );
-                  "
-                ></div>
-              </div>
-            </div>
-          </div>
-          <div class="project-info">
-            <h3 class="project-title">Street Photography</h3>
-            <p class="project-meta">56 photos • Last updated 5 days ago</p>
+            <h3 class="project-title">{{ collection.name }}</h3>
+            <p class="project-meta">
+              {{ collection.photoCount || 0 }} photos • Last updated
+              {{ formatDate(collection.updatedAt) }}
+            </p>
           </div>
         </div>
       </div>
@@ -432,10 +278,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { usePhotosStore } from "@/stores/photos.js";
 import { api } from "@/utils/axios.js";
+import { useMessage } from "naive-ui";
 
 // Import @vicons icons from ionicons5 for reliability
 import {
@@ -452,6 +299,11 @@ import { Workspace } from "@vicons/carbon";
 
 const router = useRouter();
 const photosStore = usePhotosStore();
+const message = useMessage();
+
+// Collections state
+const collections = ref<any[]>([]);
+const isLoadingCollections = ref(false);
 
 // Photo insight state
 interface PhotoInsight {
@@ -472,6 +324,25 @@ const currentInsightIndex = ref(0);
 const insightFetchLimit = 1;
 
 const appAccessMode = computed(() => photosStore.appAccessMode);
+
+// Load collections
+const loadCollections = async () => {
+  isLoadingCollections.value = true;
+  try {
+    const response = await api.get("/api/collections");
+    collections.value = response.data.map((collection: any) => ({
+      ...collection,
+      updatedAt: new Date(
+        collection.updatedAt || collection.created_at || new Date()
+      ),
+    }));
+  } catch (error) {
+    console.error("Error loading collections:", error);
+    message.error("Failed to load collections");
+  } finally {
+    isLoadingCollections.value = false;
+  }
+};
 
 // Watch for changes in appAccessMode to fetch photo insight
 
@@ -530,7 +401,8 @@ watch(
       Array.isArray(photosStore.photos) &&
       photosStore.photos.length > 0
     ) {
-      await fetchPhotoInsight();
+      fetchPhotoInsight();
+      loadCollections();
     }
   },
   { immediate: true }
@@ -560,10 +432,9 @@ const handleMouseLeave = () => {
   isHoveringInsight.value = false;
 };
 
-const openProject = (projectId: string) => {
-  // Navigate to project view with the specific project ID
-  router.push({ name: "collections", params: { id: projectId } });
-  console.log(`Opening project: ${projectId}`);
+const openProject = (collectionId: string) => {
+  // Navigate to collections view with the specific collection ID
+  router.push({ name: "collection-detail", params: { id: collectionId } });
 };
 
 const goToCatalog = () => {
@@ -584,6 +455,27 @@ const goToPlan = () => {
 const goToUpload = () => {
   // Navigate to photo-hub with catalog tab active
   router.push({ name: "photo-hub", hash: "#upload" });
+};
+
+// Format date helper
+const formatDate = (date: Date) => {
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - date.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 1) {
+    return "1 day ago";
+  } else if (diffDays < 7) {
+    return `${diffDays} days ago`;
+  } else if (diffDays < 14) {
+    return "1 week ago";
+  } else if (diffDays < 30) {
+    return `${Math.floor(diffDays / 7)} weeks ago`;
+  } else if (diffDays < 60) {
+    return "1 month ago";
+  } else {
+    return `${Math.floor(diffDays / 30)} months ago`;
+  }
 };
 </script>
 
@@ -1366,6 +1258,44 @@ const goToUpload = () => {
   margin: 0;
   line-height: var(--line-height-relaxed);
   max-width: 400px;
+}
+
+.empty-state-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+}
+
+.empty-state-link:hover {
+  color: var(--primary-color-hover);
+  text-decoration: underline;
+}
+
+/* Loading state */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-4xl) var(--spacing-2xl);
+  text-align: center;
+  min-height: 300px;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(var(--text-primary), 0.3);
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--spacing-lg);
+}
+
+.loading-state p {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  margin: 0;
 }
 
 /* Large devices - hover effects */

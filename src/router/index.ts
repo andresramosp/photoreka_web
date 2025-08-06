@@ -99,6 +99,14 @@ const router = createRouter({
       },
     },
     {
+      path: "/collections/:id",
+      name: "collection-detail",
+      component: CollectionsView,
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
       path: "/photo-hub",
       name: "photo-hub",
       component: PhotoHubView,

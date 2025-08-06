@@ -9,7 +9,7 @@
         </p>
       </div>
       <div class="header-actions">
-        <n-button type="info" size="large" @click="() => {}">
+        <!-- <n-button type="info" size="large" @click="() => {}">
           <template #icon>
             <n-icon>
               <svg viewBox="0 0 24 24">
@@ -21,7 +21,7 @@
             </n-icon>
           </template>
           Get more space
-        </n-button>
+        </n-button> -->
       </div>
     </div>
 

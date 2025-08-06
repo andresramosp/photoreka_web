@@ -194,17 +194,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
-// Computed para saber si se puede mostrar la grid de colecciones
-const isLoading = computed(() => {
-  // Si está cargando colecciones o las fotos del store no están listas
-  return (
-    isLoadingCollections.value ||
-    photosStore.isLoading ||
-    !Array.isArray(photosStore.allPhotos) ||
-    photosStore.allPhotos.length === 0
-  );
-});
+import { ref, onMounted, computed, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
   NButton,
   NIcon,
@@ -221,6 +212,8 @@ import PhotosGrid from "@/components/PhotosGrid.vue";
 import { api } from "@/utils/axios.js";
 import { usePhotosStore } from "@/stores/photos.js";
 
+const route = useRoute();
+const router = useRouter();
 const message = useMessage();
 const photosStore = usePhotosStore();
 
@@ -266,7 +259,16 @@ const photoGradients = [
   "linear-gradient(135deg, #29323c 0%, #485563 100%)",
 ];
 
-// Methods
+// Computed para saber si se puede mostrar la grid de colecciones
+const isLoading = computed(() => {
+  return (
+    isLoadingCollections.value ||
+    photosStore.isLoading ||
+    !Array.isArray(photosStore.allPhotos) ||
+    photosStore.allPhotos.length === 0
+  );
+});
+
 // Function to assign gradient colors to photos
 const assignPhotoGradients = (photos) => {
   return photos.map((photo, index) => ({
@@ -280,8 +282,6 @@ const loadCollections = async () => {
   isLoadingCollections.value = true;
   try {
     const response = await api.get("/api/collections");
-
-    // Process collections and assign gradients to photos
     collections.value = response.data.map((collection) => ({
       ...collection,
       photos: assignPhotoGradients(collection.photos || []),
@@ -305,12 +305,9 @@ const showCreateDialog = () => {
 const proceedToPhotoSelection = async () => {
   try {
     await formRef.value?.validate();
-    // Validation passed, proceed to photo selection
     createDialogVisible.value = false;
     photosDialogVisible.value = true;
-  } catch (error) {
-    // Validation failed, stay in create dialog
-  }
+  } catch (error) {}
 };
 
 const onPhotosSelected = async (photoIds) => {
@@ -318,27 +315,19 @@ const onPhotosSelected = async (photoIds) => {
     message.warning("Please select at least one photo");
     return;
   }
-
   isCreatingCollection.value = true;
-
   try {
     const payload = {
       name: formData.value.title,
       description: formData.value.description,
       photoIds: photoIds,
     };
-
     const response = await api.post("/api/collections", payload);
-
     message.success(
       `Collection "${formData.value.title}" created successfully with ${photoIds.length} photos`
     );
-
-    // Reset form and close dialogs
     formData.value = { title: "", description: "" };
     photosDialogVisible.value = false;
-
-    // Reload collections to show the new one
     await loadCollections();
   } catch (error) {
     console.error("Error creating collection:", error);
@@ -349,23 +338,11 @@ const onPhotosSelected = async (photoIds) => {
 };
 
 const openCollection = (collection) => {
-  // Obtener ids de las fotos de la colección
-  const photoIds = (collection.photos || []).map((p) => p.id);
-  // Buscar las fotos completas en el store
-  const fullPhotos = photosStore.allPhotos.filter((p) =>
-    photoIds.includes(p.id)
-  );
-  // Mantener el resto de los datos de la colección, pero reemplazar photos por las completas
-  viewingCollection.value = {
-    ...collection,
-    photos: fullPhotos,
-  };
-  showCollectionView.value = true;
+  router.push({ name: "collection-detail", params: { id: collection.id } });
 };
 
 const backToCollections = () => {
-  viewingCollection.value = null;
-  showCollectionView.value = false;
+  router.push({ name: "collections" });
 };
 
 const formatDate = (date) => {
@@ -375,13 +352,40 @@ const formatDate = (date) => {
   );
 };
 
-onMounted(async () => {
-  // Initialize photos store to ensure photos are available for the dialog
-  await photosStore.getOrFetch();
+// Watch for route changes to update the view
+const updateViewingCollection = () => {
+  const id = route.params.id;
+  if (id && collections.value.length > 0) {
+    const found = collections.value.find((c) => String(c.id) === String(id));
+    if (found) {
+      // Obtener ids de las fotos de la colección
+      const photoIds = (found.photos || []).map((p) => p.id);
+      // Buscar las fotos completas en el store
+      const fullPhotos = photosStore.allPhotos.filter((p) =>
+        photoIds.includes(p.id)
+      );
+      viewingCollection.value = {
+        ...found,
+        photos: fullPhotos,
+      };
+      showCollectionView.value = true;
+      return;
+    }
+  }
+  viewingCollection.value = null;
+  showCollectionView.value = false;
+};
 
-  // Load user's collections
+onMounted(async () => {
+  await photosStore.getOrFetch();
   await loadCollections();
+  updateViewingCollection();
 });
+
+watch(
+  [() => route.params.id, collections, () => photosStore.allPhotos],
+  updateViewingCollection
+);
 </script>
 
 <style scoped>

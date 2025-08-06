@@ -285,7 +285,7 @@
               </template>
               Delete ({{ selectedPhotoIds.length }})
             </n-button>
-            <n-button
+            <!-- <n-button
               type="info"
               size="small"
               @click="handleAddToCollection"
@@ -302,7 +302,7 @@
                 </n-icon>
               </template>
               Add to Collection ({{ selectedPhotoIds.length }})
-            </n-button>
+            </n-button> -->
           </div>
         </div>
 
