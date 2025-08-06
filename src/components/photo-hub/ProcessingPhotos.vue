@@ -75,15 +75,40 @@
                   {{ job.status === "processing" ? "Processing" : "Finished" }}
                 </n-tag>
               </div>
-              <div class="row-cell expand-cell">
-                <n-icon size="16" class="expand-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6l-6-6l1.41-1.41z"
-                    />
-                  </svg>
-                </n-icon>
+              <div class="row-cell actions-cell">
+                <div class="row-actions">
+                  <n-button
+                    v-if="job.status === 'finished' && isLastFinishedJob(job)"
+                    type="info"
+                    size="small"
+                    @click.stop="openCollectionModal(job)"
+                    class="add-to-collection-btn"
+                  >
+                    <template #icon>
+                      <n-icon>
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            fill="currentColor"
+                            d="M17 14H19V17H22V19H19V22H17V19H14V17H17V14M12 18H6V16H12V18M12 14H6V12H12V14M16 10H6V8H16V10M20 6H4C2.9 6 2 6.9 2 8V20C2 21.1 2.9 22 4 22H13.35C13.13 21.37 13 20.7 13 20C13 16.69 15.69 14 19 14C19.34 14 19.67 14.03 20 14.08V8C20 6.9 19.1 6 18 6H20Z"
+                          />
+                        </svg>
+                      </n-icon>
+                    </template>
+                    Add to Collection
+                  </n-button>
+                </div>
+              </div>
+              <div class="row-cell actions-cell">
+                <div class="row-actions">
+                  <n-icon size="16" class="expand-icon">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6l-6-6l1.41-1.41z"
+                      />
+                    </svg>
+                  </n-icon>
+                </div>
               </div>
             </div>
 
@@ -129,6 +154,54 @@
         </div>
       </div>
     </div>
+
+    <!-- Collection Selection Modal -->
+    <n-modal
+      v-model:show="showCollectionModal"
+      preset="dialog"
+      title="Add to Collection"
+      positive-text="Add"
+      negative-text="Cancel"
+      :positive-button-props="{ disabled: !selectedCollection }"
+      @positive-click="handleAddToCollection"
+      @negative-click="cancelCollectionModal"
+      style="width: 500px"
+    >
+      <div class="collection-modal-content">
+        <p class="modal-description">
+          Select a collection to add {{ selectedJob?.photoCount }} photos to:
+        </p>
+
+        <div v-if="isLoadingCollections" class="loading-state">
+          <n-spin size="medium" />
+          <span>Loading collections...</span>
+        </div>
+
+        <div v-else-if="collections.length === 0" class="empty-collections">
+          <p>No collections found. Create a collection first.</p>
+        </div>
+
+        <div v-else class="collections-list">
+          <div
+            v-for="collection in collections"
+            :key="collection.id"
+            class="collection-item"
+            :class="{ selected: selectedCollection?.id === collection.id }"
+            @click="selectedCollection = collection"
+          >
+            <div class="collection-info">
+              <h4 class="collection-name">{{ collection.name }}</h4>
+              <p class="collection-description">
+                {{ collection.description || "No description" }}
+              </p>
+              <span class="collection-count"
+                >{{ collection.photoCount || 0 }} photos</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </n-modal>
   </div>
 </template>
 
@@ -142,6 +215,7 @@ import {
   NTooltip,
   NSpin,
   NButton,
+  NModal,
   useMessage,
   useNotification,
 } from "naive-ui";
@@ -153,7 +227,14 @@ const message = useMessage();
 const notification = useNotification();
 const route = useRoute();
 
-const emit = defineEmits(["navigate-to-tab"]);
+const emit = defineEmits(["navigate-to-tab", "on-add-to-collection"]);
+
+// Estado del modal de colecciones
+const showCollectionModal = ref(false);
+const selectedCollection = ref(null);
+const selectedJob = ref(null);
+const collections = ref([]);
+const isLoadingCollections = ref(false);
 
 // Utilidades
 const API_URL = "/api/analyzer-process";
@@ -261,13 +342,13 @@ function getCurrentStageIndex(stage) {
 }
 
 // Mapear proceso
-const mapProcess = (proc) => {
+const mapProcess = (proc, idx = 0) => {
   const currentStageIdx = getCurrentStageIndex(proc.currentStage || "init");
   const totalStages = STAGES.length - 1; // 'finished' no cuenta para el progreso
   const isFinished = proc.currentStage === "finished";
   return {
     id: proc.id,
-    expanded: false,
+    expanded: idx === 0, // El primer tab siempre abierto
     startDate: proc.createdAt,
     photoCount: proc.photos?.length ?? 0,
     status: isFinished ? "finished" : "processing",
@@ -327,14 +408,14 @@ async function loadProcesses() {
 
     const previousJobs = [...processingJobs.value]; // Clonar los anteriores
 
-    const updated = response.data
-      .filter((proc) => !proc.isPreprocess) // && proc.mode == "adding"
-      .map((proc) => {
-        const current = processingJobs.value.find((j) => j.id === proc.id);
-        const mapped = mapProcess(proc);
-        if (current) mapped.expanded = current.expanded;
-        return mapped;
-      });
+    const filtered = response.data.filter((proc) => !proc.isPreprocess);
+    const updated = filtered.map((proc, idx) => {
+      const current = processingJobs.value.find((j) => j.id === proc.id);
+      // El primer tab (idx 0) siempre abierto, los demás mantienen su estado
+      const mapped = mapProcess(proc, idx);
+      if (current && idx !== 0) mapped.expanded = current.expanded;
+      return mapped;
+    });
 
     processingJobs.value = updated.sort(
       (a, b) =>
@@ -433,6 +514,54 @@ onBeforeUnmount(() => {
   clearPollingInterval();
 });
 
+// --- Funciones del modal de colecciones ---
+const loadCollections = async () => {
+  isLoadingCollections.value = true;
+  try {
+    const response = await api.get("/api/collections");
+    collections.value = response.data.map((collection) => ({
+      ...collection,
+    }));
+  } catch (error) {
+    console.error("Error loading collections:", error);
+    message.error("Failed to load collections");
+  } finally {
+    isLoadingCollections.value = false;
+  }
+};
+
+const openCollectionModal = (job) => {
+  selectedJob.value = job;
+  selectedCollection.value = null;
+  showCollectionModal.value = true;
+  loadCollections();
+};
+
+const cancelCollectionModal = () => {
+  showCollectionModal.value = false;
+  selectedJob.value = null;
+  selectedCollection.value = null;
+  collections.value = [];
+};
+
+const handleAddToCollection = async () => {
+  if (selectedCollection.value && selectedJob.value) {
+    const photoIds = selectedJob.value.photos.map((photo) => photo.id);
+    try {
+      await api.post(`/api/collections/${selectedCollection.value.id}/photos`, {
+        photoIds,
+      });
+      message.success(
+        `Added ${photoIds.length} photos to "${selectedCollection.value.name}"`
+      );
+      cancelCollectionModal();
+    } catch (error) {
+      console.error("Error adding photos to collection:", error);
+      message.error("Failed to add photos to collection");
+    }
+  }
+};
+
 // Utilidades de UI
 const formatDate = (date) => {
   const dateObj = typeof date === "string" ? new Date(date) : date;
@@ -452,6 +581,17 @@ const toggleJobExpansion = (jobId) => {
 const navigateToTab = (tabName) => {
   emit("navigate-to-tab", tabName);
 };
+
+// Solo mostrar el botón en el último proceso terminado
+function isLastFinishedJob(job) {
+  const finishedJobs = processingJobs.value.filter(
+    (j) => j.status === "finished"
+  );
+  if (finishedJobs.length === 0) return false;
+  // Ordenar por fecha de inicio descendente (más reciente primero)
+  finishedJobs.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+  return finishedJobs[0].id === job.id;
+}
 </script>
 
 <style scoped>
@@ -523,7 +663,7 @@ const navigateToTab = (tabName) => {
 
 .row-main {
   display: grid;
-  grid-template-columns: 300px 350px 350px 350px 1fr;
+  grid-template-columns: 250px 250px 250px 250px 200px 1fr;
   gap: 16px;
   padding: 16px 20px;
   align-items: center;
@@ -562,6 +702,22 @@ const navigateToTab = (tabName) => {
 .expand-cell {
   justify-content: center;
   align-items: center;
+}
+
+.actions-cell {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.add-to-collection-btn {
+  flex-shrink: 0;
 }
 
 .expand-icon {
@@ -722,6 +878,22 @@ const navigateToTab = (tabName) => {
     right: 16px;
   }
 
+  .actions-cell {
+    position: absolute;
+    top: 12px;
+    right: 50px;
+  }
+
+  .row-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .add-to-collection-btn {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
   .photos-grid-mini {
     grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
     gap: 6px;
@@ -754,5 +926,84 @@ const navigateToTab = (tabName) => {
 .progress-compact {
   display: block;
   margin: 0 auto;
+}
+
+/* Collection Modal Styles */
+.collection-modal-content {
+  padding: 16px 0;
+}
+
+.modal-description {
+  color: #ffffffd1;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  padding: 40px 0;
+  color: #ffffff73;
+}
+
+.empty-collections {
+  text-align: center;
+  padding: 40px 0;
+  color: #ffffff73;
+}
+
+.collections-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #2c2c32;
+  border-radius: 8px;
+  background-color: #1a1a1f;
+}
+
+.collection-item {
+  padding: 16px;
+  border-bottom: 1px solid #2c2c32;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.collection-item:last-child {
+  border-bottom: none;
+}
+
+.collection-item:hover {
+  background-color: rgba(139, 92, 246, 0.1);
+}
+
+.collection-item.selected {
+  background-color: rgba(139, 92, 246, 0.2);
+  border-color: #8b5cf6;
+}
+
+.collection-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.collection-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffffd1;
+  margin: 0;
+}
+
+.collection-description {
+  font-size: 14px;
+  color: #ffffff73;
+  margin: 0;
+}
+
+.collection-count {
+  font-size: 12px;
+  color: #8b5cf6;
+  font-weight: 500;
 }
 </style>
