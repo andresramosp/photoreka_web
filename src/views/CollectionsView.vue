@@ -238,6 +238,7 @@
       positive-text="Delete Collection"
       negative-text="Cancel"
       type="error"
+      :loading="collectionsStore.isDeleting"
       @positive-click="deleteCollection"
       @negative-click="deleteConfirmationVisible = false"
     >
@@ -281,13 +282,14 @@ import {
 import { AddOutline, ImagesOutline } from "@vicons/ionicons5";
 import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
 import PhotosGrid from "@/components/PhotosGrid.vue";
-import { api } from "@/utils/axios.js";
 import { usePhotosStore } from "@/stores/photos.js";
+import { useCollectionsStore } from "@/stores/collections.js";
 
 const route = useRoute();
 const router = useRouter();
 const message = useMessage();
 const photosStore = usePhotosStore();
+const collectionsStore = useCollectionsStore();
 
 // State
 const createDialogVisible = ref(false);
@@ -295,7 +297,6 @@ const photosDialogVisible = ref(false);
 const deleteConfirmationVisible = ref(false);
 const formRef = ref(null);
 const isCreatingCollection = ref(false);
-const isDeletingCollection = ref(false);
 const viewingCollection = ref(null); // Collection being viewed
 const showCollectionView = ref(false); // Whether to show collection view or grid view
 
@@ -313,67 +314,22 @@ const formRules = {
   },
 };
 
-// Collections data
-const collections = ref([]);
-const isLoadingCollections = ref(false);
-
-// Predefined gradients for photo placeholders
-const photoGradients = [
-  "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-  "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-  "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-  "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
-  "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)",
-  "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
-  "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
-  "linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)",
-  "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)",
-  "linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%)",
-  "linear-gradient(135deg, #a8caba 0%, #5d4e75 100%)",
-  "linear-gradient(135deg, #29323c 0%, #485563 100%)",
-];
-
 // Computed para saber si se puede mostrar la grid de colecciones
 const isLoading = computed(() => {
   return (
-    isLoadingCollections.value ||
+    collectionsStore.isLoading ||
     photosStore.isLoading ||
     !Array.isArray(photosStore.allPhotos) ||
     photosStore.allPhotos.length === 0
   );
 });
 
-// Function to assign gradient colors to photos
-const assignPhotoGradients = (photos) => {
-  return photos.map((photo, index) => ({
-    ...photo,
-    gradient: photoGradients[index % photoGradients.length],
-  }));
-};
+// Computed properties for store data
+const collections = computed(() => collectionsStore.allCollections);
 
 const refreshCollection = async () => {
-  await loadCollections();
+  await collectionsStore.getOrFetch(true); // Force refresh
   updateViewingCollection();
-};
-
-// Function to load collections from API
-const loadCollections = async () => {
-  isLoadingCollections.value = true;
-  try {
-    const response = await api.get("/api/collections");
-    collections.value = response.data.map((collection) => ({
-      ...collection,
-      photos: assignPhotoGradients(collection.photos || []),
-      updatedAt: new Date(
-        collection.updatedAt || collection.created_at || new Date()
-      ),
-    }));
-  } catch (error) {
-    console.error("Error loading collections:", error);
-    message.error("Failed to load collections");
-  } finally {
-    isLoadingCollections.value = false;
-  }
 };
 
 const showCreateDialog = () => {
@@ -400,21 +356,23 @@ const onPhotosSelected = async (photoIds) => {
     message.warning("Please select at least one photo");
     return;
   }
+
   if (isCreatingCollection.value) {
     // Crear nueva colección
     try {
-      const payload = {
-        name: formData.value.title,
+      const collectionData = {
+        title: formData.value.title,
         description: formData.value.description,
         photoIds: photoIds,
       };
-      await api.post("/api/collections", payload);
+
+      await collectionsStore.createCollection(collectionData);
+
       message.success(
         `Collection "${formData.value.title}" created successfully with ${photoIds.length} photos`
       );
       formData.value = { title: "", description: "" };
       photosDialogVisible.value = false;
-      await loadCollections();
     } catch (error) {
       console.error("Error creating collection:", error);
       message.error("Failed to create collection. Please try again.");
@@ -424,9 +382,11 @@ const onPhotosSelected = async (photoIds) => {
   } else if (showCollectionView.value && viewingCollection.value) {
     // Añadir fotos a colección existente
     try {
-      await api.post(`/api/collections/${viewingCollection.value.id}/photos`, {
-        photoIds,
-      });
+      await collectionsStore.addPhotosToCollection(
+        viewingCollection.value.id,
+        photoIds
+      );
+
       message.success(
         `Added ${photoIds.length} photo${
           photoIds.length > 1 ? "s" : ""
@@ -456,61 +416,57 @@ const showDeleteConfirmation = () => {
 const deleteCollection = async () => {
   if (!viewingCollection.value) return;
 
-  isDeletingCollection.value = true;
   try {
-    await api.delete(`/api/collections/${viewingCollection.value.id}`);
+    await collectionsStore.deleteCollection(viewingCollection.value.id);
+
     message.success(
       `Collection "${
         viewingCollection.value.name || viewingCollection.value.title
       }" deleted successfully`
     );
     deleteConfirmationVisible.value = false;
-    // Redirect back to collections and reload the list
+
+    // Redirect back to collections
     router.push({ name: "collections" });
-    await loadCollections();
   } catch (error) {
     console.error("Error deleting collection:", error);
     message.error("Failed to delete collection. Please try again.");
-  } finally {
-    isDeletingCollection.value = false;
   }
 };
 
 const formatDate = (date) => {
-  return new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(
-    Math.ceil((date - new Date()) / (1000 * 60 * 60 * 24)),
-    "day"
-  );
+  return collectionsStore.formatDate(date);
 };
 
 // Watch for route changes to update the view
 const updateViewingCollection = () => {
   const id = route.params.id;
   if (id && collections.value.length > 0) {
-    const found = collections.value.find((c) => String(c.id) === String(id));
-    if (found) {
-      // Obtener ids de las fotos de la colección
-      const photoIds = (found.photos || []).map((p) => p.id);
-      // Buscar las fotos completas en el store
-      const fullPhotos = photosStore.allPhotos.filter((p) =>
-        photoIds.includes(p.id)
-      );
-      viewingCollection.value = {
-        ...found,
-        photos: fullPhotos,
-      };
+    const collection = collectionsStore.getCollectionWithFullPhotos(
+      id,
+      photosStore
+    );
+    if (collection) {
+      viewingCollection.value = collection;
       showCollectionView.value = true;
+      collectionsStore.setCurrentCollection(collection);
       return;
     }
   }
   viewingCollection.value = null;
   showCollectionView.value = false;
+  collectionsStore.clearCurrentCollection();
 };
 
 onMounted(async () => {
-  await photosStore.getOrFetch();
-  await loadCollections();
-  updateViewingCollection();
+  try {
+    await photosStore.getOrFetch();
+    await collectionsStore.getOrFetch();
+    updateViewingCollection();
+  } catch (error) {
+    console.error("Error loading data:", error);
+    message.error("Failed to load collections");
+  }
 });
 
 watch(

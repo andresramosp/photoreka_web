@@ -141,6 +141,15 @@
       v-model="showDuplicatesDialog"
       :duplicates="selectedDuplicatesData"
     />
+
+    <!-- Collection Modal -->
+    <CollectionModal
+      :show="showCollectionModal"
+      :photo-count="selectedPhotoIds.length"
+      :photo-ids="selectedPhotoIds"
+      @add-to-collection="handleCollectionAdded"
+      @cancel="handleCollectionModalCancel"
+    />
   </div>
 </template>
 
@@ -153,11 +162,12 @@ import { useRouter } from "vue-router";
 import PhotoCardHub from "./photoCards/PhotoCardHub.vue";
 import PhotoInfoDialog from "./PhotoInfoDialog.vue";
 import DuplicatePhotosDialog from "./DuplicatePhotosDialog.vue";
+import CollectionModal from "./CollectionModal.vue";
 import { usePhotosStore } from "@/stores/photos.js";
 import { useCanvasStore } from "@/stores/canvas.js";
+import { useCollectionsStore } from "@/stores/collections.js";
 import { usePhotoDownload } from "@/composables/usePhotoDownload.js";
 import { useLocalPhotoSelection } from "@/composables/useLocalPhotoSelection.js";
-import { api } from "@/utils/axios.js";
 
 const emit = defineEmits(["refreshCollection"]);
 const props = defineProps({
@@ -175,6 +185,7 @@ const message = useMessage();
 const router = useRouter();
 const photosStore = usePhotosStore();
 const canvasStore = useCanvasStore();
+const collectionsStore = useCollectionsStore();
 const { downloadPhotosZip, isDownloading } = usePhotoDownload();
 const {
   selectedPhotosRecord,
@@ -194,6 +205,7 @@ const showPhotoInfoDialog = ref(false);
 const selectedDialogPhoto = ref();
 const showDuplicatesDialog = ref(false);
 const selectedDuplicatesData = ref([]);
+const showCollectionModal = ref(false);
 
 // Grid functions
 const setGridColumns = (columns) => {
@@ -273,9 +285,10 @@ const showDuplicates = (duplicates) => {
 const handleDeleteMultiple = async () => {
   if (props.collectionId) {
     try {
-      await api.delete(`/api/collections/${props.collectionId}/photos`, {
-        data: { photoIds: selectedPhotoIds.value },
-      });
+      await collectionsStore.removePhotosFromCollection(
+        props.collectionId,
+        selectedPhotoIds.value
+      );
       // Recargar la ruta actual para refrescar la colección (sin reload completo)
       emit("refreshCollection");
     } catch (e) {
@@ -288,8 +301,22 @@ const handleDeleteMultiple = async () => {
 };
 
 const handleAddToCollection = () => {
-  console.log("Add to collection action for photos:", selectedPhotoIds.value);
-  // TODO: Implement add to collection functionality
+  if (selectedPhotoIds.value.length > 0) {
+    showCollectionModal.value = true;
+  }
+};
+
+const handleCollectionAdded = (data) => {
+  // Clear selections after successfully adding to collection
+  clearAllSelections();
+  // Optionally emit an event to refresh the collection if we're viewing one
+  if (props.collectionId) {
+    emit("refreshCollection");
+  }
+};
+
+const handleCollectionModalCancel = () => {
+  showCollectionModal.value = false;
 };
 
 const handleDownloadMultiple = async () => {

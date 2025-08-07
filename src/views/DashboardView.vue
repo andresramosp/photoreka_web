@@ -281,7 +281,8 @@
 import { computed, ref, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { usePhotosStore } from "@/stores/photos.js";
-import { api } from "@/utils/axios.js";
+import { useCollectionsStore } from "@/stores/collections.js";
+import { api } from "@/utils/axios.js"; // Needed for photo insight API call
 import { useMessage } from "naive-ui";
 
 // Import @vicons icons from ionicons5 for reliability
@@ -299,11 +300,12 @@ import { Workspace } from "@vicons/carbon";
 
 const router = useRouter();
 const photosStore = usePhotosStore();
+const collectionsStore = useCollectionsStore();
 const message = useMessage();
 
-// Collections state
-const collections = ref<any[]>([]);
-const isLoadingCollections = ref(false);
+// Computed collections from store
+const collections = computed(() => collectionsStore.allCollections);
+const isLoadingCollections = computed(() => collectionsStore.isLoading);
 
 // Photo insight state
 interface PhotoInsight {
@@ -327,20 +329,11 @@ const appAccessMode = computed(() => photosStore.appAccessMode);
 
 // Load collections
 const loadCollections = async () => {
-  isLoadingCollections.value = true;
   try {
-    const response = await api.get("/api/collections");
-    collections.value = response.data.map((collection: any) => ({
-      ...collection,
-      updatedAt: new Date(
-        collection.updatedAt || collection.created_at || new Date()
-      ),
-    }));
+    await collectionsStore.getOrFetch();
   } catch (error) {
     console.error("Error loading collections:", error);
     message.error("Failed to load collections");
-  } finally {
-    isLoadingCollections.value = false;
   }
 };
 
