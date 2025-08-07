@@ -218,11 +218,12 @@ import logoName from "@/assets/logo_name_sub_curation_lab_blue.png";
 // Import @vicons icons from ionicons5 for reliability
 import {
   GridOutline as DashboardIcon,
-  ImageOutline as PhotoHubIcon,
-  FolderOpenOutline as CollectionsIcon,
+  ImagesOutline as PhotoHubIcon,
+  AlbumsOutline as CollectionsIcon,
+  ApertureOutline as StylerIcon,
   SearchOutline as SearchIcon,
   ImagesOutline as CurationIcon,
-  ColorPaletteOutline as StylerIcon,
+  // ColorPaletteOutline as StylerIcon,
   AppsOutline as GridIcon,
   SettingsOutline as SettingsIcon,
   HelpCircleOutline as HelpIcon,
@@ -279,10 +280,10 @@ const firstSectionOptions = computed(() => [
       ),
   },
   {
-    label: createMenuLabel("Collections", true),
+    label: createMenuLabel("Collections", false),
     key: "collections",
     disabled: appAccessMode.value === "blocked",
-    icon: createIconWithIndicator(CollectionsIcon, "#9ca3af", false, true),
+    icon: createIconWithIndicator(CollectionsIcon),
   },
 ]);
 
