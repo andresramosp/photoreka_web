@@ -78,7 +78,7 @@
               <div class="row-cell actions-cell">
                 <div class="row-actions">
                   <n-button
-                    v-if="job.status === 'finished' && isLastFinishedJob(job)"
+                    v-if="job.status === 'finished'"
                     type="info"
                     size="small"
                     @click.stop="openCollectionModal(job)"
