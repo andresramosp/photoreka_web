@@ -304,7 +304,16 @@ const collectionsStore = useCollectionsStore();
 const message = useMessage();
 
 // Computed collections from store
-const collections = computed(() => collectionsStore.allCollections);
+const collections = computed(() => {
+  // Ordenar por fecha de actualización descendente y tomar solo las 4 más recientes
+  return (collectionsStore.allCollections || [])
+    .slice()
+    .sort(
+      (a: { updatedAt: string }, b: { updatedAt: string }) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    )
+    .slice(0, 4);
+});
 const isLoadingCollections = computed(() => collectionsStore.isLoading);
 
 // Photo insight state
