@@ -143,108 +143,146 @@
         </div>
       </div>
 
-      <!-- Search Filters Section -->
+      <!-- More Filters Toggle -->
       <div class="search-filters-section">
-        <!-- More Filters Toggle -->
         <div
           class="more-filters-toggle"
           @click="showMoreFilters = !showMoreFilters"
         >
-          <div class="more-filters-content">
-            <span class="more-filters-label">More filters</span>
-            <div class="more-filters-status">
-              <span v-if="hasActiveFilters" class="active-filters-indicator">
-                {{ selectedCollections.length + selectedVisualAspects.length }}
-                active
-              </span>
-              <n-icon
-                size="14"
-                class="toggle-icon"
-                :class="{ rotated: showMoreFilters }"
-              >
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6l-6-6l1.41-1.41z"
-                  />
-                </svg>
-              </n-icon>
-            </div>
+          <span class="more-filters-label">More filters</span>
+          <div class="more-filters-indicators">
+            <span v-if="hasActiveFilters" class="active-filters-indicator">
+              {{ selectedCollections.length + selectedVisualAspects.length }}
+            </span>
+            <n-icon
+              size="12"
+              class="toggle-icon"
+              :class="{ rotated: showMoreFilters }"
+            >
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6l-6-6l1.41-1.41z"
+                />
+              </svg>
+            </n-icon>
           </div>
         </div>
 
         <!-- Collapsible Filters Container -->
         <div v-if="showMoreFilters" class="filters-container">
-          <div class="filters-inline-container">
+          <div class="filters-content">
             <!-- Collections Filter -->
-            <div class="filter-inline-group">
-              <span class="filter-inline-label">Collections:</span>
-              <n-select
-                v-model:value="selectedCollections"
-                multiple
-                clearable
-                placeholder="Any collection"
-                :options="collectionsOptions"
-                :max-tag-count="2"
-                class="filter-inline-select collections-select"
-                :loading="collectionsStore.isLoading"
-                :disabled="isSearching"
-                size="small"
+            <div class="filter-compact-group">
+              <div
+                style="
+                  display: flex;
+                  flex-direction: column;
+                  align-items: flex-start;
+                  gap: 2px;
+                "
               >
-                <template #empty>
-                  <div style="padding: 8px; color: #888; font-size: 12px">
-                    No collections found
-                  </div>
-                </template>
-              </n-select>
-              <span
-                v-if="selectedCollections.length > 0"
-                class="filter-inline-count"
-              >
-                {{ selectedCollections.length }}
-              </span>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    margin-bottom: 2px;
+                  "
+                >
+                  <span class="filter-compact-label">Collections</span>
+                  <n-tooltip trigger="hover" placement="top">
+                    <template #trigger>
+                      <n-icon size="12" style="color: #ffffff73; cursor: help">
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            fill="currentColor"
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                          />
+                        </svg>
+                      </n-icon>
+                    </template>
+                    Only collections with more than 100 photos are available for
+                    filter searches.
+                  </n-tooltip>
+                </div>
+                <n-select
+                  v-model:value="selectedCollections"
+                  multiple
+                  clearable
+                  placeholder="Any"
+                  :options="collectionsOptions"
+                  :max-tag-count="3"
+                  class="filter-compact-select"
+                  :loading="collectionsStore.isLoading"
+                  :disabled="isSearching"
+                  size="small"
+                  style="min-width: 250px"
+                >
+                  <template #empty>
+                    <div style="padding: 8px; color: #888; font-size: 12px">
+                      No collections found
+                    </div>
+                  </template>
+                  <template #render-option="{ option }">
+                    <div
+                      style="
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        width: 100%;
+                      "
+                    >
+                      <span>{{ option.label }}</span>
+                      <span
+                        :style="{
+                          color: option.disabled ? '#ff7875' : '#8c8c8c',
+                          fontSize: '12px',
+                        }"
+                      >
+                        {{ option.photoCount }} photos
+                      </span>
+                    </div>
+                  </template>
+                </n-select>
+              </div>
             </div>
 
             <!-- Visual Aspects Filter -->
-            <div class="filter-inline-group">
-              <span class="filter-inline-label">Visual aspects:</span>
-              <n-select
-                v-model:value="selectedVisualAspects"
-                multiple
-                clearable
-                placeholder="Any aspect"
-                :options="visualAspectsOptions"
-                :max-tag-count="2"
-                class="filter-inline-select"
-                :disabled="isSearching"
-                size="small"
+            <div class="filter-compact-group">
+              <div
+                style="
+                  display: flex;
+                  flex-direction: column;
+                  align-items: flex-start;
+                  gap: 2px;
+                "
               >
-                <template #empty>
-                  <div style="padding: 8px; color: #888; font-size: 12px">
-                    No visual aspects found
-                  </div>
-                </template>
-              </n-select>
-              <span
-                v-if="selectedVisualAspects.length > 0"
-                class="filter-inline-count"
-              >
-                {{ selectedVisualAspects.length }}
-              </span>
+                <span class="filter-compact-label" style="margin-bottom: 2px"
+                  >Visual aspects</span
+                >
+                <n-select
+                  v-model:value="selectedVisualAspects"
+                  disabled
+                  multiple
+                  clearable
+                  placeholder="Any"
+                  :options="visualAspectsOptions"
+                  :max-tag-count="3"
+                  class="filter-compact-select"
+                  :disabled="isSearching"
+                  size="small"
+                  style="min-width: 250px"
+                >
+                  <template #empty>
+                    <div style="padding: 8px; color: #888; font-size: 12px">
+                      No visual aspects found
+                    </div>
+                  </template>
+                </n-select>
+              </div>
             </div>
           </div>
-
-          <!-- Clear All Filters Button -->
-          <!-- <div v-if="hasActiveFilters" class="clear-filters-container">
-            <n-button
-              size="small"
-              text
-              @click="clearAllFilters"
-              class="clear-filters-button"
-            >
-              Clear all filters
-            </n-button>
-          </div> -->
         </div>
       </div>
 
@@ -309,10 +347,10 @@
               v-if="photoStore.processedPhotos.length < 100"
               class="usage-limit-warning"
             >
-              <WarningBadge
-                message="Search on a few photos"
-                tooltip="You have fewer than 100 photos processed. Searches may return irrelevant results."
-              />
+              <!-- <WarningBadge
+                message="Low performance"
+                :tooltip="performanceTooltip"
+              /> -->
             </div>
             <!-- Usage Limit Warning Badge -->
             <!-- <div
@@ -433,43 +471,10 @@
               "
               class="usage-limit-warning"
             >
-              <div class="warning-badge">
-                <n-icon size="14" class="warning-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M1 21h22L12 2L1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
-                    />
-                  </svg>
-                </n-icon>
-                <span class="warning-text">Low performance</span>
-                <n-tooltip trigger="hover" placement="top">
-                  <template #trigger>
-                    <n-icon size="12" class="info-icon">
-                      <svg viewBox="0 0 24 24">
-                        <path
-                          fill="currentColor"
-                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                        />
-                      </svg>
-                    </n-icon>
-                  </template>
-                  {{ performanceTooltip }}
-                </n-tooltip>
-                <button
-                  @click="userStore.dismissUsageWarning('search')"
-                  class="close-badge-btn"
-                >
-                  <n-icon size="12">
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
-                      />
-                    </svg>
-                  </n-icon>
-                </button>
-              </div>
+              <!-- <WarningBadge
+                message="Search on a few photos"
+                tooltip="You have fewer than 100 photos processed. Searches may return irrelevant results."
+              /> -->
             </div>
           </div>
         </div>
@@ -563,43 +568,10 @@
               "
               class="usage-limit-warning"
             >
-              <div class="warning-badge">
-                <n-icon size="14" class="warning-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M1 21h22L12 2L1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
-                    />
-                  </svg>
-                </n-icon>
-                <span class="warning-text">Low performance</span>
-                <n-tooltip trigger="hover" placement="top">
-                  <template #trigger>
-                    <n-icon size="12" class="info-icon">
-                      <svg viewBox="0 0 24 24">
-                        <path
-                          fill="currentColor"
-                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                        />
-                      </svg>
-                    </n-icon>
-                  </template>
-                  {{ performanceTooltip }}
-                </n-tooltip>
-                <button
-                  @click="userStore.dismissUsageWarning('search')"
-                  class="close-badge-btn"
-                >
-                  <n-icon size="12">
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41z"
-                      />
-                    </svg>
-                  </n-icon>
-                </button>
-              </div>
+              <!-- <WarningBadge
+                message="Low performance"
+                :tooltip="performanceTooltip"
+              /> -->
             </div>
           </div>
         </div>
@@ -1045,17 +1017,13 @@ const selectedVisualAspects = ref([]);
 // Filters visibility state
 const showMoreFilters = ref(false);
 
-// NOTA: Variables disponibles para implementar en la búsqueda:
-// - selectedCollections.value: Array de IDs de colecciones seleccionadas
-// - getSelectedCollectionNames(): Array de nombres de colecciones seleccionadas
-// - hasActiveFilters.value: Boolean que indica si hay filtros activos
-// - filterSummaryText.value: String con resumen de filtros para mostrar en UI
-
 // Computed for collections options
 const collectionsOptions = computed(() => {
   return collectionsStore.allCollections.map((collection) => ({
     label: collection.name,
     value: collection.id,
+    disabled: (collection.photoCount || 0) < 100,
+    photoCount: collection.photoCount || 0,
   }));
 });
 
@@ -1149,6 +1117,7 @@ async function searchPhotos() {
       iteration: currentState.iteration,
       pageSize: pageSize.value,
       searchMode: searchStore.searchMode,
+      collections: selectedCollections.value,
     };
 
     let payload;
@@ -1380,7 +1349,7 @@ const filterSummaryText = computed(() => {
   display: flex;
   align-items: flex-start;
   gap: 24px;
-  margin-bottom: 24px;
+  margin-bottom: 10px;
   padding-bottom: 20px;
   border-bottom: 1px solid #2c2c32;
   overflow: visible;
@@ -1565,45 +1534,46 @@ const filterSummaryText = computed(() => {
 
 /* Search Filters Section */
 .search-filters-section {
-  margin-bottom: 16px;
-  padding-bottom: 0;
 }
 
 .more-filters-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   cursor: pointer;
-  padding: 8px 0;
+  padding: 2px 6px;
+  border-radius: 4px;
   transition: all 0.2s ease;
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .more-filters-toggle:hover {
-  opacity: 0.8;
-}
-
-.more-filters-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .more-filters-label {
-  font-size: 13px;
+  font-size: 10px;
   font-weight: 500;
   color: #ffffff73;
 }
 
-.more-filters-status {
+.more-filters-indicators {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 3px;
 }
 
 .active-filters-indicator {
-  font-size: 11px;
+  font-size: 8px;
   color: #2563eb;
-  background-color: rgba(37, 99, 235, 0.1);
-  padding: 2px 6px;
-  border-radius: 8px;
-  font-weight: 500;
+  background-color: rgba(37, 99, 235, 0.15);
+  padding: 1px 3px;
+  border-radius: 4px;
+  font-weight: 600;
+  min-width: 12px;
+  text-align: center;
 }
 
 .toggle-icon {
@@ -1615,76 +1585,63 @@ const filterSummaryText = computed(() => {
   transform: rotate(180deg);
 }
 
+/* Collapsible Filters Container */
 .filters-container {
-  margin-top: 12px;
-  padding: 0;
-  background-color: transparent;
-  border-radius: 0;
-  border: none;
+  margin-top: 8px;
+  animation: slideDown 0.3s ease-out;
 }
 
-.filters-inline-container {
+.filters-content {
+  border-radius: 6px;
   display: flex;
+  gap: 16px;
   align-items: center;
-  gap: 24px;
   flex-wrap: wrap;
 }
 
-.filter-inline-group {
+.filter-compact-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
-.filter-inline-label {
-  font-size: 12px;
+.filter-compact-label {
+  font-size: 11px;
   font-weight: 500;
   color: #ffffff73;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
-.filter-inline-select {
-  min-width: 160px;
+.filter-compact-select {
+  min-width: 120px;
   max-width: none;
   width: auto;
 }
 
-.collections-select {
-  min-width: 200px;
-  max-width: none;
-  width: auto;
-}
-
-.filter-inline-count {
-  font-size: 10px;
+.filter-compact-count {
+  font-size: 9px;
   color: #2563eb;
   background-color: rgba(37, 99, 235, 0.15);
-  padding: 2px 6px;
-  border-radius: 10px;
+  padding: 1px 4px;
+  border-radius: 4px;
   font-weight: 600;
-  min-width: 16px;
+  min-width: 12px;
   text-align: center;
   flex-shrink: 0;
 }
 
-.clear-filters-container {
-  margin-top: 12px;
-  padding-top: 0;
-  border-top: none;
-  display: flex;
-  justify-content: center;
-}
-
-.clear-filters-button {
-  color: #ffffff73 !important;
-  font-size: 11px;
-  transition: color 0.2s ease;
-}
-
-.clear-filters-button:hover {
-  color: #ffffff90 !important;
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 200px;
+  }
 }
 
 /* Semantic Language Search */
@@ -2052,49 +2009,49 @@ const filterSummaryText = computed(() => {
   }
 
   .search-filters-section {
-    margin-bottom: 12px;
-    padding-bottom: 0;
+    margin-bottom: 8px;
+  }
+
+  .more-filters-toggle {
+    padding: 2px 4px;
   }
 
   .more-filters-label {
-    font-size: 12px;
+    font-size: 9px;
   }
 
   .active-filters-indicator {
+    font-size: 7px;
+    padding: 1px 2px;
+    min-width: 10px;
+  }
+
+  .filters-content {
+    padding: 8px;
+    gap: 12px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-compact-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .filter-compact-label {
     font-size: 10px;
-    padding: 1px 4px;
   }
 
-  .filters-container {
-    margin-top: 10px;
-    padding: 0;
+  .filter-compact-select {
+    min-width: 100px;
+    flex: 1;
+    margin-left: auto;
   }
 
-  .filters-inline-container {
-    gap: 16px;
-  }
-
-  .filter-inline-label {
-    font-size: 11px;
-  }
-
-  .filter-inline-select {
-    min-width: 140px;
-    max-width: none;
-  }
-
-  .collections-select {
-    min-width: 160px;
-    max-width: none;
-  }
-
-  .filter-inline-count {
-    font-size: 9px;
-    padding: 1px 4px;
-  }
-
-  .clear-filters-button {
-    font-size: 10px;
+  .filter-compact-count {
+    font-size: 7px;
+    padding: 1px 2px;
+    min-width: 10px;
   }
 
   .selector-group:first-child,
