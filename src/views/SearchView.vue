@@ -143,6 +143,111 @@
         </div>
       </div>
 
+      <!-- Search Filters Section -->
+      <div class="search-filters-section">
+        <!-- More Filters Toggle -->
+        <div
+          class="more-filters-toggle"
+          @click="showMoreFilters = !showMoreFilters"
+        >
+          <div class="more-filters-content">
+            <span class="more-filters-label">More filters</span>
+            <div class="more-filters-status">
+              <span v-if="hasActiveFilters" class="active-filters-indicator">
+                {{ selectedCollections.length + selectedVisualAspects.length }}
+                active
+              </span>
+              <n-icon
+                size="14"
+                class="toggle-icon"
+                :class="{ rotated: showMoreFilters }"
+              >
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6l-6-6l1.41-1.41z"
+                  />
+                </svg>
+              </n-icon>
+            </div>
+          </div>
+        </div>
+
+        <!-- Collapsible Filters Container -->
+        <div v-if="showMoreFilters" class="filters-container">
+          <div class="filters-inline-container">
+            <!-- Collections Filter -->
+            <div class="filter-inline-group">
+              <span class="filter-inline-label">Collections:</span>
+              <n-select
+                v-model:value="selectedCollections"
+                multiple
+                clearable
+                placeholder="Any collection"
+                :options="collectionsOptions"
+                :max-tag-count="2"
+                class="filter-inline-select collections-select"
+                :loading="collectionsStore.isLoading"
+                :disabled="isSearching"
+                size="small"
+              >
+                <template #empty>
+                  <div style="padding: 8px; color: #888; font-size: 12px">
+                    No collections found
+                  </div>
+                </template>
+              </n-select>
+              <span
+                v-if="selectedCollections.length > 0"
+                class="filter-inline-count"
+              >
+                {{ selectedCollections.length }}
+              </span>
+            </div>
+
+            <!-- Visual Aspects Filter -->
+            <div class="filter-inline-group">
+              <span class="filter-inline-label">Visual aspects:</span>
+              <n-select
+                v-model:value="selectedVisualAspects"
+                multiple
+                clearable
+                placeholder="Any aspect"
+                :options="visualAspectsOptions"
+                :max-tag-count="2"
+                class="filter-inline-select"
+                :disabled="isSearching"
+                size="small"
+              >
+                <template #empty>
+                  <div style="padding: 8px; color: #888; font-size: 12px">
+                    No visual aspects found
+                  </div>
+                </template>
+              </n-select>
+              <span
+                v-if="selectedVisualAspects.length > 0"
+                class="filter-inline-count"
+              >
+                {{ selectedVisualAspects.length }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Clear All Filters Button -->
+          <!-- <div v-if="hasActiveFilters" class="clear-filters-container">
+            <n-button
+              size="small"
+              text
+              @click="clearAllFilters"
+              class="clear-filters-button"
+            >
+              Clear all filters
+            </n-button>
+          </div> -->
+        </div>
+      </div>
+
       <!-- Conditional Search Content -->
       <div class="search-content">
         <!-- Semantic Language Search -->
@@ -569,6 +674,9 @@
                   ({{ filteredSearchResults.length }} of
                   {{ searchResults.length }} with {{ minStarRating }}+ stars)
                 </span>
+                <span v-if="hasActiveFilters" class="filter-applied">
+                  {{ filterSummaryText }}
+                </span>
               </span>
             </div>
             <!-- Action buttons (show when photos are selected) -->
@@ -735,6 +843,7 @@ import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas.js";
 import { useUserStore } from "@/stores/userStore";
 import { useSearchStore } from "@/stores/searchStore";
+import { useCollectionsStore } from "@/stores/collections";
 import { useRouter } from "vue-router";
 import { usePhotoScored } from "@/composables/usePhotoScored";
 
@@ -745,6 +854,7 @@ const photoStore = usePhotosStore();
 const canvasStore = useCanvasStore();
 const userStore = useUserStore();
 const searchStore = useSearchStore();
+const collectionsStore = useCollectionsStore();
 const router = useRouter();
 
 // Photo scoring utilities
@@ -926,6 +1036,45 @@ const gridColumns = ref(6);
 // Star filter for minimum rating
 const minStarRating = ref(1);
 
+// Collections filter
+const selectedCollections = ref([]);
+
+// Visual aspects filter (mock data)
+const selectedVisualAspects = ref([]);
+
+// Filters visibility state
+const showMoreFilters = ref(false);
+
+// NOTA: Variables disponibles para implementar en la búsqueda:
+// - selectedCollections.value: Array de IDs de colecciones seleccionadas
+// - getSelectedCollectionNames(): Array de nombres de colecciones seleccionadas
+// - hasActiveFilters.value: Boolean que indica si hay filtros activos
+// - filterSummaryText.value: String con resumen de filtros para mostrar en UI
+
+// Computed for collections options
+const collectionsOptions = computed(() => {
+  return collectionsStore.allCollections.map((collection) => ({
+    label: collection.name,
+    value: collection.id,
+  }));
+});
+
+// Mock visual aspects options
+const visualAspectsOptions = [
+  { label: "High contrast", value: "high_contrast" },
+  { label: "Low contrast", value: "low_contrast" },
+  { label: "Vibrant colors", value: "vibrant_colors" },
+  { label: "Muted colors", value: "muted_colors" },
+  { label: "Black & white", value: "black_white" },
+  { label: "Sepia tone", value: "sepia_tone" },
+  { label: "Close-up", value: "close_up" },
+  { label: "Wide shot", value: "wide_shot" },
+  { label: "Portrait orientation", value: "portrait" },
+  { label: "Landscape orientation", value: "landscape" },
+  { label: "Blurred background", value: "blurred_bg" },
+  { label: "Sharp details", value: "sharp_details" },
+];
+
 function setGridColumns(n) {
   gridColumns.value = n;
 }
@@ -966,6 +1115,9 @@ function clearSearch() {
 
   // Reset star filter
   minStarRating.value = 0;
+
+  // Reset all filters
+  clearAllFilters();
 
   // Resetear estado del toolbar
   isToolbarCollapsed.value = false;
@@ -1050,6 +1202,9 @@ function scrollToLast() {
 // Manejo de respuestas en tiempo real
 onMounted(() => {
   ensureWarmUp();
+
+  // Fetch collections when component mounts
+  collectionsStore.getOrFetch();
 
   // Añadir scroll listener después de que el DOM esté completamente montado
   nextTick(() => {
@@ -1141,6 +1296,59 @@ function updateTopologicalRight(value) {
     value
   );
 }
+
+// Collections filter functions
+function clearCollectionsFilter() {
+  selectedCollections.value = [];
+}
+
+function clearVisualAspectsFilter() {
+  selectedVisualAspects.value = [];
+}
+
+function clearAllFilters() {
+  clearCollectionsFilter();
+  clearVisualAspectsFilter();
+}
+
+function getSelectedCollectionNames() {
+  return selectedCollections.value
+    .map((id) => {
+      const collection = collectionsStore.getCollectionById(id);
+      return collection ? collection.name : null;
+    })
+    .filter(Boolean);
+}
+
+// Computed to check if any filters are active
+const hasActiveFilters = computed(() => {
+  return (
+    selectedCollections.value.length > 0 ||
+    selectedVisualAspects.value.length > 0
+  );
+});
+
+// Helper to get filter summary text
+const filterSummaryText = computed(() => {
+  const parts = [];
+
+  if (selectedCollections.value.length > 0) {
+    const names = getSelectedCollectionNames();
+    if (names.length === 1) {
+      parts.push(`in "${names[0]}"`);
+    } else if (names.length <= 3) {
+      parts.push(`in ${names.length} collections`);
+    } else {
+      parts.push(`in ${names.length} collections`);
+    }
+  }
+
+  if (selectedVisualAspects.value.length > 0) {
+    parts.push(`${selectedVisualAspects.value.length} visual aspects`);
+  }
+
+  return parts.join(", ");
+});
 </script>
 
 <style scoped>
@@ -1353,6 +1561,130 @@ function updateTopologicalRight(value) {
 
 .search-content {
   padding-top: 12px;
+}
+
+/* Search Filters Section */
+.search-filters-section {
+  margin-bottom: 16px;
+  padding-bottom: 0;
+}
+
+.more-filters-toggle {
+  cursor: pointer;
+  padding: 8px 0;
+  transition: all 0.2s ease;
+}
+
+.more-filters-toggle:hover {
+  opacity: 0.8;
+}
+
+.more-filters-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.more-filters-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #ffffff73;
+}
+
+.more-filters-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.active-filters-indicator {
+  font-size: 11px;
+  color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.1);
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.toggle-icon {
+  color: #ffffff73;
+  transition: transform 0.3s ease;
+}
+
+.toggle-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.filters-container {
+  margin-top: 12px;
+  padding: 0;
+  background-color: transparent;
+  border-radius: 0;
+  border: none;
+}
+
+.filters-inline-container {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.filter-inline-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.filter-inline-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #ffffff73;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.filter-inline-select {
+  min-width: 160px;
+  max-width: none;
+  width: auto;
+}
+
+.collections-select {
+  min-width: 200px;
+  max-width: none;
+  width: auto;
+}
+
+.filter-inline-count {
+  font-size: 10px;
+  color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.15);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  min-width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.clear-filters-container {
+  margin-top: 12px;
+  padding-top: 0;
+  border-top: none;
+  display: flex;
+  justify-content: center;
+}
+
+.clear-filters-button {
+  color: #ffffff73 !important;
+  font-size: 11px;
+  transition: color 0.2s ease;
+}
+
+.clear-filters-button:hover {
+  color: #ffffff90 !important;
 }
 
 /* Semantic Language Search */
@@ -1719,6 +2051,52 @@ function updateTopologicalRight(value) {
     gap: 16px;
   }
 
+  .search-filters-section {
+    margin-bottom: 12px;
+    padding-bottom: 0;
+  }
+
+  .more-filters-label {
+    font-size: 12px;
+  }
+
+  .active-filters-indicator {
+    font-size: 10px;
+    padding: 1px 4px;
+  }
+
+  .filters-container {
+    margin-top: 10px;
+    padding: 0;
+  }
+
+  .filters-inline-container {
+    gap: 16px;
+  }
+
+  .filter-inline-label {
+    font-size: 11px;
+  }
+
+  .filter-inline-select {
+    min-width: 140px;
+    max-width: none;
+  }
+
+  .collections-select {
+    min-width: 160px;
+    max-width: none;
+  }
+
+  .filter-inline-count {
+    font-size: 9px;
+    padding: 1px 4px;
+  }
+
+  .clear-filters-button {
+    font-size: 10px;
+  }
+
   .selector-group:first-child,
   .selector-group:last-child {
     flex: 1;
@@ -1786,6 +2164,66 @@ function updateTopologicalRight(value) {
   .mode-icon {
     width: 10px;
     height: 10px;
+  }
+
+  .search-filters-section {
+    margin-bottom: 10px;
+    padding-bottom: 0;
+  }
+
+  .more-filters-label {
+    font-size: 11px;
+  }
+
+  .active-filters-indicator {
+    font-size: 9px;
+    padding: 1px 3px;
+  }
+
+  .filters-container {
+    margin-top: 8px;
+    padding: 0;
+  }
+
+  .filters-inline-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .filter-inline-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .filter-inline-label {
+    font-size: 10px;
+  }
+
+  .filter-inline-select {
+    min-width: 120px;
+    max-width: none;
+    flex: 1;
+    margin-left: auto;
+  }
+
+  .collections-select {
+    min-width: 140px;
+    max-width: none;
+  }
+
+  .filter-inline-count {
+    font-size: 8px;
+    padding: 1px 3px;
+  }
+
+  .clear-filters-container {
+    margin-top: 8px;
+    padding-top: 0;
+  }
+
+  .clear-filters-button {
+    font-size: 9px;
   }
 
   /* Star filter mobile responsive */
