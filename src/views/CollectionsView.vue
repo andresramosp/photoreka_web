@@ -5,19 +5,54 @@
       <!-- Collection Header -->
       <div class="collection-header">
         <div class="collection-header-content">
-          <n-button text @click="backToCollections" class="back-button">
-            <template #icon>
-              <n-icon>
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
-                  />
-                </svg>
-              </n-icon>
-            </template>
-            Back to Collections
-          </n-button>
+          <div class="collection-header-actions">
+            <n-button text @click="backToCollections" class="back-button">
+              <template #icon>
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+              Back to Collections
+            </n-button>
+            <div style="display: flex; gap: 12px">
+              <n-button
+                type="primary"
+                ghost
+                @click="showAddPhotosDialog"
+                class="add-photos-button"
+              >
+                <template #icon>
+                  <n-icon>
+                    <AddOutline />
+                  </n-icon>
+                </template>
+                Añadir Fotos
+              </n-button>
+              <n-button
+                type="error"
+                ghost
+                @click="showDeleteConfirmation"
+                class="delete-button"
+              >
+                <template #icon>
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                Delete Collection
+              </n-button>
+            </div>
+          </div>
           <h1 class="collection-title">
             {{ viewingCollection.name || viewingCollection.title }}
           </h1>
@@ -36,7 +71,11 @@
 
       <!-- Collection Photos Grid -->
       <div class="collection-photos">
-        <PhotosGrid :photos="viewingCollection.photos || []" />
+        <PhotosGrid
+          :collectionId="route.params.id"
+          :photos="viewingCollection.photos || []"
+          @refreshCollection="refreshCollection"
+        />
       </div>
     </div>
 
@@ -190,6 +229,39 @@
       :title="`Add Photos to ${formData.title}`"
       @add-photos="onPhotosSelected"
     />
+
+    <!-- Delete Collection Confirmation Dialog -->
+    <n-modal
+      v-model:show="deleteConfirmationVisible"
+      preset="dialog"
+      title="Delete Collection"
+      positive-text="Delete Collection"
+      negative-text="Cancel"
+      type="error"
+      @positive-click="deleteCollection"
+      @negative-click="deleteConfirmationVisible = false"
+    >
+      <div class="delete-confirmation">
+        <p>
+          Are you sure you want to delete the collection
+          <strong
+            >"{{ viewingCollection?.name || viewingCollection?.title }}"</strong
+          >?
+        </p>
+        <p class="delete-warning">
+          <n-icon size="16" color="#f5a623" style="margin-right: 8px">
+            <svg viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
+              />
+            </svg>
+          </n-icon>
+          Don't worry - your photos will not be deleted, only the collection
+          will be removed.
+        </p>
+      </div>
+    </n-modal>
   </div>
 </template>
 
@@ -220,8 +292,10 @@ const photosStore = usePhotosStore();
 // State
 const createDialogVisible = ref(false);
 const photosDialogVisible = ref(false);
+const deleteConfirmationVisible = ref(false);
 const formRef = ref(null);
 const isCreatingCollection = ref(false);
+const isDeletingCollection = ref(false);
 const viewingCollection = ref(null); // Collection being viewed
 const showCollectionView = ref(false); // Whether to show collection view or grid view
 
@@ -277,6 +351,11 @@ const assignPhotoGradients = (photos) => {
   }));
 };
 
+const refreshCollection = async () => {
+  await loadCollections();
+  updateViewingCollection();
+};
+
 // Function to load collections from API
 const loadCollections = async () => {
   isLoadingCollections.value = true;
@@ -306,8 +385,14 @@ const proceedToPhotoSelection = async () => {
   try {
     await formRef.value?.validate();
     createDialogVisible.value = false;
+    isCreatingCollection.value = true;
     photosDialogVisible.value = true;
   } catch (error) {}
+};
+
+const showAddPhotosDialog = () => {
+  isCreatingCollection.value = false;
+  photosDialogVisible.value = true;
 };
 
 const onPhotosSelected = async (photoIds) => {
@@ -315,25 +400,44 @@ const onPhotosSelected = async (photoIds) => {
     message.warning("Please select at least one photo");
     return;
   }
-  isCreatingCollection.value = true;
-  try {
-    const payload = {
-      name: formData.value.title,
-      description: formData.value.description,
-      photoIds: photoIds,
-    };
-    const response = await api.post("/api/collections", payload);
-    message.success(
-      `Collection "${formData.value.title}" created successfully with ${photoIds.length} photos`
-    );
-    formData.value = { title: "", description: "" };
-    photosDialogVisible.value = false;
-    await loadCollections();
-  } catch (error) {
-    console.error("Error creating collection:", error);
-    message.error("Failed to create collection. Please try again.");
-  } finally {
-    isCreatingCollection.value = false;
+  if (isCreatingCollection.value) {
+    // Crear nueva colección
+    try {
+      const payload = {
+        name: formData.value.title,
+        description: formData.value.description,
+        photoIds: photoIds,
+      };
+      await api.post("/api/collections", payload);
+      message.success(
+        `Collection "${formData.value.title}" created successfully with ${photoIds.length} photos`
+      );
+      formData.value = { title: "", description: "" };
+      photosDialogVisible.value = false;
+      await loadCollections();
+    } catch (error) {
+      console.error("Error creating collection:", error);
+      message.error("Failed to create collection. Please try again.");
+    } finally {
+      isCreatingCollection.value = false;
+    }
+  } else if (showCollectionView.value && viewingCollection.value) {
+    // Añadir fotos a colección existente
+    try {
+      await api.post(`/api/collections/${viewingCollection.value.id}/photos`, {
+        photoIds,
+      });
+      message.success(
+        `Added ${photoIds.length} photo${
+          photoIds.length > 1 ? "s" : ""
+        } to the collection.`
+      );
+      photosDialogVisible.value = false;
+      await refreshCollection();
+    } catch (error) {
+      console.error("Error adding photos to collection:", error);
+      message.error("Failed to add photos. Please try again.");
+    }
   }
 };
 
@@ -343,6 +447,33 @@ const openCollection = (collection) => {
 
 const backToCollections = () => {
   router.push({ name: "collections" });
+};
+
+const showDeleteConfirmation = () => {
+  deleteConfirmationVisible.value = true;
+};
+
+const deleteCollection = async () => {
+  if (!viewingCollection.value) return;
+
+  isDeletingCollection.value = true;
+  try {
+    await api.delete(`/api/collections/${viewingCollection.value.id}`);
+    message.success(
+      `Collection "${
+        viewingCollection.value.name || viewingCollection.value.title
+      }" deleted successfully`
+    );
+    deleteConfirmationVisible.value = false;
+    // Redirect back to collections and reload the list
+    router.push({ name: "collections" });
+    await loadCollections();
+  } catch (error) {
+    console.error("Error deleting collection:", error);
+    message.error("Failed to delete collection. Please try again.");
+  } finally {
+    isDeletingCollection.value = false;
+  }
 };
 
 const formatDate = (date) => {
@@ -434,7 +565,7 @@ watch(
 
 .collections-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 24px;
 }
 
@@ -609,14 +740,29 @@ watch(
   text-align: left;
 }
 
-.back-button {
+.collection-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: var(--spacing-lg);
+}
+
+.back-button {
   color: var(--text-secondary);
   font-size: var(--font-size-md);
 }
 
 .back-button:hover {
   color: var(--primary-color);
+}
+
+.delete-button {
+  font-size: var(--font-size-sm);
+}
+
+.delete-button:hover {
+  color: #ef4444 !important;
+  border-color: #ef4444 !important;
 }
 
 .collection-title {
@@ -682,6 +828,27 @@ watch(
   padding: var(--spacing-md) var(--spacing-xl);
 }
 
+/* Delete Confirmation Dialog */
+.delete-confirmation {
+  padding: var(--spacing-md) 0;
+}
+
+.delete-confirmation p {
+  margin: 0 0 var(--spacing-md) 0;
+  line-height: 1.5;
+}
+
+.delete-warning {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: rgba(245, 166, 35, 0.1);
+  border: 1px solid rgba(245, 166, 35, 0.3);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .collections-view {
@@ -690,6 +857,17 @@ watch(
 
   .page-title {
     font-size: var(--font-size-3xl);
+  }
+
+  .collection-header-actions {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    align-items: flex-start;
+  }
+
+  .delete-button {
+    align-self: flex-end;
+    font-size: var(--font-size-xs);
   }
 
   .collections-grid {
@@ -719,13 +897,13 @@ watch(
 
 @media (max-width: 1024px) {
   .collections-grid {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (min-width: 1600px) {
   .collections-grid {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 </style>

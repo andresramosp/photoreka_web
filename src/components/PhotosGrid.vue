@@ -40,6 +40,7 @@
             Download
           </n-button>
           <n-button
+            v-if="!props.collectionId"
             type="info"
             size="small"
             @click="handleAddToCollection"
@@ -75,7 +76,7 @@
       </div>
 
       <div class="controls-right">
-        <div class="filter-controls">
+        <div class="filter-controls" v-if="!props.collectionId">
           <n-checkbox v-model:checked="filterDuplicates" size="large">
             Filter duplicates
           </n-checkbox>
@@ -122,7 +123,6 @@
         :photo="photo"
         :selected="selectedPhotosRecord[photo.id]"
         @info="showPhotoInfo"
-        @delete="deletePhoto"
         @select="togglePhotoSelection"
         @show-duplicates="showDuplicates"
         :show-delete="true"
@@ -157,11 +157,17 @@ import { usePhotosStore } from "@/stores/photos.js";
 import { useCanvasStore } from "@/stores/canvas.js";
 import { usePhotoDownload } from "@/composables/usePhotoDownload.js";
 import { useLocalPhotoSelection } from "@/composables/useLocalPhotoSelection.js";
+import { api } from "@/utils/axios.js";
 
+const emit = defineEmits(["refreshCollection"]);
 const props = defineProps({
   photos: {
     type: Array,
     default: () => [],
+  },
+  collectionId: {
+    type: [String, Number, null],
+    default: null,
   },
 });
 
@@ -258,22 +264,26 @@ const showPhotoInfo = async (photo) => {
   showPhotoInfoDialog.value = true;
 };
 
-const deletePhoto = async (photoId) => {
-  await photosStore.deletePhotos([photoId]);
-  // Remove from selection if it was selected
-  if (selectedPhotosRecord.value[photoId]) {
-    togglePhotoSelection(photoId);
-  }
-};
-
 const showDuplicates = (duplicates) => {
   selectedDuplicatesData.value = duplicates;
   showDuplicatesDialog.value = true;
 };
 
 // Batch actions
-const handleDeleteMultiple = () => {
-  photosStore.deletePhotos(selectedPhotoIds.value);
+const handleDeleteMultiple = async () => {
+  if (props.collectionId) {
+    try {
+      await api.delete(`/api/collections/${props.collectionId}/photos`, {
+        data: { photoIds: selectedPhotoIds.value },
+      });
+      // Recargar la ruta actual para refrescar la colección (sin reload completo)
+      emit("refreshCollection");
+    } catch (e) {
+      message.error("Error removing photos from collection");
+    }
+  } else {
+    await photosStore.deletePhotos(selectedPhotoIds.value);
+  }
   clearAllSelections();
 };
 

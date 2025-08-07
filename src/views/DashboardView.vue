@@ -1064,7 +1064,7 @@ const formatDate = (date: Date) => {
 
 .projects-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 24px;
 }
 
@@ -1182,6 +1182,7 @@ const formatDate = (date: Date) => {
 }
 
 /* Mobile adjustments for projects */
+
 @media (max-width: 768px) {
   .recent-projects-section {
     margin-top: 32px;
@@ -1217,6 +1218,19 @@ const formatDate = (date: Date) => {
 
   .project-meta {
     font-size: 12px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .projects-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .projects-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
@@ -1308,10 +1322,6 @@ const formatDate = (date: Date) => {
   .action-card.disabled:hover {
     transform: none;
     box-shadow: none;
-  }
-
-  .projects-grid {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   }
 }
 </style>
