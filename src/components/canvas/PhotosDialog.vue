@@ -22,7 +22,7 @@
           <n-tab-pane name="catalog" tab="From Workspace">
             <!-- Search and Stats Bar -->
             <div class="stats-bar">
-              <div class="search-section">
+              <div v-if="displaySearch" class="search-section">
                 <n-input
                   v-model:value="searchQuery"
                   placeholder="Search photos..."
@@ -117,7 +117,7 @@
             </div>
           </n-tab-pane>
 
-          <n-tab-pane name="sync" tab="From Lightbox">
+          <n-tab-pane v-if="displayLightboxTab" name="sync" tab="From Lightbox">
             <PhotosLightboxTab
               :selected-ids="syncSelectedIds"
               @update:selected-ids="syncSelectedIds = $event"
@@ -299,6 +299,14 @@ const props = defineProps({
   title: {
     type: String,
     default: "",
+  },
+  displayLightboxTab: {
+    type: Boolean,
+    default: true,
+  },
+  displaySearch: {
+    type: Boolean,
+    default: true,
   },
 });
 

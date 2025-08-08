@@ -1529,7 +1529,7 @@ const filterSummaryText = computed(() => {
 }
 
 .search-content {
-  padding-top: 12px;
+  padding-top: 8px;
 }
 
 /* Search Filters Section */
@@ -1541,11 +1541,8 @@ const filterSummaryText = computed(() => {
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  padding: 2px 6px;
   border-radius: 4px;
   transition: all 0.2s ease;
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .more-filters-toggle:hover {
@@ -1556,7 +1553,7 @@ const filterSummaryText = computed(() => {
 .more-filters-label {
   font-size: 10px;
   font-weight: 500;
-  color: #ffffff73;
+  /* color: #ffffff73; */
 }
 
 .more-filters-indicators {
@@ -1597,6 +1594,7 @@ const filterSummaryText = computed(() => {
   gap: 16px;
   align-items: center;
   flex-wrap: wrap;
+  padding-bottom: 5px;
 }
 
 .filter-compact-group {

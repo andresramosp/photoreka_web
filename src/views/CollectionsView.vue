@@ -226,7 +226,13 @@
     <PhotosDialog
       v-model="photosDialogVisible"
       :is-trash="false"
-      :title="`Add Photos to ${formData.title}`"
+      :title="`Add Photos to ${
+        showCollectionView && viewingCollection
+          ? viewingCollection.name || viewingCollection.title
+          : formData.title
+      }`"
+      :displayLightboxTab="false"
+      :displaySearch="true"
       @add-photos="onPhotosSelected"
     />
 
