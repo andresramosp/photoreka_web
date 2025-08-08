@@ -16,11 +16,7 @@
       <div style="margin-bottom: 18px">
         <span>
           You are about to process
-          {{
-            selectedPhotoIds.length > 0
-              ? selectedPhotoIds.length
-              : filteredPhotos.length
-          }}
+          {{ selectedCount }}
           photos. Once started, it cannot be reversed. <br />
 
           Do you want to continue?
@@ -89,7 +85,7 @@
       </n-icon>
       <h3 class="photo-hub-title">
         Photo upload and preview area. The photos in this section have limited
-        use in the tools. Analyze them to unlock full functionality.
+        use in the tools.
       </h3>
     </div>
     <!-- Full Upload Dasdaopzone (show when no photos) -->
@@ -106,13 +102,7 @@
               </svg>
             </n-icon>
           </div>
-          <h3 class="dropzone-title">
-            {{
-              singleViewMode
-                ? "Your Workspace is empty"
-                : "Your Lightbox is empty"
-            }}
-          </h3>
+          <h3 class="dropzone-title">Your Lightbox is empty</h3>
           <p class="dropzone-subtitle">
             Drag and drop your images, or click to browse
           </p>
@@ -227,162 +217,16 @@
           </n-button> -->
         </div>
       </div>
-      <div style="display: flex; gap: 15px">
-        <div style="display: flex; gap: 15px; align-items: center">
-          <n-button
-            type="default"
-            size="medium"
-            class="analyze-btn"
-            @click="
-              () => {
-                photosStore.checkDuplicates();
-              }
-            "
-          >
-            <template #icon>
-              <n-icon>
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-                  />
-                </svg>
-              </n-icon>
-            </template>
-            Check duplicates
-          </n-button>
-        </div>
-      </div>
     </div>
 
     <!-- Uploaded Photos -->
     <div v-if="lightboxPhotos.length > 0" class="uploaded-photos-section">
-      <div class="grid-controls grid-controls-base">
-        <div class="controls-left">
-          <div class="results-info results-info-base">
-            <span class="results-count results-count-base">
-              {{ filteredPhotos.length }}
-              photos
-            </span>
-          </div>
-          <!-- Action buttons (show when photos are selected) -->
-          <div v-if="selectedPhotoIds.length > 0" class="action-buttons">
-            <n-button
-              type="error"
-              size="small"
-              @click="handleDeleteMultiple"
-              :disabled="selectedPhotoIds.length === 0"
-            >
-              <template #icon>
-                <n-icon>
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3H9M7 6h10v13H7V6Z"
-                    />
-                  </svg>
-                </n-icon>
-              </template>
-              Delete ({{ selectedPhotoIds.length }})
-            </n-button>
-            <!-- <n-button
-              type="info"
-              size="small"
-              @click="handleAddToCollection"
-              :disabled="selectedPhotoIds.length === 0"
-            >
-              <template #icon>
-                <n-icon>
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M17 14H19V17H22V19H19V22H17V19H14V17H17V14M12 18H6V16H12V18M12 14H6V12H12V14M16 10H6V8H16V10M20 6H4C2.9 6 2 6.9 2 8V20C2 21.1 2.9 22 4 22H13.35C13.13 21.37 13 20.7 13 20C13 16.69 15.69 14 19 14C19.34 14 19.67 14.03 20 14.08V8C20 6.9 19.1 6 18 6H20Z"
-                    />
-                  </svg>
-                </n-icon>
-              </template>
-              Add to Collection ({{ selectedPhotoIds.length }})
-            </n-button> -->
-          </div>
-        </div>
-
-        <div class="controls-right">
-          <div
-            class="filter-controls"
-            style="display: flex; align-items: center; gap: 12px"
-          >
-            <n-checkbox
-              v-show="hasDuplicates || filteredPhotos.length == 0"
-              v-model:checked="filterDuplicates"
-              size="large"
-            >
-              Filter duplicates
-            </n-checkbox>
-            <template v-if="props.singleViewMode">
-              <n-radio-group
-                v-model:value="singleViewFilter"
-                size="small"
-                style="margin-left: 12px"
-              >
-                <n-radio-button value="all">All</n-radio-button>
-                <n-radio-button value="preprocessed"
-                  >Preprocessed</n-radio-button
-                >
-                <!-- <n-radio-button value="processing">Processing</n-radio-button> -->
-                <n-radio-button value="processed">Processed</n-radio-button>
-              </n-radio-group>
-            </template>
-          </div>
-          <div class="grid-size-controls grid-size-controls-base">
-            <span class="grid-label grid-label-base">Columns:</span>
-            <n-button-group>
-              <n-button
-                v-for="size in [4, 6, 8, 10]"
-                :key="size"
-                :type="gridColumns === size ? 'primary' : 'default'"
-                size="small"
-                @click="gridColumns = size"
-              >
-                {{ size }}
-              </n-button>
-            </n-button-group>
-          </div>
-          <!-- Select All button (always visible) -->
-          <n-button type="default" size="small" @click="handleSelectAll">
-            <template #icon>
-              <n-icon>
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
-                  />
-                </svg>
-              </n-icon>
-            </template>
-            {{ allSelected ? "Deselect All" : "Select All" }}
-          </n-button>
-        </div>
-      </div>
-
-      <div
-        class="photos-grid photo-grid-base"
-        :class="`grid-cols-${gridColumns}`"
-      >
-        <PhotoCardHub
-          v-for="photo in filteredPhotos"
-          :key="photo.id"
-          :photo="photo"
-          :selected="selectedPhotosRecord[photo.id]"
-          @select="togglePhotoSelection"
-          @delete="deletePhoto"
-          @show-duplicates="showDuplicates"
-          :show-delete="true"
-          :show-name="true"
-          :show-footer="false"
-          :showDuplicate="true"
-          :is-uploading="isUploading"
-        />
-      </div>
+      <!-- Photos Grid Component -->
+      <PhotosGrid
+        :photos="filteredPhotos"
+        :displayAddToCollection="false"
+        @selection-change="handleSelectionChange"
+      />
     </div>
 
     <!-- Hidden Input -->
@@ -405,29 +249,17 @@ import { usePhotoUpload } from "@/composables/usePhotoUpload.js";
 import { useImageProcessing } from "@/composables/useImageProcessing.js";
 import { BookInformation20Regular } from "@vicons/fluent";
 import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
+import PhotosGrid from "../PhotosGrid.vue";
 import DuplicatePhotosDialog from "../DuplicatePhotosDialog.vue";
 
-import {
-  NModal,
-  NCheckbox,
-  NTooltip,
-  NRadioGroup,
-  NRadioButton,
-} from "naive-ui";
+import { NModal, NCheckbox, NTooltip } from "naive-ui";
 
 import { ImagesOutline } from "@vicons/ionicons5";
 import { InProgress } from "@vicons/carbon";
 import { api_analyzer, api } from "@/utils/axios";
 import { useMessage } from "naive-ui";
 
-const props = defineProps({
-  singleViewMode: {
-    type: Boolean,
-    default: false,
-  },
-});
-
-const emit = defineEmits(["on-analyze"]);
+const emit = defineEmits(["on-analyze", "selection-change"]);
 const photosStore = usePhotosStore();
 const message = useMessage();
 
@@ -441,9 +273,7 @@ const {
 } = usePhotoUpload();
 
 // Variables locales del componente
-const gridColumns = ref(8);
 const fileInput = ref(null);
-const filterDuplicates = ref(false);
 const showDuplicatesDialog = ref(false);
 const selectedDuplicates = ref([]);
 
@@ -451,22 +281,7 @@ const isFirstTimeUpload = computed(() => photosStore.allPhotos.length === 0);
 const fastModeOverride = ref(true);
 
 const hasDuplicates = computed(() => {
-  // Considera todas las fotos relevantes según el modo
-  let base = [];
-  if (props.singleViewMode) {
-    if (singleViewFilter.value === "all") {
-      base = allPhotos.value;
-    } else if (singleViewFilter.value === "processed") {
-      base = processedPhotos.value;
-    } else if (singleViewFilter.value === "processing") {
-      base = processingPhotos.value;
-    } else if (singleViewFilter.value === "preprocessed") {
-      base = preprocessed.value;
-    }
-  } else {
-    base = lightboxPhotos.value;
-  }
-  return base.some((photo) => photo.isDuplicate);
+  return lightboxPhotos.value.some((photo) => photo.isDuplicate);
 });
 
 const fastMode = computed({
@@ -489,88 +304,36 @@ const fastMode = computed({
 });
 const showAnalyzeDialog = ref(false);
 
-// Filtro de visualización para singleViewMode (radio)
-// Valores: 'all', 'processed', 'processing', 'preprocessed'
-const singleViewFilter = ref("all");
-
 // En el check 'preprocessed' queremos ver todas las usables en las tools, por lo que entran
 // las que están en proceso y por tanto preprocessed
-const preprocessed = computed(() => [
-  ...photosStore.lightboxPhotos,
-  ...photosStore.processingPhotos,
-]);
 const lightboxPhotos = computed(() => photosStore.lightboxPhotos);
 
-const processedPhotos = computed(() => photosStore.processedPhotos);
-const processingPhotos = computed(() => photosStore.processingPhotos);
-const allPhotos = computed(() => photosStore.allPhotos);
-
-// Agrupa fotos duplicadas por grupo usando el campo duplicates
-function groupDuplicates(photos) {
-  const groupMap = new Map();
-  const added = new Set();
-  photos.forEach((photo) => {
-    if (!photo.isDuplicate) return;
-    // Creamos una clave única para el grupo de duplicados
-    const groupIds = [photo.id, ...(photo.duplicates || [])].sort((a, b) =>
-      String(a).localeCompare(String(b))
-    );
-    const groupKey = groupIds.join("-");
-    if (!groupMap.has(groupKey)) groupMap.set(groupKey, []);
-    groupMap.get(groupKey).push(photo);
-  });
-  // Devolvemos un array plano, agrupando los duplicados juntos, manteniendo el orden de aparición original
-  const result = [];
-  photos.forEach((photo) => {
-    if (!photo.isDuplicate) return;
-    const groupIds = [photo.id, ...(photo.duplicates || [])].sort((a, b) =>
-      String(a).localeCompare(String(b))
-    );
-    const groupKey = groupIds.join("-");
-    if (groupMap.has(groupKey) && !added.has(groupKey)) {
-      result.push(...groupMap.get(groupKey));
-      added.add(groupKey);
-    }
-  });
-  return result;
-}
-
 const filteredPhotos = computed(() => {
-  if (props.singleViewMode) {
-    let base = [];
-    if (singleViewFilter.value === "all") {
-      base = allPhotos.value;
-    } else if (singleViewFilter.value === "processed") {
-      base = processedPhotos.value;
-    } else if (singleViewFilter.value === "processing") {
-      base = processingPhotos.value;
-    } else if (singleViewFilter.value === "preprocessed") {
-      base = preprocessed.value;
-    }
-    return filterDuplicates.value
-      ? groupDuplicates(base.filter((photo) => photo.isDuplicate))
-      : base;
-  } else {
-    // Modo normal: solo preprocesadas
-    return filterDuplicates.value
-      ? groupDuplicates(
-          lightboxPhotos.value.filter((photo) => photo.isDuplicate)
-        )
-      : lightboxPhotos.value;
-  }
+  // Modo normal: solo preprocesadas
+  return lightboxPhotos.value;
 });
 
-// Selection state
+// Selection state from PhotosGrid
+const localSelectedCount = ref(0);
+const localSelectedIds = ref([]);
+
+const handleSelectionChange = (selectionData) => {
+  localSelectedCount.value = selectionData.selectedCount;
+  localSelectedIds.value = selectionData.selectedIds;
+  // Emitir el evento al padre
+  emit("selection-change", selectionData);
+};
+
+// Use local selection state for the analyze dialog
+const selectedCount = computed(() => {
+  return localSelectedCount.value > 0
+    ? localSelectedCount.value
+    : filteredPhotos.value.length;
+});
+
+// Selection state (keeping existing computed for compatibility)
 const selectedPhotosRecord = computed(() => photosStore.selectedPhotosRecord);
 const selectedPhotoIds = computed(() => photosStore.selectedPhotoIds);
-
-// Check if all photos are selected
-const allSelected = computed(() => {
-  return (
-    filteredPhotos.value.length > 0 &&
-    filteredPhotos.value.every((photo) => selectedPhotosRecord.value[photo.id])
-  );
-});
 
 const triggerFileInput = () => {
   if (!isUploading.value) fileInput.value?.click();
@@ -636,20 +399,6 @@ const togglePhotoSelection = (photoId) => {
   photosStore.togglePhotoSelection(photoId);
 };
 
-// Select/Deselect all photos
-const handleSelectAll = () => {
-  const shouldDeselectAll = allSelected.value;
-  filteredPhotos.value.forEach((photo) => {
-    if (shouldDeselectAll) {
-      // Deselect all
-      photosStore.selectedPhotosRecord[photo.id] = false;
-    } else {
-      // Select all
-      photosStore.selectedPhotosRecord[photo.id] = true;
-    }
-  });
-};
-
 const handleAddToCollection = () => {
   console.log("Add to collection action for photos:", selectedPhotoIds.value);
   // TODO: Implement add to collection functionality
@@ -665,7 +414,10 @@ const openAnalyzeDialog = () => {
 
 const confirmAnalyze = () => {
   showAnalyzeDialog.value = false;
-  emit("on-analyze", { fastMode: fastMode.value });
+  emit("on-analyze", {
+    fastMode: fastMode.value,
+    selectedIds: localSelectedCount.value > 0 ? localSelectedIds.value : [],
+  });
 };
 
 // Exponer openAnalyzeDialog para uso del componente padre
@@ -771,75 +523,15 @@ defineExpose({
   gap: 8px;
 }
 
-.grid-controls-base {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  gap: 16px;
-}
-
-.results-info-base {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.results-count-base {
-  font-size: 16px;
-  font-weight: 500;
-  color: #ffffffd1;
-}
-
-.grid-size-controls-base {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.grid-label-base {
-  font-size: 14px;
-  color: #ffffff73;
-  font-weight: 500;
-}
-
-/* Photo Grid */
-.photo-grid-base {
-  display: grid;
-  gap: 20px;
-}
-
-.photo-grid-base.grid-cols-3 {
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.photo-grid-base.grid-cols-4 {
-  grid-template-columns: repeat(4, 1fr);
-}
-
-.photo-grid-base.grid-cols-5 {
-  grid-template-columns: repeat(5, 1fr);
-}
-
-.photo-grid-base.grid-cols-6 {
-  grid-template-columns: repeat(6, 1fr);
-}
-
-.photo-grid-base.grid-cols-8 {
-  grid-template-columns: repeat(8, 1fr);
-}
-
-.photo-grid-base.grid-cols-10 {
-  grid-template-columns: repeat(10, 1fr);
-}
-
 .filter-controls {
   display: flex;
   align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
   padding: 8px 12px;
-  /* background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.05);
   border-radius: 6px;
-  border: 1px solid #2c2c32; */
+  border: 1px solid #2c2c32;
 }
 
 /* Upload Progress Section */
@@ -882,60 +574,21 @@ defineExpose({
 
 /* Responsive */
 
-@media (max-width: 1200px) {
-  .photo-grid-base.grid-cols-8 {
-    grid-template-columns: repeat(6, 1fr);
-  }
-  .photo-grid-base.grid-cols-10 {
-    grid-template-columns: repeat(7, 1fr);
-  }
-}
-
-@media (max-width: 1024px) {
-  .photo-grid-base.grid-cols-6,
-  .photo-grid-base.grid-cols-8,
-  .photo-grid-base.grid-cols-10 {
-    grid-template-columns: repeat(5, 1fr);
-  }
+.selected-badge {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: 8px;
 }
 
 @media (max-width: 768px) {
-  .grid-controls-base {
+  .filter-controls {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
-  }
-
-  .controls-left,
-  .controls-right {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .action-buttons {
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .photo-grid-base.grid-cols-3,
-  .photo-grid-base.grid-cols-4,
-  .photo-grid-base.grid-cols-5,
-  .photo-grid-base.grid-cols-6,
-  .photo-grid-base.grid-cols-8,
-  .photo-grid-base.grid-cols-10 {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .photo-grid-base.grid-cols-3,
-  .photo-grid-base.grid-cols-4,
-  .photo-grid-base.grid-cols-5,
-  .photo-grid-base.grid-cols-6,
-  .photo-grid-base.grid-cols-8,
-  .photo-grid-base.grid-cols-10 {
-    grid-template-columns: 1fr;
   }
 }
 </style>

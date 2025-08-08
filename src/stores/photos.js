@@ -14,6 +14,7 @@ export const usePhotosStore = defineStore("photos", {
     selectedPhotosRecord: {},
     catalogSingleView: false, // Nuevo modo single view
     showUploadProgress: false, // Controla si se muestra el progreso de subida especial
+    duplicatesChecked: false, // Indica si ya se han verificado duplicados
   }),
 
   getters: {
@@ -150,6 +151,8 @@ export const usePhotosStore = defineStore("photos", {
           }));
 
           this.photos = photos.map((photo) => ({ ...photo }));
+          // Reset duplicates check when photos are loaded/reloaded
+          this.duplicatesChecked = false;
         } catch (error) {
           console.warn("API not available, using mock data:", error.message);
         } finally {
@@ -165,6 +168,8 @@ export const usePhotosStore = defineStore("photos", {
         ...this.photos.filter((p) => !newPhotoIds.includes(p.id)),
         ...newPhotos.map((photo) => ({ ...photo })),
       ];
+      // Reset duplicates check when new photos are added
+      this.duplicatesChecked = false;
     },
 
     updatePhoto(photoId, delta) {
@@ -200,6 +205,8 @@ export const usePhotosStore = defineStore("photos", {
         this.photos = this.photos.filter(
           (photo) => !photoIds.includes(photo.id)
         );
+        // Reset duplicates check when photos are deleted
+        this.duplicatesChecked = false;
       } catch (error) {
         console.warn(
           "API not available for deletePhotos, using local delete:",
@@ -229,6 +236,11 @@ export const usePhotosStore = defineStore("photos", {
     },
 
     async checkDuplicates(photoIds = null) {
+      // Si ya se verificaron duplicados y no hay IDs específicos, no hacer nada
+      if (this.duplicatesChecked && !photoIds) {
+        return {};
+      }
+
       try {
         const payload = photoIds ? { newPhotoIds: photoIds } : {};
         const res = await api.post("/api/catalog/checkDuplicates", payload);
@@ -242,6 +254,11 @@ export const usePhotosStore = defineStore("photos", {
               isDuplicate: duplicates.length > 0,
             });
           }
+        }
+
+        // Marcar como verificado solo si se hizo verificación completa
+        if (!photoIds) {
+          this.duplicatesChecked = true;
         }
 
         return duplicatesMap;

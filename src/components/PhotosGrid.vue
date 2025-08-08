@@ -40,7 +40,7 @@
             Download
           </n-button>
           <n-button
-            v-if="!props.collectionId"
+            v-if="!props.collectionId && displayAddToCollection"
             type="info"
             size="small"
             @click="handleAddToCollection"
@@ -77,9 +77,27 @@
 
       <div class="controls-right">
         <div class="filter-controls" v-if="!props.collectionId">
-          <n-checkbox v-model:checked="filterDuplicates" size="large">
-            Filter duplicates
-          </n-checkbox>
+          <div class="filter-duplicates-container">
+            <n-button
+              :type="filterDuplicates ? 'primary' : 'default'"
+              size="small"
+              @click="handleFilterDuplicatesChange(!filterDuplicates)"
+              :disabled="isCheckingDuplicates"
+              :loading="isCheckingDuplicates"
+            >
+              <template #icon v-if="!isCheckingDuplicates">
+                <n-icon>
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
+                    />
+                  </svg>
+                </n-icon>
+              </template>
+              Filter duplicates
+            </n-button>
+          </div>
         </div>
         <div class="grid-size-controls grid-size-controls-base">
           <span class="grid-label grid-label-base">Columns:</span>
@@ -154,8 +172,15 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
-import { NButton, NButtonGroup, NIcon, NCheckbox, useMessage } from "naive-ui";
+import { computed, ref, watch } from "vue";
+import {
+  NButton,
+  NButtonGroup,
+  NIcon,
+  NCheckbox,
+  NSpin,
+  useMessage,
+} from "naive-ui";
 import { CloudDownloadOutline } from "@vicons/ionicons5";
 import { Workspace } from "@vicons/carbon";
 import { useRouter } from "vue-router";
@@ -169,7 +194,7 @@ import { useCollectionsStore } from "@/stores/collections.js";
 import { usePhotoDownload } from "@/composables/usePhotoDownload.js";
 import { useLocalPhotoSelection } from "@/composables/useLocalPhotoSelection.js";
 
-const emit = defineEmits(["refreshCollection"]);
+const emit = defineEmits(["refreshCollection", "selection-change"]);
 const props = defineProps({
   photos: {
     type: Array,
@@ -178,6 +203,10 @@ const props = defineProps({
   collectionId: {
     type: [String, Number, null],
     default: null,
+  },
+  displayAddToCollection: {
+    type: Boolean,
+    default: true,
   },
 });
 
@@ -199,6 +228,7 @@ const {
 // Grid columns state
 const gridColumns = ref(8);
 const filterDuplicates = ref(false);
+const isCheckingDuplicates = ref(false);
 
 // Dialog states
 const showPhotoInfoDialog = ref(false);
@@ -207,9 +237,48 @@ const showDuplicatesDialog = ref(false);
 const selectedDuplicatesData = ref([]);
 const showCollectionModal = ref(false);
 
+// Watch for selection changes and emit to parent
+watch(
+  selectedPhotoIds,
+  (newSelection) => {
+    emit("selection-change", {
+      selectedCount: newSelection.length,
+      selectedIds: [...newSelection],
+    });
+  },
+  { immediate: true, deep: true }
+);
+
 // Grid functions
 const setGridColumns = (columns) => {
   gridColumns.value = columns;
+};
+
+// Handle filter duplicates change
+const handleFilterDuplicatesChange = async (checked) => {
+  if (!checked) {
+    // Si se desmarca, solo desactivar el filtro sin hacer llamada
+    filterDuplicates.value = false;
+    return;
+  }
+
+  // Si ya se verificaron duplicados, activar filtro inmediatamente
+  if (photosStore.duplicatesChecked) {
+    filterDuplicates.value = true;
+    return;
+  }
+
+  // Si se marca y no se han verificado duplicados, hacer check
+  isCheckingDuplicates.value = true;
+  try {
+    await photosStore.checkDuplicates();
+    filterDuplicates.value = true;
+  } catch (error) {
+    console.error("Error checking duplicates:", error);
+    message.error("Error checking for duplicates");
+  } finally {
+    isCheckingDuplicates.value = false;
+  }
 };
 
 // Function to group duplicates (same as WorkspacePhotos)
@@ -400,6 +469,11 @@ const moveToCanvas = async () => {
   font-size: 14px;
   color: #ffffff73;
   font-weight: 500;
+}
+
+.filter-duplicates-container {
+  display: flex;
+  align-items: center;
 }
 
 /* Photo Grid */

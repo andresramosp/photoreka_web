@@ -112,6 +112,7 @@
             v-show="activeTab === 'upload'"
             key="lightbox-photos"
             @on-analyze="analyze"
+            @selection-change="handleLightboxSelectionChange"
           />
         </KeepAlive>
         <KeepAlive>
@@ -137,7 +138,7 @@
       :disabled="isProcessButtonDisabled"
       :progress="processButtonProgress"
       :button-state="processButtonState"
-      :selected-count="lightboxSelectedPhotos.length"
+      :selected-count="lightboxSelectedCount"
       @click="handleProcessButtonClick"
     />
   </div>
@@ -162,6 +163,12 @@ const message = useMessage();
 // Reactive state
 const activeTab = ref("upload");
 const lightboxRef = ref(null);
+const lightboxSelectedCount = ref(0);
+
+// Handle selection changes from LightboxPhotos
+const handleLightboxSelectionChange = (selectionData) => {
+  lightboxSelectedCount.value = selectionData.selectedCount;
+};
 
 // Computed for floating button - solo mostrar en tab upload
 const shouldShowProcessButton = computed(() => {
@@ -235,11 +242,11 @@ const updateTabFromHash = () => {
 };
 
 async function analyze(ev) {
-  // Usar la computed lightboxSelectedPhotos para obtener las seleccionadas en Lightbox
+  // Usar los IDs seleccionados del evento o todos los de lightbox si no hay selección
   const lightboxAreaIds = photosStore.lightboxPhotos.map((p) => p.id);
   const toProcess =
-    lightboxSelectedPhotos.value.length > 0
-      ? lightboxSelectedPhotos.value
+    ev.selectedIds && ev.selectedIds.length > 0
+      ? ev.selectedIds
       : lightboxAreaIds;
 
   if (toProcess.length === 0) return;
@@ -262,12 +269,6 @@ async function analyze(ev) {
     console.error("❌ Error iniciando análisis:", error);
   }
 }
-
-const lightboxSelectedPhotos = computed(() => {
-  const selectedIds = photosStore.selectedPhotoIds;
-  const lightboxAreaIds = photosStore.lightboxPhotos.map((p) => p.id);
-  return selectedIds.filter((id) => lightboxAreaIds.includes(id));
-});
 
 onMounted(() => {
   updateTabFromHash();

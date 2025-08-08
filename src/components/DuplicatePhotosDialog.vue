@@ -215,14 +215,14 @@ const allSelected = computed(() => {
 });
 
 // Processing status computeds
-const processedPhotos = computed(() => {
-  return duplicatePhotos.value.filter((photo) => photo.status == "processed");
-});
-
 const nonProcessedPhotos = computed(() => {
   return duplicatePhotos.value.filter(
     (photo) => photo.status == "uploaded" || photo.status == "preprocessed"
   );
+});
+
+const processedPhotos = computed(() => {
+  return duplicatePhotos.value.filter((photo) => photo.status == "processed");
 });
 
 const hasMixedProcessingStatus = computed(() => {
@@ -231,23 +231,12 @@ const hasMixedProcessingStatus = computed(() => {
   );
 });
 
-const allNonProcessed = computed(() => {
-  return (
-    duplicatePhotos.value.length > 0 &&
-    nonProcessedPhotos.value.length === duplicatePhotos.value.length
-  );
-});
-
-// Button text and visibility
 const deleteButtonText = computed(() => {
-  if (hasMixedProcessingStatus.value) {
-    return "Delete Non-processed";
-  }
-  return "Delete Worse Versions";
+  return "Delete Non-processed";
 });
 
 const showDeleteButton = computed(() => {
-  return !allNonProcessed.value;
+  return hasMixedProcessingStatus.value;
 });
 
 // Helper functions
@@ -302,27 +291,18 @@ const handleDeleteSelected = async () => {
 };
 
 const handleDeleteWorseVersions = async () => {
-  if (hasMixedProcessingStatus.value) {
-    // Delete non-processed photos
-    const nonProcessedIds = nonProcessedPhotos.value.map((photo) => photo.id);
-    try {
-      await photosStore.deletePhotos(nonProcessedIds);
-      // Remove from selected if they were selected
-      selectedPhotoIds.value = selectedPhotoIds.value.filter(
-        (id) => !nonProcessedIds.includes(id)
-      );
-      photosStore.checkDuplicates();
-
-      message.success("Non-processed photos deleted successfully");
-    } catch (error) {
-      message.error("Failed to delete non-processed photos");
-    }
-  } else {
-    // caso de duplicadas procesadas, requiere check health
-    // TODO: Implement delete worse versions functionality
-    message.info(
-      "Delete worse versions functionality will be implemented soon"
+  // Delete non-processed photos
+  const nonProcessedIds = nonProcessedPhotos.value.map((photo) => photo.id);
+  try {
+    await photosStore.deletePhotos(nonProcessedIds);
+    // Remove from selected if they were selected
+    selectedPhotoIds.value = selectedPhotoIds.value.filter(
+      (id) => !nonProcessedIds.includes(id)
     );
+    photosStore.checkDuplicates();
+    message.success("Non-processed photos deleted successfully");
+  } catch (error) {
+    message.error("Failed to delete non-processed photos");
   }
 };
 
