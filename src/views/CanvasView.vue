@@ -95,8 +95,32 @@
                   height: photo.config.height,
                   image: photo.image,
                   stroke: getPhotoStrokeColor(photo),
-                  strokeWidth: photo.selected ? 7 : 2.5,
+                  strokeWidth: photo.selected ? 7 : photo.isNew ? 4 : 2.5,
+                  shadowColor: photo.isNew ? '#22d3ee' : undefined,
+                  shadowBlur: photo.isNew ? 15 : 0,
+                  shadowOffset: photo.isNew ? { x: 0, y: 0 } : undefined,
+                  shadowOpacity: photo.isNew ? 0.6 : 0,
                 }"
+              />
+
+              <!-- Glow effect for new photos -->
+              <v-rect
+                v-if="photo.isNew"
+                :config="{
+                  x: -2,
+                  y: -2,
+                  width: photo.config.width + 4,
+                  height: photo.config.height + 4,
+                  stroke: '#22d3ee',
+                  strokeWidth: 2,
+                  fill: 'transparent',
+                  shadowColor: '#22d3ee',
+                  shadowBlur: 20,
+                  shadowOffset: { x: 0, y: 0 },
+                  shadowOpacity: 0.4,
+                  name: `glow-${photo.id}`,
+                }"
+                ref="newPhotoGlowRefs"
               />
 
               <!-- Spinner de carga -->
@@ -664,6 +688,7 @@ const photoRefs = ref({});
 const setPhotoRef = (id) => (el) => {
   if (el) photoRefs.value[id] = el;
 };
+const newPhotoGlowRefs = ref([]);
 
 const toolbarState = ref({
   mouseMode: "move",
@@ -746,6 +771,38 @@ const dynamicSizeFactor = computed(() => {
   return Math.min(Math.max(newFactor, 1), 5);
 });
 
+// Animation for new photo glow effect
+const animateNewPhotoGlow = () => {
+  if (newPhotoGlowRefs.value && newPhotoGlowRefs.value.length > 0) {
+    newPhotoGlowRefs.value.forEach((glowRef) => {
+      if (glowRef && glowRef.getNode) {
+        const node = glowRef.getNode();
+        if (node) {
+          // Create pulsing animation
+          const tween = new Konva.Tween({
+            node: node,
+            shadowBlur: 25,
+            shadowOpacity: 0.6,
+            duration: 1,
+            easing: Konva.Easings.EaseInOut,
+            yoyo: true,
+            repeat: -1,
+          });
+          tween.play();
+
+          // Store tween reference to clean up later
+          if (!node._glowTween) {
+            node._glowTween = tween;
+          }
+        }
+      }
+    });
+  }
+
+  // Re-run animation for any new glow elements
+  requestAnimationFrame(animateNewPhotoGlow);
+};
+
 // Computed property to determine if expansion mode should be available
 const isExpansionEnabled = computed(() => {
   return toolbarState.value.expansion.enabled;
@@ -794,13 +851,14 @@ async function handleAddPhotos(photoIds) {
     .filter(Boolean);
   await canvasStore.addPhotos(photosToAdd);
 
-  fitStageToPhotos(0.8);
+  fitStageToPhotos(0.2);
 }
 
 async function handleAddPlaygroundPhotos(photosData) {
   // For playground mode, use the canvas store like normal mode
   await canvasStore.addPhotos(photosData);
-  fitStageToPhotos(0.8);
+
+  fitStageToPhotos(0.2);
 }
 
 function handleAddPhotoFromPhoto(event) {
@@ -871,6 +929,7 @@ const handleAddPhotosToCanvas = async (event) => {
 const getPhotoStrokeColor = (photo) => {
   if (photo.inTrash) return "rgba(250, 11, 11, 0.5)";
   if (photo.selected) return secondaryColor;
+  if (photo.isNew) return "#22d3ee";
   // if (photo.hovered) return primaryColor;
   return "gray";
 };
@@ -1070,6 +1129,19 @@ const handleClickOutside = (event) => {
   }
 };
 
+// Cleanup function for glow animations
+const cleanupGlowAnimations = (photoId) => {
+  const stage = stageRef.value?.getStage();
+  if (stage) {
+    stage.find(`.glow-${photoId}`).forEach((node) => {
+      if (node._glowTween) {
+        node._glowTween.destroy();
+        delete node._glowTween;
+      }
+    });
+  }
+};
+
 const handleKeyDown = (event) => {
   // Delete selected photos when Delete key is pressed
   if (event.key === "Delete" || event.key === "Backspace") {
@@ -1265,6 +1337,12 @@ onMounted(() => {
 
   updateStageOffset();
   fitStageToPhotos();
+
+  // Start glow animation for new photos
+  animateNewPhotoGlow();
+
+  // Register cleanup function in the store
+  canvasStore.setGlowCleanupFunction(cleanupGlowAnimations);
 
   // Auto-open photos dialog in playground mode
   if (isPlayground.value) {

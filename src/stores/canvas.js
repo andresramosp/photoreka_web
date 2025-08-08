@@ -102,6 +102,7 @@ export const useCanvasStore = defineStore("canvas", {
     },
 
     async addPhotos(photoObjects, fromPhoto = false) {
+      const addedPhotoIds = [];
       for (let index = 0; index < photoObjects.length; index++) {
         const photo = photoObjects[index];
         if (!this.photos.some((p) => p.id == photo.id)) {
@@ -113,9 +114,13 @@ export const useCanvasStore = defineStore("canvas", {
             index
           );
           this.photos.push(createdPhoto);
+          addedPhotoIds.push(createdPhoto.id);
         }
       }
       this.updateBasicMode();
+
+      // Apply glow effect to newly added photos
+      this.applyGlowEffect(addedPhotoIds);
     },
 
     // Trae fotos similares usando el endpoint /byPhotos
@@ -171,6 +176,7 @@ export const useCanvasStore = defineStore("canvas", {
           : [response.data];
 
         if (onCanvas) {
+          const addedPhotoIds = [];
           for (const backendPhoto of backendPhotos) {
             if (!this.photos.some((photo) => photo.id === backendPhoto.id)) {
               const createdPhoto = await createPhoto(
@@ -180,8 +186,12 @@ export const useCanvasStore = defineStore("canvas", {
                 this.currentZIndex
               );
               this.photos.push(createdPhoto);
+              addedPhotoIds.push(createdPhoto.id);
             }
           }
+
+          // Apply glow effect to newly added photos
+          this.applyGlowEffect(addedPhotoIds);
         } else {
           return backendPhotos;
         }
@@ -200,6 +210,27 @@ export const useCanvasStore = defineStore("canvas", {
       );
       this.discardedPhotos = this.discardedPhotos.concat(photosToRemove);
       this.updateBasicMode();
+    },
+
+    applyGlowEffect(photoIds) {
+      // Mark newly added photos with glow effect
+      this.photos.forEach((photo) => {
+        if (photoIds.includes(photo.id)) {
+          photo.isNew = true;
+          // Remove the glow effect after 3 seconds
+          setTimeout(() => {
+            photo.isNew = false;
+            // Clean up any running animations if there's access to stage
+            // This will be handled by the component that has access to the stage
+            this.cleanupGlowAnimations?.(photo.id);
+          }, 3000);
+        }
+      });
+    },
+
+    // Method to be called by components to register cleanup function
+    setGlowCleanupFunction(cleanupFn) {
+      this.cleanupGlowAnimations = cleanupFn;
     },
   },
 });
