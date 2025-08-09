@@ -8,6 +8,94 @@ export const useSearchStore = defineStore("search", () => {
   const isSearching = ref(false);
   const isLoadingMore = ref(false);
 
+  // Visual aspects filter state
+  const selectedVisualAspects = ref([]);
+
+  // Visual aspects options grouped by categories
+  const visualAspectsOptions = [
+    {
+      type: "group",
+      label: "Palette",
+      key: "palette",
+      children: [
+        { label: "Black and white", value: "black and white" },
+        { label: "Color", value: "color" },
+        { label: "Vivid colors", value: "vivid colors" },
+        { label: "Muted colors", value: "muted colors" },
+        { label: "Warm colors", value: "warm colors" },
+        { label: "Cold colors", value: "cold colors" },
+      ],
+    },
+    {
+      type: "group",
+      label: "Orientation",
+      key: "orientation",
+      children: [
+        { label: "Vertical", value: "vertical" },
+        { label: "Horizontal", value: "horizontal" },
+        { label: "Square", value: "square" },
+      ],
+    },
+    {
+      type: "group",
+      label: "Focus",
+      key: "focus",
+      children: [
+        { label: "Blurry", value: "blurry" },
+        { label: "Nitid", value: "nitid" },
+        { label: "Average", value: "average" },
+      ],
+    },
+    {
+      type: "group",
+      label: "Stylistic",
+      key: "stylistic",
+      children: [
+        { label: "Long exposure", value: "long exposure" },
+        { label: "Bokeh", value: "bokeh" },
+        { label: "High contrast", value: "high contrast" },
+        { label: "Silhouettes", value: "silhouettes" },
+        { label: "Reflections", value: "reflections" },
+        { label: "Crooked", value: "crooked" },
+      ],
+    },
+    {
+      type: "group",
+      label: "Lighting",
+      key: "lighting",
+      children: [
+        { label: "Natural", value: "natural" },
+        { label: "Artificial", value: "artificial" },
+        { label: "Backlit", value: "backlit" },
+        { label: "Side-lit", value: "side-lit" },
+        { label: "Dramatic", value: "dramatic" },
+      ],
+    },
+    {
+      type: "group",
+      label: "Framing",
+      key: "framing",
+      children: [
+        { label: "Close-up", value: "close-up" },
+        { label: "Medium shot", value: "medium shot" },
+        { label: "Wide shot", value: "wide shot" },
+      ],
+    },
+    {
+      type: "group",
+      label: "Genre",
+      key: "genre",
+      children: [
+        { label: "Abstract", value: "abstract" },
+        { label: "Documentary", value: "documentary" },
+        { label: "Street", value: "street" },
+        { label: "Travel", value: "travel" },
+        { label: "Landscape", value: "landscape" },
+        { label: "Portrait", value: "portrait" },
+      ],
+    },
+  ];
+
   // Estado específico para cada tipo de búsqueda
   const searchStates = reactive({
     semantic: {
@@ -50,6 +138,7 @@ export const useSearchStore = defineStore("search", () => {
   // Computed para verificar si hay query
   const hasSearchQuery = computed(() => {
     const state = currentSearchState.value;
+
     switch (activeSearchType.value) {
       case "semantic":
         return state.query.trim().length > 0;
@@ -61,8 +150,6 @@ export const useSearchStore = defineStore("search", () => {
           state.center.trim().length > 0 ||
           state.right.trim().length > 0
         );
-      default:
-        return false;
     }
   });
 
@@ -132,6 +219,14 @@ export const useSearchStore = defineStore("search", () => {
     searchStates.topological.right = right;
   }
 
+  function updateVisualAspects(visualAspects) {
+    selectedVisualAspects.value = visualAspects;
+  }
+
+  function clearVisualAspects() {
+    selectedVisualAspects.value = [];
+  }
+
   function clearCurrentSearch() {
     const state = currentSearchState.value;
 
@@ -150,6 +245,9 @@ export const useSearchStore = defineStore("search", () => {
         state.right = "";
         break;
     }
+
+    // Limpiar visual aspects
+    selectedVisualAspects.value = [];
 
     // Limpiar resultados y estado de paginación
     state.results = [];
@@ -181,6 +279,9 @@ export const useSearchStore = defineStore("search", () => {
       state.maxPageAttempts = false;
       state.hasSearched = false;
     });
+
+    // Limpiar visual aspects
+    selectedVisualAspects.value = [];
   }
 
   function setSearching(value) {
@@ -229,6 +330,8 @@ export const useSearchStore = defineStore("search", () => {
     isSearching,
     isLoadingMore,
     searchStates,
+    selectedVisualAspects,
+    visualAspectsOptions,
 
     // Computed
     currentSearchState,
@@ -243,6 +346,8 @@ export const useSearchStore = defineStore("search", () => {
     updateSemanticQuery,
     updateTagsSearch,
     updateTopologicalSearch,
+    updateVisualAspects,
+    clearVisualAspects,
     clearCurrentSearch,
     clearAllSearches,
     setSearching,

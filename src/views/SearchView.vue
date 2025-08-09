@@ -152,7 +152,10 @@
           <span class="more-filters-label">More filters</span>
           <div class="more-filters-indicators">
             <span v-if="hasActiveFilters" class="active-filters-indicator">
-              {{ selectedCollections.length + selectedVisualAspects.length }}
+              {{
+                selectedCollections.length +
+                searchStore.selectedVisualAspects.length
+              }}
             </span>
             <n-icon
               size="12"
@@ -217,7 +220,7 @@
                   :loading="collectionsStore.isLoading"
                   :disabled="isSearching"
                   size="small"
-                  style="min-width: 250px"
+                  style="min-width: 200px"
                 >
                   <template #empty>
                     <div style="padding: 8px; color: #888; font-size: 12px">
@@ -262,17 +265,16 @@
                   >Visual aspects</span
                 >
                 <n-select
-                  v-model:value="selectedVisualAspects"
-                  disabled
+                  v-model:value="searchStore.selectedVisualAspects"
                   multiple
                   clearable
                   placeholder="Any"
-                  :options="visualAspectsOptions"
+                  :options="searchStore.visualAspectsOptions"
                   :max-tag-count="3"
                   class="filter-compact-select"
                   :disabled="isSearching"
                   size="small"
-                  style="min-width: 250px"
+                  style="min-width: 200px"
                 >
                   <template #empty>
                     <div style="padding: 8px; color: #888; font-size: 12px">
@@ -1011,9 +1013,6 @@ const minStarRating = ref(1);
 // Collections filter
 const selectedCollections = ref([]);
 
-// Visual aspects filter (mock data)
-const selectedVisualAspects = ref([]);
-
 // Filters visibility state
 const showMoreFilters = ref(false);
 
@@ -1026,22 +1025,6 @@ const collectionsOptions = computed(() => {
     photoCount: collection.photoCount || 0,
   }));
 });
-
-// Mock visual aspects options
-const visualAspectsOptions = [
-  { label: "High contrast", value: "high_contrast" },
-  { label: "Low contrast", value: "low_contrast" },
-  { label: "Vibrant colors", value: "vibrant_colors" },
-  { label: "Muted colors", value: "muted_colors" },
-  { label: "Black & white", value: "black_white" },
-  { label: "Sepia tone", value: "sepia_tone" },
-  { label: "Close-up", value: "close_up" },
-  { label: "Wide shot", value: "wide_shot" },
-  { label: "Portrait orientation", value: "portrait" },
-  { label: "Landscape orientation", value: "landscape" },
-  { label: "Blurred background", value: "blurred_bg" },
-  { label: "Sharp details", value: "sharp_details" },
-];
 
 function setGridColumns(n) {
   gridColumns.value = n;
@@ -1084,8 +1067,8 @@ function clearSearch() {
   // Reset star filter
   minStarRating.value = 0;
 
-  // Reset all filters
-  clearAllFilters();
+  // Reset collections filter (not managed by search store yet)
+  clearCollectionsFilter();
 
   // Resetear estado del toolbar
   isToolbarCollapsed.value = false;
@@ -1118,6 +1101,7 @@ async function searchPhotos() {
       pageSize: pageSize.value,
       searchMode: searchStore.searchMode,
       collections: selectedCollections.value,
+      visualAspects: searchStore.selectedVisualAspects,
     };
 
     let payload;
@@ -1272,7 +1256,7 @@ function clearCollectionsFilter() {
 }
 
 function clearVisualAspectsFilter() {
-  selectedVisualAspects.value = [];
+  searchStore.clearVisualAspects();
 }
 
 function clearAllFilters() {
@@ -1293,7 +1277,7 @@ function getSelectedCollectionNames() {
 const hasActiveFilters = computed(() => {
   return (
     selectedCollections.value.length > 0 ||
-    selectedVisualAspects.value.length > 0
+    searchStore.selectedVisualAspects.length > 0
   );
 });
 
@@ -1312,8 +1296,8 @@ const filterSummaryText = computed(() => {
     }
   }
 
-  if (selectedVisualAspects.value.length > 0) {
-    parts.push(`${selectedVisualAspects.value.length} visual aspects`);
+  if (searchStore.selectedVisualAspects.length > 0) {
+    parts.push(`${searchStore.selectedVisualAspects.length} visual aspects`);
   }
 
   return parts.join(", ");
@@ -1534,6 +1518,7 @@ const filterSummaryText = computed(() => {
 
 /* Search Filters Section */
 .search-filters-section {
+  margin-top: 8px;
 }
 
 .more-filters-toggle {
