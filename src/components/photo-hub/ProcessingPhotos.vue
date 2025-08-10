@@ -284,12 +284,13 @@ function startPolling() {
 const STAGES = [
   { key: "init", label: "Initializing" },
   { key: "clip_embeddings", label: "CLIP Embeddings" },
-  { key: "vision_context_story_accents", label: "Vision Context & Accents" },
-  { key: "tags_context_story", label: "Tags & Story" },
-  { key: "tags_visual_accents", label: "Visual Accents" },
+  { key: "vision_visual_aspects", label: "Visual Aspects" },
+  { key: "vision_context_story_accents", label: "Narrative and Context" },
+  { key: "tags_context_story", label: "Generating Tags" },
+  { key: "tags_visual_accents", label: "Generating Tags" },
   {
     key: "chunks_context_story_visual_accents",
-    label: "Story Chunks & Accents",
+    label: "Generating Chunks",
   },
   { key: "visual_color_embedding_task", label: "Color Embedding" },
   { key: "topological_tags", label: "Topological Tags" },

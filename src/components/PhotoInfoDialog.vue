@@ -112,6 +112,44 @@
             </div>
           </n-collapse-item>
 
+          <!-- Visual Aspects Section -->
+          <n-collapse-item
+            title="Visual Aspects"
+            name="visual-aspects"
+            v-if="selectedPhoto?.descriptions?.visual_aspects"
+          >
+            <template #header-extra>
+              <n-icon>
+                <EyeIcon />
+              </n-icon>
+            </template>
+            <div class="visual-aspects-section">
+              <div class="visual-aspects-grid">
+                <div
+                  v-for="(values, category) in selectedPhoto.descriptions
+                    .visual_aspects"
+                  :key="category"
+                  class="visual-aspect-category"
+                >
+                  <h6 class="aspect-category-title">
+                    {{ formatCategoryName(category) }}
+                  </h6>
+                  <div class="aspect-tags">
+                    <n-tag
+                      v-for="value in values"
+                      :key="value"
+                      type="info"
+                      size="small"
+                      class="aspect-tag"
+                    >
+                      {{ value }}
+                    </n-tag>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </n-collapse-item>
+
           <n-collapse-item title="Tags" name="tags">
             <template #header-extra>
               <n-icon>
@@ -132,7 +170,7 @@
                     @close="removeTag(tag)"
                     class="photo-tag"
                   >
-                    {{ tag.name || tag }}
+                    {{ tag.name || tag }} | {{ tag.group }}
                   </n-tag>
                 </div>
               </div>
@@ -158,7 +196,7 @@
           </n-collapse-item>
 
           <!-- Descriptions Section -->
-          <!-- <n-collapse-item title="Descriptions" name="descriptions">
+          <n-collapse-item title="Descriptions" name="descriptions">
             <template #header-extra>
               <n-icon>
                 <DocumentTextIcon />
@@ -188,7 +226,7 @@
                 </div>
               </div>
             </div>
-          </n-collapse-item> -->
+          </n-collapse-item>
 
           <!-- Notes Section -->
           <n-collapse-item title="Notes" name="notes">
@@ -248,6 +286,7 @@ import {
   SparklesOutline as SparklesIcon,
   RefreshOutline as RefreshIcon,
   CreateOutline as EditIcon,
+  EyeOutline as EyeIcon,
 } from "@vicons/ionicons5";
 
 import { api } from "@/utils/axios.js";
@@ -391,6 +430,14 @@ const formatFileSize = (bytes) => {
   const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
   return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
+};
+
+const formatCategoryName = (category) => {
+  // Convert snake_case to Title Case
+  return category
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 };
 
 const handleImageError = (event) => {
@@ -777,6 +824,46 @@ if (typeof window !== "undefined") {
   margin: 0;
   line-height: 1.6;
   color: var(--text-primary);
+}
+
+.visual-aspects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--primary-color);
+}
+
+.visual-aspect-category {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.aspect-category-title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: capitalize;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: var(--spacing-xs);
+}
+
+.aspect-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.aspect-tag {
+  font-size: var(--font-size-xs);
+}
+
+.visual-aspects-section {
+  padding: var(--spacing-md);
 }
 
 .regenerate-btn {

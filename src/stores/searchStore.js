@@ -1,6 +1,106 @@
 import { defineStore } from "pinia";
 import { ref, reactive, computed } from "vue";
 
+// Export visualAspectsOptions for reuse in other components
+export const visualAspectsOptions = [
+  {
+    type: "group",
+    label: "Palette",
+    key: "color",
+    children: [
+      { label: "Black and white", value: "black and white" },
+      { label: "Color", value: "color" },
+    ],
+  },
+  {
+    type: "group",
+    label: "Temperature",
+    key: "temperature",
+    children: [
+      { label: "Cold", value: "cold" },
+      { label: "Warm", value: "warm" },
+      { label: "Neutral", value: "neutral" },
+    ],
+  },
+  {
+    type: "group",
+    label: "Orientation",
+    key: "orientation",
+    children: [
+      { label: "Vertical", value: "vertical" },
+      { label: "Horizontal", value: "horizontal" },
+      { label: "Square", value: "square" },
+    ],
+  },
+  {
+    type: "group",
+    label: "Focus",
+    key: "focus",
+    children: [
+      { label: "Blurry", value: "blurry" },
+      { label: "Nitid", value: "nitid" },
+    ],
+  },
+  {
+    type: "group",
+    label: "Stylistic",
+    key: "stylistic",
+    children: [
+      { label: "Long exposure", value: "long exposure" },
+      { label: "Bokeh", value: "bokeh" },
+      { label: "Silhouettes", value: "silhouettes" },
+      { label: "Reflections", value: "reflections" },
+      { label: "Crooked", value: "crooked" },
+      { label: "Vivid colors", value: "vivid colors" },
+      { label: "Complementary colors", value: "complementary colors" },
+      { label: "Minimalist", value: "minimalist" },
+    ],
+  },
+  {
+    type: "group",
+    label: "Lighting",
+    key: "lighting",
+    children: [
+      { label: "Natural", value: "natural" },
+      { label: "Artificial", value: "artificial" },
+      { label: "Backlit", value: "backlit" },
+      { label: "Dramatic", value: "dramatic" },
+    ],
+  },
+  {
+    type: "group",
+    label: "Framing",
+    key: "framing",
+    children: [
+      { label: "Close-up", value: "close-up" },
+      { label: "Medium shot", value: "medium shot" },
+      { label: "Wide shot", value: "wide shot" },
+    ],
+  },
+  {
+    type: "group",
+    label: "Genre",
+    key: "genre",
+    children: [
+      { label: "Abstract", value: "abstract" },
+      { label: "Documentary", value: "documentary" },
+      { label: "Street", value: "street" },
+      { label: "Landscape", value: "landscape" },
+      { label: "Portrait", value: "portrait" },
+    ],
+  },
+  {
+    type: "group",
+    label: "Perspective",
+    key: "perspective",
+    children: [
+      { label: "Normal", value: "normal" },
+      { label: "High angle", value: "high angle" },
+      { label: "Low angle", value: "low angle" },
+    ],
+  },
+];
+
 export const useSearchStore = defineStore("search", () => {
   // Estado global del search
   const activeSearchType = ref("semantic");
@@ -10,91 +110,6 @@ export const useSearchStore = defineStore("search", () => {
 
   // Visual aspects filter state
   const selectedVisualAspects = ref([]);
-
-  // Visual aspects options grouped by categories
-  const visualAspectsOptions = [
-    {
-      type: "group",
-      label: "Palette",
-      key: "palette",
-      children: [
-        { label: "Black and white", value: "black and white" },
-        { label: "Color", value: "color" },
-        { label: "Vivid colors", value: "vivid colors" },
-        { label: "Muted colors", value: "muted colors" },
-        { label: "Warm colors", value: "warm colors" },
-        { label: "Cold colors", value: "cold colors" },
-      ],
-    },
-    {
-      type: "group",
-      label: "Orientation",
-      key: "orientation",
-      children: [
-        { label: "Vertical", value: "vertical" },
-        { label: "Horizontal", value: "horizontal" },
-        { label: "Square", value: "square" },
-      ],
-    },
-    {
-      type: "group",
-      label: "Focus",
-      key: "focus",
-      children: [
-        { label: "Blurry", value: "blurry" },
-        { label: "Nitid", value: "nitid" },
-        { label: "Average", value: "average" },
-      ],
-    },
-    {
-      type: "group",
-      label: "Stylistic",
-      key: "stylistic",
-      children: [
-        { label: "Long exposure", value: "long exposure" },
-        { label: "Bokeh", value: "bokeh" },
-        { label: "High contrast", value: "high contrast" },
-        { label: "Silhouettes", value: "silhouettes" },
-        { label: "Reflections", value: "reflections" },
-        { label: "Crooked", value: "crooked" },
-      ],
-    },
-    {
-      type: "group",
-      label: "Lighting",
-      key: "lighting",
-      children: [
-        { label: "Natural", value: "natural" },
-        { label: "Artificial", value: "artificial" },
-        { label: "Backlit", value: "backlit" },
-        { label: "Side-lit", value: "side-lit" },
-        { label: "Dramatic", value: "dramatic" },
-      ],
-    },
-    {
-      type: "group",
-      label: "Framing",
-      key: "framing",
-      children: [
-        { label: "Close-up", value: "close-up" },
-        { label: "Medium shot", value: "medium shot" },
-        { label: "Wide shot", value: "wide shot" },
-      ],
-    },
-    {
-      type: "group",
-      label: "Genre",
-      key: "genre",
-      children: [
-        { label: "Abstract", value: "abstract" },
-        { label: "Documentary", value: "documentary" },
-        { label: "Street", value: "street" },
-        { label: "Travel", value: "travel" },
-        { label: "Landscape", value: "landscape" },
-        { label: "Portrait", value: "portrait" },
-      ],
-    },
-  ];
 
   // Estado específico para cada tipo de búsqueda
   const searchStates = reactive({

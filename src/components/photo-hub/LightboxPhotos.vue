@@ -246,22 +246,17 @@ import { computed, onMounted, ref, watch } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
 import { usePhotoUpload } from "@/composables/usePhotoUpload.js";
 
-import { useImageProcessing } from "@/composables/useImageProcessing.js";
 import { BookInformation20Regular } from "@vicons/fluent";
-import PhotoCardHub from "../photoCards/PhotoCardHub.vue";
+
 import PhotosGrid from "../PhotosGrid.vue";
 import DuplicatePhotosDialog from "../DuplicatePhotosDialog.vue";
 
 import { NModal, NCheckbox, NTooltip } from "naive-ui";
 
-import { ImagesOutline } from "@vicons/ionicons5";
-import { InProgress } from "@vicons/carbon";
-import { api_analyzer, api } from "@/utils/axios";
 import { useMessage } from "naive-ui";
 
 const emit = defineEmits(["on-analyze", "selection-change"]);
 const photosStore = usePhotosStore();
-const message = useMessage();
 
 // Composables
 const {
@@ -277,12 +272,7 @@ const fileInput = ref(null);
 const showDuplicatesDialog = ref(false);
 const selectedDuplicates = ref([]);
 
-const isFirstTimeUpload = computed(() => photosStore.allPhotos.length === 0);
 const fastModeOverride = ref(true);
-
-const hasDuplicates = computed(() => {
-  return lightboxPhotos.value.some((photo) => photo.isDuplicate);
-});
 
 const fastMode = computed({
   get() {
