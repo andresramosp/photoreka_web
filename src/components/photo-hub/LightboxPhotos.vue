@@ -31,7 +31,7 @@
         "
       >
         <div style="display: flex; align-items: center">
-          <n-checkbox size="large" v-model:checked="fastMode">
+          <n-checkbox disabled size="large" v-model:checked="fastMode">
             Fast mode
           </n-checkbox>
           <!-- <n-tooltip trigger="hover" placement="top">

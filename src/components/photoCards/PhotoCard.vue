@@ -38,6 +38,19 @@
         </p>
       </div>
 
+      <!-- Matching Chunks Overlay (for hover in non-curation modes) -->
+      <!-- <div
+        v-if="
+          mode !== 'curation' && showHoverContent && formattedMatchingChunks
+        "
+        class="hover-content-overlay"
+      >
+  
+        <div class="matching-chunks">
+          <p class="chunks-text">{{ formattedMatchingChunks }}</p>
+        </div>
+      </div> -->
+
       <!-- Match Score Stars (visible en todos los modos) -->
       <div
         v-if="props.showStars && (computedStars > 0 || showLowRelevanceIcon)"
@@ -83,13 +96,14 @@
 
       <!-- Bottom overlay with matched tags or curation actions -->
       <div class="bottom-overlay">
-        <!-- Matched tags for default mode -->
+        <!-- Matched tags for default mode (visible on hover) -->
         <div
           v-if="
             props.showTags &&
             mode === 'default' &&
             uniqueMatchingTags &&
-            uniqueMatchingTags.length > 0
+            uniqueMatchingTags.length > 0 &&
+            showHoverContent
           "
           class="matched-tags"
         >
@@ -100,9 +114,9 @@
           >
             {{ tag }}
           </span>
-          <!-- <span v-if="uniqueMatchingTags.length > 3" class="tag-more">
+          <span v-if="uniqueMatchingTags.length > 3" class="tag-more">
             +{{ uniqueMatchingTags.length - 3 }}
-          </span> -->
+          </span>
         </div>
 
         <!-- Curation actions for curation mode -->
@@ -189,6 +203,7 @@ export interface Photo {
   reasoning?: string;
   matchScore?: number; // AI-generated match score (0 = not scored yet, 1-3 stars)
   matchingTags?: string[];
+  matchingChunks?: any[]; // AI-generated matching description chunks
   width?: number;
   height?: number;
   isUploading: boolean;
@@ -242,10 +257,19 @@ const isSelected = computed(() => props.selected);
 const imageLoaded = ref(false);
 const imageError = ref(false);
 const showTooltip = ref(false);
+const showHoverContent = ref(false);
 
 const uniqueMatchingTags = computed(() =>
   Array.from(new Set(props.photo.matchingTags))
 );
+
+// Computed for formatted matching chunks
+const formattedMatchingChunks = computed(() => {
+  if (!props.photo.matchingChunks || props.photo.matchingChunks.length === 0) {
+    return "";
+  }
+  return props.photo.matchingChunks.map((mc) => mc.chunk).join("... ");
+});
 
 const toggleSelection = () => {
   if (props.mode === "curation") return;
@@ -271,11 +295,20 @@ const moveToCuration = () => {
 const handleMouseEnter = () => {
   if (props.mode === "curation") {
     showTooltip.value = true;
+  } else {
+    // Show hover content for other modes when there are tags or chunks
+    if (
+      (uniqueMatchingTags.value && uniqueMatchingTags.value.length > 0) ||
+      (props.photo.matchingChunks && props.photo.matchingChunks.length > 0)
+    ) {
+      showHoverContent.value = true;
+    }
   }
 };
 
 const handleMouseLeave = () => {
   showTooltip.value = false;
+  showHoverContent.value = false;
 };
 </script>
 
@@ -346,6 +379,37 @@ const handleMouseLeave = () => {
 
 .reasoning-text {
   margin: 0;
+}
+
+/* Hover Content Overlay (for chunks and tags) */
+.hover-content-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  z-index: 5;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  width: 90%;
+  max-width: 250px;
+  backdrop-filter: blur(4px);
+}
+
+.matching-chunks {
+  margin: 0;
+}
+
+.chunks-text {
+  margin: 0;
+  font-weight: 400;
+  opacity: 0.95;
 }
 
 @keyframes fadeIn {
@@ -512,13 +576,13 @@ const handleMouseLeave = () => {
   }
 
   .tag-more {
-    font-size: 9px;
+    font-size: 8px;
     padding: 1px 4px;
   }
 
-  .ai-comment-tooltip {
-    font-size: 11px;
-    padding: 8px;
+  .hover-content-overlay {
+    font-size: 10px;
+    padding: 10px;
   }
 
   .move-button {

@@ -65,6 +65,7 @@ export const visualAspectsOptions = [
       { label: "Artificial", value: "artificial" },
       { label: "Backlit", value: "backlit" },
       { label: "Dramatic", value: "dramatic" },
+      { label: "Soft", value: "soft" },
     ],
   },
   {
