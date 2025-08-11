@@ -325,7 +325,6 @@ export const useSearchStore = defineStore("search", () => {
         photos: items.map((i) => i.photo),
       };
     });
-
     state.hasMoreIterations = data.hasMore;
     state.iteration = data.iteration + 1;
     state.hasSearched = true;

@@ -799,7 +799,6 @@ import {
   nextTick,
 } from "vue";
 import { api } from "@/utils/axios";
-import { io } from "socket.io-client";
 import { NTooltip, NRate } from "naive-ui";
 
 // Componentes e íconos
@@ -820,9 +819,6 @@ import { useSearchStore } from "@/stores/searchStore";
 import { useCollectionsStore } from "@/stores/collections";
 import { useRouter } from "vue-router";
 import { usePhotoScored } from "@/composables/usePhotoScored";
-
-// Conexión real-time para resultados incrementales
-const socket = io(import.meta.env.VITE_API_WS_URL);
 
 const photoStore = usePhotosStore();
 const canvasStore = useCanvasStore();
@@ -1008,7 +1004,7 @@ function handleScroll() {
 const gridColumns = ref(6);
 
 // Star filter for minimum rating
-const minStarRating = ref(1);
+const minStarRating = ref(0);
 
 // Collections filter
 const selectedCollections = ref([]);
@@ -1042,6 +1038,17 @@ function togglePhotoSelection(id) {
 function clearSelection() {
   localClearAllSelections();
 }
+
+function showPhotoInfo(photo) {
+  // TODO: Implement photo info dialog functionality
+  console.log("Show photo info:", photo);
+}
+
+function handleAddToCollection() {
+  // TODO: Implement add to collection functionality
+  console.log("Add to collection:", localSelectedPhotoIds.value);
+}
+
 async function moveToCanvas() {
   await Promise.all(
     localSelectedPhotoIds.value.map((id) => photoStore.fetchPhoto(id))
@@ -1105,6 +1112,8 @@ async function searchPhotos() {
     };
 
     let payload;
+    let endpoint;
+
     if (activeSearchType.value === "semantic") {
       payload = { description: semanticQuery.value, options };
     } else if (activeSearchType.value === "tags") {
@@ -1121,7 +1130,24 @@ async function searchPhotos() {
         options,
       };
     }
-    await api.post(`/api/search/${activeSearchType.value}`, payload);
+    endpoint = `/api/search/${activeSearchType.value}/sync`;
+
+    const { data: response } = await api.post(endpoint, payload);
+
+    debugger;
+    if (response.data) {
+      searchStore.updateSearchResults(response.data);
+
+      // Auto-scroll después de actualizar los resultados
+      setTimeout(() => {
+        scrollToLast();
+      }, 0);
+
+      // Verificar si hay más iteraciones disponibles
+      if (response.data.hasMore === false) {
+        searchStore.setMaxPageAttempts();
+      }
+    }
   } catch (err) {
     console.error("Error al buscar fotos:", err);
   }
@@ -1174,9 +1200,6 @@ onUnmounted(() => {
   if (scrollContainer.value) {
     scrollContainer.value.removeEventListener("scroll", handleScroll);
   }
-
-  socket.off("search-matches");
-  socket.off("maxPageAttempts");
 });
 
 // Carousel de ejemplos dinámico usando composable
@@ -1194,30 +1217,6 @@ const {
   currentExampleText,
   handleExampleClick,
 } = useQueryExamples(activeSearchType, searchMode, handleSearchExampleClick);
-
-let matchesListenerRegistered = false;
-watch(
-  () => userStore.user && userStore.user.id,
-  (val) => {
-    if (val) {
-      socket.emit("join", { userId: userStore.user.id });
-      if (!matchesListenerRegistered) {
-        socket.on("search-matches", (data) => {
-          console.log(data);
-          searchStore.updateSearchResults(data);
-          setTimeout(() => {
-            scrollToLast();
-          }, 0);
-        });
-        socket.on("maxPageAttempts", () => {
-          searchStore.setMaxPageAttempts();
-        });
-        matchesListenerRegistered = true;
-      }
-    }
-  },
-  { immediate: true }
-);
 
 // Función para manejar cambios en los inputs de búsqueda
 function onSearchChange() {

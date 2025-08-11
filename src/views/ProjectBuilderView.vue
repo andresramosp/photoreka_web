@@ -681,7 +681,7 @@ const searchPhotosApi = async (isInitial = false) => {
         minResults: minResults.value,
       },
     };
-    await api.post("/api/search/semantic", payload);
+    await api.post("/api/search/semantic/stream", payload);
   } catch (error) {
     if (isInitial) {
       console.error("❌ Error performing curation search:", error);
