@@ -193,7 +193,7 @@
       v-model:show="createDialogVisible"
       preset="dialog"
       title="Create New Collection"
-      positive-text="Next: Select Photos"
+      positive-text="Create Collection"
       negative-text="Cancel"
       @positive-click="proceedToPhotoSelection"
       @negative-click="createDialogVisible = false"
@@ -227,9 +227,7 @@
       v-model="photosDialogVisible"
       :is-trash="false"
       :title="`Add Photos to ${
-        showCollectionView && viewingCollection
-          ? viewingCollection.name || viewingCollection.title
-          : formData.title
+        viewingCollection?.name || viewingCollection?.title || 'Collection'
       }`"
       :displayLightboxTab="false"
       :displaySearch="true"
@@ -302,7 +300,6 @@ const createDialogVisible = ref(false);
 const photosDialogVisible = ref(false);
 const deleteConfirmationVisible = ref(false);
 const formRef = ref(null);
-const isCreatingCollection = ref(false);
 const viewingCollection = ref(null); // Collection being viewed
 const showCollectionView = ref(false); // Whether to show collection view or grid view
 
@@ -347,13 +344,37 @@ const proceedToPhotoSelection = async () => {
   try {
     await formRef.value?.validate();
     createDialogVisible.value = false;
-    isCreatingCollection.value = true;
-    photosDialogVisible.value = true;
-  } catch (error) {}
+
+    // Crear colección vacía directamente
+    const collectionData = {
+      title: formData.value.title,
+      description: formData.value.description,
+      photoIds: [], // Colección vacía
+    };
+
+    const newCollection = await collectionsStore.createCollection(
+      collectionData
+    );
+
+    message.success(
+      `Collection "${formData.value.title}" created successfully`
+    );
+
+    // Limpiar el formulario
+    formData.value = { title: "", description: "" };
+
+    // Navegar directamente a la colección recién creada
+    router.push({
+      name: "collection-detail",
+      params: { id: newCollection.id },
+    });
+  } catch (error) {
+    console.error("Error creating collection:", error);
+    message.error("Failed to create collection. Please try again.");
+  }
 };
 
 const showAddPhotosDialog = () => {
-  isCreatingCollection.value = false;
   photosDialogVisible.value = true;
 };
 
@@ -363,30 +384,8 @@ const onPhotosSelected = async (photoIds) => {
     return;
   }
 
-  if (isCreatingCollection.value) {
-    // Crear nueva colección
-    try {
-      const collectionData = {
-        title: formData.value.title,
-        description: formData.value.description,
-        photoIds: photoIds,
-      };
-
-      await collectionsStore.createCollection(collectionData);
-
-      message.success(
-        `Collection "${formData.value.title}" created successfully with ${photoIds.length} photos`
-      );
-      formData.value = { title: "", description: "" };
-      photosDialogVisible.value = false;
-    } catch (error) {
-      console.error("Error creating collection:", error);
-      message.error("Failed to create collection. Please try again.");
-    } finally {
-      isCreatingCollection.value = false;
-    }
-  } else if (showCollectionView.value && viewingCollection.value) {
-    // Añadir fotos a colección existente
+  // Solo se usa para añadir fotos a colección existente
+  if (showCollectionView.value && viewingCollection.value) {
     try {
       await collectionsStore.addPhotosToCollection(
         viewingCollection.value.id,
