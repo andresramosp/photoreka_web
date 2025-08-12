@@ -583,7 +583,7 @@
     <!-- Search Results / Empty State -->
     <div class="search-results-container">
       <div
-        v-if="!hasSearchQuery && !isSearching && !searchStore.hasSearched"
+        v-if="!isSearching && !searchStore.hasSearched"
         class="search-inspiration"
       >
         <div class="inspiration-content">
@@ -637,7 +637,7 @@
         </div>
       </div>
 
-      <div v-else class="search-results">
+      <div v-else-if="searchStore.hasSearched" class="search-results">
         <!-- Grid Controls -->
         <div class="grid-controls grid-controls-base">
           <div class="controls-left">
@@ -746,13 +746,6 @@
             @info="showPhotoInfo"
           />
 
-          <!-- BeFlexibleCard - solo en modo logical cuando no hay más resultados -->
-          <BeFlexibleCard
-            v-if="shouldShowBeFlexibleCard"
-            :is-loading="isBeFlexibleLoading"
-            @click="handleBeFlexibleClick"
-          />
-
           <!-- Skeleton Loading for Load More -->
           <template v-if="isLoadingMore">
             <div
@@ -766,11 +759,17 @@
         </div>
 
         <!-- Load More Button -->
-        <div class="load-more-container" v-if="hasMoreIterations">
+        <div
+          class="load-more-container"
+          v-if="hasMoreIterations || shouldShowTryFlexible"
+        >
           <n-button
             size="large"
-            :loading="isLoadingMore"
-            @click="loadMorePhotos"
+            :loading="isLoadingMore || isBeFlexibleLoading"
+            @click="
+              shouldShowTryFlexible ? handleBeFlexibleClick() : loadMorePhotos()
+            "
+            :type="shouldShowTryFlexible ? 'info' : 'default'"
             class="load-more-button"
           >
             <template #icon>
@@ -783,7 +782,7 @@
                 </svg>
               </n-icon>
             </template>
-            Load More Photos
+            {{ shouldShowTryFlexible ? "Try Flexible" : "Load More Photos" }}
           </n-button>
         </div>
       </div>
@@ -811,7 +810,6 @@ import { NTooltip, NRate } from "naive-ui";
 // Componentes e íconos
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
 import WarningBadge from "@/components/WarningBadge.vue";
-import BeFlexibleCard from "@/components/BeFlexibleCard.vue";
 
 // Composable de tags y ejemplos
 import { useSearchTags } from "@/composables/useSearchTags";
@@ -887,12 +885,11 @@ const filteredSearchResults = computed(() => {
   );
 });
 
-// Computed para determinar cuándo mostrar la BeFlexibleCard
-const shouldShowBeFlexibleCard = computed(() => {
+// Computed para determinar cuándo mostrar el botón "Try Flexible"
+const shouldShowTryFlexible = computed(() => {
   return (
     searchMode.value === "logical" &&
     !hasMoreIterations.value &&
-    searchResults.value.length > 0 &&
     !isSearching.value &&
     !isLoadingMore.value
   );
@@ -1198,7 +1195,7 @@ function scrollToLast() {
   });
 }
 
-// Función para manejar el click en BeFlexibleCard
+// Función para manejar el click en "Try Flexible"
 async function handleBeFlexibleClick() {
   isBeFlexibleLoading.value = true;
 
