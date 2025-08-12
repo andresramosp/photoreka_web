@@ -746,6 +746,13 @@
             @info="showPhotoInfo"
           />
 
+          <!-- BeFlexibleCard - solo en modo logical cuando no hay más resultados -->
+          <BeFlexibleCard
+            v-if="shouldShowBeFlexibleCard"
+            :is-loading="isBeFlexibleLoading"
+            @click="handleBeFlexibleClick"
+          />
+
           <!-- Skeleton Loading for Load More -->
           <template v-if="isLoadingMore">
             <div
@@ -804,6 +811,7 @@ import { NTooltip, NRate } from "naive-ui";
 // Componentes e íconos
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
 import WarningBadge from "@/components/WarningBadge.vue";
+import BeFlexibleCard from "@/components/BeFlexibleCard.vue";
 
 // Composable de tags y ejemplos
 import { useSearchTags } from "@/composables/useSearchTags";
@@ -879,6 +887,17 @@ const filteredSearchResults = computed(() => {
   );
 });
 
+// Computed para determinar cuándo mostrar la BeFlexibleCard
+const shouldShowBeFlexibleCard = computed(() => {
+  return (
+    searchMode.value === "logical" &&
+    !hasMoreIterations.value &&
+    searchResults.value.length > 0 &&
+    !isSearching.value &&
+    !isLoadingMore.value
+  );
+});
+
 // Computed para acceder a los valores específicos de cada tipo de búsqueda
 const semanticQuery = computed({
   get: () => searchStore.searchStates.semantic.query,
@@ -925,7 +944,8 @@ const {
 } = useSearchTags();
 
 // Control de carga y paginación
-const pageSize = ref(12);
+const pageSize = computed(() => gridColumns.value * 2); // 2 rows by default
+const isBeFlexibleLoading = ref(false);
 
 const warmedUp = ref(false);
 
@@ -1176,6 +1196,29 @@ function scrollToLast() {
       el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
     }
   });
+}
+
+// Función para manejar el click en BeFlexibleCard
+async function handleBeFlexibleClick() {
+  isBeFlexibleLoading.value = true;
+
+  try {
+    // Cambiar a modo flexible
+    searchStore.setSearchMode("flexible");
+
+    // Resetear la búsqueda y ejecutar desde 0
+    clearSelection();
+    searchStore.resetCurrentIteration();
+    searchStore.setSearching(true);
+
+    await searchPhotos();
+    searchStore.setSearching(false);
+  } catch (error) {
+    console.error("Error al cambiar a modo flexible:", error);
+    searchStore.setSearching(false);
+  } finally {
+    isBeFlexibleLoading.value = false;
+  }
 }
 
 // Manejo de respuestas en tiempo real
