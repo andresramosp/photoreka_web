@@ -487,7 +487,8 @@ const goToPlayground = () => {
     showMobileNotice.value = true;
     return;
   }
-  router.push({ name: "canvas-playground" });
+  const playgroundUrl = router.resolve({ name: "canvas-playground" }).href;
+  window.open(playgroundUrl, "_blank");
 };
 
 const scrollToDemo = () => {
