@@ -13,9 +13,11 @@
       <div class="logo-container">
         <div class="logo clickable-logo" @click="goToDashboard">
           <div class="logo-icon">
-            <n-icon size="28" color="#2563eb">
-              <CameraOutline />
-            </n-icon>
+            <img
+              :src="logoImagoName"
+              alt="Photoreka"
+              class="logo-brand-image"
+            />
           </div>
           <div class="logo-text">
             <img :src="logoName" alt="Photoreka" class="logo-brand-image" />
@@ -124,9 +126,11 @@
       <div class="logo-container">
         <div class="logo clickable-logo" @click="goToDashboard">
           <div v-if="collapsed" class="logo-icon">
-            <n-icon size="28" color="#2563eb">
-              <CameraOutline />
-            </n-icon>
+            <img
+              :src="logoImagoName"
+              alt="Photoreka"
+              class="logo-brand-image"
+            />
           </div>
           <div v-if="!collapsed" class="logo-text">
             <img :src="logoName" alt="Photoreka" class="logo-brand-image" />
@@ -214,6 +218,7 @@ import { usePhotosStore } from "@/stores/photos.js";
 
 import { Workspace as CanvasIcon } from "@vicons/carbon";
 import logoName from "@/assets/logo_name_sub_curation_lab_blue.png";
+import logoImagoName from "@/assets/logo_imago.png";
 
 // Import @vicons icons from ionicons5 for reliability
 import {
@@ -569,10 +574,6 @@ onUnmounted(() => {
   transition: background-color 0.2s ease;
 }
 
-.clickable-logo:hover {
-  background-color: rgba(37, 99, 235, 0.1);
-}
-
 .logo-icon {
   flex-shrink: 0;
   display: flex;
@@ -580,7 +581,7 @@ onUnmounted(() => {
   justify-content: center;
   width: 40px;
   height: 40px;
-  background-color: rgba(37, 99, 235, 0.1);
+  /* background-color: rgba(37, 99, 235, 0.1); */
   border-radius: 8px;
   transition: background-color 0.2s ease;
 }
@@ -592,7 +593,7 @@ onUnmounted(() => {
 }
 
 .logo-brand-image {
-  height: 54px;
+  height: 60px;
   width: auto;
   object-fit: contain;
 }
