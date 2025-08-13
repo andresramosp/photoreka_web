@@ -30,7 +30,7 @@
               <template #icon>
                 <n-icon><Workspace /></n-icon>
               </template>
-              Playground
+              Free Canvas
             </n-button>
           </div>
         </div>
