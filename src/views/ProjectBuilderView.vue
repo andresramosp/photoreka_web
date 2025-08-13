@@ -261,7 +261,7 @@
             View in Canvas
           </n-button>
           <n-button
-            @click="() => {}"
+            @click="handleAddToCollection"
             size="large"
             :disabled="curatedPhotos.length == 0"
           >
@@ -340,6 +340,15 @@
         </div>
       </div>
     </div>
+
+    <!-- Collection Selection Modal -->
+    <CollectionModal
+      :show="showCollectionModal"
+      :photo-count="curatedPhotos.length"
+      :photo-ids="curatedPhotos.map((photo) => photo.id)"
+      @add-to-collection="handleCollectionAdded"
+      @cancel="cancelCollectionModal"
+    />
   </div>
 </template>
 
@@ -360,9 +369,16 @@ defineOptions({
 });
 
 import PhotoCard from "../components/photoCards/PhotoCard.vue";
+import CollectionModal from "@/components/CollectionModal.vue";
 import { useUserStore } from "@/stores/userStore";
 import { useQueryExamples } from "@/composables/useQueryExamples";
-import { NRate, NSelect, useNotification, NTooltip } from "naive-ui";
+import {
+  NRate,
+  NSelect,
+  useNotification,
+  NTooltip,
+  useMessage,
+} from "naive-ui";
 import {
   FolderOpenOutline,
   ImagesOutline,
@@ -372,6 +388,7 @@ import {
 } from "@vicons/ionicons5";
 import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas.js";
+import { useCollectionsStore } from "@/stores/collections.js";
 import { useRouter } from "vue-router";
 
 import { api } from "@/utils/axios";
@@ -380,8 +397,13 @@ import { InfoCircleOutlined } from "@vicons/antd";
 
 const canvasStore = useCanvasStore();
 const photoStore = usePhotosStore();
+const collectionsStore = useCollectionsStore();
 const router = useRouter();
 const notification = useNotification();
+const message = useMessage();
+
+// Estado del modal de colecciones
+const showCollectionModal = ref(false);
 
 // Llevar las fotos seleccionadas a Canvas
 async function moveToCanvas() {
@@ -395,7 +417,8 @@ async function moveToCanvas() {
     .filter(Boolean);
 
   // Agregar al canvas
-  canvasStore.addPhotos(photosToAdd);
+  canvasStore.addPhotos(photosToAdd, false, true);
+
   // Navegar al canvas
   router.push("/canvas");
 }
@@ -825,6 +848,20 @@ const onRatingChange = (rating) => {
 const onResultsChange = (results) => {
   minResults.value = results;
   console.log("Min results filter set to:", minResults.value);
+};
+
+// Collection modal functions
+const handleAddToCollection = () => {
+  showCollectionModal.value = true;
+};
+
+const cancelCollectionModal = () => {
+  showCollectionModal.value = false;
+}
+
+const handleCollectionAdded = (data) => {
+  showCollectionModal.value = false;
+
 };
 
 // Lifecycle hooks

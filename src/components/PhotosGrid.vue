@@ -409,7 +409,7 @@ const moveToCanvas = async () => {
     .filter(Boolean);
 
   clearAllSelections();
-  canvasStore.addPhotos(photosToAdd);
+  canvasStore.addPhotos(photosToAdd, false, true);
 
   router.push("/canvas");
 };

@@ -787,6 +787,15 @@
         </div>
       </div>
     </div>
+
+    <!-- Collection Selection Modal -->
+    <CollectionModal
+      :show="showCollectionModal"
+      :photo-count="localSelectedPhotoIds.length"
+      :photo-ids="localSelectedPhotoIds"
+      @add-to-collection="handleCollectionAdded"
+      @cancel="cancelCollectionModal"
+    />
   </div>
 </template>
 
@@ -805,11 +814,12 @@ import {
   nextTick,
 } from "vue";
 import { api } from "@/utils/axios";
-import { NTooltip, NRate } from "naive-ui";
+import { NTooltip, NRate, useMessage, useNotification } from "naive-ui";
 
 // Componentes e íconos
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
 import WarningBadge from "@/components/WarningBadge.vue";
+import CollectionModal from "@/components/CollectionModal.vue";
 
 // Composable de tags y ejemplos
 import { useSearchTags } from "@/composables/useSearchTags";
@@ -832,6 +842,8 @@ const userStore = useUserStore();
 const searchStore = useSearchStore();
 const collectionsStore = useCollectionsStore();
 const router = useRouter();
+const message = useMessage();
+const notification = useNotification();
 
 // Photo scoring utilities
 const { computePhotoStars, shouldShowLowRelevanceIcon } = usePhotoScored();
@@ -847,6 +859,9 @@ const {
 // Estado del toolbar colapsable
 const isToolbarCollapsed = ref(false);
 const lastScrollY = ref(0);
+
+// Estado del modal de colecciones
+const showCollectionModal = ref(false);
 
 // Usar el store para el estado de búsqueda
 const activeSearchType = computed({
@@ -1062,9 +1077,18 @@ function showPhotoInfo(photo) {
 }
 
 function handleAddToCollection() {
-  // TODO: Implement add to collection functionality
-  console.log("Add to collection:", localSelectedPhotoIds.value);
+  showCollectionModal.value = true;
 }
+
+const cancelCollectionModal = () => {
+  showCollectionModal.value = false;
+};
+
+const handleCollectionAdded = (data) => {
+  showCollectionModal.value = false;
+  // Clear selections after adding to collection
+  localClearAllSelections();
+};
 
 async function moveToCanvas() {
   await Promise.all(
@@ -1075,7 +1099,7 @@ async function moveToCanvas() {
     .filter(Boolean);
 
   localClearAllSelections();
-  canvasStore.addPhotos(photosToAdd);
+  canvasStore.addPhotos(photosToAdd, false, true);
 
   router.push("/canvas");
 }
@@ -1151,7 +1175,6 @@ async function searchPhotos() {
 
     const { data: response } = await api.post(endpoint, payload);
 
-    debugger;
     if (response.data) {
       searchStore.updateSearchResults(response.data);
 

@@ -103,26 +103,6 @@
                 }"
               />
 
-              <!-- Glow effect for new photos -->
-              <v-rect
-                v-if="photo.isNew"
-                :config="{
-                  x: -2,
-                  y: -2,
-                  width: photo.config.width + 4,
-                  height: photo.config.height + 4,
-                  stroke: '#22d3ee',
-                  strokeWidth: 2,
-                  fill: 'transparent',
-                  shadowColor: '#22d3ee',
-                  shadowBlur: 20,
-                  shadowOffset: { x: 0, y: 0 },
-                  shadowOpacity: 0.4,
-                  name: `glow-${photo.id}`,
-                }"
-                ref="newPhotoGlowRefs"
-              />
-
               <!-- Spinner de carga -->
               <v-group
                 v-if="photo.loading && expansionMode == 'canvas'"
@@ -640,6 +620,7 @@ import {
   h,
   watch,
   watchEffect,
+  nextTick,
 } from "vue";
 import { useRoute } from "vue-router";
 import {
@@ -688,7 +669,6 @@ const photoRefs = ref({});
 const setPhotoRef = (id) => (el) => {
   if (el) photoRefs.value[id] = el;
 };
-const newPhotoGlowRefs = ref([]);
 
 const toolbarState = ref({
   mouseMode: "move",
@@ -771,36 +751,11 @@ const dynamicSizeFactor = computed(() => {
   return Math.min(Math.max(newFactor, 1), 5);
 });
 
-// Animation for new photo glow effect
-const animateNewPhotoGlow = () => {
-  if (newPhotoGlowRefs.value && newPhotoGlowRefs.value.length > 0) {
-    newPhotoGlowRefs.value.forEach((glowRef) => {
-      if (glowRef && glowRef.getNode) {
-        const node = glowRef.getNode();
-        if (node) {
-          // Create pulsing animation
-          const tween = new Konva.Tween({
-            node: node,
-            shadowBlur: 25,
-            shadowOpacity: 0.6,
-            duration: 1,
-            easing: Konva.Easings.EaseInOut,
-            yoyo: true,
-            repeat: -1,
-          });
-          tween.play();
-
-          // Store tween reference to clean up later
-          if (!node._glowTween) {
-            node._glowTween = tween;
-          }
-        }
-      }
-    });
-  }
-
-  // Re-run animation for any new glow elements
-  requestAnimationFrame(animateNewPhotoGlow);
+// Simple glow effect - no animation, just static glow for new photos
+const setupNewPhotoGlow = () => {
+  // No need for any animation - the glow is handled statically in the template
+  // through the :config binding which already includes shadowColor, shadowBlur, etc.
+  // The store handles timing (3 seconds) via the isNew property
 };
 
 // Computed property to determine if expansion mode should be available
@@ -849,16 +804,14 @@ async function handleAddPhotos(photoIds) {
   const photosToAdd = photoIds
     .map((id) => photosStore.photos.find((p) => p.id == id))
     .filter(Boolean);
-  await canvasStore.addPhotos(photosToAdd);
 
-  fitStageToPhotos(0.2);
+  // Pass autoFit=true to enable automatic fitting
+  await canvasStore.addPhotos(photosToAdd, false, true);
 }
 
 async function handleAddPlaygroundPhotos(photosData) {
-  // For playground mode, use the canvas store like normal mode
-  await canvasStore.addPhotos(photosData);
-
-  fitStageToPhotos(0.2);
+  // For playground mode, use the canvas store like normal mode with auto-fit
+  await canvasStore.addPhotos(photosData, false, true);
 }
 
 function handleAddPhotoFromPhoto(event) {
@@ -953,71 +906,8 @@ const handleClearCanvas = () => {
 };
 
 const fitStageToPhotos = (extraPaddingRatio = 0.1) => {
-  if (!photos.value.length) return;
-
-  const stage = stageRef.value.getStage();
-  const containerWidth = stage.width() - TOOLBAR_WIDTH; // Restamos el ancho de la toolbar
-  const containerHeight = stage.height();
-  const margin = 40;
-
-  // Bounding box de todas las fotos
-  const bounds = photos.value.reduce(
-    (acc, p) => {
-      const { x, y, width, height } = p.config;
-      acc.minX = Math.min(acc.minX, x);
-      acc.minY = Math.min(acc.minY, y);
-      acc.maxX = Math.max(acc.maxX, x + width);
-      acc.maxY = Math.max(acc.maxY, y + height);
-      return acc;
-    },
-    {
-      minX: Infinity,
-      minY: Infinity,
-      maxX: -Infinity,
-      maxY: -Infinity,
-    }
-  );
-
-  // Añadir padding adicional
-  const paddingX = (bounds.maxX - bounds.minX) * extraPaddingRatio;
-  const paddingY = (bounds.maxY - bounds.minY) * extraPaddingRatio;
-  bounds.minX -= paddingX;
-  bounds.maxX += paddingX;
-  bounds.minY -= paddingY;
-  bounds.maxY += paddingY;
-
-  const photosWidth = bounds.maxX - bounds.minX + margin * 2;
-  const photosHeight = bounds.maxY - bounds.minY + margin * 2;
-  const targetZoom = Math.min(
-    containerWidth / photosWidth,
-    containerHeight / photosHeight,
-    2
-  );
-
-  const targetX =
-    (containerWidth - photosWidth * targetZoom) / 2 -
-    bounds.minX * targetZoom +
-    margin * targetZoom +
-    TOOLBAR_WIDTH / 2; // Ajustamos el offset para centrar en el espacio disponible
-  const targetY =
-    (containerHeight - photosHeight * targetZoom) / 2 -
-    bounds.minY * targetZoom +
-    margin * targetZoom;
-
-  // Tween para animar el zoom y el desplazamiento
-  new Konva.Tween({
-    node: stage,
-    scaleX: targetZoom,
-    scaleY: targetZoom,
-    x: targetX,
-    y: targetY,
-    duration: 0.4,
-    easing: Konva.Easings.EaseInOut,
-    onFinish: () => {
-      toolbarState.value.zoomLevel = targetZoom;
-      updateStageOffset();
-    },
-  }).play();
+  // Delegate to store method
+  canvasStore.fitStageToPhotos(extraPaddingRatio, TOOLBAR_WIDTH);
 };
 
 const openConfig = () => {
@@ -1129,17 +1019,10 @@ const handleClickOutside = (event) => {
   }
 };
 
-// Cleanup function for glow animations
+// Cleanup function - simplified since we no longer use intervals
 const cleanupGlowAnimations = (photoId) => {
-  const stage = stageRef.value?.getStage();
-  if (stage) {
-    stage.find(`.glow-${photoId}`).forEach((node) => {
-      if (node._glowTween) {
-        node._glowTween.destroy();
-        delete node._glowTween;
-      }
-    });
-  }
+  // No cleanup needed since we're not using animations anymore
+  // The glow is handled purely by the isNew property timing in the store
 };
 
 const handleKeyDown = (event) => {
@@ -1301,6 +1184,16 @@ watch(basicMode, (val) => {
   if (val) basicModeDismissed.value = false;
 });
 
+// Watch for new photos - no animation needed since glow is handled statically
+// The store already handles the 3-second timing via the isNew property
+watch(
+  () => photos.value.filter((p) => p.isNew).length,
+  (newPhotosCount) => {
+    // No action needed - glow is handled automatically by the template
+    // through the :config binding and the store's isNew property timing
+  }
+);
+
 // Keep interactionMode and toolbarState.mouseMode in sync
 watch(
   interactionMode,
@@ -1338,11 +1231,13 @@ onMounted(() => {
   updateStageOffset();
   fitStageToPhotos();
 
-  // Start glow animation for new photos
-  animateNewPhotoGlow();
-
   // Register cleanup function in the store
   canvasStore.setGlowCleanupFunction(cleanupGlowAnimations);
+
+  // Register stage reference and update function for auto-fitting
+  canvasStore.setStageRef(stageRef.value);
+  canvasStore.updateStageOffset = updateStageOffset;
+  canvasStore.toolbarState = toolbarState;
 
   // Auto-open photos dialog in playground mode
   if (isPlayground.value) {
@@ -1354,6 +1249,8 @@ onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
   document.removeEventListener("click", handleClickOutside);
   document.removeEventListener("keydown", handleKeyDown);
+
+  // No glow interval cleanup needed since we're not using animations
 });
 </script>
 

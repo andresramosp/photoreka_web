@@ -93,6 +93,8 @@ export const useCanvasStore = defineStore("canvas", {
     discardedPhotos: [],
     currentZIndex: 1,
     basicMode: false, // true si hay alguna foto .status === "uploaded"
+    stageRef: null, // Reference to the stage for auto-fitting
+    autoFitEnabled: true, // Flag to enable/disable auto-fitting
   }),
   actions: {
     updateBasicMode() {
@@ -101,7 +103,7 @@ export const useCanvasStore = defineStore("canvas", {
       );
     },
 
-    async addPhotos(photoObjects, fromPhoto = false) {
+    async addPhotos(photoObjects, fromPhoto = false, autoFit = false) {
       const addedPhotoIds = [];
       for (let index = 0; index < photoObjects.length; index++) {
         const photo = photoObjects[index];
@@ -121,6 +123,14 @@ export const useCanvasStore = defineStore("canvas", {
 
       // Apply glow effect to newly added photos
       this.applyGlowEffect(addedPhotoIds);
+
+      // Auto-fit stage to photos if enabled and requested
+      if (autoFit && this.autoFitEnabled && addedPhotoIds.length > 0) {
+        // Small delay to ensure photos are rendered
+        setTimeout(() => {
+          this.fitStageToPhotos(0.2);
+        }, 100);
+      }
     },
 
     // Trae fotos similares usando el endpoint /byPhotos
@@ -131,7 +141,8 @@ export const useCanvasStore = defineStore("canvas", {
       basePosition,
       opposite,
       inverted,
-      onCanvas
+      onCanvas,
+      autoFit = false
     ) {
       let basePhoto = basePhotos[0]; // de momento solo un anchor
       try {
@@ -192,6 +203,13 @@ export const useCanvasStore = defineStore("canvas", {
 
           // Apply glow effect to newly added photos
           this.applyGlowEffect(addedPhotoIds);
+
+          // Auto-fit if requested (usually false for canvas expansions due to animations)
+          if (autoFit && this.autoFitEnabled && addedPhotoIds.length > 0) {
+            setTimeout(() => {
+              this.fitStageToPhotos(0.2);
+            }, 100);
+          }
         } else {
           return backendPhotos;
         }
@@ -221,8 +239,9 @@ export const useCanvasStore = defineStore("canvas", {
           setTimeout(() => {
             photo.isNew = false;
             // Clean up any running animations if there's access to stage
-            // This will be handled by the component that has access to the stage
-            this.cleanupGlowAnimations?.(photo.id);
+            if (this.cleanupGlowAnimations) {
+              this.cleanupGlowAnimations(photo.id);
+            }
           }, 3000);
         }
       });
@@ -231,6 +250,91 @@ export const useCanvasStore = defineStore("canvas", {
     // Method to be called by components to register cleanup function
     setGlowCleanupFunction(cleanupFn) {
       this.cleanupGlowAnimations = cleanupFn;
+    },
+
+    // Method to register stage reference for auto-fitting
+    setStageRef(stageRef) {
+      this.stageRef = stageRef;
+    },
+
+    // Method to enable/disable auto-fitting
+    setAutoFitEnabled(enabled) {
+      this.autoFitEnabled = enabled;
+    },
+
+    // Fit stage to photos - moved from CanvasView
+    fitStageToPhotos(extraPaddingRatio = 0.1) {
+      if (!this.photos.length || !this.stageRef) return;
+
+      const stage = this.stageRef.getStage();
+      const containerWidth = stage.width();
+      const containerHeight = stage.height();
+      const margin = 40;
+
+      // Bounding box de todas las fotos
+      const bounds = this.photos.reduce(
+        (acc, p) => {
+          const { x, y, width, height } = p.config;
+          acc.minX = Math.min(acc.minX, x);
+          acc.minY = Math.min(acc.minY, y);
+          acc.maxX = Math.max(acc.maxX, x + width);
+          acc.maxY = Math.max(acc.maxY, y + height);
+          return acc;
+        },
+        {
+          minX: Infinity,
+          minY: Infinity,
+          maxX: -Infinity,
+          maxY: -Infinity,
+        }
+      );
+
+      // Añadir padding adicional
+      const paddingX = (bounds.maxX - bounds.minX) * extraPaddingRatio;
+      const paddingY = (bounds.maxY - bounds.minY) * extraPaddingRatio;
+      bounds.minX -= paddingX;
+      bounds.maxX += paddingX;
+      bounds.minY -= paddingY;
+      bounds.maxY += paddingY;
+
+      const photosWidth = bounds.maxX - bounds.minX + margin * 2;
+      const photosHeight = bounds.maxY - bounds.minY + margin * 2;
+      const targetZoom = Math.min(
+        containerWidth / photosWidth,
+        containerHeight / photosHeight,
+        2
+      );
+
+      const targetX =
+        (containerWidth - photosWidth * targetZoom) / 2 -
+        bounds.minX * targetZoom +
+        margin * targetZoom;
+      const targetY =
+        (containerHeight - photosHeight * targetZoom) / 2 -
+        bounds.minY * targetZoom +
+        margin * targetZoom;
+
+      // Import Konva dynamically to avoid issues
+      import("konva").then((Konva) => {
+        new Konva.default.Tween({
+          node: stage,
+          scaleX: targetZoom,
+          scaleY: targetZoom,
+          x: targetX,
+          y: targetY,
+          duration: 0.4,
+          easing: Konva.default.Easings.EaseInOut,
+          onFinish: () => {
+            // Update toolbar state if available
+            if (this.toolbarState && this.toolbarState.value) {
+              this.toolbarState.value.zoomLevel = targetZoom;
+            }
+            if (this.updateStageOffset) {
+              this.updateStageOffset();
+            }
+          },
+        }).play();
+      });
     },
   },
 });

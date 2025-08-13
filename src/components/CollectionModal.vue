@@ -51,8 +51,9 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
-import { NModal, NSpin, useMessage } from "naive-ui";
+import { ref, computed, watch, h } from "vue";
+import { useRouter } from "vue-router";
+import { NModal, NSpin, useMessage, useNotification } from "naive-ui";
 import { useCollectionsStore } from "@/stores/collections.js";
 
 const emit = defineEmits(["add-to-collection", "cancel"]);
@@ -72,7 +73,9 @@ const props = defineProps({
 });
 
 const message = useMessage();
+const notification = useNotification();
 const collectionsStore = useCollectionsStore();
+const router = useRouter();
 
 // Local state
 const showModal = ref(false);
@@ -119,13 +122,44 @@ const handleAddToCollection = async () => {
         selectedCollection.value.id,
         props.photoIds
       );
-      message.success(
-        `Successfully added ${props.photoCount} photo${
+      const collection = selectedCollection.value;
+      notification.success({
+        title: "Photos added to collection",
+        content: `Successfully added ${props.photoCount} photo${
           props.photoCount === 1 ? "" : "s"
-        } to "${selectedCollection.value.name}"`
-      );
+        } to "${collection.name}"`,
+        action: () =>
+          h(
+            "button",
+            {
+              style: {
+                color: "#8b5cf6",
+                textDecoration: "none",
+                fontWeight: "600",
+                padding: "6px 12px",
+                background: "rgba(139, 92, 246, 0.1)",
+                borderRadius: "6px",
+                border: "1px solid rgba(139, 92, 246, 0.3)",
+                transition: "all 0.2s ease",
+                cursor: "pointer",
+              },
+              onMouseover: (e) => {
+                e.target.style.background = "rgba(139, 92, 246, 0.2)";
+              },
+              onMouseout: (e) => {
+                e.target.style.background = "rgba(139, 92, 246, 0.1)";
+              },
+              onClick: () => {
+                router.push(`/collections/${collection.id}`);
+              },
+            },
+            "View collection"
+          ),
+        duration: 5000,
+      });
+
       emit("add-to-collection", {
-        collection: selectedCollection.value,
+        collection,
         photoIds: props.photoIds,
       });
       handleCancel();
