@@ -506,11 +506,7 @@ const faqs = ref([
       "Our pipeline of computer vision algorithms analyzes your photographs, identifying narrative and stylistic elements. This enables intelligent organization, advanced semantic searches, and the creation of visual connections between your images to facilitate the selection of your work. For detailed information on our image processing policies, please see our Terms and Image Policy.",
     hasLink: true,
   },
-  {
-    question: "What are the main tools offered by the platform?",
-    answer:
-      "Photoreka includes the Canvas for visualization and sequencing, the Explorer for advanced searches, the Project Builder for creating photographic projects, and the Grid Maker for generating compositions. It also offers collection management tools and visual pattern analysis.",
-  },
+
   {
     question: "Is Photoreka a storage platform?",
     answer:
@@ -523,15 +519,15 @@ const faqs = ref([
       "No. Photoreka is dedicated exclusively to the analysis and organization of photographic images. The platform does not generate synthetic images, alter, or transform your photos in any way. We do not support or endorse the creation or use of synthetic or manipulated images within Photoreka.",
   },
   {
-    question: "Can I try Photoreka for free?",
-    answer: `Analyzing your photos requires a single batch payment. Afterward, you can use most tools for free, with some daily/total limits, or purchase credits to work unlimitedly. <span style='color:var(--info-color);font-weight:600;'>During the <a href='#' style='color:var(--info-color);text-decoration:underline;' onclick='event.preventDefault();window.__goToEarlyAccess && window.__goToEarlyAccess()'>early access</a> phase, a free photo package and usage credits will be offered.</span>`,
-    hasHtml: true,
-  },
-  {
     question: "What happens to my photos and who can see them?",
     answer:
       "We only store a reduced version of your images on secure servers, enough to analyze and facilitate searches, but not for other uses. The analysis is performed using proprietary and third-party services under agreements that prevent retaining or reusing your photos. They are not shared with anyone and you always retain 100% of the rights to your work. For complete details, please read our Terms and Image Policy.",
     hasLink: true,
+  },
+  {
+    question: "Can I try Photoreka for free?",
+    answer: `Analyzing your photos requires a single batch payment. Afterward, you can use most tools for free, with some daily/total limits, or purchase credits to work unlimitedly. <span style='color:var(--info-color);font-weight:600;'>During the <a href='#' style='color:var(--info-color);text-decoration:underline;' onclick='event.preventDefault();window.__goToEarlyAccess && window.__goToEarlyAccess()'>early access</a> phase, a free photo package and usage credits will be offered.</span>`,
+    hasHtml: true,
   },
 ]);
 
