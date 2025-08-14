@@ -19,12 +19,12 @@ export const useUserStore = defineStore("user", () => {
   // Mock usage limits state by section
   const usageLimits = ref({
     search: {
-      exceeded: true,
+      exceeded: false,
       permanent: false, // Can be closed by user
       dismissed: false, // Whether user dismissed the badge
     },
     curation: {
-      exceeded: true,
+      exceeded: false,
       permanent: false, // Cannot be closed, requires credits
       dismissed: false, // Not used when permanent is true
     },

@@ -997,11 +997,29 @@ function handleTagSelected() {
 
 // Función para manejar cambios en tags incluidas
 function handleIncludedTagsChange(value) {
+  // Trigger warm up cuando el usuario empieza a escribir el primer tag
+  if (
+    value &&
+    value.length === 1 &&
+    includedTags.value.length === 0 &&
+    !userStore.usageLimits.search.exceeded
+  ) {
+    ensureWarmUp();
+  }
   searchStore.updateTagsSearch(value, excludedTags.value);
 }
 
 // Función para manejar cambios en tags excluidas
 function handleExcludedTagsChange(value) {
+  // Trigger warm up cuando el usuario empieza a escribir el primer tag
+  if (
+    value &&
+    value.length === 1 &&
+    excludedTags.value.length === 0 &&
+    !userStore.usageLimits.search.exceeded
+  ) {
+    ensureWarmUp();
+  }
   searchStore.updateTagsSearch(includedTags.value, value);
 }
 
@@ -1282,13 +1300,27 @@ const {
 } = useQueryExamples(activeSearchType, searchMode, handleSearchExampleClick);
 
 // Función para manejar cambios en los inputs de búsqueda
-function onSearchChange() {
+function onSearchChange(value) {
+  // Trigger warm up cuando el usuario empieza a escribir en input vacío
+  if (value && value.length === 1 && !userStore.usageLimits.search.exceeded) {
+    ensureWarmUp();
+  }
   // Esta función se puede usar para triggers adicionales si es necesario
   // pero el binding reactivo del store ya se encarga de actualizar automáticamente
 }
 
 // Función para manejar cambios en topological search
 function updateTopologicalLeft(value) {
+  // Trigger warm up cuando el usuario empieza a escribir en input vacío
+
+  if (
+    value &&
+    value.length === 1 &&
+    topological.value.left === "" &&
+    !userStore.usageLimits.search.exceeded
+  ) {
+    ensureWarmUp();
+  }
   searchStore.updateTopologicalSearch(
     value,
     topological.value.center,
@@ -1297,6 +1329,15 @@ function updateTopologicalLeft(value) {
 }
 
 function updateTopologicalCenter(value) {
+  // Trigger warm up cuando el usuario empieza a escribir en input vacío
+  if (
+    value &&
+    value.length === 1 &&
+    topological.value.center === "" &&
+    !userStore.usageLimits.search.exceeded
+  ) {
+    ensureWarmUp();
+  }
   searchStore.updateTopologicalSearch(
     topological.value.left,
     value,
@@ -1305,6 +1346,15 @@ function updateTopologicalCenter(value) {
 }
 
 function updateTopologicalRight(value) {
+  // Trigger warm up cuando el usuario empieza a escribir en input vacío
+  if (
+    value &&
+    value.length === 1 &&
+    topological.value.right === "" &&
+    !userStore.usageLimits.search.exceeded
+  ) {
+    ensureWarmUp();
+  }
   searchStore.updateTopologicalSearch(
     topological.value.left,
     topological.value.center,
