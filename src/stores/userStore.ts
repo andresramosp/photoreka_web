@@ -81,16 +81,23 @@ export const useUserStore = defineStore("user", () => {
   const register = async (
     email: string,
     password: string,
-    name: string
+    name: string,
+    authCode?: string
   ): Promise<{ success: boolean; error?: string }> => {
     isLoading.value = true;
 
     try {
-      const response = await api.post("/api/auth/register", {
+      const payload: any = {
         email,
         password,
         name,
-      });
+      };
+
+      if (authCode) {
+        payload.authCode = authCode;
+      }
+
+      const response = await api.post("/api/auth/register", payload);
       const { token: receivedToken, user: receivedUser } = response.data;
 
       token.value = receivedToken;

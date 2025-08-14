@@ -90,7 +90,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useUserStore } from "../stores/userStore";
 import { useMessage } from "naive-ui";
 import type { FormInst, FormRules } from "naive-ui";
@@ -161,6 +161,7 @@ const LockIcon = () =>
 const emit = defineEmits(["switch-mode"]);
 
 const router = useRouter();
+const route = useRoute();
 const userStore = useUserStore();
 const message = useMessage();
 
@@ -223,10 +224,14 @@ const handleSubmit = async () => {
   try {
     await formRef.value.validate();
 
+    // Obtener authCode de la query string si existe
+    const authCode = route.query.authCode as string | undefined;
+
     const result = await userStore.register(
       formData.email,
       formData.password,
-      formData.name
+      formData.name,
+      authCode
     );
 
     if (result.success) {
