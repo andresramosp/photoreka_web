@@ -15,6 +15,7 @@ import StoragePlanSelectionView from "../views/StoragePlanSelectionView.vue";
 import GridMaker from "@/views/GridMaker.vue";
 import VisualLabView from "@/views/VisualLabView.vue";
 import LandingView from "@/views/LandingView.vue";
+import TermsView from "@/views/TermsView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -29,6 +30,16 @@ const router = createRouter({
       component: LandingView,
       meta: {
         requiresGuest: false, // Accessible to both guests and authenticated users
+      },
+    },
+
+    {
+      path: "/terms",
+      name: "terms",
+      component: TermsView,
+      meta: {
+        requiresGuest: false, // Accessible to both guests and authenticated users
+        layout: false, // Use standalone layout like landing page
       },
     },
 

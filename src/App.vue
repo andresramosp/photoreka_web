@@ -4,7 +4,11 @@
       <n-message-provider>
         <!-- Landing Page Layout (no sidebar) -->
         <router-view
-          v-if="route.name === 'landing' || route.name === 'canvas-playground'"
+          v-if="
+            route.name === 'landing' ||
+            route.name === 'canvas-playground' ||
+            route.name === 'terms'
+          "
         />
 
         <!-- Authentication Layout -->

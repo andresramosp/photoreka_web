@@ -209,7 +209,7 @@
       <!-- How It Works Section -->
       <section class="how-it-works-section">
         <div class="floating-header">
-          <h2 class="floating-title">How Photoreka Works</h2>
+          <h2 class="floating-title">Photoreka Workflow</h2>
           <p class="floating-description">
             Get started in minutes with our simple 3-step process
           </p>
@@ -246,6 +246,51 @@
                 coherent grids, sequence images by different criteria, and
                 discover hidden gems in your collection.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQs Section -->
+      <section class="faqs-section">
+        <div class="section-container">
+          <div class="faqs-header">
+            <h2 class="section-title">Frequently Asked Quesstions</h2>
+            <p class="section-subtitle">
+              Find answers to the most common questions about Photoreka
+            </p>
+          </div>
+          <div class="faqs-container">
+            <div class="faq-item" v-for="(faq, index) in faqs" :key="index">
+              <div
+                class="faq-question"
+                @click="toggleFAQ(index)"
+                :class="{ active: activeFAQ === index }"
+              >
+                <h3>{{ faq.question }}</h3>
+                <n-icon :class="{ rotated: activeFAQ === index }">
+                  <ChevronDownOutline />
+                </n-icon>
+              </div>
+              <div
+                class="faq-answer"
+                :class="{ expanded: activeFAQ === index }"
+              >
+                <p v-if="faq.hasHtml" v-html="faq.answer"></p>
+                <p v-else-if="!faq.hasLink">{{ faq.answer }}</p>
+                <p v-else>
+                  {{ faq.answer.split("Terms and Image Policy")[0] }}
+                  <a @click="goToTerms" class="faq-link"
+                    >Terms and Image Policy</a
+                  >
+                  {{
+                    faq.answer
+                      .split("Terms and Image Policy")
+                      .slice(1)
+                      .join("Terms and Image Policy")
+                  }}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -351,45 +396,50 @@
     </section> -->
 
       <!-- Footer -->
-      <footer class="landing-footer">
+      <!-- <footer class="landing-footer">
         <div class="footer-container">
-          <!-- <div class="footer-content">
-          <div class="footer-brand">
-            <div class="logo">
-              <n-icon size="24" color="#2563eb">
-                <CameraOutline />
-              </n-icon>
-              <span class="brand-name">Photoreka</span>
+          <div class="footer-content">
+            <div class="footer-brand">
+              <div class="logo">
+                <img :src="logoName" alt="Photoreka" class="logo-image" />
+              </div>
+              <p class="footer-description">
+                Discovery photo assistant and organization platform for creative
+                professionals.
+              </p>
             </div>
-            <p class="footer-description">
-              Discovery photo assistant and organization platform for creative
-              professionals.
-            </p>
-          </div>
-          <div class="footer-links">
-            <div class="link-group">
-              <h4 class="link-title">Product</h4>
-              <a href="#" class="link">Features</a>
-              <a href="#" class="link">Pricing</a>
-              <a href="#" class="link">API</a>
-            </div>
-            <div class="link-group">
-              <h4 class="link-title">Company</h4>
-              <a href="#" class="link">About</a>
-              <a href="#" class="link">Blog</a>
-              <a href="#" class="link">Careers</a>
-            </div>
-            <div class="link-group">
-              <h4 class="link-title">Support</h4>
-              <a href="#" class="link">Help Center</a>
-              <a href="#" class="link">Contact</a>
-              <a href="#" class="link">Privacy</a>
+            <div class="footer-links">
+              <div class="link-group">
+                <h4 class="link-title">Product</h4>
+                <a href="#" class="link">Features</a>
+                <a href="#" class="link">Pricing</a>
+                <a href="#" class="link">API</a>
+              </div>
+              <div class="link-group">
+                <h4 class="link-title">Company</h4>
+                <a href="#" class="link">About</a>
+                <a href="#" class="link">Blog</a>
+                <a href="#" class="link">Careers</a>
+              </div>
+              <div class="link-group">
+                <h4 class="link-title">Legal</h4>
+                <a @click="goToTerms" class="link">Terms & Image Policy</a>
+                <a href="#" class="link">Privacy</a>
+                <a href="#" class="link">Contact</a>
+              </div>
             </div>
           </div>
-        </div> -->
           <div class="footer-bottom">
             <p class="copyright">© 2024 Photoreka. All rights reserved.</p>
           </div>
+        </div>
+      </footer> -->
+
+      <!-- Simple Footer -->
+      <footer class="simple-footer">
+        <div class="simple-footer-container">
+          <p class="copyright">© 2024 Photoreka. All rights reserved.</p>
+          <a @click="goToTerms" class="terms-link">Terms & Image Policy</a>
         </div>
       </footer>
 
@@ -424,6 +474,7 @@ import {
   CloudUploadOutline,
   PersonOutline,
   LogInOutline,
+  ChevronDownOutline,
 } from "@vicons/ionicons5";
 import { Workspace } from "@vicons/carbon";
 import logoName from "@/assets/logo_name.png";
@@ -440,6 +491,49 @@ const videoProgress = ref(0);
 const showRequestDialog = ref(false);
 const showMobileNotice = ref(false);
 const message = useMessage();
+const activeFAQ = ref(null);
+
+// FAQs data
+const faqs = ref([
+  {
+    question: "What is Photoreka and who is it for?",
+    answer:
+      "Photoreka is a smart photo curation lab to help street, documentary, and artistic photographers organize, analyze, and understand their photographic body of work. It's ideal for professional and amateur photographers managing large volumes of images.",
+  },
+  {
+    question: "How does Photoreka work?",
+    answer:
+      "Our pipeline of computer vision algorithms analyzes your photographs, identifying narrative and stylistic elements. This enables intelligent organization, advanced semantic searches, and the creation of visual connections between your images to facilitate the selection of your work. For detailed information on our image processing policies, please see our Terms and Image Policy.",
+    hasLink: true,
+  },
+  {
+    question: "What are the main tools offered by the platform?",
+    answer:
+      "Photoreka includes the Canvas for visualization and sequencing, the Explorer for advanced searches, the Project Builder for creating photographic projects, and the Grid Maker for generating compositions. It also offers collection management tools and visual pattern analysis.",
+  },
+  {
+    question: "Is Photoreka a storage platform?",
+    answer:
+      "Photoreka is currently in a testing phase and focuses mainly on playful interaction and exploration with your photos. At this stage, it is not a full storage service. However, a centralized storage feature may be included in the future to help photographers fully manage and centralize their body of work. For details about how we handle your images, see our Terms and Image Policy.",
+    hasLink: true,
+  },
+  {
+    question: "Does Photoreka create or transform images?",
+    answer:
+      "No. Photoreka is dedicated exclusively to the analysis and organization of photographic images. The platform does not generate synthetic images, alter, or transform your photos in any way. We do not support or endorse the creation or use of synthetic or manipulated images within Photoreka.",
+  },
+  {
+    question: "Can I try Photoreka for free?",
+    answer: `Analyzing your photos requires a single batch payment. Afterward, you can use most tools for free, with some daily/total limits, or purchase credits to work unlimitedly. <span style='color:var(--info-color);font-weight:600;'>During the <a href='#' style='color:var(--info-color);text-decoration:underline;' onclick='event.preventDefault();window.__goToEarlyAccess && window.__goToEarlyAccess()'>early access</a> phase, a free photo package and usage credits will be offered.</span>`,
+    hasHtml: true,
+  },
+  {
+    question: "What happens to my photos and who can see them?",
+    answer:
+      "We only store a reduced version of your images on secure servers, enough to analyze and facilitate searches, but not for other uses. The analysis is performed using proprietary and third-party services under agreements that prevent retaining or reusing your photos. They are not shared with anyone and you always retain 100% of the rights to your work. For complete details, please read our Terms and Image Policy.",
+    hasLink: true,
+  },
+]);
 
 // Video tabs with different use cases
 const videoTabs = ref([
@@ -479,6 +573,11 @@ const goToAuth = (mode = "login") => {
   } else {
     router.push({ name: "auth", query: { mode } });
   }
+};
+
+const goToTerms = () => {
+  const termsUrl = router.resolve({ name: "terms" }).href;
+  window.open(termsUrl, "_blank");
 };
 
 const goToPlayground = () => {
@@ -591,6 +690,16 @@ onMounted(() => {
     }
   }, 500);
 });
+
+// FAQ functionality
+const toggleFAQ = (index) => {
+  activeFAQ.value = activeFAQ.value === index ? null : index;
+};
+
+// Attach goToAuth('signup') to window for FAQ HTML link
+if (typeof window !== "undefined") {
+  window.__goToEarlyAccess = () => goToAuth("signup");
+}
 </script>
 
 <style scoped>
@@ -1119,6 +1228,104 @@ onMounted(() => {
   color: var(--text-tertiary);
 }
 
+/* FAQs Section */
+.faqs-section {
+  padding-bottom: 60px;
+  background: var(--bg-primary);
+}
+
+.faqs-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.faqs-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.faq-item {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  background: var(--bg-card);
+  transition: all 0.3s ease;
+}
+
+.faq-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.1);
+}
+
+.faq-question {
+  padding: 24px 32px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-card);
+  transition: all 0.3s ease;
+}
+
+.faq-question:hover {
+  background: var(--bg-hover);
+}
+
+.faq-question.active {
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.faq-question h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  flex: 1;
+  padding-right: 16px;
+}
+
+.faq-question .n-icon {
+  font-size: 20px;
+  color: var(--text-secondary);
+  transition: transform 0.3s ease;
+}
+
+.faq-question .n-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: none;
+  background: var(--bg-card);
+}
+
+.faq-answer.expanded {
+  max-height: none;
+  padding: 0 32px 24px 32px;
+}
+
+.faq-answer p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+.faq-link {
+  color: var(--primary-color);
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+}
+
+.faq-link:hover {
+  color: #8b5cf6;
+}
+
 /* CTA Section */
 .cta-section {
   background: linear-gradient(135deg, #2563eb, #8b5cf6);
@@ -1219,6 +1426,40 @@ onMounted(() => {
   font-size: 14px;
 }
 
+/* Simple Footer */
+.simple-footer {
+  background: #0a0a0e;
+  padding: 24px 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.simple-footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.simple-footer .copyright {
+  color: var(--text-tertiary);
+  font-size: 14px;
+  margin: 0;
+}
+
+.terms-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.terms-link:hover {
+  color: var(--primary-color);
+}
+
 /* Mobile Responsive */
 @media (max-width: 1024px) {
   .video-tabs {
@@ -1236,6 +1477,10 @@ onMounted(() => {
   }
 
   .nav-container {
+    padding: 0 20px;
+  }
+
+  .simple-footer-container {
     padding: 0 20px;
   }
 }
@@ -1352,6 +1597,29 @@ onMounted(() => {
   .section-container {
     padding: 0 16px;
   }
+
+  .simple-footer-container {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+    padding: 0 16px;
+  }
+
+  .faq-question {
+    padding: 20px 24px;
+  }
+
+  .faq-question h3 {
+    font-size: 16px;
+  }
+
+  .faq-answer.expanded {
+    padding: 0 24px 20px 24px;
+  }
+
+  .faq-answer p {
+    font-size: 15px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1377,6 +1645,10 @@ onMounted(() => {
     height: 56px;
   }
 
+  .simple-footer-container {
+    padding: 0 12px;
+  }
+
   .nav-actions {
     gap: 6px;
   }
@@ -1389,10 +1661,30 @@ onMounted(() => {
   .nav-actions .n-button:first-child {
     display: none;
   }
+
+  .faq-question {
+    padding: 16px 20px;
+  }
+
+  .faq-question h3 {
+    font-size: 15px;
+  }
+
+  .faq-answer.expanded {
+    padding: 0 20px 16px 20px;
+  }
+
+  .faq-answer p {
+    font-size: 14px;
+  }
 }
 
 @media (max-width: 360px) {
   .nav-container {
+    padding: 0 8px;
+  }
+
+  .simple-footer-container {
     padding: 0 8px;
   }
 
