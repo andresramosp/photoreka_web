@@ -3,8 +3,8 @@
  */
 export function usePhotoScored() {
   /**
-   * Computes the star rating for a photo based on matchScore or matchPercent
-   * @param {PhotoWithMatchData} photo - Photo object with matchScore or matchPercent
+   * Computes the star rating for a photo based on matchScore or labelScore
+   * @param {PhotoWithMatchData} photo - Photo object with matchScore or labelScore
    * @returns {number} Star rating (0-3)
    */
   function computePhotoStars(photo) {
@@ -13,14 +13,20 @@ export function usePhotoScored() {
       return Math.max(1, Math.min(3, photo.matchScore));
     }
 
-    // If matchPercent exists, convert it to stars
-    if (typeof photo.matchPercent === "number" && photo.matchPercent >= 0) {
-      const percent = photo.matchPercent;
-
-      if (percent < 30) return 0;
-      if (percent >= 75) return 3;
-      if (percent >= 45) return 2;
-      if (percent >= 30) return 1;
+    // If labelScore exists, convert it to stars using the enum mapping
+    if (photo.labelScore) {
+      switch (photo.labelScore) {
+        case "excellent":
+          return 3;
+        case "good":
+          return 2;
+        case "fair":
+          return 1;
+        case "poor":
+          return 0;
+        default:
+          return 0;
+      }
     }
 
     return 0;
@@ -28,7 +34,7 @@ export function usePhotoScored() {
 
   /**
    * Determines if the low relevance icon should be shown
-   * @param {PhotoWithMatchData} photo - Photo object with matchScore or matchPercent
+   * @param {PhotoWithMatchData} photo - Photo object with matchScore or labelScore
    * @returns {boolean} Whether to show low relevance icon
    */
   function shouldShowLowRelevanceIcon(photo) {
@@ -37,16 +43,47 @@ export function usePhotoScored() {
       return false;
     }
 
-    // Show low relevance icon if matchPercent < 30%
-    if (typeof photo.matchPercent === "number" && photo.matchPercent >= 0) {
-      return photo.matchPercent < 30;
+    // Show low relevance icon if labelScore is 'poor'
+    if (photo.labelScore) {
+      return photo.labelScore === "poor";
     }
 
     return false;
   }
 
+  /**
+   * Gets the normalized score (0-3) from either matchScore or labelScore
+   * @param {PhotoWithMatchData} photo - Photo object with matchScore or labelScore
+   * @returns {number} Normalized score (0-3)
+   */
+  function getNormalizedScore(photo) {
+    // If matchScore exists and is greater than 0, use it directly
+    if (photo.matchScore && photo.matchScore > 0) {
+      return Math.max(0, Math.min(3, photo.matchScore));
+    }
+
+    // If labelScore exists, convert it to number
+    if (photo.labelScore) {
+      switch (photo.labelScore) {
+        case "excellent":
+          return 3;
+        case "good":
+          return 2;
+        case "fair":
+          return 1;
+        case "poor":
+          return 0;
+        default:
+          return 0;
+      }
+    }
+
+    return 0;
+  }
+
   return {
     computePhotoStars,
     shouldShowLowRelevanceIcon,
+    getNormalizedScore,
   };
 }

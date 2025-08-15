@@ -11,6 +11,8 @@
             </div>
           </div>
           <div class="nav-actions">
+            <!-- Direct link to FAQs section -->
+
             <n-button text @click="goToAuth('login')"> Login </n-button>
             <!-- <n-button type="primary" @click="goToAuth('signup')">
             Sign Up
@@ -151,8 +153,20 @@
             <h3 class="feature-title">Interactive Canvas</h3>
             <p class="feature-description">
               Create stunning photo layouts and compositions with our intuitive
-              canvas tool. Perfect for mood boards and creative projects.
+              canvas tool.
             </p>
+            <n-button
+              style="margin-top: 16px"
+              v-if="!isMobileDevice()"
+              type="warning"
+              size="medium"
+              @click="goToPlayground"
+            >
+              <template #icon>
+                <n-icon><Workspace /></n-icon>
+              </template>
+              Try it Now
+            </n-button>
           </div>
           <div class="floating-feature-card">
             <div class="feature-icon">
@@ -252,7 +266,7 @@
       </section>
 
       <!-- FAQs Section -->
-      <section class="faqs-section">
+      <section id="faqs" class="faqs-section">
         <div class="section-container">
           <div class="faqs-header">
             <h2 class="section-title">Frequently Asked Quesstions</h2>
@@ -800,6 +814,16 @@ if (typeof window !== "undefined") {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.nav-faq-link {
+  color: var(--text-primary);
+  margin-right: 12px;
+  text-decoration: none;
+  font-weight: 600;
+}
+.nav-faq-link:hover {
+  text-decoration: underline;
 }
 
 .hero-description {

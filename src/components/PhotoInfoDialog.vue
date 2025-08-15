@@ -207,21 +207,39 @@
                 <div class="description-item">
                   <h5 class="description-label">Story</h5>
                   <div class="description-content">
-                    <p>{{ selectedPhoto.descriptions.story }}</p>
+                    <p
+                      v-html="
+                        highlightMatchingChunks(
+                          selectedPhoto.descriptions.story
+                        )
+                      "
+                    ></p>
                   </div>
                 </div>
 
                 <div class="description-item">
                   <h5 class="description-label">Context</h5>
                   <div class="description-content">
-                    <p>{{ selectedPhoto.descriptions.context }}</p>
+                    <p
+                      v-html="
+                        highlightMatchingChunks(
+                          selectedPhoto.descriptions.context
+                        )
+                      "
+                    ></p>
                   </div>
                 </div>
 
                 <div class="description-item">
                   <h5 class="description-label">Visual Accents</h5>
                   <div class="description-content">
-                    <p>{{ selectedPhoto.descriptions.visual_accents }}</p>
+                    <p
+                      v-html="
+                        highlightMatchingChunks(
+                          selectedPhoto.descriptions.visual_accents
+                        )
+                      "
+                    ></p>
                   </div>
                 </div>
               </div>
@@ -574,10 +592,20 @@ const getInsight = async () => {
     const { data } = await api.get(
       `/api/catalog/photoInsight/${props.selectedPhoto.id}`
     );
-    if (data && Array.isArray(data.insights) && data.insights.length > 0) {
-      allPhotoInsights.value = data.insights;
+    if (
+      data &&
+      typeof data === "object" &&
+      (data.cultural || data.technical || data.evaluation)
+    ) {
+      // Convert object to array for consistent handling
+      const insights = [];
+      if (data.cultural) insights.push(data.cultural);
+      if (data.technical) insights.push(data.technical);
+      if (data.evaluation) insights.push(data.evaluation);
+
+      allPhotoInsights.value = insights;
       currentInsightIndex.value = 0;
-      photoInsight.value = data.insights[0];
+      photoInsight.value = insights[0];
     } else {
       allPhotoInsights.value = [];
       currentInsightIndex.value = 0;
@@ -604,6 +632,50 @@ const showNextInsight = () => {
       isGeneratingInsight.value = false;
     }, 1500);
   }
+};
+
+// Function to highlight matching chunks in text
+const highlightMatchingChunks = (text) => {
+  if (
+    !text ||
+    !props.selectedPhoto?.matchingChunks ||
+    props.selectedPhoto.matchingChunks.length === 0
+  ) {
+    return text;
+  }
+
+  let highlightedText = text;
+
+  // Sort chunks by length (longest first) to avoid partial replacements
+  const sortedChunks = [...props.selectedPhoto.matchingChunks]
+    .filter((chunkObj) => chunkObj.chunk && chunkObj.chunk.trim().length > 0)
+    .sort((a, b) => b.chunk.length - a.chunk.length);
+
+  sortedChunks.forEach((chunkObj) => {
+    const { chunk, isFullQuery, proximity } = chunkObj;
+    const className = isFullQuery
+      ? "highlighted-chunk-full"
+      : "highlighted-chunk";
+
+    // Format proximity for display
+    const proximityText = proximity
+      ? `Proximity: ${proximity.toFixed(2)}`
+      : "No proximity data";
+    const queryType = isFullQuery ? " (Full Query)" : " (Partial Query)";
+    const tooltipText = proximityText + queryType;
+
+    // Create a case-insensitive regex to find the chunk
+    const regex = new RegExp(
+      `(${chunk.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+      "gi"
+    );
+    highlightedText = highlightedText.replace(
+      regex,
+      `<span class="${className}" title="${tooltipText}">$1</span>`
+    );
+  });
+
+  return highlightedText;
 };
 
 // Notes management
@@ -879,6 +951,40 @@ if (typeof window !== "undefined") {
 .notes-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+/* Highlighted chunks styling */
+:deep(.highlighted-chunk) {
+  background-color: rgba(255, 193, 7, 0.3);
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 193, 7, 0.5);
+  cursor: help;
+  transition: all 0.2s ease;
+}
+
+:deep(.highlighted-chunk:hover) {
+  background-color: rgba(255, 193, 7, 0.5);
+  border-color: rgba(255, 193, 7, 0.8);
+  transform: translateY(-1px);
+}
+
+:deep(.highlighted-chunk-full) {
+  background-color: rgba(40, 167, 69, 0.3);
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-weight: 600;
+  border: 1px solid rgba(40, 167, 69, 0.5);
+  color: #1e7e34;
+  cursor: help;
+  transition: all 0.2s ease;
+}
+
+:deep(.highlighted-chunk-full:hover) {
+  background-color: rgba(40, 167, 69, 0.5);
+  border-color: rgba(40, 167, 69, 0.8);
+  transform: translateY(-1px);
 }
 
 /* Responsive adjustments */

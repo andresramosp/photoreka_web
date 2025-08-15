@@ -12,10 +12,8 @@
           </n-icon>
         </div> -->
 
-        <h3 class="notice-title">🖥️ Better Experience on Desktop</h3>
-
         <p class="notice-description">
-          Photoreka is designed to provide the most complete experience on
+          🖥️ Photoreka is designed to provide the most complete experience on
           desktop computers and tablets.
         </p>
 
@@ -45,8 +43,8 @@
             <BulbOutline />
           </n-icon>
           <span>
-            💡 We recommend using a desktop computer or tablet to enjoy all
-            visual curation and photo exploration features.
+            We recommend using a desktop computer or tablet to enjoy all visual
+            curation and photo exploration features.
           </span>
         </div>
 

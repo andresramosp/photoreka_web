@@ -3,8 +3,9 @@
     <div class="auth-container">
       <div class="auth-content">
         <div class="auth-header">
-          <AppLogo size="large" />
-          <!-- <p class="auth-subtitle">Your photo discovery lab</p> -->
+          <router-link to="/" class="logo-link" aria-label="Inicio">
+            <AppLogo size="large" />
+          </router-link>
         </div>
 
         <div class="auth-form-container">
@@ -63,6 +64,18 @@ import AppLogo from "./AppLogo.vue";
 .auth-header {
   text-align: center;
   margin-bottom: 12px;
+}
+
+.logo-link {
+  display: inline-block;
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+.logo-link:focus {
+  outline: 2px solid rgba(37, 99, 235, 0.35);
+  border-radius: 8px;
 }
 
 .auth-subtitle {

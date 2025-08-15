@@ -39,15 +39,26 @@
       </div>
 
       <!-- Matching Chunks Overlay (for hover in non-curation modes) -->
-      <!-- <div
-        v-if="
-          mode !== 'curation' && showHoverContent && formattedMatchingChunks
-        "
-        class="hover-content-overlay"
-      >
-  
+      <!-- <div class="hover-content-overlay">
         <div class="matching-chunks">
-          <p class="chunks-text">{{ formattedMatchingChunks }}</p>
+          <n-button
+            size="medium"
+            class="action-button info-button"
+            @click.stop="showInfo"
+          >
+            <template #icon>
+              <n-icon>
+                <InfoCircleOutlined />
+              </n-icon>
+            </template>
+          </n-button>
+          <p class="chunks-text">
+            {{
+              typeof photo.totalScore === "number"
+                ? photo.totalScore.toFixed(2)
+                : photo.totalScore
+            }}
+          </p>
         </div>
       </div> -->
 
@@ -56,11 +67,11 @@
         v-if="props.showStars && (computedStars > 0 || showLowRelevanceIcon)"
         class="match-score-indicator"
       >
-        <!-- Icono de poca relevancia para matchPercent < 15% -->
+        <!-- Icono de poca relevancia para labelScore 'poor' -->
         <div v-if="showLowRelevanceIcon" class="low-relevance-icon">
           <n-tooltip trigger="hover" placement="top">
             <template #trigger>
-              <n-icon size="14" class="warning-icon">
+              <n-icon size="17" class="warning-icon">
                 <HelpIcon />
               </n-icon>
             </template>
@@ -109,10 +120,24 @@
         >
           <span
             v-for="tag in uniqueMatchingTags.slice(0, 3)"
-            :key="tag"
+            :key="typeof tag === 'object' ? tag.name || tag.id : tag"
             class="tag"
           >
-            {{ tag }}
+            <n-tooltip trigger="hover" placement="top">
+              <template #trigger>
+                <span>
+                  {{ typeof tag === "object" ? tag.name || tag : tag }}
+                </span>
+              </template>
+              <span>
+                Score:
+                {{
+                  typeof tag === "object" && tag.proximity !== undefined
+                    ? tag.proximity.toFixed(2)
+                    : "N/A"
+                }}
+              </span>
+            </n-tooltip>
           </span>
           <span v-if="uniqueMatchingTags.length > 3" class="tag-more">
             +{{ uniqueMatchingTags.length - 3 }}
@@ -180,16 +205,17 @@ import {
 } from "@vicons/ionicons5";
 
 import { usePhotoScored } from "@/composables/usePhotoScored.js";
+import { InfoCircleOutlined } from "@vicons/antd";
 
 // Photo scoring composable
 const { computePhotoStars, shouldShowLowRelevanceIcon } = usePhotoScored();
 
-// Calcula la cantidad de estrellas a mostrar (1-3) usando matchScore o matchPercent
+// Calcula la cantidad de estrellas a mostrar (1-3) usando matchScore o labelScore
 const computedStars = computed(() => {
   return props.computedStars ?? computePhotoStars(props.photo);
 });
 
-// Mostrar icono de poca relevancia cuando matchPercent < 30%
+// Mostrar icono de poca relevancia cuando labelScore es 'poor'
 const showLowRelevanceIcon = computed(() => {
   return props.showLowRelevanceIcon ?? shouldShowLowRelevanceIcon(props.photo);
 });
@@ -202,7 +228,8 @@ export interface Photo {
   rating: number;
   reasoning?: string;
   matchScore?: number; // AI-generated match score (0 = not scored yet, 1-3 stars)
-  matchingTags?: string[];
+  labelScore?: "excellent" | "good" | "fair" | "poor"; // New enum-based scoring system
+  matchingTags?: any[];
   matchingChunks?: any[]; // AI-generated matching description chunks
   width?: number;
   height?: number;
@@ -211,6 +238,7 @@ export interface Photo {
   needProcess: boolean;
   isDuplicate: boolean;
   isNew?: boolean; // Flag to mark newly arrived photos
+  totalScore?: number; // Score opcional para mostrar en chunks
 }
 
 interface Props {
@@ -252,6 +280,10 @@ const showAnalyzing = computed(
 const shouldBlur = computed(() => showAnalyzing.value);
 
 const emit = defineEmits<Emits>();
+
+const showInfo = () => {
+  emit("info", props.photo);
+};
 
 const isSelected = computed(() => props.selected);
 const imageLoaded = ref(false);
@@ -387,7 +419,7 @@ const handleMouseLeave = () => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.2);
   color: white;
   padding: 12px;
   border-radius: 8px;
@@ -399,7 +431,7 @@ const handleMouseLeave = () => {
   text-align: center;
   width: 90%;
   max-width: 250px;
-  backdrop-filter: blur(4px);
+  /* backdrop-filter: blur(4px); */
 }
 
 .matching-chunks {
@@ -408,7 +440,8 @@ const handleMouseLeave = () => {
 
 .chunks-text {
   margin: 0;
-  font-weight: 400;
+  font-size: 40px;
+  font-weight: 800;
   opacity: 0.95;
 }
 

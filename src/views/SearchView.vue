@@ -788,6 +788,11 @@
       </div>
     </div>
 
+    <!-- Dialogs -->
+    <PhotoInfoDialog
+      v-model="showPhotoInfoDialog"
+      :selected-photo="selectedDialogPhoto"
+    />
     <!-- Collection Selection Modal -->
     <CollectionModal
       :show="showCollectionModal"
@@ -835,6 +840,7 @@ import { useSearchStore } from "@/stores/searchStore";
 import { useCollectionsStore } from "@/stores/collections";
 import { useRouter } from "vue-router";
 import { usePhotoScored } from "@/composables/usePhotoScored";
+import PhotoInfoDialog from "@/components/PhotoInfoDialog.vue";
 
 const photoStore = usePhotosStore();
 const canvasStore = useCanvasStore();
@@ -842,8 +848,8 @@ const userStore = useUserStore();
 const searchStore = useSearchStore();
 const collectionsStore = useCollectionsStore();
 const router = useRouter();
-const message = useMessage();
-const notification = useNotification();
+const showPhotoInfoDialog = ref(false);
+const selectedDialogPhoto = ref();
 
 // Photo scoring utilities
 const { computePhotoStars, shouldShowLowRelevanceIcon } = usePhotoScored();
@@ -1089,10 +1095,14 @@ function clearSelection() {
   localClearAllSelections();
 }
 
-function showPhotoInfo(photo) {
-  // TODO: Implement photo info dialog functionality
-  console.log("Show photo info:", photo);
-}
+const showPhotoInfo = async (photo) => {
+  const fullPhoto = await photoStore.fetchPhoto(photo.id);
+  selectedDialogPhoto.value = {
+    ...fullPhoto,
+    matchingChunks: photo.matchingChunks,
+  };
+  showPhotoInfoDialog.value = true;
+};
 
 function handleAddToCollection() {
   showCollectionModal.value = true;

@@ -380,9 +380,32 @@ const fetchPhotoInsight = async () => {
     const { data } = await api.get(
       `/api/catalog/photoInsight/${randomPhoto.id}`
     );
-    photoInsight.value = data;
+
+    // Transform the new response format to match expected structure
+    if (
+      data &&
+      typeof data === "object" &&
+      (data.cultural || data.technical || data.evaluation)
+    ) {
+      // Convert object to array for consistent handling
+      const insights = [];
+      if (data.cultural) insights.push(data.cultural);
+      if (data.technical) insights.push(data.technical);
+      if (data.evaluation) insights.push(data.evaluation);
+
+      photoInsight.value = {
+        photo: randomPhoto,
+        insights: insights,
+      };
+    } else {
+      photoInsight.value = data;
+    }
+
     // Cache data, update date and increment count
-    localStorage.setItem("photoInsightData", JSON.stringify(data));
+    localStorage.setItem(
+      "photoInsightData",
+      JSON.stringify(photoInsight.value)
+    );
     localStorage.setItem("photoInsightLastFetch", today);
     localStorage.setItem("photoInsightFetchCount", String(fetchCount + 1));
     // Store the last photo ID fetched (optional)
