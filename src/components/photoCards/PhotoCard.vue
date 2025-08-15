@@ -129,11 +129,12 @@
                   {{ tag.text }}
                 </span>
               </template>
-              <span v-if="tag.isChunk">
+              <div v-if="tag.isChunk" class="tooltip-content">
                 {{ tag.fullText }}
-                <br />
-              </span>
-              <span v-else> {{ tag.text }} </span>
+              </div>
+              <div v-else class="tooltip-content">
+                {{ tag.text }}
+              </div>
             </n-tooltip>
           </span>
           <span v-if="tagsToDisplay.length > 3" class="tag-more">
@@ -640,6 +641,14 @@ const handleMouseLeave = () => {
   }
 }
 
+/* Tooltip content styling */
+.tooltip-content {
+  max-width: 300px;
+  word-wrap: break-word;
+  white-space: normal;
+  line-height: 1.4;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .photo-card {
@@ -665,6 +674,10 @@ const handleMouseLeave = () => {
     font-size: 10px;
     height: 24px;
     padding: 0 8px;
+  }
+
+  .tooltip-content {
+    max-width: 150px;
   }
 }
 
