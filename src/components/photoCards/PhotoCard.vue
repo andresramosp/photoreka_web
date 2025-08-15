@@ -112,35 +112,32 @@
           v-if="
             props.showTags &&
             mode === 'default' &&
-            uniqueMatchingTags &&
-            uniqueMatchingTags.length > 0 &&
+            tagsToDisplay &&
+            tagsToDisplay.length > 0 &&
             showHoverContent
           "
           class="matched-tags"
         >
           <span
-            v-for="tag in uniqueMatchingTags.slice(0, 3)"
-            :key="typeof tag === 'object' ? tag.name || tag.id : tag"
+            v-for="tag in tagsToDisplay.slice(0, 3)"
+            :key="tag.key"
             class="tag"
           >
             <n-tooltip trigger="hover" placement="top">
               <template #trigger>
                 <span>
-                  {{ typeof tag === "object" ? tag.name || tag : tag }}
+                  {{ tag.text }}
                 </span>
               </template>
-              <span>
-                Score:
-                {{
-                  typeof tag === "object" && tag.proximity !== undefined
-                    ? tag.proximity.toFixed(2)
-                    : "N/A"
-                }}
+              <span v-if="tag.isChunk">
+                {{ tag.fullText }}
+                <br />
               </span>
+              <span v-else> {{ tag.text }} </span>
             </n-tooltip>
           </span>
-          <span v-if="uniqueMatchingTags.length > 3" class="tag-more">
-            +{{ uniqueMatchingTags.length - 3 }}
+          <span v-if="tagsToDisplay.length > 3" class="tag-more">
+            +{{ tagsToDisplay.length - 3 }}
           </span>
         </div>
 
@@ -303,6 +300,50 @@ const formattedMatchingChunks = computed(() => {
   return props.photo.matchingChunks.map((mc) => mc.chunk).join("... ");
 });
 
+// New computed property for tags to display
+const tagsToDisplay = computed(() => {
+  // If there are matchingTags, use them as before
+  if (uniqueMatchingTags.value && uniqueMatchingTags.value.length > 0) {
+    return uniqueMatchingTags.value.map((tag) => ({
+      text: typeof tag === "object" ? tag.name || tag : tag,
+      fullText: typeof tag === "object" ? tag.name || tag : tag,
+      score:
+        typeof tag === "object" && tag.proximity !== undefined
+          ? tag.proximity
+          : null,
+      isChunk: false,
+      key: typeof tag === "object" ? tag.name || tag.id : tag,
+    }));
+  }
+
+  // If no matchingTags, use the highest scoring chunk
+  if (props.photo.matchingChunks && props.photo.matchingChunks.length > 0) {
+    // Find the chunk with the highest score
+    const highestScoreChunk = props.photo.matchingChunks.reduce(
+      (prev, current) => (current.score > prev.score ? current : prev)
+    );
+
+    // Truncate to 5 words + "..."
+    const words = highestScoreChunk.chunk.split(" ");
+    const truncatedText =
+      words.length > 5
+        ? words.slice(0, 5).join(" ") + "..."
+        : highestScoreChunk.chunk;
+
+    return [
+      {
+        text: truncatedText,
+        fullText: highestScoreChunk.chunk,
+        score: highestScoreChunk.score,
+        isChunk: true,
+        key: `chunk-${highestScoreChunk.score}`,
+      },
+    ];
+  }
+
+  return [];
+});
+
 const toggleSelection = () => {
   if (props.mode === "curation") return;
   emit("select", props.photo.id);
@@ -328,11 +369,8 @@ const handleMouseEnter = () => {
   if (props.mode === "curation") {
     showTooltip.value = true;
   } else {
-    // Show hover content for other modes when there are tags or chunks
-    if (
-      (uniqueMatchingTags.value && uniqueMatchingTags.value.length > 0) ||
-      (props.photo.matchingChunks && props.photo.matchingChunks.length > 0)
-    ) {
+    // Show hover content for other modes when there are tags to display
+    if (tagsToDisplay.value && tagsToDisplay.value.length > 0) {
       showHoverContent.value = true;
     }
   }
@@ -579,6 +617,11 @@ const handleMouseLeave = () => {
   align-items: center;
   justify-content: center;
   z-index: 4;
+}
+
+.photo-card-info.selected {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 1px #8b5cf640, 0 8px 24px rgba(139, 92, 246, 0.2);
 }
 
 /* Loading states */

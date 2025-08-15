@@ -6,7 +6,7 @@ export const visualAspectsOptions = [
   {
     type: "group",
     label: "Palette",
-    key: "palette",
+    key: "color",
     children: [
       { label: "Black and white", value: "black and white" },
       { label: "Color", value: "color" },
