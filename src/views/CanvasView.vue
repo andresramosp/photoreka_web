@@ -382,12 +382,20 @@
           {{ selectedPhotosCount > 1 ? `(${selectedPhotosCount})` : "" }}
         </n-button>
 
-        <n-button disabled @click="() => {}">
+        <n-button
+          :disabled="isSaved"
+          @click="handleSaveCanvas"
+          :type="hasUnsavedChanges ? 'primary' : 'default'"
+          :title="hasUnsavedChanges ? 'Save changes' : 'No changes to save'"
+        >
           <template #icon>
-            <n-icon size="20" color="#2563eb">
+            <n-icon
+              size="20"
+              :color="hasUnsavedChanges ? '#ffffff' : '#2563eb'"
+            >
               <SaveOutline />
             </n-icon> </template
-          >Save
+          >Save{{ hasUnsavedChanges ? "*" : "" }}
         </n-button></n-space
       >
     </div>
@@ -646,11 +654,21 @@ import { SelectAllFilled } from "@vicons/material";
 import { Workspace } from "@vicons/carbon";
 import logoName from "@/assets/logo_name_sub_curation_lab_blue.png";
 import { usePhotoDownload } from "@/composables/usePhotoDownload.js";
+import { useCanvasPersistence } from "@/composables/useCanvasPersistence.js";
 
 const canvasStore = useCanvasStore();
 const photosStore = usePhotosStore();
 const route = useRoute();
 const { downloadPhoto, downloadPhotosZip, isDownloading } = usePhotoDownload();
+const {
+  hasUnsavedChanges,
+  isSaved,
+  saveCanvas,
+  loadCanvas,
+  clearSavedCanvas,
+  hasSavedCanvas,
+  initializeChangeDetection,
+} = useCanvasPersistence();
 
 // Playground mode detection
 const isPlayground = computed(() => route.meta?.playground === true);
@@ -887,10 +905,27 @@ const getPhotoStrokeColor = (photo) => {
   return "gray";
 };
 
+const handleSaveCanvas = async () => {
+  try {
+    const success = saveCanvas();
+    if (success) {
+      // Mostrar feedback visual si es necesario
+      console.log("Canvas saved successfully");
+    } else {
+      console.error("Failed to save canvas");
+    }
+  } catch (error) {
+    console.error("Error saving canvas:", error);
+  }
+};
+
 const handleClearCanvas = () => {
   // Limpiar fotos y descartados
   canvasStore.$patch({ photos: [] });
   canvasStore.$patch({ discardedPhotos: [] });
+
+  // Limpiar el canvas guardado en localStorage
+  clearSavedCanvas();
 
   // Resetear zoom y posición del stage
   const stage = stageRef.value.getStage();
@@ -1212,7 +1247,7 @@ watch(
   { immediate: true }
 );
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener("resize", handleResize);
   document.addEventListener("click", handleClickOutside);
   document.addEventListener("keydown", handleKeyDown);
@@ -1229,7 +1264,6 @@ onMounted(() => {
   }
 
   updateStageOffset();
-  fitStageToPhotos();
 
   // Register cleanup function in the store
   canvasStore.setGlowCleanupFunction(cleanupGlowAnimations);
@@ -1238,6 +1272,27 @@ onMounted(() => {
   canvasStore.setStageRef(stageRef.value);
   canvasStore.updateStageOffset = updateStageOffset;
   canvasStore.toolbarState = toolbarState;
+
+  // Initialize canvas persistence
+  initializeChangeDetection();
+
+  // Try to load saved canvas
+  try {
+    const hasLoaded = await loadCanvas();
+    if (hasLoaded) {
+      console.log("Canvas loaded from localStorage");
+      // Fit stage to loaded photos after a short delay
+      setTimeout(() => {
+        fitStageToPhotos();
+      }, 100);
+    } else {
+      // No saved canvas, proceed normally
+      fitStageToPhotos();
+    }
+  } catch (error) {
+    console.error("Error loading canvas:", error);
+    fitStageToPhotos();
+  }
 
   // Auto-open photos dialog in playground mode
   if (isPlayground.value) {
