@@ -1060,7 +1060,7 @@ function handleScroll() {
 const gridColumns = ref(6);
 
 // Star filter for minimum rating
-const minStarRating = ref(0);
+const minStarRating = ref(1);
 
 // Collections filter
 const selectedCollections = ref([]);
