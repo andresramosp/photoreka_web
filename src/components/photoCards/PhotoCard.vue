@@ -71,7 +71,7 @@
         <div v-if="showLowRelevanceIcon" class="low-relevance-icon">
           <n-tooltip trigger="hover" placement="top">
             <template #trigger>
-              <n-icon size="17" class="warning-icon">
+              <n-icon size="16" class="warning-icon">
                 <HelpIcon />
               </n-icon>
             </template>

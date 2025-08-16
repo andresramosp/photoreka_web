@@ -39,6 +39,7 @@
                 :photo="photo"
                 :selected="selectedPhotos.includes(photo.id)"
                 @select="togglePhotoSelection"
+                :showLowRelevanceIcon="photo.labelScore == 'poor'"
                 @info="onPhotoInfo"
                 draggable="true"
                 @dragstart="(e: any) => onDragStart(e, photo)"
