@@ -272,7 +272,6 @@ import {
   NSpin,
 } from "naive-ui";
 import { api } from "@/utils/axios";
-import { io } from "socket.io-client";
 
 // Import @vicons icons from ionicons5 for reliability
 import {
@@ -281,7 +280,6 @@ import {
   ArrowUndoOutline as ArrowUndoIcon,
   AddOutline as AddIcon,
 } from "@vicons/ionicons5";
-import { useUserStore } from "@/stores/userStore";
 
 const props = defineProps({
   modelValue: {
@@ -321,7 +319,6 @@ const dialog = computed({
 // Stores
 const photosStore = usePhotosStore();
 const canvasStore = useCanvasStore();
-const userStore = useUserStore();
 
 // Component state
 const selectedIds = ref([]);
@@ -497,15 +494,27 @@ async function performSearch() {
       description: searchQuery.value.trim(),
       options: {
         iteration: 1,
-        pageSize: 50, // Get more results for dialog
+        pageSize: 100,
         searchMode: "low_precision",
       },
     };
 
-    await api.post("/api/search/semantic", payload);
+    const { data: response } = await api.post(
+      "/api/search/semantic/sync",
+      payload
+    );
 
-    // Results will be handled by socket listener or we can handle response directly
-    // For now, let's handle response directly if no socket is set up for this dialog
+    // Handle direct response from sync endpoint
+    if (response.data && response.data.results) {
+      const photos = [];
+      Object.entries(response.data.results).forEach(([iter, items]) => {
+        photos.push(...items.map((i) => i.photo));
+      });
+      searchResults.value = photos;
+    } else {
+      // If no results, show empty array
+      searchResults.value = [];
+    }
   } catch (error) {
     console.error("Error searching photos:", error);
     // On error, show all photos
@@ -548,46 +557,17 @@ watch(
   }
 );
 
-// Socket for real-time search results
-const socket = io(import.meta.env.VITE_API_WS_URL);
-
-const registerSocketListeners = () => {
-  socket.emit("join", { userId: userStore.user.id });
-  socket.on("search-matches", (data) => {
-    if (true) {
-      // Extract photos from search results
-      const photos = [];
-      Object.entries(data.results).forEach(([iter, items]) => {
-        photos.push(...items.map((i) => i.photo));
-      });
-
-      searchResults.value = photos;
-      isSearching.value = false;
-    }
-  });
-};
-
 // Fetch photos on mount
-onMounted(() => {
-  // Listen for search results
-  if (userStore.user?.id) {
-    registerSocketListeners();
+onMounted(async () => {
+  // Ensure photos are loaded if dialog is already open
+  if (props.modelValue) {
+    await photosStore.getOrFetch();
+    allCatalogPhotos.value = photosStore.processedPhotos.filter(
+      (p) =>
+        !canvasStore.photos.find((photo) => photo.id === p.id) &&
+        !canvasStore.discardedPhotos.find((photo) => photo.id === p.id)
+    );
   }
-});
-
-watch(
-  () => userStore.user?.id,
-  (userId) => {
-    if (userId) {
-      registerSocketListeners();
-    }
-  },
-  { immediate: true }
-);
-
-onUnmounted(() => {
-  socket.off("search-matches");
-  socket.disconnect();
 });
 </script>
 

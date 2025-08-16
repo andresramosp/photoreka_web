@@ -389,13 +389,10 @@
           :title="hasUnsavedChanges ? 'Save changes' : 'No changes to save'"
         >
           <template #icon>
-            <n-icon
-              size="20"
-              :color="hasUnsavedChanges ? '#ffffff' : '#2563eb'"
-            >
+            <n-icon size="20">
               <SaveOutline />
             </n-icon> </template
-          >Save{{ hasUnsavedChanges ? "*" : "" }}
+          >Save
         </n-button></n-space
       >
     </div>
