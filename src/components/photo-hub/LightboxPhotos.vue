@@ -252,6 +252,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
 import { usePhotoUpload } from "@/composables/usePhotoUpload.js";
+import { useWarmUp } from "@/composables/useWarmUp.js";
 
 import { BookInformation20Regular } from "@vicons/fluent";
 
@@ -265,6 +266,9 @@ import { useMessage } from "naive-ui";
 const emit = defineEmits(["on-analyze", "selection-change"]);
 const photosStore = usePhotosStore();
 const message = useMessage();
+
+// Warm up composable
+const { warmedUp, ensureWarmUp } = useWarmUp();
 
 // Composables
 const {
@@ -280,6 +284,22 @@ const fileInput = ref(null);
 const showDuplicatesDialog = ref(false);
 const selectedDuplicates = ref([]);
 const isDragOver = ref(false);
+
+// Variable para controlar si ya se activó el warm-up al 75%
+const warmUpTriggeredAt75 = ref(false);
+
+// Watcher para activar warm-up cuando el progreso llega al 75%
+watch(overallProgress, (newProgress) => {
+  if (newProgress >= 75 && !warmUpTriggeredAt75.value && isUploading.value) {
+    ensureWarmUp("image");
+    warmUpTriggeredAt75.value = true;
+  }
+
+  // Reset del flag cuando la subida termina
+  if (!isUploading.value) {
+    warmUpTriggeredAt75.value = false;
+  }
+});
 
 const fastModeOverride = ref(true);
 
@@ -368,6 +388,9 @@ const handleDrop = async (event) => {
     return;
   }
 
+  // Trigger warm up when photos are dropped
+  ensureWarmUp("image");
+
   try {
     await handleUploadFlow(files, "local");
   } catch (error) {
@@ -379,6 +402,9 @@ const handleDrop = async (event) => {
 async function uploadLocalFiles(event) {
   const selectedLocalFiles = Array.from(event.target.files);
   if (selectedLocalFiles.length === 0) return;
+
+  // Trigger warm up when files are selected
+  ensureWarmUp("image");
 
   try {
     await handleUploadFlow(selectedLocalFiles, "local");

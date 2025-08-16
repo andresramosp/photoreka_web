@@ -965,17 +965,9 @@ const {
 const pageSize = computed(() => gridColumns.value * 2); // 2 rows by default
 const isBeFlexibleLoading = ref(false);
 
-const warmedUp = ref(false);
-
-const warmingMessages = [
-  "Warming up the engines...",
-  "Stagingaring the stage...",
-  "Just a few seconds more...",
-  "Aligning the neurons...",
-  "Summoning the muses...",
-];
-const warmingMessage = ref(warmingMessages[0]);
-let warmingInterval = null;
+// Warm up composable
+import { useWarmUp } from "@/composables/useWarmUp";
+const { warmedUp, ensureWarmUp } = useWarmUp();
 
 const scrollContainer = ref(null);
 
@@ -1010,7 +1002,7 @@ function handleIncludedTagsChange(value) {
     includedTags.value.length === 0 &&
     !userStore.usageLimits.search.exceeded
   ) {
-    ensureWarmUp();
+    ensureWarmUp("logic_gpu");
   }
   searchStore.updateTagsSearch(value, excludedTags.value);
 }
@@ -1024,7 +1016,7 @@ function handleExcludedTagsChange(value) {
     excludedTags.value.length === 0 &&
     !userStore.usageLimits.search.exceeded
   ) {
-    ensureWarmUp();
+    ensureWarmUp("logic_gpu");
   }
   searchStore.updateTagsSearch(includedTags.value, value);
 }
@@ -1221,22 +1213,6 @@ async function searchPhotos() {
   }
 }
 
-async function ensureWarmUp() {
-  let i = 0;
-  warmingInterval = setInterval(() => {
-    i = (i + 1) % warmingMessages.length;
-    warmingMessage.value = warmingMessages[i];
-  }, 5000);
-
-  const { data } = await api.get("/api/search/warmUp");
-  warmedUp.value = data.result;
-
-  if (data.result && warmingInterval) {
-    clearInterval(warmingInterval);
-    warmingInterval = null;
-  }
-}
-
 function scrollToLast() {
   nextTick(() => {
     const el = scrollContainer.value;
@@ -1271,7 +1247,7 @@ async function handleBeFlexibleClick() {
 
 // Manejo de respuestas en tiempo real
 onMounted(() => {
-  ensureWarmUp();
+  ensureWarmUp("logic_gpu");
 
   // Fetch collections when component mounts
   collectionsStore.getOrFetch();
@@ -1313,7 +1289,7 @@ const {
 function onSearchChange(value) {
   // Trigger warm up cuando el usuario empieza a escribir en input vacío
   if (value && value.length === 1 && !userStore.usageLimits.search.exceeded) {
-    ensureWarmUp();
+    ensureWarmUp("logic_gpu");
   }
   // Esta función se puede usar para triggers adicionales si es necesario
   // pero el binding reactivo del store ya se encarga de actualizar automáticamente
@@ -1329,7 +1305,7 @@ function updateTopologicalLeft(value) {
     topological.value.left === "" &&
     !userStore.usageLimits.search.exceeded
   ) {
-    ensureWarmUp();
+    ensureWarmUp("logic_gpu");
   }
   searchStore.updateTopologicalSearch(
     value,
@@ -1346,7 +1322,7 @@ function updateTopologicalCenter(value) {
     topological.value.center === "" &&
     !userStore.usageLimits.search.exceeded
   ) {
-    ensureWarmUp();
+    ensureWarmUp("logic_gpu");
   }
   searchStore.updateTopologicalSearch(
     topological.value.left,
@@ -1363,7 +1339,7 @@ function updateTopologicalRight(value) {
     topological.value.right === "" &&
     !userStore.usageLimits.search.exceeded
   ) {
-    ensureWarmUp();
+    ensureWarmUp("logic_gpu");
   }
   searchStore.updateTopologicalSearch(
     topological.value.left,

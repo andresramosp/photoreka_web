@@ -6,7 +6,7 @@
           <n-space vertical size="large">
             <div class="setting-item">
               <div class="setting-label">Subscription Plan</div>
-              <n-button type="primary" @click="goToPlan">
+              <n-button disabled type="primary" @click="goToPlan">
                 Manage Plan
               </n-button>
             </div>

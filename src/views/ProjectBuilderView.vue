@@ -394,6 +394,7 @@ import { useRouter } from "vue-router";
 import { api } from "@/utils/axios";
 import { io } from "socket.io-client";
 import { InfoCircleOutlined } from "@vicons/antd";
+import { useWarmUp } from "@/composables/useWarmUp";
 
 const canvasStore = useCanvasStore();
 const photoStore = usePhotosStore();
@@ -428,6 +429,9 @@ const socket = io(import.meta.env.VITE_API_WS_URL);
 
 // Stores
 const userStore = useUserStore();
+
+// Warm up composable
+const { warmedUp, ensureWarmUp } = useWarmUp();
 
 // State
 const searchQuery = ref("");
@@ -628,7 +632,11 @@ const removeNewFlagFromQualifyingPhotos = () => {
 };
 
 // Methods
-const onSearchChange = () => {
+const onSearchChange = (value) => {
+  // Trigger warm up cuando el usuario empieza a escribir en input vacío
+  if (value && value.length === 1 && !userStore.usageLimits.search?.exceeded) {
+    ensureWarmUp("logic_gpu");
+  }
   console.log("Search query changed:", searchQuery.value);
 };
 
@@ -857,15 +865,17 @@ const handleAddToCollection = () => {
 
 const cancelCollectionModal = () => {
   showCollectionModal.value = false;
-}
+};
 
 const handleCollectionAdded = (data) => {
   showCollectionModal.value = false;
-
 };
 
 // Lifecycle hooks
 onMounted(() => {
+  // Initialize warm-up
+  ensureWarmUp("logic_gpu");
+
   // Register socket listeners when user is available
   if (userStore.user?.id) {
     registerSocketListeners();
