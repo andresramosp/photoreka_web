@@ -88,10 +88,17 @@
         use in the tools.
       </h3>
     </div>
-    <!-- Full Upload Dasdaopzone (show when no photos) -->
+    <!-- Full Upload Dropzone (show when no photos) -->
     <div v-if="lightboxPhotos.length === 0" class="upload-section">
-      <div class="upload-dropzone">
-        <div class="dropzone-content">
+      <div
+        class="upload-dropzone"
+        :class="{ 'drag-over': isDragOver }"
+        @dragover.prevent="handleDragOver"
+        @dragenter.prevent="handleDragEnter"
+        @dragleave.prevent="handleDragLeave"
+        @drop.prevent="handleDrop"
+      >
+        <div class="dropzone-content" @click="triggerFileInput">
           <div class="upload-icon">
             <n-icon size="48" color="#8b5cf6">
               <svg viewBox="0 0 24 24">
@@ -112,7 +119,7 @@
               type="primary"
               size="large"
               class="upload-btn"
-              @click="triggerFileInput"
+              @click.stop="triggerFileInput"
             >
               <template #icon>
                 <n-icon>
@@ -163,7 +170,7 @@
             type="primary"
             size="medium"
             class="compact-upload-btn"
-            @click="triggerFileInput"
+            @click.stop="triggerFileInput"
           >
             <template #icon>
               <n-icon>
@@ -257,6 +264,7 @@ import { useMessage } from "naive-ui";
 
 const emit = defineEmits(["on-analyze", "selection-change"]);
 const photosStore = usePhotosStore();
+const message = useMessage();
 
 // Composables
 const {
@@ -271,6 +279,7 @@ const {
 const fileInput = ref(null);
 const showDuplicatesDialog = ref(false);
 const selectedDuplicates = ref([]);
+const isDragOver = ref(false);
 
 const fastModeOverride = ref(true);
 
@@ -327,6 +336,44 @@ const selectedPhotoIds = computed(() => photosStore.selectedPhotoIds);
 
 const triggerFileInput = () => {
   if (!isUploading.value) fileInput.value?.click();
+};
+
+// Drag & Drop functionality
+const handleDragOver = (event) => {
+  event.preventDefault();
+};
+
+const handleDragEnter = (event) => {
+  event.preventDefault();
+  isDragOver.value = true;
+};
+
+const handleDragLeave = (event) => {
+  event.preventDefault();
+  isDragOver.value = false;
+};
+
+const handleDrop = async (event) => {
+  event.preventDefault();
+  isDragOver.value = false;
+
+  if (isUploading.value) return;
+
+  const files = Array.from(event.dataTransfer.files).filter((file) =>
+    file.type.startsWith("image/")
+  );
+
+  if (files.length === 0) {
+    message.warning("No se encontraron archivos de imagen válidos");
+    return;
+  }
+
+  try {
+    await handleUploadFlow(files, "local");
+  } catch (error) {
+    console.error("Error uploading files:", error);
+    message.error("Error al subir los archivos");
+  }
 };
 
 async function uploadLocalFiles(event) {
@@ -427,7 +474,6 @@ defineExpose({
   border-radius: 16px;
   padding: 64px 32px;
   text-align: center;
-  cursor: pointer;
   transition: all 0.3s ease;
   background-color: #1a1a1f;
 }
@@ -441,6 +487,7 @@ defineExpose({
 .dropzone-content {
   max-width: 400px;
   margin: 0 auto;
+  cursor: pointer;
 }
 
 .upload-icon {
@@ -483,6 +530,14 @@ defineExpose({
 
 .compact-upload-btn {
   min-width: 120px;
+}
+
+.compact-upload-section.compact-drag-over {
+  background-color: rgba(139, 92, 246, 0.05);
+  border: 2px dashed var(--secondary-color);
+  border-radius: 8px;
+  padding: 8px;
+  margin: 8px 0;
 }
 
 .compact-google-photos-btn {

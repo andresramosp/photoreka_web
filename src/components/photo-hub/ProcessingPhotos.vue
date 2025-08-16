@@ -283,7 +283,7 @@ function startPolling() {
 // Orden de las stages del pipeline
 const STAGES = [
   { key: "init", label: "Initializing" },
-  { key: "vision_visual_aspects", label: "Understanding Visual Aspects" },
+  { key: "vision_visual_aspects", label: "Visual Aspects" },
   { key: "tags_visual_aspects", label: "Tagging Visual Aspects" },
   { key: "clip_embeddings", label: "Vectorizing Image" },
   { key: "vision_context_story_accents", label: "Narrative and Context" },

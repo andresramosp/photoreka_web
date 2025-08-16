@@ -21,7 +21,7 @@
     <div class="welcome-content">
       <div class="welcome-message">
         <div class="welcome-icon">
-          <n-icon size="64" color="var(--primary-color)">
+          <n-icon size="55" color="var(--primary-color)">
             <svg viewBox="0 0 24 24">
               <path
                 fill="currentColor"
@@ -34,8 +34,8 @@
         <div class="message-text">
           <p class="main-message">
             Photoreka is designed to work with large photo collections and
-            complete bodies of work. To ensure consistent performance and the
-            best experience, we require a minimum of
+            complete bodies of work. To ensure consistent performance, we
+            require a minimum of
             <strong>100 photos</strong> to unlock the full potential of the
             platform.
           </p>
