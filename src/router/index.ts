@@ -6,6 +6,7 @@ import SearchView from "../views/SearchView.vue";
 import CollectionsView from "../views/CollectionsView.vue";
 import PhotoHubView from "../views/PhotoHubView.vue";
 import ProjectBuilderView from "../views/ProjectBuilderView.vue";
+import PortfolioReportView from "../views/PortfolioReportView.vue";
 import SettingsView from "../views/SettingsView.vue";
 import HelpView from "../views/HelpView.vue";
 import PlanView from "../views/PlanView.vue";
@@ -132,6 +133,14 @@ const router = createRouter({
       meta: {
         requiresAuth: true,
         keepAlive: true,
+      },
+    },
+    {
+      path: "/portfolio-report",
+      name: "portfolio-report",
+      component: PortfolioReportView,
+      meta: {
+        requiresAuth: true,
       },
     },
     {

@@ -154,22 +154,19 @@
           <p class="action-description">Start a fresh canvas</p>
         </div>
 
-        <!-- Manage Plan Card - Commented out -->
-        <!--
-        <div
-          class="action-card ai-search"
-          @click="goToPlan"
-          :class="{ disabled: false }"
+        <!-- <div
+          class="action-card portfolio-report"
+          @click="goToPortfolioReport"
+          :class="{ disabled: appAccessMode === 'blocked' }"
         >
           <div class="action-icon">
             <n-icon size="32">
-              <SettingsIcon />
+              <AnalyticsIcon />
             </n-icon>
           </div>
-          <h3 class="action-title">Manage Plan</h3>
-          <p class="action-description">Get more space or usage</p>
-        </div>
-        -->
+          <h3 class="action-title">Portfolio Report</h3>
+          <p class="action-description">Analytics & insights</p>
+        </div> -->
       </div>
     </div>
 
@@ -295,6 +292,7 @@ import {
   HelpCircleOutline as QuestionIcon,
   ChevronBackOutline as ArrowLeftIcon,
   ChevronForwardOutline as ArrowRightIcon,
+  AnalyticsOutline as AnalyticsIcon,
 } from "@vicons/ionicons5";
 import { Workspace } from "@vicons/carbon";
 
@@ -482,6 +480,11 @@ const goToUpload = () => {
   router.push({ name: "photo-hub", hash: "#upload" });
 };
 
+const goToPortfolioReport = () => {
+  // Navigate to portfolio-report
+  router.push({ name: "portfolio-report" });
+};
+
 // Format date helper
 const formatDate = (date: Date) => {
   const now = new Date();
@@ -649,6 +652,10 @@ const formatDate = (date: Date) => {
 
 .catalog .action-icon {
   color: var(--warning-color);
+}
+
+.portfolio-report .action-icon {
+  color: var(--info-color);
 }
 
 /* Did you know card styles */

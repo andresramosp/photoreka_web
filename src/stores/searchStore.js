@@ -33,19 +33,7 @@ export const visualAspectsOptions = [
       { label: "Neutral", value: "neutral" },
     ],
   },
-  {
-    type: "group",
-    label: "Composition",
-    key: "composition",
-    children: [
-      { label: "Balanced", value: "balanced" },
-      { label: "Left-weighted", value: "left-weighted" },
-      { label: "Right-weighted", value: "right-weighted" },
-      { label: "Cluttered", value: "cluttered" },
-      { label: "Clean", value: "clean" },
-      { label: "Crooked", value: "crooked" },
-    ],
-  },
+
   {
     type: "group",
     label: "Focus",
@@ -61,7 +49,6 @@ export const visualAspectsOptions = [
     key: "stylistic",
     children: [
       { label: "Long exposure", value: "long exposure" },
-      { label: "Bokeh", value: "bokeh" },
       { label: "Silhouettes", value: "silhouettes" },
       { label: "Reflections", value: "reflections" },
       { label: "Vivid colors", value: "vivid colors" },

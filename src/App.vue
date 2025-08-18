@@ -289,7 +289,7 @@ const onOnboardingFinish = () => {
 .main-content {
   background-color: #101014;
   height: calc(100vh - 64px);
-  overflow: hidden;
+  overflow: auto;
   transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

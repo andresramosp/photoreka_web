@@ -228,6 +228,7 @@ import {
   ApertureOutline as StylerIcon,
   SearchOutline as SearchIcon,
   ImagesOutline as CurationIcon,
+  AnalyticsOutline as AnalyticsIcon,
   // ColorPaletteOutline as StylerIcon,
   AppsOutline as GridIcon,
   SettingsOutline as SettingsIcon,
@@ -288,14 +289,14 @@ const firstSectionOptions = computed(() => [
     label: createMenuLabel("Collections", false),
     key: "collections",
     disabled: appAccessMode.value === "blocked",
-    icon: createIconWithIndicator(CollectionsIcon),
+    icon: createIconWithIndicator(CollectionsIcon, "#10b981"), // Green color for collections
   },
 ]);
 
 // Function to create icon with premium or coming soon indicator
 const createIconWithIndicator = (
-  IconComponent,
-  color,
+  IconComponent: any,
+  color: string,
   isPremium = false,
   isComingSoon = false
 ) => {
@@ -433,6 +434,18 @@ const secondSectionOptions = computed(() => {
           }
         : {},
       icon: createIconWithIndicator(CurationIcon, "#f59e0b", true), // Warning color for curation + premium
+    },
+    {
+      label: createMenuLabel("Portfolio Report"),
+      key: "portfolio-report",
+      disabled: isBlocked,
+      comingSoon: false,
+      props: isBlocked
+        ? {
+            title: "Add photos to your catalog",
+          }
+        : {},
+      icon: createIconWithIndicator(AnalyticsIcon, "#06b6d4", false, false), // Cyan color for analytics
     },
     // {
     //   label: createMenuLabel("Visual Lab", true),

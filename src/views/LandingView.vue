@@ -535,7 +535,7 @@ const faqs = ref([
   {
     question: "What happens to my photos and who can see them?",
     answer:
-      "We only store a reduced version of your images on secure servers, enough to analyze and facilitate searches, but not for other uses. The analysis is performed using proprietary and third-party services under agreements that prevent retaining or reusing your photos. They are not shared with anyone and you always retain 100% of the rights to your work. For complete details, please read our Terms and Image Policy.",
+      "We only store a reduced version of your images on secure servers—sufficient to facilitate searches and for common social media uses, but not for any other purpose. The analysis is performed using proprietary and third-party services under agreements that prevent retaining or reusing your photos. They are not shared with anyone and you always retain 100% of the rights to your work. For complete details, please read our Terms and Image Policy.",
     hasLink: true,
   },
   {
