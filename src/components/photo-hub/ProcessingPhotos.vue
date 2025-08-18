@@ -283,17 +283,18 @@ function startPolling() {
 // Orden de las stages del pipeline
 const STAGES = [
   { key: "init", label: "Initializing" },
+  { key: "visual_color_embedding_task", label: "Color Embedding" },
+  { key: "clip_embeddings", label: "Vectorizing Image" },
+  { key: "metadata_extraction", label: "Extracting Metadata" },
   { key: "vision_visual_aspects", label: "Visual Aspects" },
   { key: "tags_visual_aspects", label: "Tagging Visual Aspects" },
-  { key: "clip_embeddings", label: "Vectorizing Image" },
   { key: "vision_context_story_accents", label: "Narrative and Context" },
-  { key: "tags_context_story", label: "Generating Tags" },
-  { key: "tags_visual_accents", label: "Generating Tags" },
+  { key: "tags_context_story", label: "Tagging Context/Story" },
+  { key: "tags_visual_accents", label: "Tagging Visual Accents" },
   {
     key: "chunks_context_story_visual_accents",
     label: "Generating Chunks",
   },
-  { key: "visual_color_embedding_task", label: "Color Embedding" },
   { key: "topological_tags", label: "Topological Tags" },
   { key: "finished", label: "Finished" },
 ];
