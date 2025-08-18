@@ -264,24 +264,28 @@
                 <span class="filter-compact-label" style="margin-bottom: 2px"
                   >Visual aspects</span
                 >
-                <n-select
+                <n-tree-select
                   v-model:value="searchStore.selectedVisualAspects"
                   multiple
                   clearable
                   placeholder="Any"
-                  :options="searchStore.visualAspectsOptions"
+                  :options="treeSelectOptions"
                   :max-tag-count="3"
                   class="filter-compact-select"
                   :disabled="isSearching"
                   size="small"
                   style="min-width: 200px"
+                  check-strategy="leaf"
+                  leaf-only
+                  :show-path="false"
+                  expand-on-click
                 >
                   <template #empty>
                     <div style="padding: 8px; color: #888; font-size: 12px">
                       No visual aspects found
                     </div>
                   </template>
-                </n-select>
+                </n-tree-select>
               </div>
             </div>
           </div>
@@ -819,7 +823,13 @@ import {
   nextTick,
 } from "vue";
 import { api } from "@/utils/axios";
-import { NTooltip, NRate, useMessage, useNotification } from "naive-ui";
+import {
+  NTooltip,
+  NRate,
+  NTreeSelect,
+  useMessage,
+  useNotification,
+} from "naive-ui";
 
 // Componentes e íconos
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
@@ -887,6 +897,22 @@ const hasSearchQuery = computed(() => searchStore.hasSearchQuery);
 const hasMoreIterations = computed(
   () => searchStore.currentSearchState.hasMoreIterations
 );
+
+// Convert visual aspects to tree-select format
+const treeSelectOptions = computed(() => {
+  return searchStore.visualAspectsOptions.map((group) => ({
+    label: group.label,
+    key: group.key,
+    disabled: false, // Allow interaction for expanding
+    checkable: false, // But not selectable
+    children: group.children.map((child) => ({
+      label: child.label,
+      key: child.value,
+      disabled: false,
+      checkable: true, // Children are selectable
+    })),
+  }));
+});
 
 // Computed properties for photos with pre-computed stars and filtering
 const photosWithComputedStars = computed(() => {

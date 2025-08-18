@@ -98,7 +98,10 @@
                 <n-select
                   v-model:value="selectedFilters[aspectGroup.key]"
                   multiple
-                  :placeholder="`Select ${aspectGroup.label.toLowerCase()}`"
+                  :placeholder="`${
+                    aspectGroup.label.charAt(0).toUpperCase() +
+                    aspectGroup.label.slice(1)
+                  }`"
                   :options="aspectGroup.children"
                   :max-tag-count="2"
                   clearable
@@ -555,7 +558,7 @@ const navigateToTab = (tabName) => {
 
 .filters-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 12px;
 }
 

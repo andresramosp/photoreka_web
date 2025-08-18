@@ -2,7 +2,18 @@ import { defineStore } from "pinia";
 import { ref, reactive, computed } from "vue";
 
 // Export visualAspectsOptions for reuse in other components
+
 export const visualAspectsOptions = [
+  {
+    type: "group",
+    label: "Orientation",
+    key: "orientation",
+    children: [
+      { label: "Horizontal", value: "horizontal" },
+      { label: "Vertical", value: "vertical" },
+      { label: "Square", value: "square" },
+    ],
+  },
   {
     type: "group",
     label: "Palette",
@@ -24,12 +35,15 @@ export const visualAspectsOptions = [
   },
   {
     type: "group",
-    label: "Orientation",
-    key: "orientation",
+    label: "Composition",
+    key: "composition",
     children: [
-      { label: "Vertical", value: "vertical" },
-      { label: "Horizontal", value: "horizontal" },
-      { label: "Square", value: "square" },
+      { label: "Balanced", value: "balanced" },
+      { label: "Left-weighted", value: "left-weighted" },
+      { label: "Right-weighted", value: "right-weighted" },
+      { label: "Cluttered", value: "cluttered" },
+      { label: "Clean", value: "clean" },
+      { label: "Crooked", value: "crooked" },
     ],
   },
   {
@@ -50,10 +64,10 @@ export const visualAspectsOptions = [
       { label: "Bokeh", value: "bokeh" },
       { label: "Silhouettes", value: "silhouettes" },
       { label: "Reflections", value: "reflections" },
-      { label: "Crooked", value: "crooked" },
       { label: "Vivid colors", value: "vivid colors" },
       { label: "Complementary colors", value: "complementary colors" },
       { label: "Minimalist", value: "minimalist" },
+      { label: "Geometry", value: "geometric shapes" },
     ],
   },
   {

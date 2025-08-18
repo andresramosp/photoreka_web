@@ -124,10 +124,23 @@
               </n-icon>
             </template>
             <div class="visual-aspects-section">
+              <!-- Summary section -->
+              <div
+                v-if="selectedPhoto.descriptions.visual_aspects.summary"
+                class="visual-aspects-summary"
+              >
+                <h6 class="summary-title">Summary</h6>
+                <div class="summary-content">
+                  <p>{{ selectedPhoto.descriptions.visual_aspects.summary }}</p>
+                </div>
+              </div>
+
+              <!-- Visual aspects grid -->
               <div class="visual-aspects-grid">
                 <div
-                  v-for="(values, category) in selectedPhoto.descriptions
-                    .visual_aspects"
+                  v-for="(values, category) in getFilteredVisualAspects(
+                    selectedPhoto.descriptions.visual_aspects
+                  )"
                   :key="category"
                   class="visual-aspect-category"
                 >
@@ -456,6 +469,13 @@ const formatCategoryName = (category) => {
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+};
+
+const getFilteredVisualAspects = (visualAspects) => {
+  // Filter out the summary field from visual aspects
+  const filtered = { ...visualAspects };
+  delete filtered.summary;
+  return filtered;
 };
 
 const handleImageError = (event) => {
@@ -936,6 +956,33 @@ if (typeof window !== "undefined") {
 
 .visual-aspects-section {
   padding: var(--spacing-md);
+}
+
+.visual-aspects-summary {
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--primary-color);
+}
+
+.summary-title {
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-content {
+  margin: 0;
+}
+
+.summary-content p {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--text-primary);
 }
 
 .regenerate-btn {
