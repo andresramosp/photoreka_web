@@ -59,8 +59,8 @@
       @click="handleClick"
     >
       <template #icon>
-        <n-icon size="20">
-          <InProgress />
+        <n-icon size="18" class="button-icon">
+          <RocketLaunchOutlined />
         </n-icon>
       </template>
       Analyze Photos
@@ -74,6 +74,8 @@
 <script setup>
 import { MIN_PHOTOS_THRESHOLD } from "@/stores/photos";
 import { InProgress } from "@vicons/carbon";
+import { Rocket } from "@vicons/ionicons5";
+import { RocketLaunchOutlined } from "@vicons/material";
 
 const props = defineProps({
   shouldShow: {
@@ -124,7 +126,6 @@ const handleClick = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
 }
 
 .floating-process-button.enabled:hover:not(:disabled) {
@@ -193,7 +194,6 @@ const handleClick = () => {
 }
 
 .button-icon {
-  color: var(--info-color);
   flex-shrink: 0;
 }
 
