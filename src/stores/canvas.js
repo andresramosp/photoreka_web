@@ -202,7 +202,7 @@ export const useCanvasStore = defineStore("canvas", {
           }
 
           // Apply glow effect to newly added photos
-          this.applyGlowEffect(addedPhotoIds);
+          // this.applyGlowEffect(addedPhotoIds);
 
           // Auto-fit if requested (usually false for canvas expansions due to animations)
           if (autoFit && this.autoFitEnabled && addedPhotoIds.length > 0) {

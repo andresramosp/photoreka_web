@@ -551,7 +551,7 @@ const videoTabs = ref([
     title: "Canvas",
     icon: ColorPaletteOutline,
     videoUrl: new URL("@/assets/videos/canvas_1.mp4", import.meta.url).href, // local video
-    speed: 1.9,
+    speed: 1,
   },
   {
     title: "Explorer",

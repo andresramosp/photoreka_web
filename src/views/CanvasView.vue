@@ -1072,6 +1072,24 @@ const handleKeyDown = (event) => {
     }
   }
 
+  // Zoom in with 'A' key
+  if (event.key === "a" || event.key === "A") {
+    // Only if not typing in an input field
+    if (!["INPUT", "TEXTAREA"].includes(event.target.tagName)) {
+      event.preventDefault();
+      zoomTick(1);
+    }
+  }
+
+  // Zoom out with 'Z' key
+  if (event.key === "z" || event.key === "Z") {
+    // Only if not typing in an input field
+    if (!["INPUT", "TEXTAREA"].includes(event.target.tagName)) {
+      event.preventDefault();
+      zoomTick(-1);
+    }
+  }
+
   // Escape key to deselect all photos
   if (event.key === "Escape") {
     photos.value.forEach((photo) => {
