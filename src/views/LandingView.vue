@@ -91,7 +91,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="video-container">
+                <div class="video-container" ref="videoContainer">
                   <video
                     ref="videoPlayer"
                     class="demo-video"
@@ -473,7 +473,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, onUnmounted, watch, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { NButton, NIcon, NAvatar, useMessage } from "naive-ui";
 import {
@@ -506,6 +506,13 @@ const showRequestDialog = ref(false);
 const showMobileNotice = ref(false);
 const message = useMessage();
 const activeFAQ = ref(null);
+
+// Video visibility and auto-play management
+const videoContainer = ref(null);
+const videoFullyVisible = ref(false);
+const autoPlayTriggered = ref(false);
+const fallbackTimeout = ref(null);
+const observer = ref(null);
 
 // FAQs data
 const faqs = ref([
@@ -564,7 +571,7 @@ const videoTabs = ref([
     icon: ImagesOutline,
     videoUrl: new URL("@/assets/videos/project_builder_1.mp4", import.meta.url)
       .href, // local video
-    speed: 3.0,
+    speed: 2.8,
   },
   {
     title: "Grid Maker",
@@ -616,23 +623,33 @@ const setActiveTab = (index) => {
   activeTab.value = index;
   videoProgress.value = 0;
   videoPlaying.value = false;
+  autoPlayTriggered.value = false; // Reset auto-play trigger for new tab
+
+  // Clear any existing fallback timeout
+  if (fallbackTimeout.value) {
+    clearTimeout(fallbackTimeout.value);
+    fallbackTimeout.value = null;
+  }
 
   if (videoPlayer.value) {
     videoPlayer.value.currentTime = 0;
-    videoPlayer.value.load(); // Force reload the video
+    videoPlayer.value.load(); // Force reload the video to show first frame
 
-    // Wait a bit for the video to load, then play
-    setTimeout(() => {
-      videoPlayer.value
-        .play()
-        .then(() => {
-          console.log("Video started playing");
-          videoPlaying.value = true;
-        })
-        .catch((error) => {
-          console.log("Error playing video:", error);
-        });
-    }, 200);
+    // Check if video is already fully visible, if so start immediately
+    if (videoFullyVisible.value) {
+      console.log("Video is already visible, starting playback for new tab");
+      startVideoPlayback();
+    } else {
+      // Set up new fallback timeout for this tab
+      fallbackTimeout.value = setTimeout(() => {
+        if (!autoPlayTriggered.value) {
+          console.log(
+            "Fallback timeout reached for tab change, starting video playback"
+          );
+          startVideoPlayback();
+        }
+      }, 5000);
+    }
   }
 };
 
@@ -687,18 +704,120 @@ watch(activeTab, () => {
   videoProgress.value = 0;
 });
 
-onMounted(() => {
-  // Start playing the first video automatically after a short delay
-  setTimeout(() => {
-    if (videoPlayer.value) {
-      videoPlayer.value
-        .play()
-        .then(() => {
-          videoPlaying.value = true;
-        })
-        .catch(console.log);
+// Video auto-play functionality
+const startVideoPlayback = () => {
+  if (autoPlayTriggered.value) return;
+
+  autoPlayTriggered.value = true;
+
+  // Clear any existing fallback timeout
+  if (fallbackTimeout.value) {
+    clearTimeout(fallbackTimeout.value);
+    fallbackTimeout.value = null;
+  }
+
+  if (videoPlayer.value) {
+    videoPlayer.value
+      .play()
+      .then(() => {
+        videoPlaying.value = true;
+        console.log("Video started playing automatically");
+      })
+      .catch((error) => {
+        console.log("Error playing video:", error);
+      });
+  }
+};
+
+const setupIntersectionObserver = () => {
+  if (!videoPlayer.value) return;
+
+  // Observer to detect when video is fully visible
+  observer.value = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        // More strict check: ensure the intersection ratio is exactly 1.0
+        const isFullyVisible = entry.intersectionRatio === 1.0;
+        const boundingRect = entry.boundingClientRect;
+        const rootBounds = entry.rootBounds;
+
+        // Additional check: ensure the entire element is within viewport bounds
+        const isCompletelyInView =
+          boundingRect.top >= (rootBounds?.top || 0) &&
+          boundingRect.left >= (rootBounds?.left || 0) &&
+          boundingRect.bottom <= (rootBounds?.bottom || window.innerHeight) &&
+          boundingRect.right <= (rootBounds?.right || window.innerWidth);
+
+        const finallyVisible = isFullyVisible && isCompletelyInView;
+
+        console.log(`Video visibility check:`, {
+          intersectionRatio: entry.intersectionRatio,
+          isFullyVisible,
+          isCompletelyInView,
+          finallyVisible,
+          boundingRect: {
+            top: boundingRect.top,
+            bottom: boundingRect.bottom,
+            height: boundingRect.height,
+          },
+          viewport: {
+            height: window.innerHeight,
+          },
+        });
+
+        videoFullyVisible.value = finallyVisible;
+
+        if (finallyVisible && !autoPlayTriggered.value) {
+          console.log("Video is fully visible, starting playback");
+          startVideoPlayback();
+        }
+      });
+    },
+    {
+      threshold: 1.0, // Trigger only when 100% visible
+      rootMargin: "0px",
     }
-  }, 500);
+  );
+
+  observer.value.observe(videoPlayer.value);
+};
+
+onMounted(() => {
+  // Load the video to show the first frame but don't play yet
+  if (videoPlayer.value) {
+    videoPlayer.value.load();
+  }
+
+  // Wait for next tick to ensure DOM is fully rendered
+  nextTick(() => {
+    // Additional small delay to ensure video element is fully rendered
+    setTimeout(() => {
+      // Set up intersection observer to detect when video is fully visible
+      setupIntersectionObserver();
+    }, 100);
+
+    // Set up fallback timeout (5 seconds) in case video is not fully visible
+    fallbackTimeout.value = setTimeout(() => {
+      if (!autoPlayTriggered.value) {
+        console.log("Fallback timeout reached, starting video playback");
+        startVideoPlayback();
+      }
+    }, 5000);
+  });
+});
+
+onUnmounted(() => {
+  // Clean up intersection observer
+  if (observer.value) {
+    observer.value.disconnect();
+    observer.value = null;
+  }
+
+  // Clear any pending timeouts
+  if (fallbackTimeout.value) {
+    clearTimeout(fallbackTimeout.value);
+    fallbackTimeout.value = null;
+  }
 });
 
 // FAQ functionality
