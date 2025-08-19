@@ -108,7 +108,16 @@ const computedY = computed(() => {
 
 const emit = defineEmits(["click"]);
 
+// Flag to prevent duplicate events from touch and synthetic mouse events
+let touchHandled = false;
+
 const handleClick = (e) => {
+  // Skip if this is a synthetic mouse event after touch
+  if (touchHandled) {
+    touchHandled = false;
+    return;
+  }
+
   e.cancelBubble = true;
   emit("click", props.position);
 };
@@ -116,12 +125,21 @@ const handleClick = (e) => {
 const handleTouchStart = (e) => {
   e.cancelBubble = true;
   e.evt.preventDefault();
+  touchHandled = true;
 };
 
 const handleTouchEnd = (e) => {
   e.cancelBubble = true;
   e.evt.preventDefault();
-  emit("click", props.position);
+
+  // Add a small delay to ensure touch is properly handled
+  setTimeout(() => {
+    emit("click", props.position);
+    // Reset the flag after a short delay to allow future mouse events
+    setTimeout(() => {
+      touchHandled = false;
+    }, 100);
+  }, 10);
 };
 
 const handleMouseOver = (e) => {

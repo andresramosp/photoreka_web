@@ -72,7 +72,7 @@
                     :key="index"
                     class="video-tab"
                     :class="{ active: activeTab === index }"
-                    @click="setActiveTab(index)"
+                    @click="setActiveTab(index, false)"
                   >
                     <div class="tab-header">
                       <n-icon
@@ -513,6 +513,7 @@ const videoFullyVisible = ref(false);
 const autoPlayTriggered = ref(false);
 const fallbackTimeout = ref(null);
 const observer = ref(null);
+const isAutoSwitching = ref(false); // Track if switching was triggered by video end
 
 // FAQs data
 const faqs = ref([
@@ -558,7 +559,7 @@ const videoTabs = ref([
     title: "Canvas",
     icon: ColorPaletteOutline,
     videoUrl: new URL("@/assets/videos/canvas_1.mp4", import.meta.url).href, // local video
-    speed: 1,
+    speed: 1.2,
   },
   {
     title: "Explorer",
@@ -618,12 +619,14 @@ const onMobileNoticeGoHome = () => {
   showMobileNotice.value = false;
 };
 
-const setActiveTab = (index) => {
-  console.log(`Setting active tab to: ${index}`);
+const setActiveTab = (index, isAutoSwitch = false) => {
+  console.log(`Setting active tab to: ${index}, auto-switch: ${isAutoSwitch}`);
   activeTab.value = index;
   videoProgress.value = 0;
   videoPlaying.value = false;
   autoPlayTriggered.value = false; // Reset auto-play trigger for new tab
+  videoFullyVisible.value = false; // Reset visibility state for new tab
+  isAutoSwitching.value = isAutoSwitch;
 
   // Clear any existing fallback timeout
   if (fallbackTimeout.value) {
@@ -631,24 +634,45 @@ const setActiveTab = (index) => {
     fallbackTimeout.value = null;
   }
 
+  // Clean up existing observer
+  if (observer.value) {
+    observer.value.disconnect();
+    observer.value = null;
+  }
+
   if (videoPlayer.value) {
     videoPlayer.value.currentTime = 0;
     videoPlayer.value.load(); // Force reload the video to show first frame
 
-    // Check if video is already fully visible, if so start immediately
-    if (videoFullyVisible.value) {
-      console.log("Video is already visible, starting playback for new tab");
-      startVideoPlayback();
+    // If this is an auto-switch (video ended), start playing immediately
+    if (isAutoSwitch) {
+      console.log(
+        "Auto-switching from previous video, starting playback immediately"
+      );
+      // Small delay to ensure video is loaded
+      setTimeout(() => {
+        startVideoPlayback();
+      }, 200);
     } else {
-      // Set up new fallback timeout for this tab
-      fallbackTimeout.value = setTimeout(() => {
-        if (!autoPlayTriggered.value) {
-          console.log(
-            "Fallback timeout reached for tab change, starting video playback"
-          );
-          startVideoPlayback();
-        }
-      }, 5000);
+      // If manual click on tab, use visibility detection for first video only
+      console.log("Manual tab selection, setting up visibility detection");
+      // Wait for video to load and then setup new observer
+      nextTick(() => {
+        setTimeout(() => {
+          // Reconfigure intersection observer for the new video
+          setupIntersectionObserver();
+
+          // Set up new fallback timeout for this tab
+          fallbackTimeout.value = setTimeout(() => {
+            if (!autoPlayTriggered.value) {
+              console.log(
+                "Fallback timeout reached for tab change, starting video playback"
+              );
+              startVideoPlayback();
+            }
+          }, 5000);
+        }, 100);
+      });
     }
   }
 };
@@ -686,16 +710,16 @@ const updateProgress = () => {
 };
 
 const onVideoEnded = () => {
-  console.log("Video ended, switching to next tab");
+  console.log(`Video ended for tab ${activeTab.value}, switching to next tab`);
   videoProgress.value = 100;
   videoPlaying.value = false;
 
   // Auto-switch to next tab after video ends
   const nextTab = (activeTab.value + 1) % videoTabs.value.length;
-  console.log(`Switching from tab ${activeTab.value} to tab ${nextTab}`);
+  console.log(`Auto-switching from tab ${activeTab.value} to tab ${nextTab}`);
 
   setTimeout(() => {
-    setActiveTab(nextTab);
+    setActiveTab(nextTab, true); // Pass true to indicate auto-switch
   }, 300);
 };
 
@@ -706,8 +730,17 @@ watch(activeTab, () => {
 
 // Video auto-play functionality
 const startVideoPlayback = () => {
-  if (autoPlayTriggered.value) return;
+  if (autoPlayTriggered.value) {
+    console.log(`Video playback already triggered for tab ${activeTab.value}`);
+    return;
+  }
 
+  const switchType = isAutoSwitching.value
+    ? "auto-switch"
+    : "visibility/timeout";
+  console.log(
+    `Starting video playback for tab ${activeTab.value} via ${switchType}`
+  );
   autoPlayTriggered.value = true;
 
   // Clear any existing fallback timeout
@@ -717,20 +750,35 @@ const startVideoPlayback = () => {
   }
 
   if (videoPlayer.value) {
-    videoPlayer.value
-      .play()
-      .then(() => {
-        videoPlaying.value = true;
-        console.log("Video started playing automatically");
-      })
-      .catch((error) => {
-        console.log("Error playing video:", error);
-      });
+    // Ensure video is ready before playing
+    const playPromise = videoPlayer.value.play();
+
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          videoPlaying.value = true;
+          console.log(
+            `Video for tab ${activeTab.value} started playing automatically (${switchType})`
+          );
+        })
+        .catch((error) => {
+          console.log(`Error playing video for tab ${activeTab.value}:`, error);
+          autoPlayTriggered.value = false; // Reset flag so it can be retried
+        });
+    }
   }
 };
 
 const setupIntersectionObserver = () => {
   if (!videoPlayer.value) return;
+
+  // Clean up existing observer if it exists
+  if (observer.value) {
+    observer.value.disconnect();
+    observer.value = null;
+  }
+
+  console.log("Setting up new intersection observer for current video");
 
   // Observer to detect when video is fully visible
   observer.value = new IntersectionObserver(
@@ -750,11 +798,12 @@ const setupIntersectionObserver = () => {
 
         const finallyVisible = isFullyVisible && isCompletelyInView;
 
-        console.log(`Video visibility check:`, {
+        console.log(`Video visibility check for tab ${activeTab.value}:`, {
           intersectionRatio: entry.intersectionRatio,
           isFullyVisible,
           isCompletelyInView,
           finallyVisible,
+          autoPlayTriggered: autoPlayTriggered.value,
           boundingRect: {
             top: boundingRect.top,
             bottom: boundingRect.bottom,
@@ -768,7 +817,9 @@ const setupIntersectionObserver = () => {
         videoFullyVisible.value = finallyVisible;
 
         if (finallyVisible && !autoPlayTriggered.value) {
-          console.log("Video is fully visible, starting playback");
+          console.log(
+            `Video for tab ${activeTab.value} is fully visible, starting playback`
+          );
           startVideoPlayback();
         }
       });

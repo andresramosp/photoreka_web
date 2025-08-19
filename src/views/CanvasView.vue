@@ -829,9 +829,18 @@ async function handleAddPlaygroundPhotos(photosData) {
   await canvasStore.addPhotos(photosData, false, true);
 }
 
+// State for preventing duplicate expansion calls
+const isExpanding = ref(false);
+
 function handleAddPhotoFromPhoto(event) {
   // Check if expansion is enabled first
   if (!toolbarState.value.expansion.enabled) {
+    event.cancelBubble = true;
+    return;
+  }
+
+  // Prevent duplicate calls during expansion
+  if (isExpanding.value) {
     event.cancelBubble = true;
     return;
   }
@@ -855,42 +864,57 @@ function handleAddPhotoFromPhoto(event) {
 const handleAddPhotosToCanvas = async (event) => {
   const { photo, position } = event;
   event.cancelBubble = true;
-  const basePosition = { x: photo.config.x, y: photo.config.y };
 
-  // Extraemos el margen y dimensiones para calcular offset
-  const margin = 35;
-  const photoWidth =
-    photos.value.length > 0 ? photos.value[0].config.width : 200;
-  const photoHeight =
-    photos.value.length > 0 ? photos.value[0].config.height : 200;
-  const offsetX = photoWidth + margin;
-  const offsetY = photoHeight + margin;
+  // Prevent duplicate calls
+  if (isExpanding.value) {
+    return;
+  }
 
-  await canvasStore.addPhotosFromPhoto(
-    [photo],
-    toolbarState.value.expansion.type,
-    toolbarState.value.photoOptions.count,
-    basePosition,
-    toolbarState.value.expansion.opposite,
-    toolbarState.value.expansion.inverted,
-    true
-  );
+  isExpanding.value = true;
 
-  if (
-    toolbarState.value.photoOptions.spreadMode == "linear" ||
-    toolbarState.value.photoOptions.spreadMode == "perpendicular"
-  ) {
-    animatePhotoGroup(
-      photoRefs,
-      photos,
+  try {
+    const basePosition = { x: photo.config.x, y: photo.config.y };
+
+    // Extraemos el margen y dimensiones para calcular offset
+    const margin = 35;
+    const photoWidth =
+      photos.value.length > 0 ? photos.value[0].config.width : 200;
+    const photoHeight =
+      photos.value.length > 0 ? photos.value[0].config.height : 200;
+    const offsetX = photoWidth + margin;
+    const offsetY = photoHeight + margin;
+
+    await canvasStore.addPhotosFromPhoto(
+      [photo],
+      toolbarState.value.expansion.type,
+      toolbarState.value.photoOptions.count,
       basePosition,
-      position,
-      offsetX,
-      offsetY,
-      toolbarState.value.photoOptions.spreadMode
+      toolbarState.value.expansion.opposite,
+      toolbarState.value.expansion.inverted,
+      true
     );
-  } else {
-    animatePhotoGroupExplosion(photoRefs, photos, basePosition, position);
+
+    if (
+      toolbarState.value.photoOptions.spreadMode == "linear" ||
+      toolbarState.value.photoOptions.spreadMode == "perpendicular"
+    ) {
+      animatePhotoGroup(
+        photoRefs,
+        photos,
+        basePosition,
+        position,
+        offsetX,
+        offsetY,
+        toolbarState.value.photoOptions.spreadMode
+      );
+    } else {
+      animatePhotoGroupExplosion(photoRefs, photos, basePosition, position);
+    }
+  } finally {
+    // Reset the flag after a delay to allow future expansions
+    setTimeout(() => {
+      isExpanding.value = false;
+    }, 500);
   }
 };
 
@@ -1114,6 +1138,20 @@ const deleteSelectedPhotos = () => {
   stage.batchDraw();
 };
 
+// Helper function to reset canvas state (used by both click and touch)
+const resetCanvasState = () => {
+  photos.value.forEach((photo) => {
+    photo.selected = false;
+    // Also hide hover state/buttons when clicking/touching outside
+    photo.hovered = false;
+  });
+  
+  // Close any open menus
+  closeConfigMenu();
+  isDropdownOpen.value = false;
+  showRelatedPhotos.value = false;
+};
+
 const handleStageClick = (event) => {
   // If clicking on empty space (not on a photo), deselect all photos
   // but only if we're not in select mode or if we're not doing rectangle selection
@@ -1121,15 +1159,20 @@ const handleStageClick = (event) => {
     event.target === event.target.getStage() &&
     (interactionMode.value !== "select" || !selectionRect.visible)
   ) {
-    photos.value.forEach((photo) => {
-      photo.selected = false;
-    });
+    resetCanvasState();
   }
 };
 
 // Touch event handlers for better tablet/mobile support
 const handleTouchStart = (event) => {
   stageHandleTouchStart(event);
+  
+  // Store touch start data for tap detection on stage
+  const touch = event.evt.touches[0];
+  if (touch) {
+    event.target._stageTouchStartTime = Date.now();
+    event.target._stageTouchStartPos = { x: touch.clientX, y: touch.clientY };
+  }
 };
 
 const handleTouchMove = (event) => {
@@ -1138,6 +1181,31 @@ const handleTouchMove = (event) => {
 
 const handleTouchEnd = (event) => {
   stageHandleTouchEnd(event);
+  
+  // Handle tap on stage (similar to handleStageClick)
+  const touch = event.evt.changedTouches[0];
+  if (touch && event.target._stageTouchStartTime && event.target._stageTouchStartPos) {
+    const touchDuration = Date.now() - event.target._stageTouchStartTime;
+    const touchDistance = Math.sqrt(
+      Math.pow(touch.clientX - event.target._stageTouchStartPos.x, 2) +
+        Math.pow(touch.clientY - event.target._stageTouchStartPos.y, 2)
+    );
+
+    // Consider it a tap if duration < 300ms and distance < 15px (more responsive for stage)
+    if (touchDuration < 300 && touchDistance < 15) {
+      // If touching empty space (not on a photo), perform same actions as click
+      if (
+        event.target === event.target.getStage() &&
+        (interactionMode.value !== "select" || !selectionRect.visible)
+      ) {
+        resetCanvasState();
+      }
+    }
+
+    // Clean up touch tracking
+    delete event.target._stageTouchStartTime;
+    delete event.target._stageTouchStartPos;
+  }
 };
 
 const handlePhotoClick = (photo, event) => {
@@ -1165,18 +1233,31 @@ const handlePhotoClick = (photo, event) => {
 
 // Touch handlers for photos
 const handlePhotoTouchStart = (photo, event) => {
+  // Prevent default touch behavior and synthetic mouse events
+  event.evt.preventDefault();
+  event.cancelBubble = true;
+
   // Store touch start time and position for tap detection
   const touch = event.evt.touches[0];
   if (touch) {
     photo._touchStartTime = Date.now();
     photo._touchStartPos = { x: touch.clientX, y: touch.clientY };
+    photo._touchActive = true;
   }
-  event.cancelBubble = true;
 };
 
 const handlePhotoTouchEnd = (photo, event) => {
+  // Prevent default touch behavior and synthetic mouse events
+  event.evt.preventDefault();
+  event.cancelBubble = true;
+
   const touch = event.evt.changedTouches[0];
-  if (touch && photo._touchStartTime && photo._touchStartPos) {
+  if (
+    touch &&
+    photo._touchStartTime &&
+    photo._touchStartPos &&
+    photo._touchActive
+  ) {
     const touchDuration = Date.now() - photo._touchStartTime;
     const touchDistance = Math.sqrt(
       Math.pow(touch.clientX - photo._touchStartPos.x, 2) +
@@ -1197,8 +1278,8 @@ const handlePhotoTouchEnd = (photo, event) => {
     // Clean up touch tracking
     delete photo._touchStartTime;
     delete photo._touchStartPos;
+    delete photo._touchActive;
   }
-  event.cancelBubble = true;
 };
 
 function zoomTick(direction = 1) {
@@ -1272,10 +1353,16 @@ onMounted(async () => {
   // Configure Konva for better touch support
   stage.listening(true);
 
-  // Enable touch events
+  // Enable touch events and improve touch handling
   const canvas = stage.content;
   if (canvas) {
     canvas.style.touchAction = "none";
+    // Disable context menu on long press for better touch experience
+    canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+    // Ensure touch events are properly handled
+    canvas.addEventListener("touchstart", (e) => e.preventDefault(), {
+      passive: false,
+    });
   }
 
   updateStageOffset();
@@ -1338,6 +1425,9 @@ onUnmounted(() => {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  /* Improve touch responsiveness */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-overflow-scrolling: touch;
 }
 
 .canvas-container.playground-mode {
