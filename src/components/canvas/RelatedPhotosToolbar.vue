@@ -43,6 +43,9 @@
                 @info="onPhotoInfo"
                 draggable="true"
                 @dragstart="(e: any) => onDragStart(e, photo)"
+                @touchstart="(e: any) => onTouchStart(e, photo)"
+                @touchmove="(e: any) => onTouchMove(e, photo)"
+                @touchend="(e: any) => onTouchEnd(e, photo)"
                 style="cursor: grab"
               />
             </template>
@@ -92,6 +95,15 @@ const emit = defineEmits<Emits>();
 const relatedPhotos = ref<Photo[]>([]);
 const scrollContainer = ref<HTMLElement>();
 const selectedPhotos = ref<string[]>([]);
+
+// Touch drag state
+const touchDragState = ref({
+  isDragging: false,
+  photo: null as Photo | null,
+  startX: 0,
+  startY: 0,
+  dragElement: null as HTMLElement | null,
+});
 
 function handleGeneratedPhotos(photos: any) {
   relatedPhotos.value = photos;
@@ -148,6 +160,210 @@ function onDragStart(ev: any, photo: Photo) {
 
   const data = JSON.stringify(photosToDrag);
   ev.dataTransfer?.setData("application/json", data);
+}
+
+// Touch drag handlers
+function onTouchStart(ev: TouchEvent, photo: Photo) {
+  ev.preventDefault();
+  ev.stopPropagation(); // Prevent scrolling interference
+
+  const touch = ev.touches[0];
+  if (!touch) return;
+
+  touchDragState.value = {
+    isDragging: false,
+    photo,
+    startX: touch.clientX,
+    startY: touch.clientY,
+    dragElement: null,
+  };
+
+  // Add global touch move and end listeners
+  document.addEventListener("touchmove", handleGlobalTouchMove, {
+    passive: false,
+  });
+  document.addEventListener("touchend", handleGlobalTouchEnd, {
+    passive: false,
+  });
+}
+
+function onTouchMove(ev: TouchEvent, photo: Photo) {
+  // This function is for the specific photo element, but we'll handle most logic in the global handler
+}
+
+function onTouchEnd(ev: TouchEvent, photo: Photo) {
+  // This function is for the specific photo element, but we'll handle most logic in the global handler
+}
+
+function handleGlobalTouchMove(ev: TouchEvent) {
+  if (!touchDragState.value.photo) return;
+
+  const touch = ev.touches[0];
+  if (!touch) return;
+
+  const deltaX = Math.abs(touch.clientX - touchDragState.value.startX);
+  const deltaY = Math.abs(touch.clientY - touchDragState.value.startY);
+
+  // Start dragging if moved more than 10px
+  if (!touchDragState.value.isDragging && (deltaX > 10 || deltaY > 10)) {
+    ev.preventDefault();
+    touchDragState.value.isDragging = true;
+
+    // Haptic feedback if available
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+
+    // Create drag visual feedback
+    createDragElement(touch.clientX, touch.clientY);
+  }
+
+  if (touchDragState.value.isDragging) {
+    ev.preventDefault();
+
+    // Update drag element position
+    if (touchDragState.value.dragElement) {
+      touchDragState.value.dragElement.style.left = touch.clientX - 50 + "px";
+      touchDragState.value.dragElement.style.top = touch.clientY - 35 + "px";
+
+      // Check if over canvas area for visual feedback
+      const elementBelow = document.elementFromPoint(
+        touch.clientX,
+        touch.clientY
+      );
+      const canvasContainer = document.querySelector(".canvas-container");
+      const isOverCanvas =
+        canvasContainer &&
+        (canvasContainer.contains(elementBelow) ||
+          elementBelow === canvasContainer);
+
+      // Update drag element appearance based on drop zone
+      if (isOverCanvas) {
+        touchDragState.value.dragElement.style.borderColor = "#22c55e";
+        touchDragState.value.dragElement.style.boxShadow =
+          "0 4px 12px rgba(34, 197, 94, 0.4)";
+      } else {
+        touchDragState.value.dragElement.style.borderColor = "#007bff";
+        touchDragState.value.dragElement.style.boxShadow =
+          "0 4px 12px rgba(0, 0, 0, 0.3)";
+      }
+    }
+  }
+}
+
+function handleGlobalTouchEnd(ev: TouchEvent) {
+  if (!touchDragState.value.photo) return;
+
+  const touch = ev.changedTouches[0];
+  if (!touch) return;
+
+  if (touchDragState.value.isDragging) {
+    ev.preventDefault();
+
+    // Find drop target
+    const elementBelow = document.elementFromPoint(
+      touch.clientX,
+      touch.clientY
+    );
+    const canvasContainer = document.querySelector(".canvas-container");
+
+    if (
+      canvasContainer &&
+      (canvasContainer.contains(elementBelow) ||
+        elementBelow === canvasContainer)
+    ) {
+      // Haptic feedback for successful drop
+      if (navigator.vibrate) {
+        navigator.vibrate(100);
+      }
+
+      // Simulate drop event
+      simulateDropEvent(touch.clientX, touch.clientY);
+    }
+
+    // Clean up drag element
+    if (touchDragState.value.dragElement) {
+      document.body.removeChild(touchDragState.value.dragElement);
+    }
+  }
+
+  // Clean up
+  touchDragState.value = {
+    isDragging: false,
+    photo: null,
+    startX: 0,
+    startY: 0,
+    dragElement: null,
+  };
+
+  // Remove global listeners
+  document.removeEventListener("touchmove", handleGlobalTouchMove);
+  document.removeEventListener("touchend", handleGlobalTouchEnd);
+}
+
+function createDragElement(x: number, y: number) {
+  const photo = touchDragState.value.photo;
+  if (!photo) return;
+
+  const dragElement = document.createElement("div");
+  dragElement.style.position = "fixed";
+  dragElement.style.left = x - 50 + "px";
+  dragElement.style.top = y - 35 + "px";
+  dragElement.style.width = "100px";
+  dragElement.style.height = "70px";
+  dragElement.style.backgroundImage = `url(${photo.thumbnailUrl || photo.url})`;
+  dragElement.style.backgroundSize = "cover";
+  dragElement.style.backgroundPosition = "center";
+  dragElement.style.borderRadius = "8px";
+  dragElement.style.zIndex = "10000";
+  dragElement.style.opacity = "0.8";
+  dragElement.style.pointerEvents = "none";
+  dragElement.style.border = "2px solid #007bff";
+  dragElement.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.3)";
+
+  document.body.appendChild(dragElement);
+  touchDragState.value.dragElement = dragElement;
+}
+
+function simulateDropEvent(x: number, y: number) {
+  const photo = touchDragState.value.photo;
+  if (!photo) return;
+
+  const photosToDrag =
+    selectedPhotos.value.length > 0
+      ? relatedPhotos.value.filter((p) => selectedPhotos.value.includes(p.id))
+      : [photo];
+
+  // Create a synthetic drop event
+  const syntheticEvent = {
+    preventDefault: () => {},
+    clientX: x,
+    clientY: y,
+    dataTransfer: {
+      getData: (type: string) => {
+        if (type === "application/json") {
+          return JSON.stringify(photosToDrag);
+        }
+        return "";
+      },
+    },
+  };
+
+  // Find the canvas container and trigger the drop handler
+  const canvasContainer = document.querySelector(".canvas-container");
+  if (canvasContainer) {
+    // Find the inner div that has the drop handler
+    const canvasInner =
+      canvasContainer.querySelector("div[data-v-inspector]") ||
+      canvasContainer.firstElementChild;
+    if (canvasInner) {
+      // Dispatch a custom event that the canvas can listen to
+      const customDropEvent = new CustomEvent("touchDrop", {
+        detail: syntheticEvent,
+      });
+      canvasInner.dispatchEvent(customDropEvent);
+    }
+  }
 }
 </script>
 
@@ -337,4 +553,16 @@ function onDragStart(ev: any, photo: Photo) {
     gap: var(--spacing-xs);
   }
 }
+
+/* Touch drag improvements */
+.related-photos-grid .photo-card {
+  touch-action: none;
+  transition: transform 0.2s ease;
+}
+
+.related-photos-grid .photo-card:active {
+  transform: scale(0.95);
+}
+
+/* Global drag overlay styles are handled inline in JavaScript */
 </style>

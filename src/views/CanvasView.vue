@@ -1145,7 +1145,7 @@ const resetCanvasState = () => {
     // Also hide hover state/buttons when clicking/touching outside
     photo.hovered = false;
   });
-  
+
   // Close any open menus
   closeConfigMenu();
   isDropdownOpen.value = false;
@@ -1166,7 +1166,7 @@ const handleStageClick = (event) => {
 // Touch event handlers for better tablet/mobile support
 const handleTouchStart = (event) => {
   stageHandleTouchStart(event);
-  
+
   // Store touch start data for tap detection on stage
   const touch = event.evt.touches[0];
   if (touch) {
@@ -1181,10 +1181,14 @@ const handleTouchMove = (event) => {
 
 const handleTouchEnd = (event) => {
   stageHandleTouchEnd(event);
-  
+
   // Handle tap on stage (similar to handleStageClick)
   const touch = event.evt.changedTouches[0];
-  if (touch && event.target._stageTouchStartTime && event.target._stageTouchStartPos) {
+  if (
+    touch &&
+    event.target._stageTouchStartTime &&
+    event.target._stageTouchStartPos
+  ) {
     const touchDuration = Date.now() - event.target._stageTouchStartTime;
     const touchDistance = Math.sqrt(
       Math.pow(touch.clientX - event.target._stageTouchStartPos.x, 2) +
@@ -1365,6 +1369,17 @@ onMounted(async () => {
     });
   }
 
+  // Add touch drop support
+  const canvasContainerEl = canvasContainer.value;
+  if (canvasContainerEl) {
+    canvasContainerEl.addEventListener("touchDrop", (e) => {
+      handlePhotoDrop(
+        e.detail,
+        relatedPhotosToolbarRef.value.removePhotoFromList
+      );
+    });
+  }
+
   updateStageOffset();
 
   // Register cleanup function in the store
@@ -1406,6 +1421,12 @@ onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
   document.removeEventListener("click", handleClickOutside);
   document.removeEventListener("keydown", handleKeyDown);
+
+  // Clean up touch drop listener
+  const canvasContainerEl = canvasContainer.value;
+  if (canvasContainerEl) {
+    canvasContainerEl.removeEventListener("touchDrop", handlePhotoDrop);
+  }
 
   // No glow interval cleanup needed since we're not using animations
 });
