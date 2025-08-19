@@ -65,9 +65,18 @@
 
       <!-- (Eliminado: el indicador de duplicados ahora va en el footer) -->
 
-      <!-- Checking duplicates overlay with spinner -->
+      <!-- Checking duplicates overlay with static clock icon -->
       <div v-if="photo.isCheckingDuplicates" class="processing-overlay">
-        <n-spin size="medium" />
+        <n-icon size="32" color="#ffffffd1">
+          <TimeOutline />
+        </n-icon>
+      </div>
+
+      <!-- Preprocessing overlay with static clock icon -->
+      <div v-if="photo.status === 'preprocessing'" class="processing-overlay">
+        <n-icon size="32" color="#ffffffd1">
+          <TimeOutline />
+        </n-icon>
       </div>
 
       <!-- Selection indicator -->
@@ -194,6 +203,7 @@ import {
   DuplicateOutline,
   CheckmarkCircleOutline as CheckCircleIcon,
   TrashOutline as DeleteIcon,
+  TimeOutline,
 } from "@vicons/ionicons5";
 
 interface PhotoInfo {

@@ -58,12 +58,22 @@
         >
       </div>
     </n-modal>
-    <div
-      v-if="isUploading && !isCheckingDuplicates"
-      class="upload-progress-section"
-    >
+    <div v-if="isUploading || isPreprocessing" class="upload-progress-section">
       <div class="progress-header">
-        <h3 class="progress-title">Synchronizing Photos</h3>
+        <div class="progress-title-container">
+          <h3 class="progress-title">
+            {{
+              overallProgress >= 100 && isPreprocessing
+                ? "Preprocessing Photos"
+                : "Synchronizing Photos"
+            }}
+          </h3>
+          <n-spin
+            v-if="overallProgress >= 100 && isPreprocessing"
+            size="tiny"
+            class="preprocessing-spinner"
+          />
+        </div>
         <span class="progress-count"
           >{{ uploadedCount }}/{{ totalFiles }} photos</span
         >
@@ -330,6 +340,13 @@ const lightboxPhotos = computed(() => photosStore.lightboxPhotos);
 const filteredPhotos = computed(() => {
   // Modo normal: solo preprocesadas
   return lightboxPhotos.value;
+});
+
+// Computed to check if photos are in preprocessing state
+const isPreprocessing = computed(() => {
+  return lightboxPhotos.value.some(
+    (photo) => photo.isCheckingDuplicates || photo.status === "preprocessing"
+  );
 });
 
 // Selection state from PhotosGrid
@@ -621,11 +638,21 @@ defineExpose({
   margin-bottom: 16px;
 }
 
+.progress-title-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .progress-title {
   font-size: 18px;
   font-weight: 600;
   color: #ffffffd1;
   margin: 0;
+}
+
+.preprocessing-spinner {
+  color: var(--primary-color);
 }
 
 .progress-count {

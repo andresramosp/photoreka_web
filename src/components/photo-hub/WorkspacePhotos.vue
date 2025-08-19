@@ -146,7 +146,7 @@ const processedPhotos = computed(() => photosStore.processedPhotos);
 
 // Local state for filters
 const selectedFilters = ref({});
-const isFiltersPanelExpanded = ref(false);
+const isFiltersPanelExpanded = ref(true);
 
 // Initialize selectedFilters with empty arrays for each category
 visualAspectsOptions.forEach((group) => {
