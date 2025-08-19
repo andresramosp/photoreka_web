@@ -71,8 +71,8 @@
 <script setup lang="ts">
 import { ref, nextTick } from "vue";
 import { NIcon, NSkeleton } from "naive-ui";
-import PhotoBase from "./PhotoBase.vue";
 import PhotoCard, { type Photo } from "../photoCards/PhotoCard.vue";
+import PhotoBase from "./PhotoBase.vue";
 
 interface Props {
   isVisible: boolean;
@@ -96,6 +96,11 @@ const relatedPhotos = ref<Photo[]>([]);
 const scrollContainer = ref<HTMLElement>();
 const selectedPhotos = ref<string[]>([]);
 
+// Cache for photo dimensions to avoid async issues with drag
+const photoDimensionsCache = ref<
+  Map<string, { width: number; height: number }>
+>(new Map());
+
 // Touch drag state
 const touchDragState = ref({
   isDragging: false,
@@ -109,6 +114,25 @@ function handleGeneratedPhotos(photos: any) {
   relatedPhotos.value = photos;
   selectedPhotos.value = [];
 
+  // Preload dimensions for all photos to improve drag performance
+  photos.forEach((photo: Photo) => {
+    if (
+      !photoDimensionsCache.value.has(photo.id) &&
+      !photo.width &&
+      !photo.height
+    ) {
+      // Start loading dimensions in background
+      const img = new Image();
+      img.onload = () => {
+        photoDimensionsCache.value.set(photo.id, {
+          width: img.naturalWidth,
+          height: img.naturalHeight,
+        });
+      };
+      img.src = photo.thumbnailUrl || photo.url;
+    }
+  });
+
   nextTick(() => {
     if (scrollContainer.value) {
       scrollContainer.value.scrollLeft = 0;
@@ -119,9 +143,11 @@ function handleGeneratedPhotos(photos: any) {
 const togglePhotoSelection = (photoId: string) => {
   const index = selectedPhotos.value.indexOf(photoId);
   if (index > -1) {
-    selectedPhotos.value.splice(index, 1);
+    // If clicking on already selected photo, deselect it
+    selectedPhotos.value = [];
   } else {
-    selectedPhotos.value.push(photoId);
+    // Clear any previous selection and select only this photo
+    selectedPhotos.value = [photoId];
   }
   emit("photos-selected", selectedPhotos.value);
 };
@@ -153,13 +179,135 @@ function removePhotoFromList(photoId: string) {
 defineExpose({ removePhotoFromList });
 
 function onDragStart(ev: any, photo: Photo) {
-  const photosToDrag =
-    selectedPhotos.value.length > 0
-      ? relatedPhotos.value.filter((p) => selectedPhotos.value.includes(p.id))
-      : [photo];
+  // Since we only allow single selection, always drag just the clicked photo
+  const photosToDrag = [photo];
 
   const data = JSON.stringify(photosToDrag);
   ev.dataTransfer?.setData("application/json", data);
+
+  // Create custom drag image
+  createCustomDragImage(ev, photo, photosToDrag.length);
+}
+
+function createCustomDragImage(ev: any, photo: Photo, photoCount: number = 1) {
+  // Calculate dimensions for the drag image
+  const dimensionsOrPromise = calculateDragElementDimensions(photo);
+
+  const createDragElementSync = (dimensions: {
+    width: number;
+    height: number;
+  }) => {
+    console.log("Mouse drag dimensions:", dimensions, "for photo:", photo.id);
+
+    const dragElement = document.createElement("div");
+    const { width, height } = dimensions;
+
+    dragElement.style.width = width + "px";
+    dragElement.style.height = height + "px";
+    dragElement.style.borderRadius = "8px";
+    dragElement.style.overflow = "hidden";
+    dragElement.style.border = "2px solid #22d3ee";
+    dragElement.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.3)";
+    dragElement.style.background = "white";
+    dragElement.style.position = "absolute";
+    dragElement.style.top = "-1000px"; // Hide off-screen
+    dragElement.style.left = "-1000px";
+
+    // Create inner image element
+    const imgElement = document.createElement("img");
+    imgElement.src = photo.thumbnailUrl || photo.url;
+    imgElement.style.width = "100%";
+    imgElement.style.height = "100%";
+    imgElement.style.objectFit = "cover";
+    imgElement.style.objectPosition = "center";
+    imgElement.style.display = "block";
+
+    dragElement.appendChild(imgElement);
+
+    // Add count badge if multiple photos
+    if (photoCount > 1) {
+      const badge = document.createElement("div");
+      badge.textContent = photoCount.toString();
+      badge.style.position = "absolute";
+      badge.style.top = "-8px";
+      badge.style.right = "-8px";
+      badge.style.background = "#007bff";
+      badge.style.color = "white";
+      badge.style.borderRadius = "50%";
+      badge.style.width = "20px";
+      badge.style.height = "20px";
+      badge.style.display = "flex";
+      badge.style.alignItems = "center";
+      badge.style.justifyContent = "center";
+      badge.style.fontSize = "12px";
+      badge.style.fontWeight = "bold";
+      badge.style.border = "2px solid white";
+
+      dragElement.appendChild(badge);
+    }
+
+    document.body.appendChild(dragElement);
+
+    // Set custom drag image
+    try {
+      ev.dataTransfer?.setDragImage(dragElement, width / 2, height / 2);
+    } catch (error) {
+      console.warn("Could not set custom drag image:", error);
+    }
+
+    // Clean up after a short delay
+    setTimeout(() => {
+      if (document.body.contains(dragElement)) {
+        document.body.removeChild(dragElement);
+      }
+    }, 1000);
+  };
+
+  if (dimensionsOrPromise instanceof Promise) {
+    // For async case, try to estimate dimensions from the image element itself
+    // Look for existing img elements in the toolbar to get better fallback dimensions
+    const photoCards = document.querySelectorAll(
+      ".related-photos-grid .photo-card img"
+    );
+    let estimatedDimensions = { width: 100, height: 100 }; // default fallback
+
+    // Try to find the img element for this specific photo
+    for (const imgEl of photoCards) {
+      const img = imgEl as HTMLImageElement;
+      if (img.src === photo.thumbnailUrl || img.src === photo.url) {
+        if (img.naturalWidth && img.naturalHeight) {
+          // Found the actual image, calculate proper dimensions
+          const aspectRatio = img.naturalWidth / img.naturalHeight;
+          const maxWidth = Math.min(140, window.innerWidth * 0.15);
+          const maxHeight = Math.min(105, window.innerHeight * 0.12);
+
+          if (aspectRatio > 1) {
+            // Horizontal
+            const width = Math.min(maxWidth, maxWidth);
+            const height = width / aspectRatio;
+            estimatedDimensions = {
+              width: Math.max(width, 80),
+              height: Math.max(height, 60),
+            };
+          } else {
+            // Vertical
+            const height = Math.min(maxHeight, maxHeight);
+            const width = height * aspectRatio;
+            estimatedDimensions = {
+              width: Math.max(width, 60),
+              height: Math.max(height, 80),
+            };
+          }
+          break;
+        }
+      }
+    }
+
+    createDragElementSync(estimatedDimensions);
+  } else {
+    // Sync case - we have dimensions immediately
+    createDragElementSync(dimensionsOrPromise);
+  }
 }
 
 // Touch drag handlers
@@ -223,8 +371,15 @@ function handleGlobalTouchMove(ev: TouchEvent) {
 
     // Update drag element position
     if (touchDragState.value.dragElement) {
-      touchDragState.value.dragElement.style.left = touch.clientX - 50 + "px";
-      touchDragState.value.dragElement.style.top = touch.clientY - 35 + "px";
+      const halfWidth =
+        parseInt(touchDragState.value.dragElement.style.width) / 2;
+      const halfHeight =
+        parseInt(touchDragState.value.dragElement.style.height) / 2;
+
+      touchDragState.value.dragElement.style.left =
+        touch.clientX - halfWidth + "px";
+      touchDragState.value.dragElement.style.top =
+        touch.clientY - halfHeight + "px";
 
       // Check if over canvas area for visual feedback
       const elementBelow = document.elementFromPoint(
@@ -239,11 +394,11 @@ function handleGlobalTouchMove(ev: TouchEvent) {
 
       // Update drag element appearance based on drop zone
       if (isOverCanvas) {
-        touchDragState.value.dragElement.style.borderColor = "#22c55e";
+        touchDragState.value.dragElement.style.borderColor = "#22d3ee";
         touchDragState.value.dragElement.style.boxShadow =
           "0 4px 12px rgba(34, 197, 94, 0.4)";
       } else {
-        touchDragState.value.dragElement.style.borderColor = "#007bff";
+        touchDragState.value.dragElement.style.borderColor = "#22d3ee";
         touchDragState.value.dragElement.style.boxShadow =
           "0 4px 12px rgba(0, 0, 0, 0.3)";
       }
@@ -301,38 +456,171 @@ function handleGlobalTouchEnd(ev: TouchEvent) {
   document.removeEventListener("touchend", handleGlobalTouchEnd);
 }
 
+// Helper function to calculate drag element dimensions based on photo aspect ratio
+function calculateDragElementDimensions(
+  photo: Photo
+):
+  | { width: number; height: number }
+  | Promise<{ width: number; height: number }> {
+  // Responsive max dimensions based on screen size
+  const maxWidth = Math.min(140, window.innerWidth * 0.15);
+  const maxHeight = Math.min(105, window.innerHeight * 0.12);
+
+  const calculateDimensions = (photoWidth: number, photoHeight: number) => {
+    const aspectRatio = photoWidth / photoHeight;
+
+    if (aspectRatio > 1) {
+      // Horizontal photo
+      const width = Math.min(maxWidth, maxWidth);
+      const height = width / aspectRatio;
+      return { width: Math.max(width, 80), height: Math.max(height, 60) };
+    } else {
+      // Vertical photo
+      const height = Math.min(maxHeight, maxHeight);
+      const width = height * aspectRatio;
+      return { width: Math.max(width, 60), height: Math.max(height, 80) };
+    }
+  };
+
+  // Check cache first
+  const cached = photoDimensionsCache.value.get(photo.id);
+  if (cached) {
+    return calculateDimensions(cached.width, cached.height);
+  }
+
+  // If photo has width and height, use those and cache them
+  if (photo.width && photo.height) {
+    const dimensions = { width: photo.width, height: photo.height };
+    photoDimensionsCache.value.set(photo.id, dimensions);
+    return calculateDimensions(photo.width, photo.height);
+  }
+
+  // Fallback: try to get dimensions from image element
+  const img = new Image();
+  img.src = photo.thumbnailUrl || photo.url;
+
+  return new Promise((resolve) => {
+    img.onload = () => {
+      const dimensions = { width: img.naturalWidth, height: img.naturalHeight };
+      // Cache the dimensions for future use
+      photoDimensionsCache.value.set(photo.id, dimensions);
+
+      const calculated = calculateDimensions(
+        img.naturalWidth,
+        img.naturalHeight
+      );
+      resolve(calculated);
+    };
+
+    img.onerror = () => {
+      // Fallback to square
+      const dimensions = { width: 100, height: 100 };
+      photoDimensionsCache.value.set(photo.id, dimensions);
+      resolve({ width: 100, height: 100 });
+    };
+  });
+}
+
 function createDragElement(x: number, y: number) {
   const photo = touchDragState.value.photo;
   if (!photo) return;
 
+  // Calculate dimensions based on photo aspect ratio
+  const dimensionsOrPromise = calculateDragElementDimensions(photo);
+
+  if (dimensionsOrPromise instanceof Promise) {
+    // Async case - create element with default size first, then update
+    createDragElementWithDimensions(x, y, { width: 100, height: 100 });
+
+    dimensionsOrPromise.then(
+      (dimensions: { width: number; height: number }) => {
+        if (touchDragState.value.dragElement) {
+          updateDragElementDimensions(dimensions);
+        }
+      }
+    );
+  } else {
+    // Sync case - we have dimensions from config
+    createDragElementWithDimensions(x, y, dimensionsOrPromise);
+  }
+}
+
+function createDragElementWithDimensions(
+  x: number,
+  y: number,
+  dimensions: { width: number; height: number }
+) {
+  const photo = touchDragState.value.photo;
+  if (!photo) return;
+
+  console.log("Touch drag dimensions:", dimensions, "for photo:", photo.id);
+
+  // Since we only allow single selection, always just one photo
+  const photoCount = 1;
+
   const dragElement = document.createElement("div");
+  const halfWidth = dimensions.width / 2;
+  const halfHeight = dimensions.height / 2;
+
   dragElement.style.position = "fixed";
-  dragElement.style.left = x - 50 + "px";
-  dragElement.style.top = y - 35 + "px";
-  dragElement.style.width = "100px";
-  dragElement.style.height = "70px";
-  dragElement.style.backgroundImage = `url(${photo.thumbnailUrl || photo.url})`;
-  dragElement.style.backgroundSize = "cover";
-  dragElement.style.backgroundPosition = "center";
+  dragElement.style.left = x - halfWidth + "px";
+  dragElement.style.top = y - halfHeight + "px";
+  dragElement.style.width = dimensions.width + "px";
+  dragElement.style.height = dimensions.height + "px";
   dragElement.style.borderRadius = "8px";
   dragElement.style.zIndex = "10000";
   dragElement.style.opacity = "0.8";
   dragElement.style.pointerEvents = "none";
   dragElement.style.border = "2px solid #007bff";
   dragElement.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.3)";
+  dragElement.style.overflow = "hidden";
+
+  // Create inner image element with proper aspect ratio handling
+  const imgElement = document.createElement("img");
+  imgElement.src = photo.thumbnailUrl || photo.url;
+  imgElement.style.width = "100%";
+  imgElement.style.height = "100%";
+  imgElement.style.objectFit = "cover";
+  imgElement.style.objectPosition = "center";
+  imgElement.style.display = "block";
+
+  dragElement.appendChild(imgElement);
+
+  // No count badge needed since we only allow single selection
 
   document.body.appendChild(dragElement);
   touchDragState.value.dragElement = dragElement;
+}
+
+function updateDragElementDimensions(dimensions: {
+  width: number;
+  height: number;
+}) {
+  const dragElement = touchDragState.value.dragElement;
+  if (!dragElement) return;
+
+  const halfWidth = dimensions.width / 2;
+  const halfHeight = dimensions.height / 2;
+
+  // Get current position and adjust for new dimensions
+  const currentLeft = parseInt(dragElement.style.left);
+  const currentTop = parseInt(dragElement.style.top);
+  const currentHalfWidth = parseInt(dragElement.style.width) / 2;
+  const currentHalfHeight = parseInt(dragElement.style.height) / 2;
+
+  // Adjust position to keep center point the same
+  dragElement.style.left = currentLeft + currentHalfWidth - halfWidth + "px";
+  dragElement.style.top = currentTop + currentHalfHeight - halfHeight + "px";
+  dragElement.style.width = dimensions.width + "px";
+  dragElement.style.height = dimensions.height + "px";
 }
 
 function simulateDropEvent(x: number, y: number) {
   const photo = touchDragState.value.photo;
   if (!photo) return;
 
-  const photosToDrag =
-    selectedPhotos.value.length > 0
-      ? relatedPhotos.value.filter((p) => selectedPhotos.value.includes(p.id))
-      : [photo];
+  // Since we only allow single selection, always drag just the touched photo
+  const photosToDrag = [photo];
 
   // Create a synthetic drop event
   const syntheticEvent = {
@@ -384,12 +672,14 @@ function simulateDropEvent(x: number, y: number) {
   backdrop-filter: blur(12px);
   z-index: 100;
   transform: translateY(100%);
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: none;
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .related-photos-toolbar.toolbar-visible {
   transform: translateY(0);
+  animation: slideUpFromBottom 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+    forwards;
 }
 
 .toolbar-content {
@@ -562,6 +852,21 @@ function simulateDropEvent(x: number, y: number) {
 
 .related-photos-grid .photo-card:active {
   transform: scale(0.95);
+}
+
+/* Upward slide animation for toolbar appearance */
+@keyframes slideUpFromBottom {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* Global drag overlay styles are handled inline in JavaScript */

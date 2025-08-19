@@ -247,11 +247,6 @@ export const useCanvasStore = defineStore("canvas", {
       });
     },
 
-    // Method to be called by components to register cleanup function
-    setGlowCleanupFunction(cleanupFn) {
-      this.cleanupGlowAnimations = cleanupFn;
-    },
-
     // Method to register stage reference for auto-fitting
     setStageRef(stageRef) {
       this.stageRef = stageRef;

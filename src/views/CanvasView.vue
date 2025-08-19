@@ -766,13 +766,6 @@ const dynamicSizeFactor = computed(() => {
   return Math.min(Math.max(newFactor, 1), 5);
 });
 
-// Simple glow effect - no animation, just static glow for new photos
-const setupNewPhotoGlow = () => {
-  // No need for any animation - the glow is handled statically in the template
-  // through the :config binding which already includes shadowColor, shadowBlur, etc.
-  // The store handles timing (3 seconds) via the isNew property
-};
-
 // Computed property to determine if expansion mode should be available
 const isExpansionEnabled = computed(() => {
   return toolbarState.value.expansion.enabled;
@@ -1075,12 +1068,6 @@ const handleClickOutside = (event) => {
   }
 };
 
-// Cleanup function - simplified since we no longer use intervals
-const cleanupGlowAnimations = (photoId) => {
-  // No cleanup needed since we're not using animations anymore
-  // The glow is handled purely by the isNew property timing in the store
-};
-
 const handleKeyDown = (event) => {
   // Delete selected photos when Delete key is pressed
   if (event.key === "Delete" || event.key === "Backspace") {
@@ -1319,16 +1306,6 @@ watch(basicMode, (val) => {
   if (val) basicModeDismissed.value = false;
 });
 
-// Watch for new photos - no animation needed since glow is handled statically
-// The store already handles the 3-second timing via the isNew property
-watch(
-  () => photos.value.filter((p) => p.isNew).length,
-  (newPhotosCount) => {
-    // No action needed - glow is handled automatically by the template
-    // through the :config binding and the store's isNew property timing
-  }
-);
-
 // Keep interactionMode and toolbarState.mouseMode in sync
 watch(
   interactionMode,
@@ -1381,9 +1358,6 @@ onMounted(async () => {
   }
 
   updateStageOffset();
-
-  // Register cleanup function in the store
-  canvasStore.setGlowCleanupFunction(cleanupGlowAnimations);
 
   // Register stage reference and update function for auto-fitting
   canvasStore.setStageRef(stageRef.value);
