@@ -14,7 +14,8 @@
         <div class="related-photos-header">
           <span class="section-title">Related Photos</span>
           <span class="scroll-hint"
-            >👆 Drag photos up to canvas • 👈👉 Two fingers to scroll</span
+            >👆 Drag photos up to canvas • 👈👉 Swipe horizontally to
+            scroll</span
           >
         </div>
         <div
@@ -318,14 +319,12 @@ function createCustomDragImage(ev: any, photo: Photo, photoCount: number = 1) {
 
 // Touch drag handlers
 function onTouchStart(ev: TouchEvent, photo: Photo) {
-  // Si hay más de un toque, no hacer drag (permitir scroll con dos dedos)
+  // Solo un dedo para cualquier acción
   if (ev.touches.length > 1) {
     return;
   }
 
-  ev.preventDefault();
-  ev.stopPropagation(); // Prevent scrolling interference
-
+  // NO prevenir el evento aún - dejar que el navegador decida
   const touch = ev.touches[0];
   if (!touch) return;
 
@@ -357,7 +356,7 @@ function onTouchEnd(ev: TouchEvent, photo: Photo) {
 function handleGlobalTouchMove(ev: TouchEvent) {
   if (!touchDragState.value.photo) return;
 
-  // Si hay más de un toque, cancelar drag y permitir scroll
+  // Solo un dedo
   if (ev.touches.length > 1) {
     cancelTouchDrag();
     return;
@@ -366,31 +365,41 @@ function handleGlobalTouchMove(ev: TouchEvent) {
   const touch = ev.touches[0];
   if (!touch) return;
 
-  const deltaX = Math.abs(touch.clientX - touchDragState.value.startX);
-  const deltaY = Math.abs(touch.clientY - touchDragState.value.startY);
+  const deltaX = touch.clientX - touchDragState.value.startX;
+  const deltaY = touch.clientY - touchDragState.value.startY;
+  const absDeltaX = Math.abs(deltaX);
+  const absDeltaY = Math.abs(deltaY);
 
-  // Mejorar la detección: solo drag si el movimiento es más vertical que horizontal
-  // o si se mueve significativamente hacia arriba (hacia el canvas)
-  const isVerticalMovement = deltaY > deltaX;
-  const isUpwardMovement = touch.clientY < touchDragState.value.startY;
-  const significantMovement = deltaX > 15 || deltaY > 15;
+  // Si no hemos decidido la dirección aún
+  if (!touchDragState.value.isDragging && (absDeltaX > 15 || absDeltaY > 15)) {
+    if (absDeltaX > absDeltaY) {
+      // Movimiento horizontal - permitir scroll nativo
+      console.log("Horizontal scroll detected - allowing native behavior");
 
-  // Start dragging si el movimiento es principalmente vertical o hacia arriba
-  if (
-    !touchDragState.value.isDragging &&
-    significantMovement &&
-    (isVerticalMovement || isUpwardMovement)
-  ) {
-    ev.preventDefault();
-    touchDragState.value.isDragging = true;
+      // Limpiar estado y remover listeners para permitir scroll
+      touchDragState.value = {
+        isDragging: false,
+        photo: null,
+        startX: 0,
+        startY: 0,
+        dragElement: null,
+      };
 
-    // Haptic feedback if available
-    if (navigator.vibrate) {
-      navigator.vibrate(50);
+      document.removeEventListener("touchmove", handleGlobalTouchMove);
+      document.removeEventListener("touchend", handleGlobalTouchEnd);
+      return;
+    } else {
+      // Movimiento vertical - iniciar drag
+      console.log("Vertical drag detected - starting photo drag");
+      ev.preventDefault();
+      touchDragState.value.isDragging = true;
+
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+
+      createDragElement(touch.clientX, touch.clientY);
     }
-
-    // Create drag visual feedback
-    createDragElement(touch.clientX, touch.clientY);
   }
 
   if (touchDragState.value.isDragging) {
@@ -434,7 +443,6 @@ function handleGlobalTouchMove(ev: TouchEvent) {
         touchDragState.value.dragElement.style.boxShadow =
           "0 4px 12px rgba(34, 211, 238, 0.6)";
       } else if (isOverToolbar) {
-        // Over toolbar - show that drop will be cancelled
         touchDragState.value.dragElement.style.borderColor = "#f59e0b";
         touchDragState.value.dragElement.style.boxShadow =
           "0 4px 12px rgba(245, 158, 11, 0.4)";
@@ -481,7 +489,8 @@ function handleGlobalTouchEnd(ev: TouchEvent) {
 
     // Additional check: if touch Y position is in the bottom area (toolbar zone),
     // always consider it cancelled regardless of element detection
-    const toolbarHeight = toolbarContainer?.offsetHeight || 240;
+    const toolbarHeight =
+      (toolbarContainer as HTMLElement)?.offsetHeight || 240;
     const viewportHeight = window.innerHeight;
     const isInToolbarZone = touch.clientY > viewportHeight - toolbarHeight;
 
@@ -1002,7 +1011,7 @@ function simulateDropEvent(x: number, y: number) {
 
 /* Touch drag improvements */
 .related-photos-grid .photo-card {
-  touch-action: none;
+  /* Removemos touch-action: none para permitir scroll horizontal nativo */
   transition: transform 0.2s ease;
 }
 
