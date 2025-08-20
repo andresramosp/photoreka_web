@@ -13,8 +13,10 @@
       <div class="related-photos-section">
         <div class="related-photos-header">
           <span class="section-title">Related Photos</span>
+          <span class="scroll-hint"
+            >👆 Drag photos up to canvas • 👈👉 Two fingers to scroll</span
+          >
         </div>
-
         <div
           class="related-photos-scroll scrollbar-minimal"
           @wheel="handleHorizontalScroll"
@@ -50,12 +52,14 @@
               />
             </template>
           </div>
+          <!-- Área de scroll segura -->
+          <div class="scroll-safe-zone"></div>
         </div>
       </div>
     </div>
 
     <!-- Close Button -->
-    <button class="toolbar-close" @click="closeToolbar">
+    <!-- <button class="toolbar-close" @click="closeToolbar">
       <n-icon size="16">
         <svg viewBox="0 0 24 24">
           <path
@@ -64,7 +68,7 @@
           />
         </svg>
       </n-icon>
-    </button>
+    </button> -->
   </div>
 </template>
 
@@ -172,6 +176,8 @@ const handleLoadingState = (isLoading: boolean) => {
 };
 
 function removePhotoFromList(photoId: string) {
+  console.log("removePhotoFromList called for photo:", photoId);
+  console.trace(); // This will show the call stack
   selectedPhotos.value = selectedPhotos.value.filter((id) => id != photoId);
   relatedPhotos.value = relatedPhotos.value.filter((p) => p.id !== photoId);
 }
@@ -312,6 +318,11 @@ function createCustomDragImage(ev: any, photo: Photo, photoCount: number = 1) {
 
 // Touch drag handlers
 function onTouchStart(ev: TouchEvent, photo: Photo) {
+  // Si hay más de un toque, no hacer drag (permitir scroll con dos dedos)
+  if (ev.touches.length > 1) {
+    return;
+  }
+
   ev.preventDefault();
   ev.stopPropagation(); // Prevent scrolling interference
 
@@ -346,14 +357,30 @@ function onTouchEnd(ev: TouchEvent, photo: Photo) {
 function handleGlobalTouchMove(ev: TouchEvent) {
   if (!touchDragState.value.photo) return;
 
+  // Si hay más de un toque, cancelar drag y permitir scroll
+  if (ev.touches.length > 1) {
+    cancelTouchDrag();
+    return;
+  }
+
   const touch = ev.touches[0];
   if (!touch) return;
 
   const deltaX = Math.abs(touch.clientX - touchDragState.value.startX);
   const deltaY = Math.abs(touch.clientY - touchDragState.value.startY);
 
-  // Start dragging if moved more than 10px
-  if (!touchDragState.value.isDragging && (deltaX > 10 || deltaY > 10)) {
+  // Mejorar la detección: solo drag si el movimiento es más vertical que horizontal
+  // o si se mueve significativamente hacia arriba (hacia el canvas)
+  const isVerticalMovement = deltaY > deltaX;
+  const isUpwardMovement = touch.clientY < touchDragState.value.startY;
+  const significantMovement = deltaX > 15 || deltaY > 15;
+
+  // Start dragging si el movimiento es principalmente vertical o hacia arriba
+  if (
+    !touchDragState.value.isDragging &&
+    significantMovement &&
+    (isVerticalMovement || isUpwardMovement)
+  ) {
     ev.preventDefault();
     touchDragState.value.isDragging = true;
 
@@ -387,18 +414,32 @@ function handleGlobalTouchMove(ev: TouchEvent) {
         touch.clientY
       );
       const canvasContainer = document.querySelector(".canvas-container");
+      const toolbarContainer = document.querySelector(
+        ".related-photos-toolbar"
+      );
+
       const isOverCanvas =
         canvasContainer &&
         (canvasContainer.contains(elementBelow) ||
           elementBelow === canvasContainer);
 
+      const isOverToolbar =
+        toolbarContainer &&
+        (toolbarContainer.contains(elementBelow) ||
+          elementBelow === toolbarContainer);
+
       // Update drag element appearance based on drop zone
       if (isOverCanvas) {
         touchDragState.value.dragElement.style.borderColor = "#22d3ee";
         touchDragState.value.dragElement.style.boxShadow =
-          "0 4px 12px rgba(34, 197, 94, 0.4)";
+          "0 4px 12px rgba(34, 211, 238, 0.6)";
+      } else if (isOverToolbar) {
+        // Over toolbar - show that drop will be cancelled
+        touchDragState.value.dragElement.style.borderColor = "#f59e0b";
+        touchDragState.value.dragElement.style.boxShadow =
+          "0 4px 12px rgba(245, 158, 11, 0.4)";
       } else {
-        touchDragState.value.dragElement.style.borderColor = "#22d3ee";
+        touchDragState.value.dragElement.style.borderColor = "#6b7280";
         touchDragState.value.dragElement.style.boxShadow =
           "0 4px 12px rgba(0, 0, 0, 0.3)";
       }
@@ -412,6 +453,8 @@ function handleGlobalTouchEnd(ev: TouchEvent) {
   const touch = ev.changedTouches[0];
   if (!touch) return;
 
+  console.log("Touch drag ended, isDragging:", touchDragState.value.isDragging);
+
   if (touchDragState.value.isDragging) {
     ev.preventDefault();
 
@@ -421,28 +464,123 @@ function handleGlobalTouchEnd(ev: TouchEvent) {
       touch.clientY
     );
     const canvasContainer = document.querySelector(".canvas-container");
+    const toolbarContainer = document.querySelector(".related-photos-toolbar");
 
-    if (
+    // Check if we're over the toolbar first (higher priority)
+    const isOverToolbar =
+      toolbarContainer &&
+      (toolbarContainer.contains(elementBelow) ||
+        elementBelow === toolbarContainer);
+
+    // Only consider canvas if we're NOT over the toolbar
+    const isOverCanvas =
+      !isOverToolbar &&
       canvasContainer &&
       (canvasContainer.contains(elementBelow) ||
-        elementBelow === canvasContainer)
-    ) {
+        elementBelow === canvasContainer);
+
+    // Additional check: if touch Y position is in the bottom area (toolbar zone),
+    // always consider it cancelled regardless of element detection
+    const toolbarHeight = toolbarContainer?.offsetHeight || 240;
+    const viewportHeight = window.innerHeight;
+    const isInToolbarZone = touch.clientY > viewportHeight - toolbarHeight;
+
+    // Final decision: only drop on canvas if clearly over canvas AND not in toolbar zone
+    const shouldDropOnCanvas = isOverCanvas && !isInToolbarZone;
+
+    console.log("Element below:", elementBelow?.className);
+    console.log("Drop over toolbar:", isOverToolbar);
+    console.log("Drop over canvas:", isOverCanvas);
+    console.log(
+      "Touch Y:",
+      touch.clientY,
+      "Toolbar zone starts at:",
+      viewportHeight - toolbarHeight
+    );
+    console.log("Is in toolbar zone:", isInToolbarZone);
+    console.log("Should drop on canvas:", shouldDropOnCanvas);
+
+    if (shouldDropOnCanvas) {
       // Haptic feedback for successful drop
       if (navigator.vibrate) {
         navigator.vibrate(100);
       }
 
+      console.log(
+        "Simulating drop event for photo:",
+        touchDragState.value.photo?.id
+      );
       // Simulate drop event
       simulateDropEvent(touch.clientX, touch.clientY);
+    } else {
+      // Drag was cancelled - just clean up the drag element
+      console.log("Drag cancelled for photo:", touchDragState.value.photo?.id);
+      if (navigator.vibrate) {
+        navigator.vibrate(50); // Short vibration for cancellation
+      }
+
+      // Simply remove the drag element - the original photo stays in place
+      if (touchDragState.value.dragElement) {
+        touchDragState.value.dragElement.style.transition = "all 0.2s ease-out";
+        touchDragState.value.dragElement.style.opacity = "0";
+        touchDragState.value.dragElement.style.transform = "scale(0.8)";
+
+        // Clean up after short animation
+        setTimeout(() => {
+          if (
+            touchDragState.value.dragElement &&
+            document.body.contains(touchDragState.value.dragElement)
+          ) {
+            document.body.removeChild(touchDragState.value.dragElement);
+          }
+        }, 200);
+      }
     }
 
-    // Clean up drag element
-    if (touchDragState.value.dragElement) {
+    // Clean up drag element if not already handled
+    if (touchDragState.value.dragElement && shouldDropOnCanvas) {
       document.body.removeChild(touchDragState.value.dragElement);
     }
   }
 
   // Clean up
+  touchDragState.value = {
+    isDragging: false,
+    photo: null,
+    startX: 0,
+    startY: 0,
+    dragElement: null,
+  };
+
+  // Remove global listeners
+  document.removeEventListener("touchmove", handleGlobalTouchMove);
+  document.removeEventListener("touchend", handleGlobalTouchEnd);
+}
+
+// Helper function to cancel touch drag
+function cancelTouchDrag() {
+  // Animate drag element to show cancellation
+  if (touchDragState.value.dragElement) {
+    touchDragState.value.dragElement.style.transition = "all 0.2s ease-out";
+    touchDragState.value.dragElement.style.transform = "scale(0.5)";
+    touchDragState.value.dragElement.style.opacity = "0";
+
+    // Clean up after animation
+    setTimeout(() => {
+      if (
+        touchDragState.value.dragElement &&
+        document.body.contains(touchDragState.value.dragElement)
+      ) {
+        document.body.removeChild(touchDragState.value.dragElement);
+      }
+    }, 200);
+  }
+
+  // Light haptic feedback for cancellation
+  if (navigator.vibrate) {
+    navigator.vibrate(30);
+  }
+
   touchDragState.value = {
     isDragging: false,
     photo: null,
@@ -731,6 +869,13 @@ function simulateDropEvent(x: number, y: number) {
   font-weight: var(--font-weight-medium);
 }
 
+.scroll-hint {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
 .related-photos-scroll {
   flex: 1;
   overflow-x: auto;
@@ -775,6 +920,13 @@ function simulateDropEvent(x: number, y: number) {
   border-radius: var(--radius-md);
   overflow: hidden;
   background-color: var(--bg-surface);
+}
+
+.scroll-safe-zone {
+  height: 20px;
+  min-height: 20px;
+  background: transparent;
+  pointer-events: none;
 }
 
 @media (max-width: 768px) {
@@ -841,6 +993,10 @@ function simulateDropEvent(x: number, y: number) {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--spacing-xs);
+  }
+
+  .scroll-hint {
+    display: none; /* Ocultar en mobile para ahorrar espacio */
   }
 }
 
