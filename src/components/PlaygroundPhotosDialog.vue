@@ -115,6 +115,7 @@ import { ref, computed } from "vue";
 import { NModal, NButton, NIcon } from "naive-ui";
 import { ImagesOutline } from "@vicons/ionicons5";
 import logoName from "@/assets/logo_name_sub_curation_lab_blue.png";
+import pica from "pica";
 
 const props = defineProps({
   modelValue: {
@@ -130,12 +131,16 @@ const selectedFiles = ref([]);
 const isDragOver = ref(false);
 const isProcessing = ref(false);
 
+// Initialize pica instance
+const picaInstance = pica();
+
 const show = computed({
   get: () => props.modelValue,
   set: (value) => {
     emit("update:modelValue", value);
     if (!value) {
-      // Clear files when modal closes
+      // Only clean up blob URLs when modal closes if photos weren't added to canvas
+      // The canvas will manage the blob URLs lifecycle for added photos
       selectedFiles.value = [];
     }
   },
@@ -158,24 +163,87 @@ const handleDrop = (event) => {
   processFiles(files);
 };
 
-const processFiles = (files) => {
-  files.forEach((file) => {
+const processFiles = async (files) => {
+  for (const file of files) {
     if (file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
+      try {
+        // Process image like in PhotosLightboxTab
+        const [resizedBlob, thumbnailBlob] = await Promise.all([
+          resizeImage(file, 1500), // Main image
+          resizeImage(file, 800), // Thumbnail
+        ]);
+
+        // Create preview URL from thumbnail
+        const preview = URL.createObjectURL(thumbnailBlob);
+
+        // Get dimensions from the resized image
+        const dimensions = await getImageDimensions(preview);
+
         selectedFiles.value.push({
-          file,
+          file: resizedBlob, // Use resized image instead of original
+          originalFile: file, // Keep reference to original
           name: file.name,
-          preview: e.target.result,
+          preview: preview,
+          dimensions: dimensions, // Pre-calculated dimensions
           id: Date.now() + Math.random(), // Simple ID generation
         });
-      };
-      reader.readAsDataURL(file);
+      } catch (error) {
+        console.error("Error processing file:", file.name, error);
+        // Fallback to original processing if resize fails
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          selectedFiles.value.push({
+            file,
+            name: file.name,
+            preview: e.target.result,
+            id: Date.now() + Math.random(),
+          });
+        };
+        reader.readAsDataURL(file);
+      }
     }
-  });
+  }
 };
 
+// Resize image function (copied from PhotosLightboxTab)
+async function resizeImage(file, targetWidth) {
+  const img = await loadImage(file);
+  const canvas = document.createElement("canvas");
+  const scale = targetWidth / img.width;
+  canvas.width = targetWidth;
+  canvas.height = img.height * scale;
+
+  await picaInstance.resize(img, canvas);
+  const blob = await picaInstance.toBlob(canvas, "image/jpeg", 0.9);
+  return blob;
+}
+
+// Load image function (copied from PhotosLightboxTab)
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+// Get image dimensions function
+function getImageDimensions(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve({ width: img.width, height: img.height });
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
 const removeFile = (index) => {
+  const file = selectedFiles.value[index];
+  // Clean up blob URL before removing - this is safe since the file won't be added to canvas
+  if (file.preview && file.preview.startsWith("blob:")) {
+    URL.revokeObjectURL(file.preview);
+  }
   selectedFiles.value.splice(index, 1);
 };
 
@@ -188,10 +256,12 @@ const addPhotos = async () => {
     // Convert files to photo objects compatible with canvas store
     const photos = selectedFiles.value.map((fileObj) => ({
       id: fileObj.id,
-      thumbnailUrl: fileObj.preview, // This is what createPhoto expects
+      thumbnailUrl: fileObj.preview,
       name: fileObj.name,
-      file: fileObj.file,
-      // The canvas store will handle creating proper config, dimensions, etc.
+      file: fileObj.file, // This is now the resized blob
+      originalFile: fileObj.originalFile, // Keep reference to original
+      // Pre-calculated dimensions to avoid async calls during drag
+      preCalculatedDimensions: fileObj.dimensions,
       tags: [],
       detectionAreas: [],
     }));
@@ -206,6 +276,12 @@ const addPhotos = async () => {
 };
 
 const closeModal = () => {
+  // Clean up blob URLs when canceling without adding photos
+  selectedFiles.value.forEach((file) => {
+    if (file.preview && file.preview.startsWith("blob:")) {
+      URL.revokeObjectURL(file.preview);
+    }
+  });
   show.value = false;
 };
 </script>

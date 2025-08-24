@@ -193,7 +193,7 @@ const filteredPhotos = computed(() => {
 
   return processedPhotos.value.filter((photo) => {
     // Check if photo has visualAspects property
-    if (!photo.visualAspects) {
+    if (!photo.descriptions.visual_aspects) {
       return false;
     }
 
@@ -206,7 +206,7 @@ const filteredPhotos = computed(() => {
         }
 
         // Check if photo has this visual aspect category
-        const photoAspects = photo.visualAspects[category];
+        const photoAspects = photo.descriptions.visual_aspects[category];
         if (!photoAspects || !Array.isArray(photoAspects)) {
           return false;
         }

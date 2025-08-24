@@ -53,8 +53,6 @@
       <!-- Accordion Sections -->
       <div class="info-sections">
         <n-collapse :default-expanded-names="['metadata']">
-          <!-- Tags Section -->
-
           <n-collapse-item title="Insights" name="descriptions">
             <template #header-extra>
               <n-icon>
@@ -163,6 +161,221 @@
             </div>
           </n-collapse-item>
 
+          <!-- Scores Section -->
+          <n-collapse-item title="Scores" name="scores">
+            <template #header-extra>
+              <n-icon>
+                <DocumentTextIcon />
+              </n-icon>
+            </template>
+            <div class="descriptions-section">
+              <div v-if="selectedPhoto?.descriptions" class="ai-descriptions">
+                <div
+                  class="description-item"
+                  v-if="selectedPhoto.descriptions.artistic_scores"
+                >
+                  <!-- Overall Rating -->
+                  <div class="overall-rating-container">
+                    <div class="overall-rating">
+                      <span class="overall-label">Overall Rating:</span>
+                      <div class="overall-score">
+                        <span class="overall-value"
+                          >{{ overallRating.average }}/{{
+                            scoreScale.max
+                          }}</span
+                        >
+                        <span
+                          class="overall-rating-text"
+                          :class="
+                            'rating-' +
+                            overallRating.rating
+                              .toLowerCase()
+                              .replace(' ', '-')
+                              .replace('/', '')
+                          "
+                        >
+                          {{ overallRating.rating }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Genre Presets -->
+                  <div class="genre-presets-container">
+                    <div class="genre-header">
+                      <h6 class="genre-title">Photography Genre Presets</h6>
+                      <p class="genre-subtitle">
+                        Quick configurations for different photography styles
+                      </p>
+                    </div>
+                    <div class="genre-buttons">
+                      <n-button
+                        :type="
+                          selectedGenre === 'street' ? 'primary' : 'default'
+                        "
+                        size="medium"
+                        @click="applyGenrePresetWithUI('street')"
+                        class="genre-button"
+                      >
+                        <template #icon>
+                          <n-icon>
+                            <EyeIcon />
+                          </n-icon>
+                        </template>
+                        Street
+                      </n-button>
+                      <n-button
+                        :type="
+                          selectedGenre === 'documentary'
+                            ? 'primary'
+                            : 'default'
+                        "
+                        size="medium"
+                        @click="applyGenrePresetWithUI('documentary')"
+                        class="genre-button"
+                      >
+                        <template #icon>
+                          <n-icon>
+                            <DocumentTextIcon />
+                          </n-icon>
+                        </template>
+                        Documentary
+                      </n-button>
+                      <n-button
+                        :type="
+                          selectedGenre === 'abstract' ? 'primary' : 'default'
+                        "
+                        size="medium"
+                        @click="applyGenrePresetWithUI('abstract')"
+                        class="genre-button"
+                      >
+                        <template #icon>
+                          <n-icon>
+                            <SparklesIcon />
+                          </n-icon>
+                        </template>
+                        Artistic
+                      </n-button>
+                      <!-- <n-button
+                        :type="
+                          selectedGenre === 'custom' ? 'primary' : 'default'
+                        "
+                        size="medium"
+                        @click="showCustomControls()"
+                        class="genre-button custom-button"
+                      >
+                        <template #icon>
+                          <n-icon>
+                            <EditIcon />
+                          </n-icon>
+                        </template>
+                        Custom
+                      </n-button> -->
+                    </div>
+                  </div>
+
+                  <!-- Weights Configuration -->
+                  <div
+                    class="weights-configuration-container"
+                    v-if="showCustomWeights"
+                  >
+                    <div class="weights-header">
+                      <h6 class="weights-title">Score Weights Configuration</h6>
+                      <p class="weights-subtitle">
+                        Adjust the importance of each criteria in the overall
+                        rating calculation (0.0 = not considered, 1.0 = full
+                        weight)
+                      </p>
+                    </div>
+                    <div class="weights-grid">
+                      <div
+                        v-for="(weight, criterion) in artisticScoreWeights"
+                        :key="criterion"
+                        class="weight-item"
+                      >
+                        <div class="weight-label-container">
+                          <span class="weight-label">{{
+                            formatCriterionName(criterion)
+                          }}</span>
+                          <span class="weight-value">{{
+                            weight.toFixed(1)
+                          }}</span>
+                        </div>
+                        <div class="weight-control">
+                          <n-slider
+                            v-model:value="artisticScoreWeights[criterion]"
+                            :min="0"
+                            :max="1"
+                            :step="0.1"
+                            :marks="{
+                              0: '0.0',
+                              0.5: '0.5',
+                              1: '1.0',
+                            }"
+                            :tooltip="false"
+                            style="width: 100%"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="artistic-scores-grid">
+                    <div
+                      v-for="scoreData in getOrderedArtisticScores(
+                        selectedPhoto.descriptions.artistic_scores
+                      )"
+                      :key="scoreData.criterion"
+                      class="score-item"
+                      :class="{ 'bonus-item': scoreData.group === 'bonus' }"
+                      :style="{
+                        '--weight-scale':
+                          artisticScoreWeights[scoreData.criterion],
+                        '--weight-opacity':
+                          artisticScoreWeights[scoreData.criterion],
+                      }"
+                    >
+                      <span
+                        class="score-label"
+                        :data-weight="`×${artisticScoreWeights[
+                          scoreData.criterion
+                        ].toFixed(1)}`"
+                        :title="`Score: ${scoreData.score}/${
+                          scoreScale.max
+                        } | Weight: ${artisticScoreWeights[
+                          scoreData.criterion
+                        ].toFixed(1)} | Impact: ${(
+                          scoreData.score *
+                          artisticScoreWeights[scoreData.criterion]
+                        ).toFixed(1)}`"
+                      >
+                        {{ scoreData.label }}
+                      </span>
+                      <div class="score-bar-container">
+                        <div class="score-bar">
+                          <div
+                            class="score-fill"
+                            :style="{
+                              width: (scoreData.score / 9) * 100 + '%',
+                              opacity: 0.8,
+                              background: getScoreBgColor(scoreData.score),
+                            }"
+                          ></div>
+                        </div>
+                        <span class="score-value">
+                          <span class="score-number">{{
+                            scoreData.score
+                          }}</span>
+                          <span class="max-score">/{{ scoreScale.max }}</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </n-collapse-item>
+
           <n-collapse-item title="Tags" name="tags">
             <template #header-extra>
               <n-icon>
@@ -209,7 +422,7 @@
           </n-collapse-item>
 
           <!-- Descriptions Section -->
-          <n-collapse-item title="Descriptions" name="descriptions">
+          <!-- <n-collapse-item title="Descriptions" name="descriptions">
             <template #header-extra>
               <n-icon>
                 <DocumentTextIcon />
@@ -257,7 +470,7 @@
                 </div>
               </div>
             </div>
-          </n-collapse-item>
+          </n-collapse-item> -->
 
           <!-- Notes Section -->
           <n-collapse-item title="Notes" name="notes">
@@ -304,6 +517,8 @@ import {
   NInput,
   NInputGroup,
   NSpin,
+  NSwitch,
+  NSlider,
   useMessage,
 } from "naive-ui";
 
@@ -322,6 +537,7 @@ import {
 
 import { api } from "@/utils/axios.js";
 import { usePhotoDownload } from "@/composables/usePhotoDownload.js";
+import { useArtisticScores } from "@/composables/useArtisticScores.js";
 
 const props = defineProps({
   modelValue: {
@@ -338,6 +554,17 @@ const emit = defineEmits(["update:modelValue"]);
 
 const message = useMessage();
 const { downloadPhoto } = usePhotoDownload();
+const {
+  scoreScale,
+  calculateArtisticScore,
+  getScoreBgColor,
+  formatCriterionName,
+  artisticScoreWeights,
+  selectedGenre,
+  applyGenrePreset,
+  getActiveArtisticScores,
+  getOrderedArtisticScores,
+} = useArtisticScores();
 
 // Reactive state
 const visible = computed({
@@ -352,6 +579,21 @@ const photoInsight = ref("");
 const isGeneratingInsight = ref(false);
 const photoNotes = ref("");
 const isSavingNotes = ref(false);
+
+const showCustomWeights = ref(false);
+
+// Function to show custom weight controls
+const showCustomControls = () => {
+  selectedGenre.value = "custom";
+  showCustomWeights.value = true; // Show custom weights for manual configuration
+  // Don't reset weights, keep current configuration
+};
+
+// Override applyGenrePreset to also control showCustomWeights
+const applyGenrePresetWithUI = (genre) => {
+  applyGenrePreset(genre);
+  showCustomWeights.value = false; // Hide custom weights when applying preset
+};
 
 // Watch for photo changes and reset data
 watch(
@@ -469,6 +711,33 @@ const formatCategoryName = (category) => {
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+};
+
+const splitArtisticReview = (text) => {
+  if (!text) return [];
+
+  // Split into sentences, keeping the period
+  const sentences = text.match(/[^\.!?]+[\.!?]+/g) || [text];
+
+  if (sentences.length <= 3) {
+    return sentences;
+  }
+
+  // Calculate approximately equal chunks
+  const totalSentences = sentences.length;
+  const sentencesPerParagraph = Math.ceil(totalSentences / 3);
+
+  const paragraphs = [];
+  for (let i = 0; i < 3; i++) {
+    const start = i * sentencesPerParagraph;
+    const end = Math.min(start + sentencesPerParagraph, totalSentences);
+    const paragraph = sentences.slice(start, end).join(" ").trim();
+    if (paragraph) {
+      paragraphs.push(paragraph);
+    }
+  }
+
+  return paragraphs;
 };
 
 const getFilteredVisualAspects = (visualAspects) => {
@@ -602,6 +871,22 @@ const hasMoreInsights = computed(
     allPhotoInsights.value.length > 0 &&
     currentInsightIndex.value < allPhotoInsights.value.length - 1
 );
+
+// Computed property for overall rating - automatically updates when weights change
+const overallRating = computed(() => {
+  if (!props.selectedPhoto?.descriptions?.artistic_scores) {
+    return { average: 0, rating: "N/A", total: 0, count: 0 };
+  }
+
+  // Use custom weights if in custom mode, otherwise use the selected genre
+  const customWeights =
+    selectedGenre.value === "custom" ? artisticScoreWeights.value : null;
+  return calculateArtisticScore(
+    props.selectedPhoto.descriptions.artistic_scores,
+    selectedGenre.value,
+    customWeights
+  );
+});
 
 const getInsight = async () => {
   isGeneratingInsight.value = true;
@@ -918,6 +1203,15 @@ if (typeof window !== "undefined") {
   color: var(--text-primary);
 }
 
+.review-paragraph {
+  margin-bottom: var(--spacing-md) !important;
+  text-align: justify;
+}
+
+.review-paragraph:last-child {
+  margin-bottom: 0 !important;
+}
+
 .visual-aspects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -983,6 +1277,380 @@ if (typeof window !== "undefined") {
   margin: 0;
   line-height: 1.6;
   color: var(--text-primary);
+}
+
+.overall-rating-container {
+  padding: var(--spacing-lg);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--primary-color);
+  border-top: 2px solid var(--primary-color);
+}
+
+.overall-rating {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.overall-label {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.overall-score {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.overall-value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.overall-rating-text {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rating-disastrous {
+  background: #7f1d1d;
+  color: white;
+}
+
+.rating-very-poor {
+  background: #b91c1c;
+  color: white;
+}
+
+.rating-poor {
+  background: #ef4444;
+  color: white;
+}
+
+.rating-needs-improvement {
+  background: #f87171;
+  color: white;
+}
+
+.rating-acceptable {
+  background: #f59e0b;
+  color: white;
+}
+
+.rating-good {
+  background: #10b981;
+  color: white;
+}
+
+.rating-very-good {
+  background: #22d3ee;
+  color: white;
+}
+
+.rating-remarkable {
+  background: #3b82f6;
+  color: white;
+}
+
+.rating-excellent {
+  background: #6366f1;
+  color: white;
+}
+
+.rating-outstanding {
+  background: #7c3aed;
+  color: white;
+}
+
+.genre-presets-container {
+  margin-bottom: var(--spacing-md);
+
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--accent-color, #8b5cf6);
+  border: 1px solid var(--border-color);
+}
+
+.genre-header {
+  margin-bottom: var(--spacing-md);
+  text-align: center;
+}
+
+.genre-title {
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.genre-subtitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.genre-buttons {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.genre-button {
+  min-width: 120px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.genre-button:hover {
+  transform: translateY(-2px);
+}
+
+.custom-button {
+  background: var(--bg-card) !important;
+  border: 2px dashed var(--border-color) !important;
+}
+
+.weights-configuration-container {
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--secondary-color);
+  border: 1px solid var(--border-color);
+}
+
+.weights-header {
+  margin-bottom: var(--spacing-md);
+  text-align: center;
+}
+
+.weights-title {
+  margin: 0 0 var(--spacing-xs) 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.weights-subtitle {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.weights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.weight-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.weight-item:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.weight-label-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xs);
+}
+
+.weight-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.weight-value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--primary-color);
+  font-family: var(--font-mono);
+  background: rgba(59, 130, 246, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  min-width: 32px;
+  text-align: center;
+}
+
+.weight-control {
+  padding: var(--spacing-sm) 0;
+}
+
+.artistic-scores-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--primary-color);
+}
+
+.score-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) 0;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.score-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(
+    var(--weight-scale, 0) * (140px + var(--spacing-sm))
+  ); /* Dynamic width based on weight */
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--primary-color) 0%,
+    rgba(59, 130, 246, 0.4) 80%,
+    rgba(59, 130, 246, 0.1) 100%
+  );
+  border-radius: var(--radius-sm);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0.25;
+  z-index: 0;
+}
+
+.score-item.bonus-item::before {
+  background: linear-gradient(
+    90deg,
+    #f59e0b 0%,
+    rgba(245, 158, 11, 0.4) 80%,
+    rgba(245, 158, 11, 0.1) 100%
+  );
+}
+
+.score-item:hover::before {
+  opacity: 0.4;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+.score-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  min-width: 140px;
+  flex-shrink: 0;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  position: relative;
+  z-index: 1;
+  border-radius: var(--radius-sm);
+  transition: all 0.3s ease;
+}
+
+/* .score-label::after {
+  content: attr(data-weight);
+  position: absolute;
+  right: -25px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  background: var(--bg-card);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  opacity: var(--weight-opacity, 0.7);
+  transition: opacity 0.3s ease;
+} */
+
+.score-bar-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex: 1;
+}
+
+.score-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.score-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease, opacity 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.score-fill.score-disastrous {
+  background: linear-gradient(90deg, #7f1d1d, #991b1b);
+}
+
+.score-fill.score-needs-improvement {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.score-fill.score-acceptable {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.score-fill.score-good {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.score-fill.score-remarkable {
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.score-fill.score-outstanding {
+  background: linear-gradient(90deg, #7c3aed, #a855f7);
+}
+
+.score-value {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  min-width: 40px;
+  text-align: right;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.score-number {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.max-score {
+  color: var(--text-secondary);
 }
 
 .regenerate-btn {
@@ -1063,6 +1731,66 @@ if (typeof window !== "undefined") {
 
   .add-tag-section {
     max-width: 100%;
+  }
+
+  .overall-rating {
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+    text-align: center;
+  }
+
+  .overall-score {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .genre-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .genre-button {
+    min-width: 200px;
+    width: 100%;
+    max-width: 250px;
+  }
+
+  .weights-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .weight-item {
+    padding: var(--spacing-md);
+  }
+
+  .weight-label-container {
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .weight-control {
+    padding: var(--spacing-md) 0;
+  }
+
+  .score-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+  }
+
+  .score-label {
+    min-width: auto;
+    text-align: center;
+    font-size: var(--font-size-xs);
+  }
+
+  .score-bar-container {
+    justify-content: center;
+  }
+
+  .score-value {
+    min-width: auto;
+    text-align: center;
   }
 }
 </style>

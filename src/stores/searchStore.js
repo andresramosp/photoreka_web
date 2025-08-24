@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, reactive, computed } from "vue";
+import { useArtisticScores } from "@/composables/useArtisticScores";
 
 // Export visualAspectsOptions for reuse in other components
 
@@ -52,7 +53,6 @@ export const visualAspectsOptions = [
       { label: "Silhouettes", value: "silhouettes" },
       { label: "Reflections", value: "reflections" },
       { label: "Vivid colors", value: "vivid colors" },
-      { label: "Complementary colors", value: "complementary colors" },
       { label: "Minimalist", value: "minimalist" },
       { label: "Geometry", value: "geometric shapes" },
     ],
@@ -103,6 +103,24 @@ export const visualAspectsOptions = [
   },
 ];
 
+// Function to transform artistic scores to tree-select format
+export function createArtisticScoresTreeOptions() {
+  const { artisticScores } = useArtisticScores();
+
+  return Object.entries(artisticScores).map(([groupKey, group]) => ({
+    label: group.label,
+    key: groupKey,
+    disabled: false, // Allow interaction for expanding
+    checkable: false, // But not selectable
+    children: group.criteria.map((criterion) => ({
+      label: criterion.label,
+      key: criterion.value,
+      disabled: false,
+      checkable: true, // Children are selectable
+    })),
+  }));
+}
+
 export const useSearchStore = defineStore("search", () => {
   // Estado global del search
   const activeSearchType = ref("semantic");
@@ -112,6 +130,9 @@ export const useSearchStore = defineStore("search", () => {
 
   // Visual aspects filter state
   const selectedVisualAspects = ref([]);
+
+  // Artistic scores filter state
+  const selectedArtisticScores = ref([]);
 
   // Estado específico para cada tipo de búsqueda
   const searchStates = reactive({
@@ -244,6 +265,14 @@ export const useSearchStore = defineStore("search", () => {
     selectedVisualAspects.value = [];
   }
 
+  function updateArtisticScores(artisticScores) {
+    selectedArtisticScores.value = artisticScores;
+  }
+
+  function clearArtisticScores() {
+    selectedArtisticScores.value = [];
+  }
+
   function clearCurrentSearch() {
     const state = currentSearchState.value;
 
@@ -265,6 +294,9 @@ export const useSearchStore = defineStore("search", () => {
 
     // Limpiar visual aspects
     selectedVisualAspects.value = [];
+
+    // Limpiar artistic scores
+    selectedArtisticScores.value = [];
 
     // Limpiar resultados y estado de paginación
     state.results = [];
@@ -299,6 +331,9 @@ export const useSearchStore = defineStore("search", () => {
 
     // Limpiar visual aspects
     selectedVisualAspects.value = [];
+
+    // Limpiar artistic scores
+    selectedArtisticScores.value = [];
   }
 
   function setSearching(value) {
@@ -347,6 +382,7 @@ export const useSearchStore = defineStore("search", () => {
     isLoadingMore,
     searchStates,
     selectedVisualAspects,
+    selectedArtisticScores,
     visualAspectsOptions,
 
     // Computed
@@ -364,6 +400,8 @@ export const useSearchStore = defineStore("search", () => {
     updateTopologicalSearch,
     updateVisualAspects,
     clearVisualAspects,
+    updateArtisticScores,
+    clearArtisticScores,
     clearCurrentSearch,
     clearAllSearches,
     setSearching,

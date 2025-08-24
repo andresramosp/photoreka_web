@@ -76,6 +76,49 @@
       </div>
 
       <div class="controls-right">
+        <div class="sorting-controls">
+          <div class="sort-quality-toggle">
+            <n-checkbox
+              :checked="sortByQuality"
+              @update:checked="toggleSortByQuality"
+            >
+              Sort by Quality
+            </n-checkbox>
+          </div>
+
+          <div v-if="sortByQuality" class="criteria-selection">
+            <span class="criteria-label">Criteria:</span>
+            <n-select
+              v-model:value="selectedCriteria"
+              multiple
+              :options="availableCriteria"
+              placeholder="Select criteria"
+              size="small"
+              style="min-width: 200px"
+              :max-tag-count="2"
+              :show-arrow="true"
+            />
+
+            <n-button
+              v-if="selectedCriteria.length > 0"
+              size="small"
+              @click="toggleSortOrder"
+              :type="'default'"
+            >
+              <n-icon>
+                <svg viewBox="0 0 24 24" style="width: 14px; height: 14px">
+                  <path
+                    fill="currentColor"
+                    :d="
+                      sortOrder === 'desc' ? 'M7 14l5-5 5 5z' : 'M7 10l5 5 5-5z'
+                    "
+                  />
+                </svg>
+              </n-icon>
+              {{ sortOrder === "desc" ? "Best First" : "Worst First" }}
+            </n-button>
+          </div>
+        </div>
         <div class="filter-controls" v-if="!props.collectionId">
           <div class="filter-duplicates-container">
             <n-button
@@ -147,6 +190,7 @@
         :show-name="true"
         :show-footer="false"
         :showDuplicate="true"
+        :artistic-score="getPhotoArtisticScore(photo)"
       />
     </div>
 
@@ -178,6 +222,7 @@ import {
   NButtonGroup,
   NIcon,
   NCheckbox,
+  NSelect,
   NSpin,
   useMessage,
 } from "naive-ui";
@@ -193,6 +238,7 @@ import { useCanvasStore } from "@/stores/canvas.js";
 import { useCollectionsStore } from "@/stores/collections.js";
 import { usePhotoDownload } from "@/composables/usePhotoDownload.js";
 import { useLocalPhotoSelection } from "@/composables/useLocalPhotoSelection.js";
+import { useArtisticScores } from "@/composables/useArtisticScores.js";
 
 const emit = defineEmits(["refreshCollection", "selection-change"]);
 const props = defineProps({
@@ -224,11 +270,57 @@ const {
   deselectAllPhotos,
   clearAllSelections,
 } = useLocalPhotoSelection();
+const { calculateArtisticScore } = useArtisticScores();
 
 // Grid columns state
 const gridColumns = ref(8);
 const filterDuplicates = ref(false);
 const isCheckingDuplicates = ref(false);
+
+// Sorting state
+const sortByQuality = ref(false);
+const selectedCriteria = ref([]);
+const sortOrder = ref("desc"); // 'asc', 'desc'
+
+// Get dynamic criteria from useArtisticScores
+const { artisticScores, formatCriterionName } = useArtisticScores();
+const availableCriteria = [];
+Object.values(artisticScores).forEach((group) => {
+  group.criteria.forEach((criterion) => {
+    availableCriteria.push({
+      value: criterion.value,
+      label: criterion.label,
+    });
+  });
+});
+
+// Initialize all criteria as selected
+selectedCriteria.value = availableCriteria.map((c) => c.value);
+
+// Function to calculate artistic score for a single photo
+const getPhotoArtisticScore = (photo) => {
+  if (
+    !sortByQuality.value ||
+    selectedCriteria.value.length === 0 ||
+    !photo.descriptions?.artistic_scores
+  ) {
+    return null;
+  }
+
+  // Create custom weights object from selected criteria
+  const customWeights = {};
+  selectedCriteria.value.forEach((criterion) => {
+    customWeights[criterion] = 1.0; // Equal weight for all selected criteria
+  });
+
+  const scoreResult = calculateArtisticScore(
+    photo.descriptions.artistic_scores,
+    "custom",
+    customWeights
+  );
+
+  return scoreResult.average;
+};
 
 // Dialog states
 const showPhotoInfoDialog = ref(false);
@@ -252,6 +344,19 @@ watch(
 // Grid functions
 const setGridColumns = (columns) => {
   gridColumns.value = columns;
+};
+
+// Sorting functions
+const toggleSortByQuality = () => {
+  sortByQuality.value = !sortByQuality.value;
+  if (!sortByQuality.value) {
+    // Reset to all criteria when disabled
+    selectedCriteria.value = availableCriteria.map((c) => c.value);
+  }
+};
+
+const toggleSortOrder = () => {
+  sortOrder.value = sortOrder.value === "desc" ? "asc" : "desc";
 };
 
 // Handle filter duplicates change
@@ -312,10 +417,42 @@ function groupDuplicates(photos) {
 
 // Filter photos based on duplicates filter
 const displayedPhotos = computed(() => {
-  if (!filterDuplicates.value) {
-    return props.photos;
+  let filtered = props.photos;
+
+  // Apply duplicates filter
+  if (filterDuplicates.value) {
+    filtered = groupDuplicates(filtered.filter((photo) => photo.isDuplicate));
   }
-  return groupDuplicates(props.photos.filter((photo) => photo.isDuplicate));
+
+  // Apply sorting by artistic score
+  if (sortByQuality.value && selectedCriteria.value.length > 0) {
+    filtered = [...filtered].sort((a, b) => {
+      // Create custom weights object from selected criteria
+      const customWeights = {};
+      selectedCriteria.value.forEach((criterion) => {
+        customWeights[criterion] = 1.0; // Equal weight for all selected criteria
+      });
+
+      const scoreA = calculateArtisticScore(
+        a.descriptions?.artistic_scores,
+        "custom",
+        customWeights
+      );
+      const scoreB = calculateArtisticScore(
+        b.descriptions?.artistic_scores,
+        "custom",
+        customWeights
+      );
+
+      if (sortOrder.value === "desc") {
+        return scoreB.average - scoreA.average;
+      } else {
+        return scoreA.average - scoreB.average;
+      }
+    });
+  }
+
+  return filtered;
 });
 
 // Check if all photos are selected
@@ -474,6 +611,30 @@ const moveToCanvas = async () => {
 .filter-duplicates-container {
   display: flex;
   align-items: center;
+}
+
+/* Sorting Controls */
+.sorting-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sort-quality-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.criteria-selection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.criteria-label {
+  font-size: 14px;
+  color: #ffffff73;
+  font-weight: 500;
 }
 
 /* Photo Grid */

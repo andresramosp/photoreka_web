@@ -934,6 +934,16 @@ const handleSaveCanvas = async () => {
 };
 
 const handleClearCanvas = () => {
+  // Clean up blob URLs for all photos before clearing
+  [...canvasStore.photos, ...canvasStore.discardedPhotos].forEach((photo) => {
+    if (photo.src && photo.src.startsWith("blob:")) {
+      URL.revokeObjectURL(photo.src);
+    }
+    if (photo.thumbnailUrl && photo.thumbnailUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(photo.thumbnailUrl);
+    }
+  });
+
   // Limpiar fotos y descartados
   canvasStore.$patch({ photos: [] });
   canvasStore.$patch({ discardedPhotos: [] });
@@ -1392,6 +1402,16 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+  // Clean up blob URLs before unmounting
+  [...canvasStore.photos, ...canvasStore.discardedPhotos].forEach((photo) => {
+    if (photo.src && photo.src.startsWith("blob:")) {
+      URL.revokeObjectURL(photo.src);
+    }
+    if (photo.thumbnailUrl && photo.thumbnailUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(photo.thumbnailUrl);
+    }
+  });
+
   window.removeEventListener("resize", handleResize);
   document.removeEventListener("click", handleClickOutside);
   document.removeEventListener("keydown", handleKeyDown);
