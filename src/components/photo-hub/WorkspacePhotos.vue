@@ -58,167 +58,27 @@
           </h3>
         </div>
 
-        <!-- Visual Aspects Filters -->
-        <div class="filters-section">
-          <div class="filters-header" @click="toggleFiltersPanel">
-            <div class="filters-header-left">
-              <n-icon
-                size="16"
-                class="filters-toggle-icon"
-                :class="{ expanded: isFiltersPanelExpanded }"
-              >
-                <ChevronRight20Regular />
-              </n-icon>
-              <h4 class="filters-title">Visual Aspects Filters</h4>
-              <span
-                v-if="hasActiveFilters && !isFiltersPanelExpanded"
-                class="active-filters-badge"
-              >
-                {{ totalActiveFilters }}
-              </span>
-            </div>
-            <n-button
-              v-if="hasActiveFilters && isFiltersPanelExpanded"
-              quaternary
-              size="small"
-              @click.stop="clearAllFilters"
-              class="clear-filters-btn"
-            >
-              Clear all filters
-            </n-button>
-          </div>
-
-          <div v-show="isFiltersPanelExpanded" class="filters-content">
-            <div class="filters-grid">
-              <div
-                v-for="aspectGroup in visualAspectsOptions"
-                :key="aspectGroup.key"
-                class="filter-group"
-              >
-                <n-select
-                  v-model:value="selectedFilters[aspectGroup.key]"
-                  multiple
-                  :placeholder="`${
-                    aspectGroup.label.charAt(0).toUpperCase() +
-                    aspectGroup.label.slice(1)
-                  }`"
-                  :options="aspectGroup.children"
-                  :max-tag-count="2"
-                  clearable
-                  filterable
-                  class="filter-select"
-                  size="small"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Results Info -->
-
         <!-- Photos Grid Component -->
-        <PhotosGrid :photos="filteredPhotos" />
+        <PhotosGrid :photos="processedPhotos" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
-import { visualAspectsOptions } from "@/stores/searchStore.js";
-import { NButton, NSelect, NIcon } from "naive-ui";
+import { NIcon } from "naive-ui";
 
-import {
-  BookInformation20Regular,
-  ChevronRight20Regular,
-} from "@vicons/fluent";
+import { BookInformation20Regular } from "@vicons/fluent";
 import PhotosGrid from "../PhotosGrid.vue";
-import { useRouter } from "vue-router";
 
 const emit = defineEmits(["navigate-to-tab"]);
 
 const photosStore = usePhotosStore();
-const router = useRouter();
 
 // Static catalog photos for demonstration
 const processedPhotos = computed(() => photosStore.processedPhotos);
-
-// Local state for filters
-const selectedFilters = ref({});
-const isFiltersPanelExpanded = ref(true);
-
-// Initialize selectedFilters with empty arrays for each category
-visualAspectsOptions.forEach((group) => {
-  selectedFilters.value[group.key] = [];
-});
-
-// Computed for checking if there are active filters
-const hasActiveFilters = computed(() => {
-  return Object.values(selectedFilters.value).some(
-    (filters) => filters.length > 0
-  );
-});
-
-// Computed for total count of active filters
-const totalActiveFilters = computed(() => {
-  return Object.values(selectedFilters.value).reduce(
-    (total, filters) => total + filters.length,
-    0
-  );
-});
-
-// Function to toggle filters panel
-const toggleFiltersPanel = () => {
-  isFiltersPanelExpanded.value = !isFiltersPanelExpanded.value;
-};
-
-// Function to get selected count for a specific group
-const getSelectedCountForGroup = (groupKey) => {
-  return selectedFilters.value[groupKey]?.length || 0;
-};
-
-// Function to clear all filters
-const clearAllFilters = () => {
-  Object.keys(selectedFilters.value).forEach((key) => {
-    selectedFilters.value[key] = [];
-  });
-};
-
-// Computed for filtered photos with AND logic
-const filteredPhotos = computed(() => {
-  if (!hasActiveFilters.value) {
-    return processedPhotos.value;
-  }
-
-  return processedPhotos.value.filter((photo) => {
-    // Check if photo has visualAspects property
-    if (!photo.descriptions.visual_aspects) {
-      return false;
-    }
-
-    // Apply AND logic: photo must match ALL selected filters
-    return Object.entries(selectedFilters.value).every(
-      ([category, selectedValues]) => {
-        // If no filters selected for this category, it passes
-        if (selectedValues.length === 0) {
-          return true;
-        }
-
-        // Check if photo has this visual aspect category
-        const photoAspects = photo.descriptions.visual_aspects[category];
-        if (!photoAspects || !Array.isArray(photoAspects)) {
-          return false;
-        }
-
-        // Photo must have at least one of the selected values in this category
-        return selectedValues.some((selectedValue) =>
-          photoAspects.includes(selectedValue)
-        );
-      }
-    );
-  });
-});
 
 // Navigation function for empty state
 const navigateToTab = (tabName) => {
@@ -490,94 +350,5 @@ const navigateToTab = (tabName) => {
 .step-item {
   text-align: center;
   color: #ffffff73;
-}
-
-/* Visual Aspects Filters Styles */
-.filters-section {
-  margin-bottom: 24px;
-  background-color: #1a1a1f;
-  border-radius: 8px;
-  border: 1px solid #2c2c32;
-  overflow: hidden;
-}
-
-.filters-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.filters-header:hover {
-  background-color: #202025;
-}
-
-.filters-header-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.filters-toggle-icon {
-  color: #ffffff73;
-  transition: transform 0.2s ease;
-}
-
-.filters-toggle-icon.expanded {
-  transform: rotate(90deg);
-}
-
-.filters-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: #ffffffd1;
-  margin: 0;
-}
-
-.active-filters-badge {
-  background-color: #8b5cf6;
-  color: white;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 10px;
-  min-width: 16px;
-  text-align: center;
-}
-
-.clear-filters-btn {
-  color: #8b5cf6;
-}
-
-.filters-content {
-  border-top: 1px solid #2c2c32;
-  padding: 16px;
-}
-
-.filters-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 12px;
-}
-
-.filter-select {
-  width: 100%;
-}
-
-.results-info {
-  margin-bottom: 16px;
-  padding: 8px 12px;
-  background-color: rgba(139, 92, 246, 0.1);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 6px;
-  text-align: center;
-}
-
-.results-count {
-  font-size: 13px;
-  font-weight: 500;
-  color: #8b5cf6;
 }
 </style>

@@ -98,19 +98,78 @@
         use in the tools.
       </h3>
     </div>
+
+    <!-- Maintenance Mode Section -->
+    <div v-if="isMaintenanceMode" class="maintenance-section">
+      <div class="maintenance-container">
+        <div class="maintenance-content">
+          <div class="maintenance-icon">
+            <n-icon size="48" color="#f59e0b">
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M12 2C13.1 2 14 2.9 14 4L14 13C14 14.1 13.1 15 12 15C10.9 15 10 14.1 10 13L10 4C10 2.9 10.9 2 12 2ZM12 17C13.1 17 14 17.9 14 19C14 20.1 13.1 21 12 21C10.9 21 10 20.1 10 19C10 17.9 10.9 17 12 17Z"
+                />
+              </svg>
+            </n-icon>
+          </div>
+          <h3 class="maintenance-title">Maintenance in Progress</h3>
+          <p class="maintenance-subtitle">
+            We are currently performing temporary maintenance on our photo
+            processing system.
+          </p>
+          <div class="maintenance-features">
+            <div class="maintenance-feature">
+              <n-icon size="16" color="#ef4444">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"
+                  />
+                </svg>
+              </n-icon>
+              <span>Photo upload temporarily disabled</span>
+            </div>
+            <div class="maintenance-feature">
+              <n-icon size="16" color="#ef4444">
+                <svg viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"
+                  />
+                </svg>
+              </n-icon>
+              <span>Photo analysis temporarily disabled</span>
+            </div>
+          </div>
+          <div class="maintenance-message">
+            <p>
+              We appreciate your patience while we enhance our services. Please
+              try again in a few minutes.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Full Upload Dropzone (show when no photos) -->
-    <div v-if="lightboxPhotos.length === 0" class="upload-section">
+    <div
+      v-if="!isMaintenanceMode && lightboxPhotos.length === 0"
+      class="upload-section"
+    >
       <div
         class="upload-dropzone"
-        :class="{ 'drag-over': isDragOver }"
-        @dragover.prevent="handleDragOver"
-        @dragenter.prevent="handleDragEnter"
-        @dragleave.prevent="handleDragLeave"
+        :class="{
+          'drag-over': isDragOver && !isUploadDisabled,
+          disabled: isUploadDisabled,
+        }"
+        @dragover.prevent="!isUploadDisabled && handleDragOver"
+        @dragenter.prevent="!isUploadDisabled && handleDragEnter"
+        @dragleave.prevent="!isUploadDisabled && handleDragLeave"
         @drop.prevent="handleDrop"
       >
         <div class="dropzone-content" @click="triggerFileInput">
           <div class="upload-icon">
-            <n-icon size="48" color="#8b5cf6">
+            <n-icon size="48" :color="isUploadDisabled ? '#6b7280' : '#8b5cf6'">
               <svg viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
@@ -119,18 +178,29 @@
               </svg>
             </n-icon>
           </div>
-          <h3 class="dropzone-title">Your Lightbox is empty</h3>
+          <h3 class="dropzone-title">
+            {{
+              isUploadDisabled && photosRemaining <= 0
+                ? "Upload limit reached"
+                : "Your Lightbox is empty"
+            }}
+          </h3>
           <p class="dropzone-subtitle">
-            Drag and drop your images, or click to browse
+            {{
+              isUploadDisabled
+                ? uploadDisabledMessage
+                : "Drag and drop your images, or click to browse"
+            }}
           </p>
 
-          <div class="upload-buttons">
+          <div v-if="!isUploadDisabled" class="upload-buttons">
             <n-button
               type="primary"
               size="large"
               class="upload-btn"
               @click.stop="triggerFileInput"
             >
+              >
               <template #icon>
                 <n-icon>
                   <svg viewBox="0 0 24 24">
@@ -173,13 +243,17 @@
     </div>
 
     <!-- Compact Upload Section -->
-    <div v-else class="header-buttons compact-upload-section">
+    <div
+      v-if="!isMaintenanceMode && lightboxPhotos.length > 0"
+      class="header-buttons compact-upload-section"
+    >
       <div class="">
         <div class="compact-upload-buttons">
           <n-button
             type="primary"
             size="medium"
             class="compact-upload-btn"
+            :disabled="isUploadDisabled"
             @click.stop="triggerFileInput"
           >
             <template #icon>
@@ -192,7 +266,11 @@
                 </svg>
               </n-icon>
             </template>
-            Local Files
+            {{
+              isUploadDisabled && photosRemaining <= 0
+                ? "Upload Limit Reached"
+                : "Local Files"
+            }}
           </n-button>
           <!-- <n-button
             type="default"
@@ -242,6 +320,7 @@
       <PhotosGrid
         :photos="filteredPhotos"
         :displayAddToCollection="false"
+        :hiddeControls="true"
         @selection-change="handleSelectionChange"
       />
     </div>
@@ -261,6 +340,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
+import { useUserStore } from "@/stores/userStore.ts";
 import { usePhotoUpload } from "@/composables/usePhotoUpload.js";
 import { useWarmUp } from "@/composables/useWarmUp.js";
 
@@ -273,8 +353,14 @@ import { NModal, NCheckbox, NTooltip } from "naive-ui";
 
 import { useMessage } from "naive-ui";
 
+// Maintenance mode check
+const isMaintenanceMode = computed(
+  () => import.meta.env.VITE_MAINTENANCE_MODE === "true"
+);
+
 const emit = defineEmits(["on-analyze", "selection-change"]);
 const photosStore = usePhotosStore();
+const userStore = useUserStore();
 const message = useMessage();
 
 // Warm up composable
@@ -287,6 +373,7 @@ const {
   totalFiles,
   overallProgress,
   handleUploadFlow,
+  validateUploadLimits,
 } = usePhotoUpload();
 
 // Variables locales del componente
@@ -297,6 +384,27 @@ const isDragOver = ref(false);
 
 // Variable para controlar si ya se activó el warm-up al 75%
 const warmUpTriggeredAt75 = ref(false);
+
+// Upload limitations computed properties
+const photosRemaining = computed(() => {
+  return userStore.user?.usage?.photosRemaining ?? Infinity;
+});
+
+const isUploadDisabled = computed(() => {
+  return (
+    isMaintenanceMode.value || isUploading.value || photosRemaining.value <= 0
+  );
+});
+
+const uploadDisabledMessage = computed(() => {
+  if (isMaintenanceMode.value) {
+    return "Photo upload is temporarily disabled during maintenance";
+  }
+  if (photosRemaining.value <= 0) {
+    return "You have reached your photo upload limit. Please upgrade your plan to upload more photos.";
+  }
+  return "";
+});
 
 // Watcher para activar warm-up cuando el progreso llega al 75%
 watch(overallProgress, (newProgress) => {
@@ -372,7 +480,13 @@ const selectedPhotosRecord = computed(() => photosStore.selectedPhotosRecord);
 const selectedPhotoIds = computed(() => photosStore.selectedPhotoIds);
 
 const triggerFileInput = () => {
-  if (!isUploading.value) fileInput.value?.click();
+  if (isUploadDisabled.value) {
+    if (uploadDisabledMessage.value) {
+      message.warning(uploadDisabledMessage.value);
+    }
+    return;
+  }
+  fileInput.value?.click();
 };
 
 // Drag & Drop functionality
@@ -394,7 +508,12 @@ const handleDrop = async (event) => {
   event.preventDefault();
   isDragOver.value = false;
 
-  if (isUploading.value) return;
+  if (isUploadDisabled.value) {
+    if (uploadDisabledMessage.value) {
+      message.warning(uploadDisabledMessage.value);
+    }
+    return;
+  }
 
   const files = Array.from(event.dataTransfer.files).filter((file) =>
     file.type.startsWith("image/")
@@ -402,6 +521,13 @@ const handleDrop = async (event) => {
 
   if (files.length === 0) {
     message.warning("No se encontraron archivos de imagen válidos");
+    return;
+  }
+
+  // Validar límites antes de proceder
+  const validation = validateUploadLimits(files.length);
+  if (!validation.isValid) {
+    message.error(validation.message);
     return;
   }
 
@@ -419,6 +545,14 @@ const handleDrop = async (event) => {
 async function uploadLocalFiles(event) {
   const selectedLocalFiles = Array.from(event.target.files);
   if (selectedLocalFiles.length === 0) return;
+
+  // Validar límites antes de proceder
+  const validation = validateUploadLimits(selectedLocalFiles.length);
+  if (!validation.isValid) {
+    message.error(validation.message);
+    event.target.value = ""; // Clear the input
+    return;
+  }
 
   // Trigger warm up when files are selected
   ensureWarmUp("image");
@@ -668,6 +802,99 @@ defineExpose({
   font-size: 14px;
   color: #ffffff73;
   text-align: center;
+}
+
+/* Maintenance Mode Section */
+.maintenance-section {
+  margin-bottom: 48px;
+}
+
+.maintenance-container {
+  border: 2px solid #f59e0b;
+  border-radius: 16px;
+  padding: 48px 32px;
+  text-align: center;
+  background: linear-gradient(
+    135deg,
+    rgba(245, 158, 11, 0.1) 0%,
+    rgba(245, 158, 11, 0.05) 100%
+  );
+}
+
+.maintenance-content {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.maintenance-icon {
+  margin-bottom: 24px;
+}
+
+.maintenance-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #f59e0b;
+  margin: 0 0 16px 0;
+}
+
+.maintenance-subtitle {
+  font-size: 16px;
+  color: #ffffffd1;
+  margin: 0 0 32px 0;
+  line-height: 1.5;
+}
+
+.maintenance-features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 32px;
+  align-items: flex-start;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.maintenance-feature {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #ffffff73;
+}
+
+.maintenance-message {
+  padding: 20px;
+  background-color: rgba(245, 158, 11, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.maintenance-message p {
+  margin: 0;
+  font-size: 14px;
+  color: #ffffffd1;
+  line-height: 1.5;
+}
+
+/* Upload disabled styles */
+.upload-dropzone.disabled {
+  background-color: var(--bg-surface);
+  border-color: var(--border-color);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.upload-dropzone.disabled .dropzone-content {
+  cursor: not-allowed;
+}
+
+.upload-dropzone.disabled .dropzone-title {
+  color: var(--text-secondary);
+}
+
+.upload-dropzone.disabled .dropzone-subtitle {
+  color: var(--text-tertiary);
 }
 
 /* Responsive */

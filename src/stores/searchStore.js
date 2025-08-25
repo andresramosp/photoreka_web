@@ -7,18 +7,8 @@ import { useArtisticScores } from "@/composables/useArtisticScores";
 export const visualAspectsOptions = [
   {
     type: "group",
-    label: "Orientation",
-    key: "orientation",
-    children: [
-      { label: "Horizontal", value: "horizontal" },
-      { label: "Vertical", value: "vertical" },
-      { label: "Square", value: "square" },
-    ],
-  },
-  {
-    type: "group",
     label: "Palette",
-    key: "color",
+    key: "palette",
     children: [
       { label: "Black and white", value: "black and white" },
       { label: "Color", value: "color" },
@@ -34,7 +24,6 @@ export const visualAspectsOptions = [
       { label: "Neutral", value: "neutral" },
     ],
   },
-
   {
     type: "group",
     label: "Focus",
@@ -46,15 +35,24 @@ export const visualAspectsOptions = [
   },
   {
     type: "group",
+    label: "Lighting Scheme",
+    key: "lighting_scheme",
+    children: [
+      { label: "Low key", value: "low key" },
+      { label: "High key", value: "high key" },
+      { label: "Balanced", value: "balanced" },
+    ],
+  },
+  {
+    type: "group",
     label: "Stylistic",
     key: "stylistic",
     children: [
       { label: "Long exposure", value: "long exposure" },
+      { label: "Motion blur", value: "motion blur" },
       { label: "Silhouettes", value: "silhouettes" },
-      { label: "Reflections", value: "reflections" },
-      { label: "Vivid colors", value: "vivid colors" },
-      { label: "Minimalist", value: "minimalist" },
-      { label: "Geometry", value: "geometric shapes" },
+      { label: "Bokeh", value: "bokeh" },
+      { label: "Grain", value: "grain" },
     ],
   },
   {
@@ -65,8 +63,18 @@ export const visualAspectsOptions = [
       { label: "Natural", value: "natural" },
       { label: "Artificial", value: "artificial" },
       { label: "Backlit", value: "backlit" },
-      { label: "Dramatic", value: "dramatic" },
-      { label: "Soft", value: "soft" },
+      { label: "Frontlit", value: "frontlit" },
+      { label: "Side lit", value: "side lit" },
+    ],
+  },
+  {
+    type: "group",
+    label: "Depth of Field",
+    key: "depth_of_field",
+    children: [
+      { label: "Shallow", value: "shallow" },
+      { label: "Deep", value: "deep" },
+      { label: "Medium", value: "medium" },
     ],
   },
   {

@@ -281,43 +281,11 @@
                   >
                     <div class="weights-header">
                       <h6 class="weights-title">Score Weights Configuration</h6>
-                      <p class="weights-subtitle">
-                        Adjust the importance of each criteria in the overall
-                        rating calculation (0.0 = not considered, 1.0 = full
-                        weight)
-                      </p>
                     </div>
-                    <div class="weights-grid">
-                      <div
-                        v-for="(weight, criterion) in artisticScoreWeights"
-                        :key="criterion"
-                        class="weight-item"
-                      >
-                        <div class="weight-label-container">
-                          <span class="weight-label">{{
-                            formatCriterionName(criterion)
-                          }}</span>
-                          <span class="weight-value">{{
-                            weight.toFixed(1)
-                          }}</span>
-                        </div>
-                        <div class="weight-control">
-                          <n-slider
-                            v-model:value="artisticScoreWeights[criterion]"
-                            :min="0"
-                            :max="1"
-                            :step="0.1"
-                            :marks="{
-                              0: '0.0',
-                              0.5: '0.5',
-                              1: '1.0',
-                            }"
-                            :tooltip="false"
-                            style="width: 100%"
-                          />
-                        </div>
-                      </div>
-                    </div>
+                    <CustomArtisticWeights
+                      v-model="artisticScoreWeights"
+                      :format-criterion-name="formatCriterionName"
+                    />
                   </div>
 
                   <div class="artistic-scores-grid">
@@ -518,9 +486,9 @@ import {
   NInputGroup,
   NSpin,
   NSwitch,
-  NSlider,
   useMessage,
 } from "naive-ui";
+import CustomArtisticWeights from "./CustomArtisticWeights.vue";
 
 // Icons from @vicons
 import {
@@ -1442,64 +1410,6 @@ if (typeof window !== "undefined") {
   color: var(--text-primary);
 }
 
-.weights-subtitle {
-  margin: 0;
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-}
-
-.weights-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--spacing-md);
-}
-
-.weight-item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md);
-  background: var(--bg-card);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
-  transition: all 0.2s ease;
-}
-
-.weight-item:hover {
-  border-color: var(--primary-color);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.weight-label-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-xs);
-}
-
-.weight-label {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-primary);
-}
-
-.weight-value {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--primary-color);
-  font-family: var(--font-mono);
-  background: rgba(59, 130, 246, 0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
-  min-width: 32px;
-  text-align: center;
-}
-
-.weight-control {
-  padding: var(--spacing-sm) 0;
-}
-
 .artistic-scores-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -1754,22 +1664,6 @@ if (typeof window !== "undefined") {
     min-width: 200px;
     width: 100%;
     max-width: 250px;
-  }
-
-  .weights-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .weight-item {
-    padding: var(--spacing-md);
-  }
-
-  .weight-label-container {
-    margin-bottom: var(--spacing-sm);
-  }
-
-  .weight-control {
-    padding: var(--spacing-md) 0;
   }
 
   .score-item {

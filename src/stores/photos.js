@@ -5,6 +5,7 @@ export const MIN_PHOTOS_THRESHOLD = 4;
 
 import { defineStore } from "pinia";
 import { api } from "@/utils/axios";
+import { useUserStore } from "@/stores/userStore.ts";
 
 export const usePhotosStore = defineStore("photos", {
   // Exponer el umbral como propiedad estática
@@ -207,6 +208,10 @@ export const usePhotosStore = defineStore("photos", {
         );
         // Reset duplicates check when photos are deleted
         this.duplicatesChecked = false;
+
+        // Update usage after deleting photos
+        const userStore = useUserStore();
+        await userStore.fetchUsage();
       } catch (error) {
         console.warn(
           "API not available for deletePhotos, using local delete:",
@@ -225,6 +230,10 @@ export const usePhotosStore = defineStore("photos", {
 
         // Elimina las fotos borradas del store
         this.photos = this.photos.filter((p) => !deleted.includes(p.id));
+
+        // Update usage after deleting duplicates
+        const userStore = useUserStore();
+        await userStore.fetchUsage();
       } catch (error) {
         console.warn(
           "API not available for deleteDuplicates, using local delete:",
