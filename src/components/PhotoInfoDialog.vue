@@ -209,68 +209,84 @@
                       </p>
                     </div>
                     <div class="genre-buttons">
-                      <n-button
-                        :type="
-                          selectedGenre === 'street' ? 'primary' : 'default'
-                        "
-                        size="medium"
-                        @click="applyGenrePresetWithUI('street')"
-                        class="genre-button"
+                      <n-tooltip
+                        trigger="hover"
+                        placement="bottom"
+                        :show-arrow="false"
                       >
-                        <template #icon>
-                          <n-icon>
-                            <EyeIcon />
-                          </n-icon>
+                        <template #trigger>
+                          <n-button
+                            :type="
+                              selectedGenre === 'street' ? 'primary' : 'default'
+                            "
+                            size="medium"
+                            @click="applyGenrePresetWithUI('street')"
+                            class="genre-button"
+                          >
+                            <template #icon>
+                              <n-icon>
+                                <WalkOutline />
+                              </n-icon>
+                            </template>
+                            Street
+                          </n-button>
                         </template>
-                        Street
-                      </n-button>
-                      <n-button
-                        :type="
-                          selectedGenre === 'documentary'
-                            ? 'primary'
-                            : 'default'
-                        "
-                        size="medium"
-                        @click="applyGenrePresetWithUI('documentary')"
-                        class="genre-button"
+                        <div v-html="formatGenreTooltip('street')"></div>
+                      </n-tooltip>
+
+                      <n-tooltip
+                        trigger="hover"
+                        placement="bottom"
+                        :show-arrow="false"
                       >
-                        <template #icon>
-                          <n-icon>
-                            <DocumentTextIcon />
-                          </n-icon>
+                        <template #trigger>
+                          <n-button
+                            :type="
+                              selectedGenre === 'documentary'
+                                ? 'primary'
+                                : 'default'
+                            "
+                            size="medium"
+                            @click="applyGenrePresetWithUI('documentary')"
+                            class="genre-button"
+                          >
+                            <template #icon>
+                              <n-icon>
+                                <BookOpen16Regular />
+                              </n-icon>
+                            </template>
+                            Documentary
+                          </n-button>
                         </template>
-                        Documentary
-                      </n-button>
-                      <n-button
-                        :type="
-                          selectedGenre === 'abstract' ? 'primary' : 'default'
-                        "
-                        size="medium"
-                        @click="applyGenrePresetWithUI('abstract')"
-                        class="genre-button"
+                        <div v-html="formatGenreTooltip('documentary')"></div>
+                      </n-tooltip>
+
+                      <n-tooltip
+                        trigger="hover"
+                        placement="bottom"
+                        :show-arrow="false"
                       >
-                        <template #icon>
-                          <n-icon>
-                            <SparklesIcon />
-                          </n-icon>
+                        <template #trigger>
+                          <n-button
+                            :type="
+                              selectedGenre === 'abstract'
+                                ? 'primary'
+                                : 'default'
+                            "
+                            size="medium"
+                            @click="applyGenrePresetWithUI('abstract')"
+                            class="genre-button"
+                          >
+                            <template #icon>
+                              <n-icon>
+                                <PaletteOutlined />
+                              </n-icon>
+                            </template>
+                            Artistic
+                          </n-button>
                         </template>
-                        Artistic
-                      </n-button>
-                      <!-- <n-button
-                        :type="
-                          selectedGenre === 'custom' ? 'primary' : 'default'
-                        "
-                        size="medium"
-                        @click="showCustomControls()"
-                        class="genre-button custom-button"
-                      >
-                        <template #icon>
-                          <n-icon>
-                            <EditIcon />
-                          </n-icon>
-                        </template>
-                        Custom
-                      </n-button> -->
+                        <div v-html="formatGenreTooltip('abstract')"></div>
+                      </n-tooltip>
                     </div>
                   </div>
 
@@ -486,6 +502,7 @@ import {
   NInputGroup,
   NSpin,
   NSwitch,
+  NTooltip,
   useMessage,
 } from "naive-ui";
 import CustomArtisticWeights from "./CustomArtisticWeights.vue";
@@ -501,11 +518,14 @@ import {
   RefreshOutline as RefreshIcon,
   CreateOutline as EditIcon,
   EyeOutline as EyeIcon,
+  WalkOutline,
 } from "@vicons/ionicons5";
 
 import { api } from "@/utils/axios.js";
 import { usePhotoDownload } from "@/composables/usePhotoDownload.js";
 import { useArtisticScores } from "@/composables/useArtisticScores.js";
+import { BookOpen16Regular } from "@vicons/fluent";
+import { PaletteOutlined } from "@vicons/material";
 
 const props = defineProps({
   modelValue: {
@@ -527,6 +547,7 @@ const {
   calculateArtisticScore,
   getScoreBgColor,
   formatCriterionName,
+  formatGenreTooltip,
   artisticScoreWeights,
   selectedGenre,
   applyGenrePreset,
@@ -1686,5 +1707,15 @@ if (typeof window !== "undefined") {
     min-width: auto;
     text-align: center;
   }
+}
+
+/* Custom tooltip styling */
+:deep(.n-tooltip__content) {
+  background-color: #1a1a1f !important;
+  border: 1px solid #2c2c32 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+  max-width: 280px !important;
+  padding: 12px !important;
 }
 </style>

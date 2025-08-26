@@ -9,9 +9,9 @@
             class="filters-toggle-icon"
             :class="{ expanded: isFiltersPanelExpanded }"
           >
-            <ChevronRight20Regular />
+            <Camera20Regular />
           </n-icon>
-          <h4 class="filters-title">Visual Aspects Filters</h4>
+          <h4 class="filters-title">Visual Filters</h4>
           <span
             v-if="hasActiveFilters && !isFiltersPanelExpanded"
             class="active-filters-badge"
@@ -66,9 +66,9 @@
             class="sorting-toggle-icon"
             :class="{ expanded: isSortingPanelExpanded }"
           >
-            <ChevronRight20Regular />
+            <Trophy20Regular />
           </n-icon>
-          <h4 class="sorting-title">Quality Sorting</h4>
+          <h4 class="sorting-title">Rank by Scores</h4>
 
           <!-- Sort Order Icon (small and discrete) -->
           <n-button
@@ -155,70 +155,74 @@
           <!-- Genre-based Sorting -->
           <div v-if="sortingType === 'genre'" class="genre-selection">
             <div class="genre-buttons">
-              <n-button
-                :type="selectedGenre === 'street' ? 'primary' : 'default'"
-                size="small"
-                @click="handleGenreSelect('street')"
-                class="genre-button"
-              >
-                <template #icon>
-                  <n-icon>
-                    <svg viewBox="0 0 24 24" style="width: 14px; height: 14px">
-                      <path
-                        d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"
-                      />
-                    </svg>
-                  </n-icon>
+              <n-tooltip trigger="hover" placement="bottom" :show-arrow="false">
+                <template #trigger>
+                  <n-button
+                    :type="selectedGenre === 'street' ? 'primary' : 'default'"
+                    size="small"
+                    @click="handleGenreSelect('street')"
+                    class="genre-button"
+                  >
+                    <template #icon>
+                      <n-icon>
+                        <WalkOutline />
+                      </n-icon>
+                    </template>
+                    Street
+                  </n-button>
                 </template>
-                Street
-              </n-button>
-              <n-button
-                :type="selectedGenre === 'documentary' ? 'primary' : 'default'"
-                size="small"
-                @click="handleGenreSelect('documentary')"
-                class="genre-button"
-              >
-                <template #icon>
-                  <n-icon>
-                    <svg viewBox="0 0 24 24" style="width: 14px; height: 14px">
-                      <path
-                        d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
-                      />
-                    </svg>
-                  </n-icon>
+                <div v-html="formatGenreTooltip('street')"></div>
+              </n-tooltip>
+
+              <n-tooltip trigger="hover" placement="bottom" :show-arrow="false">
+                <template #trigger>
+                  <n-button
+                    :type="
+                      selectedGenre === 'documentary' ? 'primary' : 'default'
+                    "
+                    size="small"
+                    @click="handleGenreSelect('documentary')"
+                    class="genre-button"
+                  >
+                    <template #icon>
+                      <n-icon>
+                        <BookOpen16Regular />
+                      </n-icon>
+                    </template>
+                    Documentary
+                  </n-button>
                 </template>
-                Documentary
-              </n-button>
-              <n-button
-                :type="selectedGenre === 'abstract' ? 'primary' : 'default'"
-                size="small"
-                @click="handleGenreSelect('abstract')"
-                class="genre-button"
-              >
-                <template #icon>
-                  <n-icon>
-                    <svg viewBox="0 0 24 24" style="width: 14px; height: 14px">
-                      <path
-                        d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"
-                      />
-                    </svg>
-                  </n-icon>
+                <div v-html="formatGenreTooltip('documentary')"></div>
+              </n-tooltip>
+
+              <n-tooltip trigger="hover" placement="bottom" :show-arrow="false">
+                <template #trigger>
+                  <n-button
+                    :type="selectedGenre === 'abstract' ? 'primary' : 'default'"
+                    size="small"
+                    @click="handleGenreSelect('abstract')"
+                    class="genre-button"
+                  >
+                    <template #icon>
+                      <n-icon>
+                        <PaletteOutlined />
+                      </n-icon>
+                    </template>
+                    Artistic
+                  </n-button>
                 </template>
-                Artistic
-              </n-button>
+                <div v-html="formatGenreTooltip('abstract')"></div>
+              </n-tooltip>
+
               <n-button
-                :type="selectedGenre === 'custom' ? 'primary' : 'default'"
+                :type="selectedGenre === 'custom' ? 'primary' : 'warning'"
                 size="small"
                 @click="handleGenreSelect('custom')"
-                class="genre-button custom-button"
+                class="genre-button custom-button_"
               >
                 <template #icon>
                   <n-icon>
-                    <svg viewBox="0 0 24 24" style="width: 14px; height: 14px">
-                      <path
-                        d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"
-                      />
-                    </svg>
+                    <Settings20Regular />
                   </n-icon>
                 </template>
                 Custom
@@ -270,8 +274,21 @@ import {
   NRadio,
   NModal,
   NTag,
+  NTooltip,
 } from "naive-ui";
-import { ChevronRight20Regular } from "@vicons/fluent";
+import {
+  Book20Regular,
+  BookOpen16Regular,
+  Camera20Regular,
+  ChevronRight20Regular,
+  Location20Regular,
+  PaintBrush20Regular,
+  RoadCone20Regular,
+  Settings20Regular,
+  Trophy20Regular,
+} from "@vicons/fluent";
+import { PaletteOutlined } from "@vicons/material";
+import { Walk, WalkOutline } from "@vicons/ionicons5";
 
 const emit = defineEmits([
   "filters-change",
@@ -295,8 +312,12 @@ const sortOrder = ref("desc"); // 'asc', 'desc'
 const isSortingPanelExpanded = ref(false);
 
 // Get dynamic criteria from useArtisticScores
-const { artisticScores, genrePresets, formatCriterionName } =
-  useArtisticScores();
+const {
+  artisticScores,
+  genrePresets,
+  formatCriterionName,
+  formatGenreTooltip,
+} = useArtisticScores();
 
 // Create grouped criteria options for n-select
 const availableCriteria = Object.entries(artisticScores).map(
@@ -331,7 +352,7 @@ const initializeCustomWeights = () => {
   const weights = {};
   Object.values(artisticScores).forEach((group) => {
     group.criteria.forEach((criterion) => {
-      weights[criterion.value] = 1.0;
+      weights[criterion.value] = 0.5;
     });
   });
   return weights;
@@ -422,8 +443,6 @@ const handleSortingTypeChange = () => {
   // Reset criteria when switching modes
   if (sortingType.value === "none") {
     selectedCriteria.value = []; // Clear criteria when none is selected
-  } else if (sortingType.value === "genre") {
-    selectedCriteria.value = []; // Clear criteria when switching to genre mode
   } else if (sortingType.value === "criteria") {
     // Keep current criteria or start empty - don't force default criteria
     // This allows the user to start with "no sorting" until they add criteria
@@ -563,12 +582,13 @@ watch(
 }
 
 .filters-toggle-icon {
-  color: #ffffff73;
+  /* color: #ffffff73; */
   transition: transform 0.2s ease;
 }
 
 .filters-toggle-icon.expanded {
-  transform: rotate(90deg);
+  /* transform: rotate(90deg); */
+  opacity: 1;
 }
 
 .filters-title {
@@ -636,12 +656,13 @@ watch(
 }
 
 .sorting-toggle-icon {
-  color: #ffffff73;
+  /* color: #ffffff73; */
   transition: transform 0.2s ease;
 }
 
 .sorting-toggle-icon.expanded {
-  transform: rotate(90deg);
+  /* transform: rotate(90deg); */
+  opacity: 1;
 }
 
 .sorting-title {
@@ -778,5 +799,15 @@ watch(
   .sorting-content {
     padding: 12px;
   }
+}
+
+/* Custom tooltip styling */
+:deep(.n-tooltip__content) {
+  background-color: #1a1a1f !important;
+  border: 1px solid #2c2c32 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+  max-width: 280px !important;
+  padding: 12px !important;
 }
 </style>

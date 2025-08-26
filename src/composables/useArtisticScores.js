@@ -414,6 +414,48 @@ export function useArtisticScores() {
       .replace("Documentary", "Documentary");
   };
 
+  /**
+   * Format tooltip content for genre presets
+   * @param {string} genre - The genre preset name
+   * @returns {string} - The formatted HTML tooltip content
+   */
+  const formatGenreTooltip = (genre) => {
+    const preset = genrePresets[genre];
+    if (!preset) return "";
+
+    let tooltip = `<div style="font-size: 12px; line-height: 1.4;">`;
+    tooltip += `<div style="font-weight: 600; margin-bottom: 8px; color: #ffffff;">${
+      genre.charAt(0).toUpperCase() + genre.slice(1)
+    } Preset Weights:</div>`;
+
+    // Group criteria by their groups (fundamentals and bonus)
+    Object.entries(artisticScores).forEach(([groupKey, group]) => {
+      tooltip += `<div style="margin-bottom: 6px;">`;
+      tooltip += `<div style="font-weight: 500; color: ${group.color}; font-size: 11px; text-transform: uppercase; margin-bottom: 2px;">${group.label}:</div>`;
+
+      group.criteria.forEach((criterion) => {
+        const weight = preset[criterion.value];
+        const percentage = Math.round(weight * 100);
+        tooltip += `<div style="margin-left: 8px; font-size: 11px; color: #ffffffcc;">`;
+        tooltip += `${criterion.label}: <span style="font-weight: 500; color: ${
+          percentage === 0
+            ? "#ef4444"
+            : percentage >= 80
+            ? "#10b981"
+            : percentage >= 50
+            ? "#f59e0b"
+            : "#ffffff73"
+        }">${percentage}%</span>`;
+        tooltip += `</div>`;
+      });
+
+      tooltip += `</div>`;
+    });
+
+    tooltip += `</div>`;
+    return tooltip;
+  };
+
   return {
     // State
     artisticScoreWeights,
@@ -429,6 +471,7 @@ export function useArtisticScores() {
     getScoreColorClass,
     getScoreBgColor,
     formatCriterionName,
+    formatGenreTooltip,
     applyGenrePreset,
     resetWeights,
     getCompleteArtisticScores,
