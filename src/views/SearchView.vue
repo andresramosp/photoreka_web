@@ -290,7 +290,7 @@
             </div>
 
             <!-- Artistic Scores Filter -->
-            <div class="filter-compact-group">
+            <!-- <div class="filter-compact-group">
               <div
                 style="
                   display: flex;
@@ -344,7 +344,7 @@
                   </template>
                 </n-tree-select>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>
