@@ -145,7 +145,7 @@
               :options="availableCriteria"
               placeholder="Select criteria"
               size="small"
-              style="min-width: 200px"
+              style="width: 430px"
               :show-arrow="true"
               :render-tag="renderCriterionTag"
               @update:value="handleCriteriaChange"

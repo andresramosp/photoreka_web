@@ -15,15 +15,14 @@
         }"
       ></div>
       <div class="slider-content">
-        <span class="slider-label" :style="{ color: labelColor }">
-          {{ label }}
-        </span>
-        <span
-          class="slider-value"
-          :style="{ color: valueColor, background: valueBackground }"
-        >
-          {{ valueDisplay }}
-        </span>
+        <div v-if="!hideLabel" class="label-container">
+          <span class="slider-label" :style="{ color: labelColor }">
+            {{ label }}
+          </span>
+          <span class="slider-value" :style="{ color: valueColor }">
+            {{ valueDisplay }}
+          </span>
+        </div>
       </div>
     </div>
   </div>
@@ -87,10 +86,6 @@ const labelColor = computed(() => {
 
 const valueColor = computed(() => {
   return props.color;
-});
-
-const valueBackground = computed(() => {
-  return props.color + "22";
 });
 
 const calculateValue = (clientX) => {
@@ -209,7 +204,6 @@ onUnmounted(() => {
   position: relative;
   z-index: 2;
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 0 12px;
   height: 100%;
@@ -217,26 +211,30 @@ onUnmounted(() => {
   box-sizing: border-box;
 }
 
+.label-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  width: 100%;
+}
+
 .slider-label {
   font-size: 13px;
   font-weight: 500;
   color: #ffffffd1;
-  flex: 1;
-  margin-right: 8px;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
+  width: 100%;
 }
 
 .slider-value {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   font-family: monospace;
-  padding: 3px 8px;
-  border-radius: 4px;
-  min-width: 36px;
-  text-align: center;
-  flex-shrink: 0;
+  color: inherit;
+  opacity: 0.7;
 }
 
 /* Dark theme support */
@@ -259,13 +257,10 @@ onUnmounted(() => {
 
   .slider-label {
     font-size: 12px;
-    margin-right: 6px;
   }
 
   .slider-value {
-    font-size: 11px;
-    padding: 2px 6px;
-    min-width: 32px;
+    font-size: 9px;
   }
 }
 </style>

@@ -77,16 +77,16 @@ const artisticScores = {
         value: "storytelling",
         label: "Storytelling",
       },
+      {
+        value: "strangeness",
+        label: "Originality",
+      },
     ],
   },
   bonus: {
     label: "Bonus",
     color: "#f59e0b",
     criteria: [
-      {
-        value: "strangeness",
-        label: "Originality",
-      },
       {
         value: "message",
         label: "Message",
