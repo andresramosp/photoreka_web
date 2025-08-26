@@ -86,6 +86,15 @@
         </n-icon>
       </div>
 
+      <!-- Artistic Score indicator -->
+      <div
+        v-if="artisticScore && artisticScore > 0"
+        class="artistic-score-indicator"
+        :style="{ backgroundColor: scoreBackgroundColor }"
+      >
+        {{ artisticScore.toFixed(1) }}
+      </div>
+
       <!-- Duplicate indicator in top-left corner when footer is hidden -->
       <n-tooltip
         v-if="photo.isDuplicate && showDuplicate && !showFooter"
@@ -205,6 +214,7 @@ import {
   TrashOutline as DeleteIcon,
   TimeOutline,
 } from "@vicons/ionicons5";
+import { useArtisticScores } from "@/composables/useArtisticScores.js";
 
 interface PhotoInfo {
   id: string;
@@ -228,6 +238,10 @@ interface PhotoInfo {
   height?: number;
   originalFileName: string;
   isCheckingDuplicates: boolean;
+  descriptions?: {
+    artistic_scores?: Record<string, number>;
+    [key: string]: any;
+  };
 }
 
 interface Props {
@@ -238,6 +252,7 @@ interface Props {
   showName: boolean;
   isUploading: boolean;
   showDuplicate: boolean;
+  artisticScore?: number | null;
 }
 
 interface Emits {
@@ -252,6 +267,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<Emits>();
+const { getScoreBgColor } = useArtisticScores();
 
 // Utilidad para limpiar extensión y acortar nombre
 function removeExtension(filename: string): string {
@@ -261,6 +277,13 @@ function removeExtension(filename: string): string {
 const cleanFileName = computed(() =>
   removeExtension(props.photo.originalFileName)
 );
+
+const scoreBackgroundColor = computed(() => {
+  if (!props.artisticScore || props.artisticScore === 0) {
+    return "#6b7280";
+  }
+  return getScoreBgColor(props.artisticScore);
+});
 
 const isSelected = computed(() => props.selected);
 const imageLoaded = ref(false);
@@ -500,6 +523,23 @@ const onImageError = () => {
   z-index: 4;
 }
 
+/* Artistic Score indicator */
+.artistic-score-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 4;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  min-width: 32px;
+  text-align: center;
+}
+
 /* Variantes responsivas para el indicador de selección */
 @container photo-card (max-width: 200px) {
   .selection-indicator {
@@ -511,6 +551,13 @@ const onImageError = () => {
 
   .selection-indicator .n-icon {
     font-size: 16px !important;
+  }
+
+  .artistic-score-indicator {
+    font-size: 11px;
+    padding: 3px 6px;
+    bottom: 6px;
+    left: 6px;
   }
 }
 
@@ -524,6 +571,13 @@ const onImageError = () => {
 
   .selection-indicator .n-icon {
     font-size: 14px !important;
+  }
+
+  .artistic-score-indicator {
+    font-size: 10px;
+    padding: 2px 5px;
+    bottom: 4px;
+    left: 4px;
   }
 }
 
@@ -539,6 +593,13 @@ const onImageError = () => {
   .selection-indicator .n-icon {
     font-size: 16px !important;
   }
+
+  .artistic-score-indicator {
+    font-size: 11px;
+    padding: 3px 6px;
+    bottom: 6px;
+    left: 6px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -551,6 +612,13 @@ const onImageError = () => {
 
   .selection-indicator .n-icon {
     font-size: 14px !important;
+  }
+
+  .artistic-score-indicator {
+    font-size: 10px;
+    padding: 2px 5px;
+    bottom: 4px;
+    left: 4px;
   }
 }
 

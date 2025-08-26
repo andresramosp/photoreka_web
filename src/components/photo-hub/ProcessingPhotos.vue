@@ -306,20 +306,29 @@ function getCurrentStageIndex(stage) {
 
 // Mapear proceso
 const mapProcess = (proc, idx = 0) => {
-  const currentStageIdx = getCurrentStageIndex(proc.currentStage || "init");
-  const totalStages = STAGES.length - 1; // 'finished' no cuenta para el progreso
+  // Si está en modo retry_process, ignorar stages y mostrar 'finalizing' hasta que termine
+  const isRetry = proc.mode === "retry_process";
   const isFinished = proc.currentStage === "finished";
+  let progressPercent, currentStageLabel;
+  if (isRetry && !isFinished) {
+    progressPercent = 90; // Puedes ajustar el porcentaje que representa 'finalizing'
+    currentStageLabel = "Finalizing";
+  } else {
+    const currentStageIdx = getCurrentStageIndex(proc.currentStage || "init");
+    const totalStages = STAGES.length - 1; // 'finished' no cuenta para el progreso
+    progressPercent = isFinished
+      ? 100
+      : Math.max(0, Math.round((currentStageIdx / totalStages) * 100));
+    currentStageLabel = STAGES[currentStageIdx]?.label || "Starting...";
+  }
   return {
     id: proc.id,
     expanded: idx === 0, // El primer tab siempre abierto
     startDate: proc.createdAt,
     photoCount: proc.photos?.length ?? 0,
     status: isFinished ? "finished" : "processing",
-    // El porcentaje es etapas completadas respecto al total (sin finished)
-    progressPercent: isFinished
-      ? 100
-      : Math.max(0, Math.round((currentStageIdx / totalStages) * 100)),
-    currentStageLabel: STAGES[currentStageIdx]?.label || "Starting...",
+    progressPercent,
+    currentStageLabel,
     photos: proc.photos,
   };
 };

@@ -7,7 +7,8 @@
           v-if="
             route.name === 'landing' ||
             route.name === 'canvas-playground' ||
-            route.name === 'terms'
+            route.name === 'terms' ||
+            route.name === 'maintenance'
           "
         />
 

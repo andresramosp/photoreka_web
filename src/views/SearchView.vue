@@ -154,7 +154,8 @@
             <span v-if="hasActiveFilters" class="active-filters-indicator">
               {{
                 selectedCollections.length +
-                searchStore.selectedVisualAspects.length
+                searchStore.selectedVisualAspects.length +
+                searchStore.selectedArtisticScores.length
               }}
             </span>
             <n-icon
@@ -275,14 +276,70 @@
                   :disabled="isSearching"
                   size="small"
                   style="min-width: 200px"
-                  check-strategy="leaf"
-                  leaf-only
+                  check-strategy="child"
                   :show-path="false"
                   expand-on-click
                 >
                   <template #empty>
                     <div style="padding: 8px; color: #888; font-size: 12px">
                       No visual aspects found
+                    </div>
+                  </template>
+                </n-tree-select>
+              </div>
+            </div>
+
+            <!-- Artistic Scores Filter -->
+            <div class="filter-compact-group">
+              <div
+                style="
+                  display: flex;
+                  flex-direction: column;
+                  align-items: flex-start;
+                  gap: 2px;
+                "
+              >
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    margin-bottom: 2px;
+                  "
+                >
+                  <span class="filter-compact-label">Artistic scores</span>
+                  <n-tooltip trigger="hover" placement="top">
+                    <template #trigger>
+                      <n-icon size="12" style="color: #ffffff73; cursor: help">
+                        <svg viewBox="0 0 24 24">
+                          <path
+                            fill="currentColor"
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                          />
+                        </svg>
+                      </n-icon>
+                    </template>
+                    Will include photos above 8 in the selected scores
+                  </n-tooltip>
+                </div>
+                <n-tree-select
+                  v-model:value="searchStore.selectedArtisticScores"
+                  multiple
+                  clearable
+                  placeholder="Any"
+                  :options="createArtisticScoresTreeOptions()"
+                  :max-tag-count="3"
+                  class="filter-compact-select"
+                  :disabled="isSearching"
+                  size="small"
+                  style="min-width: 200px"
+                  check-strategy="child"
+                  :show-path="false"
+                  expand-on-click
+                >
+                  <template #empty>
+                    <div style="padding: 8px; color: #888; font-size: 12px">
+                      No artistic scores found
                     </div>
                   </template>
                 </n-tree-select>
@@ -846,7 +903,10 @@ import { CheckOutlined, TagOutlined } from "@vicons/antd";
 import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas.js";
 import { useUserStore } from "@/stores/userStore";
-import { useSearchStore } from "@/stores/searchStore";
+import {
+  useSearchStore,
+  createArtisticScoresTreeOptions,
+} from "@/stores/searchStore";
 import { useCollectionsStore } from "@/stores/collections";
 import { useRouter } from "vue-router";
 import { usePhotoScored } from "@/composables/usePhotoScored";
@@ -1196,6 +1256,7 @@ async function searchPhotos() {
       searchMode: searchStore.searchMode,
       collections: selectedCollections.value,
       visualAspects: searchStore.selectedVisualAspects,
+      artisticScores: searchStore.selectedArtisticScores,
     };
 
     let payload;
@@ -1383,9 +1444,14 @@ function clearVisualAspectsFilter() {
   searchStore.clearVisualAspects();
 }
 
+function clearArtisticScoresFilter() {
+  searchStore.clearArtisticScores();
+}
+
 function clearAllFilters() {
   clearCollectionsFilter();
   clearVisualAspectsFilter();
+  clearArtisticScoresFilter();
 }
 
 function getSelectedCollectionNames() {
@@ -1401,7 +1467,8 @@ function getSelectedCollectionNames() {
 const hasActiveFilters = computed(() => {
   return (
     selectedCollections.value.length > 0 ||
-    searchStore.selectedVisualAspects.length > 0
+    searchStore.selectedVisualAspects.length > 0 ||
+    searchStore.selectedArtisticScores.length > 0
   );
 });
 
@@ -1422,6 +1489,10 @@ const filterSummaryText = computed(() => {
 
   if (searchStore.selectedVisualAspects.length > 0) {
     parts.push(`${searchStore.selectedVisualAspects.length} visual aspects`);
+  }
+
+  if (searchStore.selectedArtisticScores.length > 0) {
+    parts.push(`${searchStore.selectedArtisticScores.length} artistic scores`);
   }
 
   return parts.join(", ");

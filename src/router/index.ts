@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useUserStore } from "../stores/userStore";
+import { useMaintenanceMode } from "../composables/useMaintenanceMode";
 import DashboardView from "../views/DashboardView.vue";
 import CanvasView from "../views/CanvasView.vue";
 import SearchView from "../views/SearchView.vue";
@@ -17,6 +18,7 @@ import GridMaker from "@/views/GridMaker.vue";
 import VisualLabView from "@/views/VisualLabView.vue";
 import LandingView from "@/views/LandingView.vue";
 import TermsView from "@/views/TermsView.vue";
+import MaintenanceView from "@/views/MaintenanceView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -34,6 +36,15 @@ const router = createRouter({
       },
     },
 
+    {
+      path: "/maintenance",
+      name: "maintenance",
+      component: MaintenanceView,
+      meta: {
+        requiresGuest: false, // Accessible to everyone
+        layout: false, // Use standalone layout
+      },
+    },
     {
       path: "/terms",
       name: "terms",
@@ -189,6 +200,14 @@ const router = createRouter({
 // Navigation guards
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore();
+  const { shouldBlockRoute } = useMaintenanceMode();
+
+  // If maintenance strict mode is enabled, redirect to maintenance page
+  // except for exempt routes
+  if (shouldBlockRoute(to.name as string)) {
+    next("/maintenance");
+    return;
+  }
 
   if (to.path === "/") {
     next();

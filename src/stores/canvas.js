@@ -32,7 +32,14 @@ async function createPhoto(
   let width = HORIZONTAL_PHOTO_WIDTH;
   let height = HORIZONTAL_PHOTO_HEIGHT;
   try {
-    const dims = await getImageDimensions(backendPhoto.thumbnailUrl);
+    let dims;
+    // Use pre-calculated dimensions if available (from playground), otherwise fetch them
+    if (backendPhoto.preCalculatedDimensions) {
+      dims = backendPhoto.preCalculatedDimensions;
+    } else {
+      dims = await getImageDimensions(backendPhoto.thumbnailUrl);
+    }
+
     // Escalado flexible: ajusta el tamaño máximo a los valores base, manteniendo el aspect ratio
     const maxW = HORIZONTAL_PHOTO_WIDTH;
     const maxH = VERTICAL_PHOTO_HEIGHT;
@@ -223,6 +230,17 @@ export const useCanvasStore = defineStore("canvas", {
     },
     deletePhotos(photoIds) {
       const photosToRemove = this.photos.filter((p) => photoIds.includes(p.id));
+
+      // Clean up blob URLs for removed photos
+      photosToRemove.forEach((photo) => {
+        if (photo.src && photo.src.startsWith("blob:")) {
+          URL.revokeObjectURL(photo.src);
+        }
+        if (photo.thumbnailUrl && photo.thumbnailUrl.startsWith("blob:")) {
+          URL.revokeObjectURL(photo.thumbnailUrl);
+        }
+      });
+
       this.photos = this.photos.filter(
         (p) => !photosToRemove.map((p) => p.id).includes(p.id)
       );

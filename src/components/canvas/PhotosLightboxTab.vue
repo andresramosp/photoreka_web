@@ -63,7 +63,7 @@
           </div>
           <div class="file-formats">
             <span class="format-text"
-              >Supports JPG, PNG, WebP up to 50MB per file</span
+              >Supports JPG, PNG, WebP up to 5MB per file</span
             >
           </div>
         </div>

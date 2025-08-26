@@ -1,5 +1,17 @@
 <template>
   <div class="photos-grid-container">
+    <!-- Photos Grid Controls -->
+    <PhotosGridControls
+      v-if="!props.hiddeControls"
+      @filters-change="handleFiltersChange"
+      @sorting-change="handleSortingChange"
+      @sort-order-change="handleSortOrderChange"
+      @criteria-change="handleCriteriaChange"
+      @genre-change="handleGenreChange"
+      @sorting-type-change="handleSortingTypeChange"
+      @custom-weights-change="handleCustomWeightsChange"
+    />
+
     <!-- Grid Controls -->
     <div class="grid-controls grid-controls-base">
       <div class="controls-left">
@@ -147,6 +159,7 @@
         :show-name="true"
         :show-footer="false"
         :showDuplicate="true"
+        :artistic-score="getPhotoArtisticScore(photo)"
       />
     </div>
 
@@ -173,14 +186,7 @@
 
 <script setup>
 import { computed, ref, watch } from "vue";
-import {
-  NButton,
-  NButtonGroup,
-  NIcon,
-  NCheckbox,
-  NSpin,
-  useMessage,
-} from "naive-ui";
+import { NButton, NButtonGroup, NIcon, NSpin, useMessage } from "naive-ui";
 import { CloudDownloadOutline } from "@vicons/ionicons5";
 import { Workspace } from "@vicons/carbon";
 import { useRouter } from "vue-router";
@@ -188,11 +194,13 @@ import PhotoCardHub from "./photoCards/PhotoCardHub.vue";
 import PhotoInfoDialog from "./PhotoInfoDialog.vue";
 import DuplicatePhotosDialog from "./DuplicatePhotosDialog.vue";
 import CollectionModal from "./CollectionModal.vue";
+import PhotosGridControls from "./PhotosGridControls.vue";
 import { usePhotosStore } from "@/stores/photos.js";
 import { useCanvasStore } from "@/stores/canvas.js";
 import { useCollectionsStore } from "@/stores/collections.js";
 import { usePhotoDownload } from "@/composables/usePhotoDownload.js";
 import { useLocalPhotoSelection } from "@/composables/useLocalPhotoSelection.js";
+import { useArtisticScores } from "@/composables/useArtisticScores.js";
 
 const emit = defineEmits(["refreshCollection", "selection-change"]);
 const props = defineProps({
@@ -207,6 +215,10 @@ const props = defineProps({
   displayAddToCollection: {
     type: Boolean,
     default: true,
+  },
+  hiddeControls: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -230,6 +242,90 @@ const gridColumns = ref(8);
 const filterDuplicates = ref(false);
 const isCheckingDuplicates = ref(false);
 
+// State for filters and sorting (managed by PhotosGridControls)
+const selectedFilters = ref({});
+const sortingType = ref("none"); // 'none', 'criteria' or 'genre'
+const selectedCriteria = ref([]);
+const selectedGenre = ref("street");
+const customWeights = ref({});
+const sortOrder = ref("desc"); // 'asc', 'desc'
+
+// Derived state for backward compatibility
+const sortByQuality = computed(() => {
+  if (sortingType.value === "none") {
+    return false; // No sorting when "none" is selected
+  } else if (sortingType.value === "criteria") {
+    return selectedCriteria.value.length > 0;
+  } else if (sortingType.value === "genre") {
+    return true;
+  }
+  return false;
+});
+
+// Get dynamic criteria from useArtisticScores
+const { artisticScores, formatCriterionName, calculateArtisticScore } =
+  useArtisticScores();
+const availableCriteria = [];
+Object.values(artisticScores).forEach((group) => {
+  group.criteria.forEach((criterion) => {
+    availableCriteria.push({
+      value: criterion.value,
+      label: criterion.label,
+    });
+  });
+});
+
+// Initialize with no criteria selected (matching PhotosGridControls starting with "none")
+selectedCriteria.value = [];
+
+// Function to calculate artistic score for a single photo
+const getPhotoArtisticScore = (photo) => {
+  if (!sortByQuality.value || !photo.descriptions?.artistic_scores) {
+    return null;
+  }
+
+  if (sortingType.value === "criteria") {
+    // Criteria-based sorting
+    if (selectedCriteria.value.length === 0) {
+      return null;
+    }
+
+    // Create custom weights object from selected criteria
+    const customWeights = {};
+    selectedCriteria.value.forEach((criterion) => {
+      customWeights[criterion] = 1.0; // Equal weight for all selected criteria
+    });
+
+    const scoreResult = calculateArtisticScore(
+      photo.descriptions.artistic_scores,
+      "custom",
+      customWeights
+    );
+
+    return scoreResult.average;
+  } else if (sortingType.value === "genre") {
+    // Genre-based sorting
+    if (selectedGenre.value === "custom") {
+      // Use custom weights
+      const scoreResult = calculateArtisticScore(
+        photo.descriptions.artistic_scores,
+        "custom",
+        customWeights.value
+      );
+      return scoreResult.average;
+    } else {
+      // Use genre preset
+      const scoreResult = calculateArtisticScore(
+        photo.descriptions.artistic_scores,
+        selectedGenre.value
+      );
+      return scoreResult.average;
+    }
+  }
+
+  return null;
+};
+
 // Dialog states
 const showPhotoInfoDialog = ref(false);
 const selectedDialogPhoto = ref();
@@ -252,6 +348,49 @@ watch(
 // Grid functions
 const setGridColumns = (columns) => {
   gridColumns.value = columns;
+};
+
+// Sorting functions
+const toggleSortByQuality = () => {
+  sortByQuality.value = !sortByQuality.value;
+  if (!sortByQuality.value) {
+    // Reset to all criteria when disabled
+    selectedCriteria.value = availableCriteria.map((c) => c.value);
+  }
+};
+
+const toggleSortOrder = () => {
+  sortOrder.value = sortOrder.value === "desc" ? "asc" : "desc";
+};
+
+// Handler functions for PhotosGridControls events
+const handleFiltersChange = (newFilters) => {
+  selectedFilters.value = newFilters;
+};
+
+const handleSortingChange = (isActive) => {
+  // This now receives whether sorting is active, but we use computed sortByQuality
+  // No direct action needed as sortByQuality is computed from sortingType and criteria
+};
+
+const handleSortOrderChange = (newSortOrder) => {
+  sortOrder.value = newSortOrder;
+};
+
+const handleCriteriaChange = (newCriteria) => {
+  selectedCriteria.value = newCriteria;
+};
+
+const handleGenreChange = (newGenre) => {
+  selectedGenre.value = newGenre;
+};
+
+const handleSortingTypeChange = (newType) => {
+  sortingType.value = newType;
+};
+
+const handleCustomWeightsChange = (newWeights) => {
+  customWeights.value = newWeights;
 };
 
 // Handle filter duplicates change
@@ -310,12 +449,78 @@ function groupDuplicates(photos) {
   return result;
 }
 
-// Filter photos based on duplicates filter
+// Filter photos based on duplicates filter and visual aspects
 const displayedPhotos = computed(() => {
-  if (!filterDuplicates.value) {
-    return props.photos;
+  let filtered = props.photos;
+
+  // Apply visual aspects filters
+  const hasActiveFilters = Object.values(selectedFilters.value).some(
+    (filters) => filters.length > 0
+  );
+
+  if (hasActiveFilters) {
+    filtered = filtered.filter((photo) => {
+      // Check if photo has visualAspects property
+      if (!photo.descriptions.visual_aspects) {
+        return false;
+      }
+
+      // Apply AND logic: photo must match ALL selected filters
+      return Object.entries(selectedFilters.value).every(
+        ([category, selectedValues]) => {
+          // If no filters selected for this category, it passes
+          if (selectedValues.length === 0) {
+            return true;
+          }
+
+          // Check if photo has this visual aspect category
+          const photoAspects = photo.descriptions.visual_aspects[category];
+          if (!photoAspects || !Array.isArray(photoAspects)) {
+            return false;
+          }
+
+          // Photo must have at least one of the selected values in this category
+          return selectedValues.some((selectedValue) =>
+            photoAspects.includes(selectedValue)
+          );
+        }
+      );
+    });
   }
-  return groupDuplicates(props.photos.filter((photo) => photo.isDuplicate));
+
+  // Apply duplicates filter
+  if (filterDuplicates.value) {
+    filtered = groupDuplicates(filtered.filter((photo) => photo.isDuplicate));
+  }
+
+  // Apply sorting by artistic score
+  // Explicitly reference all sorting-related reactive variables to ensure reactivity
+  const currentSortByQuality = sortByQuality.value;
+  const currentSortOrder = sortOrder.value;
+  const currentSortingType = sortingType.value;
+  const currentSelectedCriteria = selectedCriteria.value;
+  const currentSelectedGenre = selectedGenre.value;
+  const currentCustomWeights = customWeights.value;
+
+  if (currentSortByQuality) {
+    filtered = [...filtered].sort((a, b) => {
+      const scoreA = getPhotoArtisticScore(a);
+      const scoreB = getPhotoArtisticScore(b);
+
+      // Handle null scores (photos without scores go to the end)
+      if (scoreA === null && scoreB === null) return 0;
+      if (scoreA === null) return 1;
+      if (scoreB === null) return -1;
+
+      if (currentSortOrder === "desc") {
+        return scoreB - scoreA;
+      } else {
+        return scoreA - scoreB;
+      }
+    });
+  }
+
+  return filtered;
 });
 
 // Check if all photos are selected

@@ -1,6 +1,7 @@
 // composables/usePhotoUpload.js
 import { ref, computed } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
+import { useUserStore } from "@/stores/userStore.ts";
 import { useImageProcessing } from "./useImageProcessing.js";
 import { api_analyzer, api } from "@/utils/axios";
 import { useMessage } from "naive-ui";
@@ -8,6 +9,7 @@ import pLimit from "p-limit";
 
 export function usePhotoUpload() {
   const photosStore = usePhotosStore();
+  const userStore = useUserStore();
   const { resizeImage, uploadToR2WithRetry } = useImageProcessing();
   const message = useMessage();
   const limit = pLimit(10);
@@ -141,12 +143,54 @@ export function usePhotoUpload() {
       });
     });
 
+    // Update usage after successful upload
+    await userStore.fetchUsage();
+
     return true;
+  }
+
+  // Función para validar límites de subida
+  function validateUploadLimits(filesToUploadCount) {
+    const user = userStore.user;
+    if (!user?.usage) {
+      // Si no hay datos de usage, permitir subida (fallback)
+      return { isValid: true };
+    }
+
+    const { photosRemaining } = user.usage;
+
+    // Verificar si no hay fotos restantes
+    if (photosRemaining <= 0) {
+      return {
+        isValid: false,
+        reason: "upload_limit_reached",
+        message:
+          "You have reached your photo upload limit. Please upgrade your plan to upload more photos.",
+      };
+    }
+
+    // Verificar si intenta subir más fotos de las disponibles
+    if (filesToUploadCount > photosRemaining) {
+      return {
+        isValid: false,
+        reason: "exceeds_remaining",
+        message: `You can only upload ${photosRemaining} more photos. You're trying to upload ${filesToUploadCount} photos. Please select fewer files or upgrade your plan.`,
+      };
+    }
+
+    return { isValid: true };
   }
 
   // Función principal para manejar el upload con progreso y errores
   async function handleUploadFlow(sources, type = "local") {
     if (sources.length === 0) return;
+
+    // Validar límites antes de iniciar la subida
+    const validation = validateUploadLimits(sources.length);
+    if (!validation.isValid) {
+      message.error(validation.message);
+      return;
+    }
 
     isUploading.value = true;
     totalFiles.value = sources.length;
@@ -210,5 +254,6 @@ export function usePhotoUpload() {
     handleUploadFlow,
     processPhotoSource,
     handlePostUpload,
+    validateUploadLimits,
   };
 }

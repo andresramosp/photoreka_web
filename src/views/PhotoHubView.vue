@@ -9,6 +9,8 @@
         </p>
       </div>
       <div class="header-actions">
+        <!-- Usage Indicators -->
+        <UsageIndicators />
         <!-- <n-button type="info" size="large" @click="() => {}">
           <template #icon>
             <n-icon>
@@ -150,7 +152,9 @@ import LightboxPhotos from "@/components/photo-hub/LightboxPhotos.vue";
 import ProcessingPhotos from "@/components/photo-hub/ProcessingPhotos.vue";
 import WorkspacePhotos from "@/components/photo-hub/WorkspacePhotos.vue";
 import FloatingProcessPhotosButton from "@/components/FloatingProcessPhotosButton.vue";
+import UsageIndicators from "@/components/UsageIndicators.vue";
 import { usePhotosStore } from "@/stores/photos.js";
+import { useUserStore } from "@/stores/userStore.ts";
 import { api, api_analyzer } from "@/utils/axios";
 import { useMessage } from "naive-ui";
 import { ImagesOutline } from "@vicons/ionicons5";
@@ -158,6 +162,7 @@ import { DriveFolderUploadFilled } from "@vicons/material";
 import { InProgress } from "@vicons/carbon";
 
 const photosStore = usePhotosStore();
+const userStore = useUserStore();
 const message = useMessage();
 
 // Reactive state
@@ -265,6 +270,9 @@ async function analyze(ev) {
     });
     photosStore.clearAllSelections();
     photosStore.getOrFetch(true);
+
+    // Update usage after starting analysis
+    await userStore.fetchUsage();
   } catch (error) {
     console.error("❌ Error iniciando análisis:", error);
   }

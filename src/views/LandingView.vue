@@ -1,5 +1,8 @@
 <template>
   <n-message-provider>
+    <!-- Maintenance Banner -->
+    <MaintenanceBanner />
+
     <div class="landing-page">
       <!-- Navigation Header -->
 
@@ -494,6 +497,7 @@ import { Workspace } from "@vicons/carbon";
 import logoName from "@/assets/logo_name.png";
 import RequestAccessDialog from "@/components/RequestAccessDialog.vue";
 import MobileNoticeDialog from "@/components/MobileNoticeDialog.vue";
+import MaintenanceBanner from "@/components/MaintenanceBanner.vue";
 import { isMobileDevice } from "@/utils/utils.js";
 
 const router = useRouter();

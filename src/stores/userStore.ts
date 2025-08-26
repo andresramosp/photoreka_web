@@ -2,12 +2,24 @@ import { ref } from "vue";
 import { defineStore } from "pinia";
 import { api } from "../utils/axios";
 
+interface Usage {
+  creditsUsed: number;
+  photosLimit: number;
+  creditsAvailable: number;
+  analyzedPhotosLimit: number;
+  photosUsage: number;
+  analyzedPhotosUsage: number;
+  photosRemaining: number;
+  analyzedPhotosRemaining: number;
+}
+
 interface User {
   id: string;
   email: string;
   name: string;
   avatar?: string;
   provider?: "email" | "google" | "facebook";
+  usage?: Usage;
 }
 
 export const useUserStore = defineStore("user", () => {
@@ -39,6 +51,9 @@ export const useUserStore = defineStore("user", () => {
       try {
         const response = await api.get("/api/auth/profile");
         user.value = response.data.user;
+
+        // Fetch usage data after successful profile load
+        await fetchUsage();
       } catch (error) {
         // Si el token no es válido, limpiar estado
         token.value = null;
@@ -66,6 +81,9 @@ export const useUserStore = defineStore("user", () => {
       // Obtener datos reales del usuario desde /profile
       const profileResponse = await api.get("/api/auth/profile");
       user.value = profileResponse.data.user;
+
+      // Fetch usage data after successful login
+      await fetchUsage();
 
       return { success: true };
     } catch (error: any) {
@@ -106,6 +124,9 @@ export const useUserStore = defineStore("user", () => {
 
       localStorage.setItem("auth_token", receivedToken);
 
+      // Fetch usage data after successful registration
+      await fetchUsage();
+
       return { success: true };
     } catch (error: any) {
       return {
@@ -137,6 +158,16 @@ export const useUserStore = defineStore("user", () => {
         email: `user@${provider === "google" ? "gmail.com" : "facebook.com"}`,
         name: `${provider === "google" ? "Google" : "Facebook"} User`,
         provider,
+        usage: {
+          creditsUsed: 0,
+          photosLimit: 5000,
+          creditsAvailable: 100,
+          analyzedPhotosLimit: 2000,
+          photosUsage: 1212,
+          analyzedPhotosUsage: 1211,
+          photosRemaining: 3788,
+          analyzedPhotosRemaining: 789,
+        },
       };
 
       localStorage.setItem("auth_token", mockToken);
@@ -165,6 +196,21 @@ export const useUserStore = defineStore("user", () => {
     }
   };
 
+  const fetchUsage = async () => {
+    if (!isAuthenticated.value || !token.value) {
+      return;
+    }
+
+    try {
+      const { data: response } = await api.get("/api/usage");
+      if (user.value && response.data) {
+        user.value.usage = response.data;
+      }
+    } catch (error) {
+      console.error("Error fetching usage:", error);
+    }
+  };
+
   // Initialize auth state
   // Llamar de forma asíncrona para no bloquear la carga
   initAuth();
@@ -176,6 +222,7 @@ export const useUserStore = defineStore("user", () => {
     isLoading,
     usageLimits,
     dismissUsageWarning,
+    fetchUsage,
     login,
     register,
     loginWithProvider,

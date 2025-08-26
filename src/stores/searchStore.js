@@ -1,23 +1,14 @@
 import { defineStore } from "pinia";
 import { ref, reactive, computed } from "vue";
+import { useArtisticScores } from "@/composables/useArtisticScores";
 
 // Export visualAspectsOptions for reuse in other components
 
 export const visualAspectsOptions = [
   {
     type: "group",
-    label: "Orientation",
-    key: "orientation",
-    children: [
-      { label: "Horizontal", value: "horizontal" },
-      { label: "Vertical", value: "vertical" },
-      { label: "Square", value: "square" },
-    ],
-  },
-  {
-    type: "group",
     label: "Palette",
-    key: "color",
+    key: "palette",
     children: [
       { label: "Black and white", value: "black and white" },
       { label: "Color", value: "color" },
@@ -33,7 +24,6 @@ export const visualAspectsOptions = [
       { label: "Neutral", value: "neutral" },
     ],
   },
-
   {
     type: "group",
     label: "Focus",
@@ -45,16 +35,24 @@ export const visualAspectsOptions = [
   },
   {
     type: "group",
+    label: "Lighting Scheme",
+    key: "lighting_scheme",
+    children: [
+      { label: "Low key", value: "low key" },
+      { label: "High key", value: "high key" },
+      { label: "Balanced", value: "balanced" },
+    ],
+  },
+  {
+    type: "group",
     label: "Stylistic",
     key: "stylistic",
     children: [
       { label: "Long exposure", value: "long exposure" },
+      { label: "Motion blur", value: "motion blur" },
       { label: "Silhouettes", value: "silhouettes" },
-      { label: "Reflections", value: "reflections" },
-      { label: "Vivid colors", value: "vivid colors" },
-      { label: "Complementary colors", value: "complementary colors" },
-      { label: "Minimalist", value: "minimalist" },
-      { label: "Geometry", value: "geometric shapes" },
+      { label: "Bokeh", value: "bokeh" },
+      { label: "Grain", value: "grain" },
     ],
   },
   {
@@ -65,8 +63,18 @@ export const visualAspectsOptions = [
       { label: "Natural", value: "natural" },
       { label: "Artificial", value: "artificial" },
       { label: "Backlit", value: "backlit" },
-      { label: "Dramatic", value: "dramatic" },
-      { label: "Soft", value: "soft" },
+      { label: "Frontlit", value: "frontlit" },
+      { label: "Side lit", value: "side lit" },
+    ],
+  },
+  {
+    type: "group",
+    label: "Depth of Field",
+    key: "depth_of_field",
+    children: [
+      { label: "Shallow", value: "shallow" },
+      { label: "Deep", value: "deep" },
+      { label: "Medium", value: "medium" },
     ],
   },
   {
@@ -103,6 +111,24 @@ export const visualAspectsOptions = [
   },
 ];
 
+// Function to transform artistic scores to tree-select format
+export function createArtisticScoresTreeOptions() {
+  const { artisticScores } = useArtisticScores();
+
+  return Object.entries(artisticScores).map(([groupKey, group]) => ({
+    label: group.label,
+    key: groupKey,
+    disabled: false, // Allow interaction for expanding
+    checkable: false, // But not selectable
+    children: group.criteria.map((criterion) => ({
+      label: criterion.label,
+      key: criterion.value,
+      disabled: false,
+      checkable: true, // Children are selectable
+    })),
+  }));
+}
+
 export const useSearchStore = defineStore("search", () => {
   // Estado global del search
   const activeSearchType = ref("semantic");
@@ -112,6 +138,9 @@ export const useSearchStore = defineStore("search", () => {
 
   // Visual aspects filter state
   const selectedVisualAspects = ref([]);
+
+  // Artistic scores filter state
+  const selectedArtisticScores = ref([]);
 
   // Estado específico para cada tipo de búsqueda
   const searchStates = reactive({
@@ -244,6 +273,14 @@ export const useSearchStore = defineStore("search", () => {
     selectedVisualAspects.value = [];
   }
 
+  function updateArtisticScores(artisticScores) {
+    selectedArtisticScores.value = artisticScores;
+  }
+
+  function clearArtisticScores() {
+    selectedArtisticScores.value = [];
+  }
+
   function clearCurrentSearch() {
     const state = currentSearchState.value;
 
@@ -265,6 +302,9 @@ export const useSearchStore = defineStore("search", () => {
 
     // Limpiar visual aspects
     selectedVisualAspects.value = [];
+
+    // Limpiar artistic scores
+    selectedArtisticScores.value = [];
 
     // Limpiar resultados y estado de paginación
     state.results = [];
@@ -299,6 +339,9 @@ export const useSearchStore = defineStore("search", () => {
 
     // Limpiar visual aspects
     selectedVisualAspects.value = [];
+
+    // Limpiar artistic scores
+    selectedArtisticScores.value = [];
   }
 
   function setSearching(value) {
@@ -347,6 +390,7 @@ export const useSearchStore = defineStore("search", () => {
     isLoadingMore,
     searchStates,
     selectedVisualAspects,
+    selectedArtisticScores,
     visualAspectsOptions,
 
     // Computed
@@ -364,6 +408,8 @@ export const useSearchStore = defineStore("search", () => {
     updateTopologicalSearch,
     updateVisualAspects,
     clearVisualAspects,
+    updateArtisticScores,
+    clearArtisticScores,
     clearCurrentSearch,
     clearAllSearches,
     setSearching,
