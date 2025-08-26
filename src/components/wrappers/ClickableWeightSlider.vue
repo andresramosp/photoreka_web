@@ -193,7 +193,6 @@ onUnmounted(() => {
     rgba(139, 92, 246, 0.4) 80%,
     rgba(139, 92, 246, 0.1) 100%
   );
-  max-width: calc(100% - 50px);
 }
 
 .dragging .slider-fill {
