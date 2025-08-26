@@ -235,7 +235,7 @@
           </div>
           <div class="file-formats">
             <span class="format-text"
-              >Supports JPG, PNG, WebP up to 50MB per file</span
+              >Supports JPG, PNG, WebP up to 5MB per file</span
             >
           </div>
         </div>
@@ -555,7 +555,7 @@ async function uploadLocalFiles(event) {
   }
 
   // Trigger warm up when files are selected
-  ensureWarmUp("image");
+  //ensureWarmUp("image");
 
   try {
     await handleUploadFlow(selectedLocalFiles, "local");

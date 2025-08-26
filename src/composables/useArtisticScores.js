@@ -63,6 +63,7 @@ const scoreScale = {
 const artisticScores = {
   fundamentals: {
     label: "Fundamentals",
+    color: "#3b82f6",
     criteria: [
       {
         value: "aesthetic_quality",
@@ -80,13 +81,14 @@ const artisticScores = {
   },
   bonus: {
     label: "Bonus",
+    color: "#f59e0b",
     criteria: [
       {
         value: "strangeness",
         label: "Originality",
       },
       {
-        value: "social_message",
+        value: "message",
         label: "Message",
       },
       {
@@ -96,6 +98,10 @@ const artisticScores = {
       {
         value: "visual_games",
         label: "Visual Games",
+      },
+      {
+        value: "candidness",
+        label: "Candidness",
       },
     ],
   },
@@ -108,27 +114,30 @@ const genreWeightConfigs = {
     composition: 0.5,
     storytelling: 0.9,
     strangeness: 0.9,
-    social_message: 0.5,
+    message: 0.5,
     humor: 0.7,
     visual_games: 0.7,
+    candidness: 0.9,
   },
   documentary: {
     aesthetic_quality: 0.4,
     composition: 0.5,
     storytelling: 0.8,
     strangeness: 0.5,
-    social_message: 1,
+    message: 1,
     humor: 0,
     visual_games: 0,
+    candidness: 0.4,
   },
   abstract: {
     aesthetic_quality: 1,
     composition: 0.9,
     storytelling: 0.1,
     strangeness: 0.6,
-    social_message: 0,
+    message: 0.5,
     humor: 0.4,
     visual_games: 0.6,
+    candidness: 0.1,
   },
 };
 

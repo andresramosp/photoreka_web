@@ -390,7 +390,7 @@
           </n-collapse-item>
 
           <!-- Descriptions Section -->
-          <!-- <n-collapse-item title="Descriptions" name="descriptions">
+          <n-collapse-item title="Descriptions" name="descriptions">
             <template #header-extra>
               <n-icon>
                 <DocumentTextIcon />
@@ -438,7 +438,7 @@
                 </div>
               </div>
             </div>
-          </n-collapse-item> -->
+          </n-collapse-item>
 
           <!-- Notes Section -->
           <n-collapse-item title="Notes" name="notes">

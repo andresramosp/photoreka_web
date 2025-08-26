@@ -289,7 +289,7 @@ const isFiltersPanelExpanded = ref(false);
 
 // Quality Sorting
 const sortingType = ref("criteria"); // 'criteria' or 'genre'
-const selectedCriteria = ref([]);
+const selectedCriteria = ref([]); // Start empty (no sorting initially)
 const selectedGenre = ref("street");
 const sortOrder = ref("desc"); // 'asc', 'desc'
 const isSortingPanelExpanded = ref(false);
@@ -342,7 +342,7 @@ customWeights.value = initializeCustomWeights();
 // Function to render criterion tags with group-specific colors
 const renderCriterionTag = ({ option, handleClose }) => {
   const group = getCriterionGroup(option.value);
-  const tagColor = group === "fundamentals" ? "#3b82f6" : "#f59e0b"; // Blue for fundamentals, amber for bonus
+  const tagColor = group.color; // Blue for fundamentals, amber for bonus
 
   return h(
     NTag,
@@ -423,14 +423,10 @@ const handleSortingTypeChange = () => {
   if (sortingType.value === "none") {
     selectedCriteria.value = []; // Clear criteria when none is selected
   } else if (sortingType.value === "genre") {
-    selectedCriteria.value = [];
+    selectedCriteria.value = []; // Clear criteria when switching to genre mode
   } else if (sortingType.value === "criteria") {
-    // Set some default criteria when switching to criteria mode
-    selectedCriteria.value = [
-      "aesthetic_quality",
-      "composition",
-      "storytelling",
-    ];
+    // Keep current criteria or start empty - don't force default criteria
+    // This allows the user to start with "no sorting" until they add criteria
   }
   emit("sorting-type-change", sortingType.value);
 };
@@ -481,33 +477,54 @@ const handleCriteriaChange = () => {
 
 // Watchers to emit changes
 watch(
+  sortingType,
+  (newValue) => {
+    emit("sorting-type-change", newValue);
+  },
+  { immediate: true }
+);
+
+watch(
+  sortOrder,
+  (newValue) => {
+    emit("sort-order-change", newValue);
+  },
+  { immediate: true }
+);
+
+watch(
+  selectedGenre,
+  (newGenre) => {
+    emit("genre-change", newGenre);
+  },
+  { immediate: true }
+);
+
+// Combined watcher for overall sorting state
+watch(
+  [sortingType, selectedCriteria, selectedGenre],
+  () => {
+    emit("sorting-change", hasActiveSorting.value);
+  },
+  { immediate: true }
+); // Emitir inmediatamente al montar
+
+// Emitir estado inicial de filtros y criterios
+watch(
   selectedFilters,
   (newFilters) => {
     emit("filters-change", newFilters);
   },
-  { deep: true }
+  { immediate: true, deep: true }
 );
 
-watch(sortingType, (newValue) => {
-  emit("sorting-type-change", newValue);
-});
-
-watch(sortOrder, (newValue) => {
-  emit("sort-order-change", newValue);
-});
-
-watch(selectedCriteria, (newCriteria) => {
-  emit("criteria-change", newCriteria);
-});
-
-watch(selectedGenre, (newGenre) => {
-  emit("genre-change", newGenre);
-});
-
-// Combined watcher for overall sorting state
-watch([sortingType, selectedCriteria, selectedGenre], () => {
-  emit("sorting-change", hasActiveSorting.value);
-});
+watch(
+  selectedCriteria,
+  (newCriteria) => {
+    emit("criteria-change", newCriteria);
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>
