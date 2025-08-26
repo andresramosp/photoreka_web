@@ -202,9 +202,21 @@ router.beforeEach((to, from, next) => {
   const userStore = useUserStore();
   const { shouldBlockRoute } = useMaintenanceMode();
 
+  // Check if bypass is active via URL parameter or localStorage
+  const urlBypass = to.query.isMe === "true";
+  const storedBypass = localStorage.getItem("maintenance_bypass") === "true";
+
+  // If URL has bypass parameter, save it to localStorage
+  if (urlBypass) {
+    localStorage.setItem("maintenance_bypass", "true");
+  }
+
+  // Has bypass if either URL parameter or localStorage says so
+  const hasBypass = urlBypass || storedBypass;
+
   // If maintenance strict mode is enabled, redirect to maintenance page
-  // except for exempt routes
-  if (shouldBlockRoute(to.name as string)) {
+  // except for exempt routes or if bypass is active
+  if (shouldBlockRoute(to.name as string) && !hasBypass) {
     next("/maintenance");
     return;
   }

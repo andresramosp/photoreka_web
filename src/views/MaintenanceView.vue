@@ -16,14 +16,14 @@
           </n-icon>
         </div>
 
-  <!-- Title -->
-  <h1 class="maintenance-title">We are under maintenance</h1>
+        <!-- Title -->
+        <h1 class="maintenance-title">We are under maintenance</h1>
 
         <!-- Description -->
         <p class="maintenance-description">
-          Photoreka Curation Lab is temporarily out of service
-          for maintenance and improvements. We will be back soon with new
-          features to enhance your curatorial experience.
+          Photoreka Curation Lab is temporarily out of service for maintenance
+          and improvements. We will be back soon with new features to enhance
+          your curatorial experience.
         </p>
 
         <!-- Features info -->
@@ -101,10 +101,12 @@ import {
   HomeOutline,
 } from "@vicons/ionicons5";
 import { useRouter } from "vue-router";
+import { useMaintenanceMode } from "@/composables/useMaintenanceMode";
 import logoName from "@/assets/logo_name.png";
 import { Workspace } from "@vicons/carbon";
 
 const router = useRouter();
+const { isBypassActive, clearBypass } = useMaintenanceMode();
 
 const isMobileDevice = () => {
   return (
@@ -124,6 +126,12 @@ const goToPlayground = () => {
 
 const openEmail = () => {
   window.location.href = "mailto:hello@photoreka.com";
+};
+
+const handleClearBypass = () => {
+  clearBypass();
+  // Optionally reload to apply the change immediately
+  window.location.reload();
 };
 </script>
 
