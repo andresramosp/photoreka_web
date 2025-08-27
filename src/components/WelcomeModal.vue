@@ -36,22 +36,25 @@
             Photoreka is designed to work with large photo collections and
             complete bodies of work. To ensure consistent performance, we
             require a minimum of
-            <strong>100 photos</strong> to unlock the full potential of the
-            platform.
+            <strong>{{ MIN_PHOTOS_THRESHOLD }} photos</strong> to unlock the
+            full potential of the platform.
           </p>
 
           <p class="secondary-message">Here's how to get started:</p>
 
           <ul class="steps-list">
             <li>Upload your photos to the <strong>Lightbox</strong></li>
-            <li>Watch your progress as you approach 100 photos</li>
+            <li>
+              Watch your progress as you approach
+              {{ MIN_PHOTOS_THRESHOLD }} photos
+            </li>
             <li>Analyze your first batch of 100+ photos</li>
             <li>Enjoy unrestricted access with no minimum limits thereafter</li>
           </ul>
 
           <p class="final-message">
-            Once you've processed your first 100 photos, you can add and process
-            any number of photos without restrictions!
+            Once you've processed your first {{ MIN_PHOTOS_THRESHOLD }} photos,
+            you can add and process any number of photos without restrictions!
           </p>
         </div>
       </div>
@@ -73,6 +76,7 @@
 <script setup>
 import { computed } from "vue";
 import { NModal, NButton, NIcon } from "naive-ui";
+import { MIN_PHOTOS_THRESHOLD } from "@/stores/photos";
 
 const props = defineProps({
   modelValue: {
