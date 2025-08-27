@@ -1,7 +1,7 @@
 // stores/photos.js
 
 // Umbral mínimo de fotos requeridas para desbloquear funcionalidades
-export const MIN_PHOTOS_THRESHOLD = 100;
+export const MIN_PHOTOS_THRESHOLD = 50;
 
 import { defineStore } from "pinia";
 import { api } from "@/utils/axios";
