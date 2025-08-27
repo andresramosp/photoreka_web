@@ -110,14 +110,14 @@ const artisticScores = {
 // Configuración de pesos por género - solo se aplicarán a criterios activos en artisticScores
 const genreWeightConfigs = {
   street: {
-    aesthetic_quality: 0.7,
-    composition: 0.5,
+    aesthetic_quality: 0.6,
+    composition: 0.6,
     storytelling: 0.9,
     strangeness: 0.9,
     message: 0.5,
-    humor: 0.7,
-    visual_games: 0.7,
-    candidness: 0.9,
+    humor: 0.8,
+    visual_games: 0.8,
+    candidness: 1,
   },
   documentary: {
     aesthetic_quality: 0.4,
@@ -134,9 +134,9 @@ const genreWeightConfigs = {
     composition: 0.9,
     storytelling: 0.1,
     strangeness: 0.6,
-    message: 0.5,
+    message: 0.7,
     humor: 0.4,
-    visual_games: 0.6,
+    visual_games: 0.7,
     candidness: 0.1,
   },
 };
