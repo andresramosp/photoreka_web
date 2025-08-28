@@ -89,12 +89,13 @@
 
       <div class="controls-right">
         <div class="filter-controls" v-if="!props.collectionId">
-          <div class="filter-duplicates-container">
+          <div class="duplicates-controls-container">
+            <!-- Review Duplicates Button -->
             <n-button
-              :type="filterDuplicates ? 'primary' : 'default'"
+              type="warning"
               size="small"
-              @click="handleFilterDuplicatesChange(!filterDuplicates)"
-              :disabled="isCheckingDuplicates"
+              @click="handleReviewDuplicates"
+              :disabled="duplicatesReviewed"
               :loading="isCheckingDuplicates"
             >
               <template #icon v-if="!isCheckingDuplicates">
@@ -102,13 +103,29 @@
                   <svg viewBox="0 0 24 24">
                     <path
                       fill="currentColor"
-                      d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
+                      d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 13L13.5 11.5C12.1 10.1 9.9 10.1 8.5 11.5L3 17V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V9ZM5 19L8.5 15.5C9.3 14.7 10.7 14.7 11.5 15.5L13 17L19 11V19H5Z"
                     />
                   </svg>
                 </n-icon>
               </template>
-              Filter duplicates
+              {{
+                duplicatesReviewed ? "Duplicates Reviewed" : "Review Duplicates"
+              }}
             </n-button>
+
+            <!-- Filter Duplicates Checkbox (only show if duplicates were reviewed and found) -->
+            <div
+              v-if="duplicatesReviewed && hasDuplicates"
+              class="filter-duplicates-checkbox"
+            >
+              <n-checkbox
+                :checked="filterDuplicates"
+                @update:checked="handleFilterDuplicatesChange"
+                size="small"
+              >
+                Filter duplicates
+              </n-checkbox>
+            </div>
           </div>
         </div>
         <div class="grid-size-controls grid-size-controls-base">
@@ -186,7 +203,14 @@
 
 <script setup>
 import { computed, ref, watch } from "vue";
-import { NButton, NButtonGroup, NIcon, NSpin, useMessage } from "naive-ui";
+import {
+  NButton,
+  NButtonGroup,
+  NIcon,
+  NSpin,
+  NCheckbox,
+  useMessage,
+} from "naive-ui";
 import { CloudDownloadOutline } from "@vicons/ionicons5";
 import { Workspace } from "@vicons/carbon";
 import { useRouter } from "vue-router";
@@ -199,6 +223,7 @@ import { usePhotosStore } from "@/stores/photos.js";
 import { useCanvasStore } from "@/stores/canvas.js";
 import { useCollectionsStore } from "@/stores/collections.js";
 import { usePhotoDownload } from "@/composables/usePhotoDownload.js";
+import { usePhotoUpload } from "@/composables/usePhotoUpload.js";
 import { useLocalPhotoSelection } from "@/composables/useLocalPhotoSelection.js";
 import { useArtisticScores } from "@/composables/useArtisticScores.js";
 
@@ -228,6 +253,7 @@ const photosStore = usePhotosStore();
 const canvasStore = useCanvasStore();
 const collectionsStore = useCollectionsStore();
 const { downloadPhotosZip, isDownloading } = usePhotoDownload();
+const { preprocessPhotos } = usePhotoUpload();
 const {
   selectedPhotosRecord,
   selectedPhotoIds,
@@ -241,6 +267,8 @@ const {
 const gridColumns = ref(8);
 const filterDuplicates = ref(false);
 const isCheckingDuplicates = ref(false);
+const duplicatesReviewed = ref(false);
+const hasDuplicates = ref(false);
 
 // State for filters and sorting (managed by PhotosGridControls)
 const selectedFilters = ref({});
@@ -345,6 +373,19 @@ watch(
   { immediate: true, deep: true }
 );
 
+// Watch for photos changes to reset duplicate review state
+watch(
+  () => props.photos.length,
+  (newLength, oldLength) => {
+    // Reset duplicate review state when photos are added
+    if (newLength > (oldLength || 0)) {
+      duplicatesReviewed.value = false;
+      hasDuplicates.value = false;
+      filterDuplicates.value = false;
+    }
+  }
+);
+
 // Grid functions
 const setGridColumns = (columns) => {
   gridColumns.value = columns;
@@ -393,31 +434,45 @@ const handleCustomWeightsChange = (newWeights) => {
   customWeights.value = newWeights;
 };
 
-// Handle filter duplicates change
-const handleFilterDuplicatesChange = async (checked) => {
-  if (!checked) {
-    // Si se desmarca, solo desactivar el filtro sin hacer llamada
-    filterDuplicates.value = false;
-    return;
-  }
-
-  // Si ya se verificaron duplicados, activar filtro inmediatamente
-  if (photosStore.duplicatesChecked) {
-    filterDuplicates.value = true;
-    return;
-  }
-
-  // Si se marca y no se han verificado duplicados, hacer check
+// Handle review duplicates (preprocess and check)
+const handleReviewDuplicates = async () => {
   isCheckingDuplicates.value = true;
   try {
-    await photosStore.checkDuplicates();
-    filterDuplicates.value = true;
+    // First, get all photo IDs that need preprocessing
+    const photoIds = props.photos.map((photo) => photo.id);
+
+    // Call preprocessPhotos first (this is idempotent if already processed)
+    await preprocessPhotos(photoIds);
+
+    // Then check for duplicates
+    await photosStore.checkDuplicates(photoIds);
+
+    // Count how many duplicates we found
+    const duplicatesCount = props.photos.filter(
+      (photo) => photo.isDuplicate
+    ).length;
+
+    duplicatesReviewed.value = true;
+    hasDuplicates.value = duplicatesCount > 0;
+
+    if (duplicatesCount > 0) {
+      message.info(
+        `Found ${duplicatesCount} duplicate photos. Use the filter checkbox to view them.`
+      );
+    } else {
+      message.success("No duplicate photos found.");
+    }
   } catch (error) {
-    console.error("Error checking duplicates:", error);
-    message.error("Error checking for duplicates");
+    console.error("Error reviewing duplicates:", error);
+    message.error("Error reviewing duplicates");
   } finally {
     isCheckingDuplicates.value = false;
   }
+};
+
+// Handle filter duplicates change (just toggle the filter)
+const handleFilterDuplicatesChange = (checked) => {
+  filterDuplicates.value = checked;
 };
 
 // Function to group duplicates (same as WorkspacePhotos)
@@ -557,7 +612,7 @@ const showDuplicates = (duplicates) => {
 
 // Batch actions
 const handleDeleteMultiple = async () => {
-  if (props.collectionId) {
+  if (false) {
     try {
       await collectionsStore.removePhotosFromCollection(
         props.collectionId,
@@ -677,6 +732,17 @@ const moveToCanvas = async () => {
 }
 
 .filter-duplicates-container {
+  display: flex;
+  align-items: center;
+}
+
+.duplicates-controls-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filter-duplicates-checkbox {
   display: flex;
   align-items: center;
 }

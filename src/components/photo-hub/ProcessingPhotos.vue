@@ -286,6 +286,7 @@ const STAGES = [
   { key: "visual_color_embedding_task", label: "Color Embedding" },
   { key: "clip_embeddings", label: "Vectorizing Image" },
   { key: "metadata_extraction", label: "Extracting Metadata" },
+  { key: "vision_artistic", label: "Artistic Analysis" },
   { key: "vision_visual_aspects", label: "Visual Aspects" },
   { key: "tags_visual_aspects", label: "Tagging Visual Aspects" },
   { key: "vision_context_story_accents", label: "Narrative and Context" },

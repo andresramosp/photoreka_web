@@ -177,9 +177,7 @@ const handleLightboxSelectionChange = (selectionData) => {
 
 // Computed for floating button - solo mostrar en tab upload
 const shouldShowProcessButton = computed(() => {
-  return (
-    activeTab.value === "upload" && photosStore.preprocessedPhotos?.length > 0
-  );
+  return activeTab.value === "upload" && photosStore.lightboxPhotos?.length > 0;
 });
 
 const isProcessButtonDisabled = computed(() => {

@@ -263,7 +263,7 @@ const appAccessMode = computed(() => photosStore.appAccessMode);
 const firstSectionOptions = computed(() => [
   {
     label: createMenuLabel("Photo Hub"),
-    key: "photo-hub",
+    key: "catalog",
     // icon: createIconWithIndicator(PhotoHubIcon, "#2563eb"),
     icon: () =>
       h(

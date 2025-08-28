@@ -58,7 +58,7 @@
         >
       </div>
     </n-modal>
-    <div v-if="isUploading || isPreprocessing" class="upload-progress-section">
+    <div v-if="isUploading" class="upload-progress-section">
       <div class="progress-header">
         <div class="progress-title-container">
           <h3 class="progress-title">

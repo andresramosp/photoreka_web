@@ -96,7 +96,7 @@ export function usePhotoUpload() {
     return photo;
   }
 
-  // Flujo común de post-procesamiento
+  // Flujo común de post-procesamiento (solo marca como subidas)
   async function handlePostUpload(photosToUpload) {
     // Solo proceder si tenemos fotos exitosas
     if (photosToUpload.length === 0) {
@@ -112,8 +112,26 @@ export function usePhotoUpload() {
       pendingPhotos.value = [];
     }
 
-    // Set photos to checking duplicates state
+    // Marcar fotos como subidas
     const photoIds = photosToUpload.map((p) => p.id);
+    photoIds.forEach((id) => {
+      photosStore.updatePhoto(id, { status: "uploaded" });
+    });
+
+    // Update usage after successful upload
+    await userStore.fetchUsage();
+
+    return true;
+  }
+
+  // Función para preprocesar fotos (análisis y detección de duplicados)
+  async function preprocessPhotos(photoIds) {
+    if (photoIds.length === 0) {
+      message.error("No photos to preprocess.");
+      return false;
+    }
+
+    // Set photos to checking duplicates state (for UI spinner)
     photoIds.forEach((id) => {
       photosStore.updatePhoto(id, { isCheckingDuplicates: true });
     });
@@ -135,16 +153,13 @@ export function usePhotoUpload() {
 
     await photosStore.checkDuplicates(photoIds);
 
-    // Remove checking duplicates flag
+    // Clear checking duplicates flag before refreshing from backend
     photoIds.forEach((id) => {
-      photosStore.updatePhoto(id, {
-        isCheckingDuplicates: false,
-        status: "preprocessed",
-      });
+      photosStore.updatePhoto(id, { isCheckingDuplicates: false });
     });
 
-    // Update usage after successful upload
-    await userStore.fetchUsage();
+    // Refresh all photos from backend to get updated status
+    await photosStore.getOrFetch(true);
 
     return true;
   }
@@ -254,6 +269,7 @@ export function usePhotoUpload() {
     handleUploadFlow,
     processPhotoSource,
     handlePostUpload,
+    preprocessPhotos,
     validateUploadLimits,
   };
 }

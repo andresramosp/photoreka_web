@@ -97,14 +97,21 @@ export const usePhotosStore = defineStore("photos", {
       const processingCount = state.photos?.filter(
         (photo) => photo.status === "processing"
       ).length;
+      const checkingDuplicatesCount = state.photos?.filter(
+        (photo) => photo.isCheckingDuplicates
+      ).length;
 
       // If there are photos currently processing, show processing state
       if (processingCount > 0) {
         return "processing";
       }
 
-      // If app is already unlocked (≥100 processed photos), always enabled
+      // If there are photos currently checking duplicates, show disabled state
+      if (checkingDuplicatesCount > 0) {
+        return "processing";
+      }
 
+      // If app is already unlocked (≥100 processed photos), always enabled
       if (processedCount >= MIN_PHOTOS_THRESHOLD) {
         return "enabled";
       }
