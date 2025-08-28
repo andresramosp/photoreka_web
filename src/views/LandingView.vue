@@ -132,8 +132,7 @@
         <div class="floating-header">
           <h2 class="floating-title">Powerful Features for Photographers</h2>
           <p class="floating-description">
-            Everything you need to organize, discover, and enhance your photo
-            collection
+            Everything you need to organize and curate your photo collection
           </p>
         </div>
         <div class="floating-features">
