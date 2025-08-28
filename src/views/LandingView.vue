@@ -56,9 +56,10 @@
               <p class="hero-description">
                 Start making sense of your photographic body of work with our
                 powerful engine. 🕵️‍♂️ Explore through natural language queries. 🎨
-                Build series for documentary projects. 🎞️ Sequence images by
-                narrative or chromatic similarity 🏆 Rank your photos by
-                aesthetic aspects and find hidden gems in your catalog.
+                Build series for documentary or conceptual projects. 🎞️ Sequence
+                images by narrative or chromatic similarity 🏆 Rank your photos
+                by various aesthetic aspects and find the hidden gems in your
+                catalog.
               </p>
               <div v-if="isMobileDevice()" class="hero-actions">
                 <n-button type="warning" size="medium" @click="goToPlayground">
