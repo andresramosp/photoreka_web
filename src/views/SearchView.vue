@@ -290,7 +290,7 @@
             </div>
 
             <!-- Artistic Scores Filter -->
-            <!-- <div class="filter-compact-group">
+            <div class="filter-compact-group">
               <div
                 style="
                   display: flex;
@@ -319,7 +319,7 @@
                         </svg>
                       </n-icon>
                     </template>
-                    Will include photos above 8 in the selected scores
+                    Will include photos above 7.5 in the selected scores
                   </n-tooltip>
                 </div>
                 <n-tree-select
@@ -344,7 +344,7 @@
                   </template>
                 </n-tree-select>
               </div>
-            </div> -->
+            </div>
           </div>
         </div>
       </div>
