@@ -155,7 +155,12 @@
           <!-- Genre-based Sorting -->
           <div v-if="sortingType === 'genre'" class="genre-selection">
             <div class="genre-buttons">
-              <n-tooltip trigger="hover" placement="bottom" :show-arrow="false">
+              <n-tooltip
+                trigger="hover"
+                placement="bottom"
+                :show-arrow="true"
+                delay="1200"
+              >
                 <template #trigger>
                   <n-button
                     :type="selectedGenre === 'street' ? 'primary' : 'default'"
@@ -174,7 +179,12 @@
                 <div v-html="formatGenreTooltip('street')"></div>
               </n-tooltip>
 
-              <n-tooltip trigger="hover" placement="bottom" :show-arrow="false">
+              <n-tooltip
+                trigger="hover"
+                placement="bottom"
+                :show-arrow="true"
+                delay="1200"
+              >
                 <template #trigger>
                   <n-button
                     :type="
@@ -195,7 +205,12 @@
                 <div v-html="formatGenreTooltip('documentary')"></div>
               </n-tooltip>
 
-              <n-tooltip trigger="hover" placement="bottom" :show-arrow="false">
+              <n-tooltip
+                trigger="hover"
+                placement="bottom"
+                :show-arrow="true"
+                delay="1200"
+              >
                 <template #trigger>
                   <n-button
                     :type="selectedGenre === 'abstract' ? 'primary' : 'default'"

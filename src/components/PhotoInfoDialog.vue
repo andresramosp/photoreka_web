@@ -212,7 +212,8 @@
                       <n-tooltip
                         trigger="hover"
                         placement="bottom"
-                        :show-arrow="false"
+                        :show-arrow="true"
+                        delay="1200"
                       >
                         <template #trigger>
                           <n-button
@@ -237,7 +238,8 @@
                       <n-tooltip
                         trigger="hover"
                         placement="bottom"
-                        :show-arrow="false"
+                        :show-arrow="true"
+                        delay="1200"
                       >
                         <template #trigger>
                           <n-button
@@ -264,7 +266,8 @@
                       <n-tooltip
                         trigger="hover"
                         placement="bottom"
-                        :show-arrow="false"
+                        :show-arrow="true"
+                        delay="1200"
                       >
                         <template #trigger>
                           <n-button
