@@ -501,6 +501,7 @@ import RequestAccessDialog from "@/components/RequestAccessDialog.vue";
 import MobileNoticeDialog from "@/components/MobileNoticeDialog.vue";
 import MaintenanceBanner from "@/components/MaintenanceBanner.vue";
 import { isMobileDevice } from "@/utils/utils.js";
+import { Trophy20Regular } from "@vicons/fluent";
 
 const router = useRouter();
 const demoSection = ref(null);
@@ -579,6 +580,13 @@ const videoTabs = ref([
     videoUrl: new URL("@/assets/videos/project_builder_1.mp4", import.meta.url)
       .href, // local video
     speed: 2.8,
+  },
+  {
+    title: "Score Ranking",
+    icon: Trophy20Regular,
+    videoUrl: new URL("@/assets/videos/visual_scores_1.mp4", import.meta.url)
+      .href, // local video
+    speed: 2.5,
   },
   {
     title: "Grid Maker",
