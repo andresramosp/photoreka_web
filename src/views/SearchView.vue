@@ -206,7 +206,7 @@
                         </svg>
                       </n-icon>
                     </template>
-                    Only collections with more than 100 photos are available for
+                    Only collections with more than 50 photos are available for
                     filter searches.
                   </n-tooltip>
                 </div>
@@ -1151,7 +1151,7 @@ const collectionsOptions = computed(() => {
   return collectionsStore.allCollections.map((collection) => ({
     label: collection.name,
     value: collection.id,
-    disabled: (collection.photoCount || 0) < 100,
+    disabled: (collection.photoCount || 0) < 50,
     photoCount: collection.photoCount || 0,
   }));
 });
