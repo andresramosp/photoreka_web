@@ -93,10 +93,7 @@
       <n-icon :color="`var(--warning-color)`" size="18">
         <BookInformation20Regular />
       </n-icon>
-      <h3 class="photo-hub-title">
-        Photo upload and preview area. The photos in this section have limited
-        use in the tools.
-      </h3>
+      <h3 class="photo-hub-title">Photo upload and preview area.</h3>
     </div>
 
     <!-- Maintenance Mode Section -->

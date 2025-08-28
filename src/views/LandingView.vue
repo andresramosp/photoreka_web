@@ -50,13 +50,15 @@
                 Photoreka
                 <span class="hero-accent">Curation Lab</span>
               </h1>
-              <span class="hero-subtitle">Street | Documentary | Abstract</span>
+              <span class="hero-subtitle"
+                >Street | Documentary | Conceptual</span
+              >
               <p class="hero-description">
                 Start making sense of your photographic body of work with our
                 powerful engine. 🕵️‍♂️ Explore through natural language queries. 🎨
-                Build series for artistic or documentary projects. 🎞️ Sequence
-                images by narrative or chromatic similarity 🔎 Uncover new
-                connections hidden in your catalog.
+                Build series for documentary projects. 🎞️ Sequence images by
+                narrative or chromatic similarity 🏆 Rank your photos by
+                aesthetic aspects and find hidden gems in your catalog.
               </p>
               <div v-if="isMobileDevice()" class="hero-actions">
                 <n-button type="warning" size="medium" @click="goToPlayground">

@@ -1,10 +1,7 @@
 <template>
   <div class="sync-tab-content">
     <!-- Upload Progress Section -->
-    <div
-      v-if="isUploading && !isCheckingDuplicates"
-      class="upload-progress-section"
-    >
+    <div v-if="isUploading" class="upload-progress-section">
       <div class="progress-header">
         <h3 class="progress-title">Uploading Photos</h3>
         <span class="progress-count"
@@ -150,7 +147,6 @@ const emit = defineEmits(["update:selectedIds", "photos-added"]);
 const photosStore = usePhotosStore();
 
 const isUploading = ref(false);
-const isCheckingDuplicates = ref(false);
 const gridColumns = ref(6);
 const fileInput = ref(null);
 
@@ -159,7 +155,9 @@ const totalFiles = ref(0);
 
 // Get sync photos from the store
 const syncPhotos = computed(
-  () => [...photosStore.processingPhotos, ...photosStore.lightboxPhotos] || []
+  () =>
+    [...photosStore.preProcessingPhotos, ...photosStore.preprocessedPhotos] ||
+    []
 );
 
 const filteredPhotos = computed(() => syncPhotos.value);
@@ -208,10 +206,8 @@ async function uploadLocalFiles(event) {
     // Set photos to checking duplicates state
     const photoIds = photosToUpload.map((p) => p.id);
     photoIds.forEach((id) => {
-      photosStore.updatePhoto(id, { isCheckingDuplicates: true });
+      photosStore.updatePhoto(id, { preprocessing: true });
     });
-
-    isCheckingDuplicates.value = true;
 
     await api_analyzer.post(`/api/analyzer`, {
       packageId: "preprocess",
@@ -219,11 +215,10 @@ async function uploadLocalFiles(event) {
     });
 
     await photosStore.getOrFetch(true);
-    await photosStore.checkDuplicates(photoIds);
 
     // Remove checking duplicates flag
     photoIds.forEach((id) => {
-      photosStore.updatePhoto(id, { isCheckingDuplicates: false });
+      photosStore.updatePhoto(id, { preprocessing: false, preprocessed: true });
     });
 
     // Emit that new photos were added
@@ -232,7 +227,6 @@ async function uploadLocalFiles(event) {
     console.error("❌ Error uploading photos:", error);
   } finally {
     isUploading.value = false;
-    isCheckingDuplicates.value = false;
     event.target.value = "";
   }
 }
@@ -263,7 +257,7 @@ async function processAndUploadFile(file) {
     }),
   ]);
 
-  photo.status = "uploaded";
+  photo.status = "preprocessing";
   photo.isDuplicate = false;
   photosStore.photos.unshift(photo);
   uploadedCount.value++;
