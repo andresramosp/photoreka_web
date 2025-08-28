@@ -586,7 +586,7 @@ const videoTabs = ref([
     icon: Trophy20Regular,
     videoUrl: new URL("@/assets/videos/visual_scores_1.mp4", import.meta.url)
       .href, // local video
-    speed: 2.4,
+    speed: 2,
   },
   {
     title: "Grid Maker",
