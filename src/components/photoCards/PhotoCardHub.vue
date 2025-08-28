@@ -6,15 +6,9 @@
       duplicate: photo.isDuplicate,
       'with-footer': showFooter,
     }"
-    @click="
-      (photo.status === 'processed' || photo.status === 'preprocessed') &&
-        toggleSelection()
-    "
+    @click="toggleSelection()"
     :style="{
-      cursor:
-        photo.status === 'processed' || photo.status === 'preprocessed'
-          ? 'pointer'
-          : 'default',
+      cursor: 'pointer',
     }"
   >
     <div class="photo-container">

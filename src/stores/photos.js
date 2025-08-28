@@ -91,8 +91,9 @@ export const usePhotosStore = defineStore("photos", {
       const processedCount = state.photos?.filter(
         (photo) => photo.status === "processed"
       ).length;
-      const preprocessedCount = state.photos?.filter(
-        (photo) => photo.status === "preprocessed"
+      const uploadedOrPreprocessedCount = state.photos?.filter(
+        (photo) =>
+          photo.status === "preprocessed" || photo.status === "uploaded"
       ).length;
       const processingCount = state.photos?.filter(
         (photo) => photo.status === "processing"
@@ -100,7 +101,7 @@ export const usePhotosStore = defineStore("photos", {
       const checkingDuplicatesCount = state.photos?.filter(
         (photo) => photo.isCheckingDuplicates
       ).length;
-
+      debugger;
       // If there are photos currently processing, show processing state
       if (processingCount > 0) {
         return "processing";
@@ -117,7 +118,7 @@ export const usePhotosStore = defineStore("photos", {
       }
 
       // If app is still locked, need threshold preprocessed photos to enable button
-      if (preprocessedCount >= MIN_PHOTOS_THRESHOLD) {
+      if (uploadedOrPreprocessedCount >= MIN_PHOTOS_THRESHOLD) {
         return "enabled";
       }
 
@@ -136,11 +137,12 @@ export const usePhotosStore = defineStore("photos", {
       }
 
       // Calculate progress based on preprocessed + processed photos toward threshold
-      const preprocessedCount = state.photos?.filter(
-        (photo) => photo.status === "preprocessed"
+      const uploadedOrPreprocessedCount = state.photos?.filter(
+        (photo) =>
+          photo.status === "preprocessed" || photo.status === "uploaded"
       ).length;
 
-      const totalProgressPhotos = preprocessedCount + processedCount;
+      const totalProgressPhotos = uploadedOrPreprocessedCount + processedCount;
 
       return Math.min((totalProgressPhotos / MIN_PHOTOS_THRESHOLD) * 100, 100);
     },
