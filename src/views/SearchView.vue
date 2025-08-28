@@ -307,7 +307,7 @@
                     margin-bottom: 2px;
                   "
                 >
-                  <span class="filter-compact-label">Artistic scores</span>
+                  <span class="filter-compact-label">Visual scores</span>
                   <n-tooltip trigger="hover" placement="top">
                     <template #trigger>
                       <n-icon size="12" style="color: #ffffff73; cursor: help">
