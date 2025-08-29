@@ -697,7 +697,7 @@ const toolbarState = ref({
   },
   showDots: true, // toggle grid dots background
   photoOptions: {
-    count: 1,
+    count: 3,
     spreadMode: "perpendicular",
   },
 });
