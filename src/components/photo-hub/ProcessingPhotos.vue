@@ -284,7 +284,7 @@ function startPolling() {
 const STAGES = [
   { key: "init", label: "Initializing" },
   { key: "visual_color_embedding_task", label: "Color Embedding" },
-  { key: "clip_embeddings", label: "Vectorizing Image" },
+  { key: "clip_embeddings", label: "Vectorizing Images" },
   { key: "metadata_extraction", label: "Extracting Metadata" },
   { key: "vision_artistic", label: "Artistic Analysis" },
   { key: "vision_visual_aspects", label: "Visual Aspects" },

@@ -383,7 +383,7 @@
                     @close="removeTag(tag)"
                     class="photo-tag"
                   >
-                    {{ tag.name || tag }} | {{ tag.area }}
+                    {{ tag.name || tag }}
                   </n-tag>
                 </div>
               </div>
