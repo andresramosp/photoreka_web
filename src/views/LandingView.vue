@@ -51,7 +51,7 @@
                 <span class="hero-accent">Curation Lab</span>
               </h1>
               <span class="hero-subtitle"
-                >Street | Documentary | Conceptual</span
+                >Street | Documentary | Conceptual | Abstract | Landscape</span
               >
               <p class="hero-description">
                 Start making sense of your photographic body of work with our
@@ -144,9 +144,9 @@
             </div>
             <h3 class="feature-title">Semantic Search</h3>
             <p class="feature-description">
-              Find photos instantly using natural language. Search for "sunset
-              beach" or "happy moments" and discover exactly what you're looking
-              for.
+              Find photos instantly using natural language. Look for exact
+              matches ("children playing"), or figurative ones ("Blade
+              Runner-style photos").
             </p>
           </div>
           <div class="floating-feature-card">
@@ -175,27 +175,28 @@
           </div>
           <div class="floating-feature-card">
             <div class="feature-icon">
-              <n-icon size="40" color="#22c55e">
-                <AppsOutline />
+              <n-icon size="40" color="#f59e0b">
+                <Trophy16Regular />
               </n-icon>
             </div>
-            <h3 class="feature-title">Grid Maker</h3>
+            <h3 class="feature-title">Score Rankings</h3>
             <p class="feature-description">
-              Generate beautiful photo grids automatically. Choose from various
-              layouts and export high-quality compositions for social media.
+              Get automatic ratings of your photos and classify them according
+              to different aesthetic criteria (composition, mood, originality,
+              etc.)
             </p>
           </div>
           <div class="floating-feature-card">
             <div class="feature-icon">
-              <n-icon size="40" color="#f59e0b">
+              <n-icon size="40" color="#22c55e">
                 <ImagesOutline />
               </n-icon>
             </div>
             <h3 class="feature-title">Smart Curation</h3>
             <p class="feature-description">
-              Let our engine automatically curate your best photos based on
-              composition, lighting, and emotional impact. Save hours of manual
-              sorting.
+              Compile photos of specific themes or styles with the help of our
+              smart curator. Get feedback on each photo and discover hidden
+              insights and connections.
             </p>
           </div>
           <!-- <div class="floating-feature-card">
@@ -501,7 +502,7 @@ import RequestAccessDialog from "@/components/RequestAccessDialog.vue";
 import MobileNoticeDialog from "@/components/MobileNoticeDialog.vue";
 import MaintenanceBanner from "@/components/MaintenanceBanner.vue";
 import { isMobileDevice } from "@/utils/utils.js";
-import { Trophy20Regular } from "@vicons/fluent";
+import { Trophy16Regular, Trophy20Regular } from "@vicons/fluent";
 
 const router = useRouter();
 const demoSection = ref(null);
