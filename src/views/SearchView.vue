@@ -319,7 +319,7 @@
                         </svg>
                       </n-icon>
                     </template>
-                    Will include photos above 7.5 in the selected scores
+                    Will include photos above 7 in the selected scores
                   </n-tooltip>
                 </div>
                 <n-tree-select

@@ -38,30 +38,6 @@
         </p>
       </div>
 
-      <!-- Matching Chunks Overlay (for hover in non-curation modes) -->
-      <!-- <div class="hover-content-overlay">
-        <div class="matching-chunks">
-          <n-button
-            size="medium"
-            class="action-button info-button"
-            @click.stop="showInfo"
-          >
-            <template #icon>
-              <n-icon>
-                <InfoCircleOutlined />
-              </n-icon>
-            </template>
-          </n-button>
-          <p class="chunks-text">
-            {{
-              typeof photo.totalScore === "number"
-                ? photo.totalScore.toFixed(2)
-                : photo.totalScore
-            }}
-          </p>
-        </div>
-      </div> -->
-
       <!-- Match Score Stars (visible en todos los modos) -->
       <div
         v-if="props.showStars && (computedStars > 0 || showLowRelevanceIcon)"
@@ -103,6 +79,21 @@
             </svg>
           </n-icon>
         </div>
+      </div>
+
+      <!-- Action Buttons (center overlay) - only show when not in curation mode -->
+      <div v-if="mode !== 'curation'" class="action-buttons-overlay">
+        <n-button
+          size="medium"
+          class="action-button info-button"
+          @click.stop="showInfo"
+        >
+          <template #icon>
+            <n-icon>
+              <InfoIcon />
+            </n-icon>
+          </template>
+        </n-button>
       </div>
 
       <!-- Bottom overlay with matched tags or curation actions -->
@@ -192,7 +183,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { NIcon, NTooltip } from "naive-ui";
+import { NIcon, NTooltip, NButton } from "naive-ui";
 
 // Import @vicons icons from ionicons5 for reliability
 import {
@@ -200,6 +191,7 @@ import {
   ChevronBackOutline as ChevronLeftIcon,
   CheckmarkCircleOutline as CheckCircleIcon,
   HelpCircleOutline as HelpIcon,
+  InformationCircleOutline as InfoIcon,
 } from "@vicons/ionicons5";
 
 import { usePhotoScored } from "@/composables/usePhotoScored.js";
@@ -514,6 +506,43 @@ const handleMouseLeave = () => {
   height: 28px;
   padding: 0 12px;
   backdrop-filter: blur(4px);
+}
+
+/* Action buttons overlay */
+.action-buttons-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+}
+
+.photo-card:hover .action-buttons-overlay {
+  opacity: 1;
+}
+
+/* Action buttons */
+.action-button {
+  border-radius: 8px !important;
+  backdrop-filter: blur(8px);
+  border: none !important;
+  width: 40px;
+  height: 40px;
+  opacity: 0.9;
+  transition: opacity 0.2s ease !important;
+}
+
+.action-button:hover {
+  opacity: 1 !important;
+}
+
+.info-button {
+  background-color: var(--info-color) !important;
+  color: white !important;
 }
 
 /* Mode-specific styling */
