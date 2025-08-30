@@ -12,11 +12,7 @@
       :config="{
         width: pillWidth,
         height: pillHeight,
-        fill: isSelected
-          ? selectedColor
-          : isHovered
-          ? 'rgba(37, 99, 235, 1);'
-          : defaultColor,
+        fill: isSelected ? selectedColor : isHovered ? '#2563eb' : defaultColor,
         opacity: 0.7,
         cornerRadius: pillHeight / 2,
       }"
