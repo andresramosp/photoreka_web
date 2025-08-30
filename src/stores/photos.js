@@ -101,7 +101,6 @@ export const usePhotosStore = defineStore("photos", {
       const checkingDuplicatesCount = state.photos?.filter(
         (photo) => photo.isCheckingDuplicates
       ).length;
-      debugger;
       // If there are photos currently processing, show processing state
       if (processingCount > 0) {
         return "processing";
