@@ -32,7 +32,7 @@ export function useTagDisplay(tagsSource) {
     .getPropertyValue("--secondary-color")
     .trim();
 
-  const hoverColor = "lightgray";
+  const hoverColor = "rgba(37, 99, 235, 1);";
   const defaultColor = getComputedStyle(document.documentElement)
     .getPropertyValue("--bg-tag")
     .trim();

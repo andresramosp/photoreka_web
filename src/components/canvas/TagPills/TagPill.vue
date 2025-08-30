@@ -15,7 +15,7 @@
         fill: isSelected
           ? selectedColor
           : isHovered
-          ? 'lightgray'
+          ? 'rgba(37, 99, 235, 1);'
           : defaultColor,
         opacity: 0.7,
         cornerRadius: pillHeight / 2,
