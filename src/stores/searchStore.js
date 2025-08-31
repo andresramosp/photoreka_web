@@ -16,6 +16,15 @@ export const visualAspectsOptions = [
   },
   {
     type: "group",
+    label: "Orientation",
+    key: "orientation",
+    children: [
+      { label: "Horizontal", value: "horizontal" },
+      { label: "Vertical", value: "vertical" },
+    ],
+  },
+  {
+    type: "group",
     label: "Temperature",
     key: "temperature",
     children: [
