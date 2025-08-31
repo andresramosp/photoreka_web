@@ -63,11 +63,11 @@
         <n-checkbox v-model:checked="acceptTerms" class="terms-checkbox">
           <span class="terms-text">
             I agree to the
-            <n-button text type="primary" class="terms-link"
+            <n-button @click="goToTerms" text type="primary" class="terms-link"
               >terms and conditions</n-button
             >
             and
-            <n-button text type="primary" class="terms-link"
+            <n-button @click="goToTerms" text type="primary" class="terms-link"
               >privacy policy</n-button
             >
           </span>
@@ -95,6 +95,7 @@ import { useUserStore } from "../stores/userStore";
 import { useMessage } from "naive-ui";
 import type { FormInst, FormRules } from "naive-ui";
 import AuthProviders from "./AuthProviders.vue";
+import { h } from "vue";
 
 // Icons
 const UserIcon = () =>
@@ -246,13 +247,10 @@ const handleSubmit = async () => {
     // Validation failed, errors will be shown in form
   }
 };
-</script>
 
-<script lang="ts">
-import { h } from "vue";
-
-export default {
-  name: "RegisterForm",
+const goToTerms = () => {
+  const termsUrl = router.resolve({ name: "terms" }).href;
+  window.open(termsUrl, "_blank");
 };
 </script>
 
