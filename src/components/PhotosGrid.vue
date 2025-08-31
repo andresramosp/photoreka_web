@@ -16,9 +16,10 @@
     <div class="grid-controls grid-controls-base">
       <div class="controls-left">
         <div class="results-info results-info-base">
-          <span class="results-count results-count-base"
-            >{{ displayedPhotos.length }} photos</span
-          >
+          <span class="results-count results-count-base">
+            {{ displayedPhotos.length }}{{ hasMorePhotos ? "+" : "" }} of
+            {{ filteredAndSortedPhotos.length }} photos
+          </span>
         </div>
         <!-- Action buttons (show when photos are selected) -->
         <div v-if="selectedPhotoIds.length > 0" class="action-buttons">
@@ -180,6 +181,23 @@
       />
     </div>
 
+    <!-- Loading indicator for infinite scroll -->
+    <div v-if="hasMorePhotos && isLoadingMore" class="loading-more-container">
+      <n-spin size="medium">
+        <template #description>Loading more photos...</template>
+      </n-spin>
+    </div>
+
+    <!-- End of results indicator -->
+    <div
+      v-else-if="
+        !hasMorePhotos && filteredAndSortedPhotos.length > PHOTOS_PER_PAGE
+      "
+      class="end-of-results"
+    >
+      <span>You've reached the end of your photos</span>
+    </div>
+
     <!-- Dialogs -->
     <PhotoInfoDialog
       v-model="showPhotoInfoDialog"
@@ -202,7 +220,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, ref, watch, onMounted, onUnmounted, nextTick } from "vue";
 import {
   NButton,
   NButtonGroup,
@@ -269,6 +287,11 @@ const filterDuplicates = ref(false);
 const isCheckingDuplicates = ref(false);
 const duplicatesReviewed = ref(false);
 const hasDuplicates = ref(false);
+
+// Infinite scroll state
+const PHOTOS_PER_PAGE = 50; // Número de fotos a cargar por página
+const currentPage = ref(1);
+const isLoadingMore = ref(false);
 
 // State for filters and sorting (managed by PhotosGridControls)
 const selectedFilters = ref({});
@@ -504,8 +527,8 @@ function groupDuplicates(photos) {
   return result;
 }
 
-// Filter photos based on duplicates filter and visual aspects
-const displayedPhotos = computed(() => {
+// Filter and sort ALL photos (without pagination limit)
+const filteredAndSortedPhotos = computed(() => {
   let filtered = props.photos;
 
   // Apply visual aspects filters
@@ -578,12 +601,107 @@ const displayedPhotos = computed(() => {
   return filtered;
 });
 
+// Display only the photos for the current pages (with infinite scroll)
+const displayedPhotos = computed(() => {
+  const totalPhotosToShow = currentPage.value * PHOTOS_PER_PAGE;
+  const result = filteredAndSortedPhotos.value.slice(0, totalPhotosToShow);
+
+  return result;
+});
+
 // Check if all photos are selected
 const allSelected = computed(() => {
   return (
     displayedPhotos.value.length > 0 &&
     displayedPhotos.value.every((photo) => selectedPhotosRecord.value[photo.id])
   );
+});
+
+// Computed to check if there are more photos to load
+const hasMorePhotos = computed(() => {
+  return displayedPhotos.value.length < filteredAndSortedPhotos.value.length;
+});
+
+const handleScroll = (e) => {
+  if (isLoadingMore.value || !hasMorePhotos.value) return;
+
+  const container = document.querySelector(".view-container");
+  if (!container) return;
+
+  const scrollPosition = container.scrollTop + container.clientHeight;
+  const documentHeight = container.scrollHeight;
+  const threshold = 1000; // Load more when 1000px from bottom
+
+  if (scrollPosition >= documentHeight - threshold) {
+    loadMorePhotos();
+  }
+};
+
+const loadMorePhotos = async () => {
+  if (isLoadingMore.value || !hasMorePhotos.value) return;
+
+  isLoadingMore.value = true;
+
+  // Simulate a small delay to avoid too rapid loading
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  currentPage.value += 1;
+  isLoadingMore.value = false;
+};
+
+// Reset pagination when filters or sorting changes
+const resetPagination = () => {
+  currentPage.value = 1;
+  isLoadingMore.value = false;
+};
+
+// Watch for filter/sort changes to reset pagination
+watch(
+  [
+    selectedFilters,
+    sortingType,
+    selectedCriteria,
+    selectedGenre,
+    customWeights,
+    sortOrder,
+    filterDuplicates,
+  ],
+  () => {
+    resetPagination();
+  },
+  { deep: true }
+);
+
+// Watch for props.photos changes to reset pagination
+watch(
+  () => props.photos.length,
+  (newLength, oldLength) => {
+    resetPagination();
+  }
+);
+
+// Lifecycle hooks for scroll listener
+onMounted(() => {
+  nextTick(() => {
+    const container = document.querySelector(".view-container");
+
+    if (container === document.documentElement) {
+      window.addEventListener("scroll", handleScroll, { passive: true });
+    } else {
+      container.addEventListener("scroll", handleScroll, { passive: true });
+    }
+
+    // Debug initial state
+  });
+});
+
+onUnmounted(() => {
+  const container = document.querySelector(".view-container");
+  if (container === document.documentElement) {
+    window.removeEventListener("scroll", handleScroll);
+  } else if (container && container.removeEventListener) {
+    container.removeEventListener("scroll", handleScroll);
+  }
 });
 
 // Selection functions
@@ -612,7 +730,7 @@ const showDuplicates = (duplicates) => {
 
 // Batch actions
 const handleDeleteMultiple = async () => {
-  if (false) {
+  if (props.collectionId) {
     try {
       await collectionsStore.removePhotosFromCollection(
         props.collectionId,
@@ -775,6 +893,26 @@ const moveToCanvas = async () => {
 
 .photo-grid-base.grid-cols-10 {
   grid-template-columns: repeat(10, 1fr);
+}
+
+/* Loading and end of results indicators */
+.loading-more-container,
+.end-of-results {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  margin-top: 20px;
+}
+
+.end-of-results {
+  color: #ffffff73;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.loading-more-container {
+  color: #ffffffd1;
 }
 
 /* Responsive */
