@@ -289,6 +289,7 @@ const STAGES = [
   { key: "vision_artistic", label: "Artistic Analysis" },
   { key: "vision_visual_aspects", label: "Visual Aspects" },
   { key: "tags_visual_aspects", label: "Tagging Visual Aspects" },
+  { key: "tags_artistic_aspects", label: "Tagging Visual Scores" },
   { key: "vision_context_story_accents", label: "Narrative and Context" },
   { key: "tags_context_story", label: "Tagging Context/Story" },
   { key: "tags_visual_accents", label: "Tagging Visual Accents" },

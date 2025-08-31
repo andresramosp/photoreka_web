@@ -49,7 +49,7 @@
               </template>
               Search by specific tags and keywords assigned to your photos
             </n-tooltip>
-            <n-tooltip trigger="hover" placement="top">
+            <!-- <n-tooltip trigger="hover" placement="top">
               <template #trigger>
                 <div
                   class="type-pill"
@@ -69,7 +69,7 @@
               </template>
               Search based on spatial arrangement of objects in your photos
               (left, center, right)
-            </n-tooltip>
+            </n-tooltip> -->
           </div>
         </div>
 
