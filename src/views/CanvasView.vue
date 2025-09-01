@@ -666,7 +666,7 @@ import {
   NTooltip,
 } from "naive-ui";
 import { storeToRefs } from "pinia";
-import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
+import PhotosDialog from "@/components/PhotosDialog.vue";
 import PhotoInfoDialog from "@/components/PhotoInfoDialog.vue";
 import ExpandPhotoButtons from "@/components/canvas/PhotoControls/ExpandPhotoButtons.vue";
 import PhotoCenterButton from "@/components/canvas/PhotoControls/PhotoCenterButton.vue";

@@ -263,7 +263,8 @@ import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas";
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
-import PhotosLightboxTab from "./PhotosLightboxTab.vue";
+import PhotosLightboxTab from "@/components/canvas/PhotosLightboxTab.vue";
+
 import {
   NModal,
   NButton,

@@ -331,7 +331,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useMessage, NSelect, NButton, NTooltip } from "naive-ui";
-import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
+import PhotosDialog from "@/components/PhotosDialog.vue";
 import { usePhotosStore } from "@/stores/photos";
 import { api } from "@/utils/axios";
 

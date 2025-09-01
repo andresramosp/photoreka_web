@@ -284,7 +284,7 @@ import {
   useMessage,
 } from "naive-ui";
 import { AddOutline, ImagesOutline } from "@vicons/ionicons5";
-import PhotosDialog from "@/components/canvas/PhotosDialog.vue";
+import PhotosDialog from "@/components/PhotosDialog.vue";
 import PhotosGrid from "@/components/PhotosGrid.vue";
 import { usePhotosStore } from "@/stores/photos.js";
 import { useCollectionsStore } from "@/stores/collections.js";
