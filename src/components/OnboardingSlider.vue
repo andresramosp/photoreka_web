@@ -33,7 +33,7 @@
                 />
               </div>
               <div class="slide-text">
-                <h3 class="slide-title">1. Continue building your Workspace</h3>
+                <h3 class="slide-title">Continue building your Workspace</h3>
                 <p class="slide-description">
                   You've completed your first batch of images. We encourage you
                   to continue uploading photos to get the most out of the app.
@@ -44,7 +44,7 @@
             </div>
 
             <!-- Slide 2: Use your preprocessed photos -->
-            <div v-if="currentSlide === 1" class="slide-content">
+            <!-- <div v-if="currentSlide === 1" class="slide-content">
               <div class="slide-image">
                 <img
                   src="/src/assets/onBoarding/slide_2.png"
@@ -61,10 +61,10 @@
                   can be used in some tools with limitations.
                 </p>
               </div>
-            </div>
+            </div> -->
 
             <!-- Slide 3: Unleash your catalog's potential -->
-            <div v-if="currentSlide === 2" class="slide-content">
+            <div v-if="currentSlide === 1" class="slide-content">
               <div class="slide-image">
                 <img
                   src="/src/assets/onBoarding/slide_3.png"
@@ -73,7 +73,7 @@
                 />
               </div>
               <div class="slide-text">
-                <h3 class="slide-title">3. Experiment with the tools</h3>
+                <h3 class="slide-title">Experiment with the tools</h3>
                 <p class="slide-description">
                   We now invite you to try out the different tools. The photos
                   you already have in the Workspace are available for natural
@@ -153,7 +153,7 @@ const currentSlide = ref(0);
 
 const slides = [
   { id: "add-photos" },
-  { id: "preprocessed" },
+  // { id: "preprocessed" },
   { id: "ai-potential" },
 ];
 

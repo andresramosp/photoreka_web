@@ -20,22 +20,11 @@
 
     <div class="welcome-content">
       <div class="welcome-message">
-        <div class="welcome-icon">
-          <n-icon size="55" color="var(--primary-color)">
-            <svg viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
-              />
-            </svg>
-          </n-icon>
-        </div>
-
         <div class="message-text">
           <p class="main-message">
             Photoreka is designed to work with large photo collections and
-            complete bodies of work. To ensure consistent performance, we
-            require a minimum of
+            bodies of work. To ensure consistent performance, we require a
+            minimum of
             <strong>{{ MIN_PHOTOS_THRESHOLD }} photos</strong> to unlock the
             full potential of the platform.
           </p>
@@ -182,7 +171,6 @@ const getStarted = () => {
   color: var(--text-secondary);
   line-height: var(--line-height-relaxed);
   margin: 0 0 var(--spacing-lg) 0;
-  padding-left: var(--spacing-lg);
 }
 
 .steps-list li {
