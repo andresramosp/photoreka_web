@@ -50,6 +50,7 @@
                 @touchmove="(e: any) => onTouchMove(e, photo)"
                 @touchend="(e: any) => onTouchEnd(e, photo)"
                 style="cursor: grab"
+                :show-info-button="false"
               />
             </template>
           </div>

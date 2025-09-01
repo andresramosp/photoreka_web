@@ -124,6 +124,7 @@
                     :show-name="false"
                     :show-footer="false"
                     :showDuplicate="false"
+                    :show-info-button="false"
                   />
                 </div>
               </div>

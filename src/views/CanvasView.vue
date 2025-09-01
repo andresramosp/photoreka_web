@@ -57,7 +57,6 @@
               handleDragEnd(photo, $event, toolbarState.expansion.autoAlign)
             "
             @dragmove="handleDragMove(photo, $event)"
-            @dblclick="handleSelectPhoto(photo, $event)"
             @click="handlePhotoClick(photo, $event)"
             @touchstart="handlePhotoTouchStart(photo, $event)"
             @touchend="handlePhotoTouchEnd(photo, $event)"
@@ -1289,6 +1288,14 @@ const handlePhotoClick = (photo, event) => {
 
     // Prevent stage click handler from running
     event.cancelBubble = true;
+  } else {
+    // In pan mode, handle selection with single click (avoiding drag conflicts)
+    // Only select if this wasn't part of a drag operation
+    if (!photo._wasDragged) {
+      handleSelectPhoto(photo, event);
+    }
+    // Reset drag flag
+    photo._wasDragged = false;
   }
 };
 
@@ -1304,6 +1311,9 @@ const handlePhotoTouchStart = (photo, event) => {
     photo._touchStartTime = Date.now();
     photo._touchStartPos = { x: touch.clientX, y: touch.clientY };
     photo._touchActive = true;
+
+    // Mark as potentially dragged - will be reset in touchend if it was just a tap
+    photo._potentiallyDragged = true;
   }
 };
 
@@ -1327,13 +1337,27 @@ const handlePhotoTouchEnd = (photo, event) => {
 
     // Consider it a tap if duration < 500ms and distance < 10px
     if (touchDuration < 500 && touchDistance < 10) {
+      // Reset the drag flag since this was just a tap
+      photo._potentiallyDragged = false;
+
       // Toggle hover state on tap
       photo.hovered = !photo.hovered;
 
-      // Handle selection in select mode
+      // Handle selection - single tap now selects in both modes
       if (interactionMode.value === "select") {
         photo.selected = !photo.selected;
+      } else {
+        // In pan mode, handle selection with tap (same as single click)
+        handleSelectPhoto(photo, event);
       }
+    } else {
+      // This was likely a drag, so mark as dragged to prevent selection
+      photo._wasDragged = true;
+      // Reset after delay
+      setTimeout(() => {
+        photo._wasDragged = false;
+        photo._potentiallyDragged = false;
+      }, 50);
     }
 
     // Clean up touch tracking

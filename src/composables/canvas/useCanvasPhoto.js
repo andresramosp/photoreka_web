@@ -53,6 +53,9 @@ export function useCanvasPhoto(stageRef, photos, photoRefs, stageConfig) {
   const handleDragStart = (photo, e) => {
     e.cancelBubble = true;
 
+    // Mark that this photo is being dragged to prevent selection on click
+    photo._wasDragged = true;
+
     // SOLUCIÓN: Reorganizar el orden de las fotos ANTES de que comience el drag
     // Esto asegura que la foto arrastrada esté al final del array (encima de todas)
     reorganizePhotosOrder(photo.id);
@@ -65,6 +68,8 @@ export function useCanvasPhoto(stageRef, photos, photoRefs, stageConfig) {
         photos.value.forEach((p) => {
           if (p.selected) {
             dragGroupStart[p.id] = { x: p.config.x, y: p.config.y };
+            // Mark all selected photos as being dragged
+            p._wasDragged = true;
           }
         });
       } else {
@@ -227,6 +232,19 @@ export function useCanvasPhoto(stageRef, photos, photoRefs, stageConfig) {
       canvasStore.deletePhotos(photosToRemove.map((p) => p.id));
       isHoveringTrash.value = false;
     }
+
+    // Reset drag flag after a short delay to allow click events to differentiate
+    setTimeout(() => {
+      photo._wasDragged = false;
+      // Also reset for all selected photos if this was a group drag
+      if (photo.selected) {
+        photos.value.forEach((p) => {
+          if (p.selected) {
+            p._wasDragged = false;
+          }
+        });
+      }
+    }, 50); // Small delay to prevent accidental selection after drag
   };
 
   const handleMouseOver = (photo) => {

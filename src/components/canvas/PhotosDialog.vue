@@ -99,6 +99,7 @@
                 @info="showPhotoInfo"
                 :show-stars="false"
                 :show-tags="false"
+                :show-info-button="false"
               />
             </div>
 
@@ -206,6 +207,7 @@
             mode="default"
             @select="toggleSelection"
             @info="showPhotoInfo"
+            :show-info-button="false"
           />
         </div>
 

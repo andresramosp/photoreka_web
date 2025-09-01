@@ -110,6 +110,7 @@
           :show-footer="false"
           :showDuplicate="false"
           :is-uploading="isUploading"
+          :show-info-button="true"
         />
       </div>
     </div>

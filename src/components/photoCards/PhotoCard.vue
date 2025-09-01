@@ -82,7 +82,7 @@
       </div>
 
       <!-- Action Buttons (center overlay) - only show when not in curation mode -->
-      <div v-if="mode !== 'curation'" class="action-buttons-overlay">
+      <div v-if="showInfoButton" class="action-buttons-overlay">
         <n-button
           size="medium"
           class="action-button info-button"
@@ -241,6 +241,7 @@ interface Props {
   isNew?: boolean; // Mark photo as newly arrived
   computedStars?: number; // Pre-computed stars (0-3)
   showLowRelevanceIcon?: boolean; // Pre-computed low relevance indicator
+  showInfoButton?: boolean; // Control visibility of info button
 }
 
 interface Emits {

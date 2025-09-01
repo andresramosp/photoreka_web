@@ -805,6 +805,7 @@
             :selected="localSelectedPhotoIds.includes(photo.id)"
             @select="togglePhotoSelection"
             @info="showPhotoInfo"
+            :show-info-button="true"
           />
 
           <!-- Skeleton Loading for Load More -->

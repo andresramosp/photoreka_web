@@ -154,6 +154,7 @@
               @select="togglePhotoSelection"
               @info="showPhotoInfo"
               @move-to-selection="moveToSelection"
+              :show-info-button="false"
             />
           </template>
         </div>
@@ -224,6 +225,7 @@
             @select="togglePhotoSelection"
             @info="showPhotoInfo"
             @move-to-curation="moveToCuration"
+            :show-info-button="false"
           />
         </div>
 
