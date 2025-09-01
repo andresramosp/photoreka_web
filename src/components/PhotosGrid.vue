@@ -28,8 +28,9 @@
             size="small"
             @click="handleDeleteMultiple"
             :disabled="selectedPhotoIds.length === 0"
+            :loading="isDeletingPhotos"
           >
-            <template #icon>
+            <template #icon v-if="!isDeletingPhotos">
               <n-icon>
                 <svg viewBox="0 0 24 24">
                   <path
@@ -216,6 +217,39 @@
       @add-to-collection="handleCollectionAdded"
       @cancel="handleCollectionModalCancel"
     />
+
+    <!-- Delete Confirmation Modal -->
+    <n-modal
+      v-model:show="showDeleteConfirmDialog"
+      preset="dialog"
+      title="Confirmar eliminación"
+    >
+      <template #header>
+        <div style="font-size: 18px; font-weight: 600">
+          Confirmar eliminación
+        </div>
+      </template>
+      <div style="padding: 16px 0">
+        <p style="margin-bottom: 16px; font-size: 16px">
+          Are you sure you want to delete
+          <strong>{{ selectedPhotoIds.length }}</strong>
+          {{ selectedPhotoIds.length === 1 ? "foto" : "fotos" }}?
+        </p>
+        <p style="color: #d03050; font-size: 14px; margin: 0">
+          This action cannot be undone.
+        </p>
+      </div>
+      <template #action>
+        <div style="display: flex; gap: 8px; justify-content: flex-end">
+          <n-button @click="showDeleteConfirmDialog = false">
+            Cancelar
+          </n-button>
+          <n-button type="error" @click="confirmDeletePhotos">
+            Eliminar
+          </n-button>
+        </div>
+      </template>
+    </n-modal>
   </div>
 </template>
 
@@ -227,6 +261,8 @@ import {
   NIcon,
   NSpin,
   NCheckbox,
+  NModal,
+  NCard,
   useMessage,
 } from "naive-ui";
 import { CloudDownloadOutline } from "@vicons/ionicons5";
@@ -383,6 +419,8 @@ const selectedDialogPhoto = ref();
 const showDuplicatesDialog = ref(false);
 const selectedDuplicatesData = ref([]);
 const showCollectionModal = ref(false);
+const showDeleteConfirmDialog = ref(false);
+const isDeletingPhotos = ref(false);
 
 // Watch for selection changes and emit to parent
 watch(
@@ -730,21 +768,39 @@ const showDuplicates = (duplicates) => {
 
 // Batch actions
 const handleDeleteMultiple = async () => {
-  if (props.collectionId) {
-    try {
-      await collectionsStore.removePhotosFromCollection(
-        props.collectionId,
-        selectedPhotoIds.value
-      );
-      // Recargar la ruta actual para refrescar la colección (sin reload completo)
-      emit("refreshCollection");
-    } catch (e) {
-      message.error("Error removing photos from collection");
-    }
-  } else {
-    await photosStore.deletePhotos(selectedPhotoIds.value);
+  // Solo mostrar modal de confirmación si NO es una colección
+  if (!props.collectionId) {
+    showDeleteConfirmDialog.value = true;
+    return;
+  }
+
+  // Para colecciones, eliminar directamente (comportamiento actual)
+  try {
+    await collectionsStore.removePhotosFromCollection(
+      props.collectionId,
+      selectedPhotoIds.value
+    );
+    // Recargar la ruta actual para refrescar la colección (sin reload completo)
+    emit("refreshCollection");
+  } catch (e) {
+    message.error("Error removing photos from collection");
   }
   clearAllSelections();
+};
+
+const confirmDeletePhotos = async () => {
+  showDeleteConfirmDialog.value = false;
+  isDeletingPhotos.value = true;
+
+  try {
+    await photosStore.deletePhotos(selectedPhotoIds.value);
+    clearAllSelections();
+  } catch (error) {
+    message.error("Error eliminando las fotos");
+    console.error("Error deleting photos:", error);
+  } finally {
+    isDeletingPhotos.value = false;
+  }
 };
 
 const handleAddToCollection = () => {
