@@ -7,6 +7,7 @@ import SearchView from "../views/SearchView.vue";
 import CollectionsView from "../views/CollectionsView.vue";
 import PhotoHubView from "../views/PhotoHubView.vue";
 import ProjectBuilderView from "../views/ProjectBuilderView.vue";
+import FramerView from "../views/FramerView.vue";
 import PortfolioReportView from "../views/PortfolioReportView.vue";
 import SettingsView from "../views/SettingsView.vue";
 import HelpView from "../views/HelpView.vue";
@@ -144,6 +145,14 @@ const router = createRouter({
       meta: {
         requiresAuth: true,
         keepAlive: true,
+      },
+    },
+    {
+      path: "/framer",
+      name: "framer",
+      component: FramerView,
+      meta: {
+        requiresAuth: true,
       },
     },
     {

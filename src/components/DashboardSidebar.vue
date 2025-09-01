@@ -240,6 +240,7 @@ import {
   ChevronBackOutline as ChevronLeftIcon,
   ConstructOutline as ConstructionIcon,
   ConstructOutline,
+  SquareOutline as FramerIcon,
 } from "@vicons/ionicons5";
 import { ConstructionOutlined, ConstructionSharp } from "@vicons/material";
 
@@ -435,6 +436,18 @@ const secondSectionOptions = computed(() => {
         : {},
       icon: createIconWithIndicator(CurationIcon, "#f59e0b", true), // Warning color for curation + premium
     },
+    // {
+    //   label: createMenuLabel("Framer"),
+    //   key: "framer",
+    //   disabled: isBlocked,
+    //   comingSoon: false,
+    //   props: isBlocked
+    //     ? {
+    //         title: "Add photos to your catalog",
+    //       }
+    //     : {},
+    //   icon: createIconWithIndicator(FramerIcon, "#dc2626", false, false), // Red color for framer
+    // },
     {
       label: createMenuLabel("Portfolio Report"),
       key: "portfolio-report",

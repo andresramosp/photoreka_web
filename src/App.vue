@@ -141,7 +141,7 @@ const mobileMenuOpen = ref(false);
 const isMobile = ref(false);
 
 // Mostrar onboarding después del primer proceso completado
-const showOnboarding = ref(true);
+const showOnboarding = ref(false);
 const showConfetti = ref(false);
 
 // Welcome modal simple con delay para evitar parpadeos
@@ -166,7 +166,7 @@ const onWelcomeFinish = () => {
 const checkShowOnboarding = () => {
   // El onboarding solo se activa desde triggerFirstProcessOnboarding()
   // Esta función ya no decide cuándo mostrar el onboarding
-  // showOnboarding.value = false;
+  showOnboarding.value = false;
 };
 
 // Función para mostrar onboarding cuando se completa el primer proceso
