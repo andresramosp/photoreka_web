@@ -28,6 +28,27 @@
       </div>
 
       <div v-else class="collections-list">
+        <!-- Create New Collection Button -->
+        <div
+          class="collection-item create-new-collection"
+          @click="showCreateDialog"
+        >
+          <div class="collection-info">
+            <div class="create-collection-content">
+              <n-icon size="24" color="#8b5cf6">
+                <AddOutline />
+              </n-icon>
+              <div>
+                <h4 class="collection-name">Create New Collection</h4>
+                <p class="collection-description">
+                  Add photos to a new collection
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Existing Collections -->
         <div
           v-for="collection in collections"
           :key="collection.id"
@@ -47,13 +68,57 @@
         </div>
       </div>
     </div>
+
+    <!-- Create Collection Dialog -->
+    <n-modal
+      v-model:show="createDialogVisible"
+      preset="dialog"
+      title="Create New Collection"
+      positive-text="Create Collection"
+      negative-text="Cancel"
+      @positive-click="createNewCollection"
+      @negative-click="createDialogVisible = false"
+    >
+      <div class="create-form">
+        <n-form ref="formRef" :model="formData" :rules="formRules">
+          <n-form-item label="Name" path="title">
+            <n-input
+              v-model:value="formData.title"
+              placeholder="Enter collection name..."
+              maxlength="100"
+              show-count
+            />
+          </n-form-item>
+          <n-form-item label="Description" path="description">
+            <n-input
+              v-model:value="formData.description"
+              type="textarea"
+              placeholder="Add a description (optional)..."
+              :rows="3"
+              maxlength="500"
+              show-count
+            />
+          </n-form-item>
+        </n-form>
+      </div>
+    </n-modal>
   </n-modal>
 </template>
 
 <script setup>
 import { ref, computed, watch, h } from "vue";
 import { useRouter } from "vue-router";
-import { NModal, NSpin, useMessage, useNotification } from "naive-ui";
+import {
+  NModal,
+  NSpin,
+  useMessage,
+  useNotification,
+  NIcon,
+  NForm,
+  NFormItem,
+  NInput,
+} from "naive-ui";
+import { AddOutline } from "@vicons/ionicons5";
 import { useCollectionsStore } from "@/stores/collections.js";
 
 const emit = defineEmits(["add-to-collection", "cancel"]);
@@ -80,6 +145,22 @@ const router = useRouter();
 // Local state
 const showModal = ref(false);
 const selectedCollection = ref(null);
+const createDialogVisible = ref(false);
+const formRef = ref(null);
+
+// Form data for creating new collection
+const formData = ref({
+  title: "",
+  description: "",
+});
+
+const formRules = {
+  title: {
+    required: true,
+    message: "Please enter a name",
+    trigger: "blur",
+  },
+};
 
 // Computed properties
 const collections = computed(() => collectionsStore.allCollections);
@@ -170,9 +251,81 @@ const handleAddToCollection = async () => {
   }
 };
 
+const showCreateDialog = () => {
+  formData.value = { title: "", description: "" };
+  createDialogVisible.value = true;
+};
+
+const createNewCollection = async () => {
+  try {
+    await formRef.value?.validate();
+
+    // Create collection with the selected photos
+    const collectionData = {
+      title: formData.value.title,
+      description: formData.value.description,
+      photoIds: props.photoIds,
+    };
+
+    const newCollection = await collectionsStore.createCollection(
+      collectionData
+    );
+
+    notification.success({
+      title: "Collection created and photos added",
+      content: `Successfully created "${formData.value.title}" with ${
+        props.photoCount
+      } photo${props.photoCount === 1 ? "" : "s"}`,
+      action: () =>
+        h(
+          "button",
+          {
+            style: {
+              color: "#8b5cf6",
+              textDecoration: "none",
+              fontWeight: "600",
+              padding: "6px 12px",
+              background: "rgba(139, 92, 246, 0.1)",
+              borderRadius: "6px",
+              border: "1px solid rgba(139, 92, 246, 0.3)",
+              transition: "all 0.2s ease",
+              cursor: "pointer",
+            },
+            onMouseover: (e) => {
+              e.target.style.background = "rgba(139, 92, 246, 0.2)";
+            },
+            onMouseout: (e) => {
+              e.target.style.background = "rgba(139, 92, 246, 0.1)";
+            },
+            onClick: () => {
+              router.push(`/collections/${newCollection.id}`);
+            },
+          },
+          "View collection"
+        ),
+      duration: 5000,
+    });
+
+    emit("add-to-collection", {
+      collection: newCollection,
+      photoIds: props.photoIds,
+    });
+
+    // Reset form and close dialogs
+    formData.value = { title: "", description: "" };
+    createDialogVisible.value = false;
+    handleCancel();
+  } catch (error) {
+    console.error("Error creating collection:", error);
+    message.error("Failed to create collection. Please try again.");
+  }
+};
+
 const handleCancel = () => {
   showModal.value = false;
   selectedCollection.value = null;
+  createDialogVisible.value = false;
+  formData.value = { title: "", description: "" };
   emit("cancel");
 };
 </script>
@@ -232,6 +385,31 @@ const handleCancel = () => {
   border-color: #8b5cf6;
 }
 
+.collection-item.create-new-collection {
+  border: 2px dashed #2c2c32;
+  background-color: rgba(139, 92, 246, 0.05);
+}
+
+.collection-item.create-new-collection:hover {
+  border-color: #8b5cf6;
+  background-color: rgba(139, 92, 246, 0.1);
+}
+
+.create-collection-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.create-collection-content .collection-name {
+  color: #8b5cf6;
+  font-weight: 600;
+}
+
+.create-collection-content .collection-description {
+  color: #ffffff73;
+}
+
 .collection-info {
   display: flex;
   flex-direction: column;
@@ -255,5 +433,10 @@ const handleCancel = () => {
   font-size: 12px;
   color: #8b5cf6;
   font-weight: 500;
+}
+
+/* Create Form Styles */
+.create-form {
+  padding-top: 16px;
 }
 </style>

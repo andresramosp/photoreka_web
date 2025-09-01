@@ -237,6 +237,15 @@
     <!-- Playground Upgrade Modal -->
     <PlaygroundUpgradeModal v-model="showPlaygroundUpgradeModal" />
 
+    <!-- Collection Modal -->
+    <CollectionModal
+      :show="showCollectionModal"
+      :photo-count="selectedPhotosCount"
+      :photo-ids="selectedPhotoIds"
+      @add-to-collection="handleCollectionAdded"
+      @cancel="handleCollectionModalCancel"
+    />
+
     <!-- Top Left Controls -->
     <div class="canvas-controls top-left">
       <n-space>
@@ -379,6 +388,26 @@
             </n-icon>
           </template>
           Download
+          {{ selectedPhotosCount > 1 ? `(${selectedPhotosCount})` : "" }}
+        </n-button>
+
+        <!-- Add to Collection Button - Only show when photos are selected -->
+        <n-button
+          v-if="selectedPhotosCount > 0"
+          type="info"
+          @click="handleAddToCollection"
+        >
+          <template #icon>
+            <n-icon size="20">
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M17 14H19V17H22V19H19V22H17V19H14V17H17V14M12 18H6V16H12V18M12 14H6V12H12V14M16 10H6V8H16V10M20 6H4C2.9 6 2 6.9 2 8V20C2 21.1 2.9 22 4 22H13.35C13.13 21.37 13 20.7 13 20C13 16.69 15.69 14 19 14C19.34 14 19.67 14.03 20 14.08V8C20 6.9 19.1 6 18 6H20Z"
+                />
+              </svg>
+            </n-icon>
+          </template>
+          Collection
           {{ selectedPhotosCount > 1 ? `(${selectedPhotosCount})` : "" }}
         </n-button>
 
@@ -646,6 +675,7 @@ import TagPillsCanvas from "@/components/canvas/TagPills/TagPillsCanvas.vue";
 import RelatedPhotosToolbar from "@/components/canvas/RelatedPhotosToolbar.vue";
 import PlaygroundUpgradeModal from "@/components/PlaygroundUpgradeModal.vue";
 import PlaygroundPhotosDialog from "@/components/PlaygroundPhotosDialog.vue";
+import CollectionModal from "@/components/CollectionModal.vue";
 import { SaveOutline, CloudDownloadOutline } from "@vicons/ionicons5";
 import { SelectAllFilled } from "@vicons/material";
 import { Workspace } from "@vicons/carbon";
@@ -717,6 +747,9 @@ const isLoadingRelatedPhotos = ref(false);
 // Playground state
 const showPlaygroundUpgradeModal = ref(false);
 
+// Collection modal state
+const showCollectionModal = ref(false);
+
 // Expandable dropdown state
 const canvasModeIsExpanded = ref(false);
 const isDropdownOpen = ref(false);
@@ -787,6 +820,13 @@ watch(
 // Count selected photos
 const selectedPhotosCount = computed(() => {
   return photos.value.filter((photo) => photo.selected).length;
+});
+
+// Get selected photo IDs for collection modal
+const selectedPhotoIds = computed(() => {
+  return photos.value
+    .filter((photo) => photo.selected)
+    .map((photo) => photo.id);
 });
 
 // Computed property to filter expansion options based on basicMode
@@ -1037,6 +1077,26 @@ const handleDownloadSelectedPhotos = async () => {
     // Download multiple photos as ZIP
     await downloadPhotosZip(selectedPhotos);
   }
+};
+
+const handleAddToCollection = () => {
+  if (selectedPhotoIds.value.length > 0) {
+    showCollectionModal.value = true;
+  }
+};
+
+const handleCollectionAdded = (data) => {
+  // Clear selections after successfully adding to collection
+  photos.value.forEach((photo) => {
+    if (photo.selected) {
+      photo.selected = false;
+    }
+  });
+  showCollectionModal.value = false;
+};
+
+const handleCollectionModalCancel = () => {
+  showCollectionModal.value = false;
 };
 
 const openPhotoInfo = (photo, event) => {
