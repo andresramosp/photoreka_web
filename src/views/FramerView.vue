@@ -1,5 +1,9 @@
 <template>
-  <div class="framer-container view-container">
+  <!-- Use mobile component on small screens -->
+  <FramerViewMobile v-if="isMobileView" />
+
+  <!-- Desktop/tablet layout -->
+  <div v-else class="framer-container view-container">
     <!-- Welcome state -->
     <div v-if="!hasSelectedPhotos" class="empty-state">
       <div class="empty-content">
@@ -285,12 +289,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
 import { useMessage } from "naive-ui";
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
 import PhotosDialog from "@/components/PhotosDialog.vue";
 import FrameVisualizer from "@/components/FrameVisualizer.vue";
+import FramerViewMobile from "@/views/FramerViewMobile.vue";
 import { useFramedPhotoDownload } from "@/composables/useFramedPhotoDownload.js";
 import { NButton, NIcon, NSlider } from "naive-ui";
 
@@ -320,6 +325,14 @@ const selectedFrame = ref(null);
 const marginValue = ref(20);
 const frameColor = ref("#ffffff");
 const showPhotoDialog = ref(false);
+
+// Mobile detection
+const windowWidth = ref(window.innerWidth);
+const isMobileView = computed(() => windowWidth.value <= 768);
+
+const updateWindowWidth = () => {
+  windowWidth.value = window.innerWidth;
+};
 
 // All frame options combined for the grid layout
 const allFrames = ref([
@@ -498,6 +511,13 @@ onMounted(async () => {
   if (photosStore.photos?.length === 0) {
     await photosStore.getOrFetch(false);
   }
+
+  // Add window resize listener for mobile detection
+  window.addEventListener("resize", updateWindowWidth);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", updateWindowWidth);
 });
 </script>
 

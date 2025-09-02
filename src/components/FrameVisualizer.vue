@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, onMounted, onUnmounted } from "vue";
 import { NIcon } from "naive-ui";
 import { ImageOutline as ImageIcon } from "@vicons/ionicons5";
 
@@ -65,15 +65,33 @@ const props = defineProps({
 // Emits
 const emit = defineEmits(["image-load", "image-error"]);
 
+// Reactive window size for responsive calculations
+const windowSize = ref({
+  width: window.innerWidth,
+  height: window.innerHeight,
+});
+
+const updateWindowSize = () => {
+  windowSize.value = { width: window.innerWidth, height: window.innerHeight };
+};
+
 // Calculate optimal frame size based on container and aspect ratio
 const calculateFrameSize = () => {
   const [widthRatio, heightRatio] = props.aspectRatio.split("/").map(Number);
   const aspectRatioValue = widthRatio / heightRatio;
 
+  // Check if we're in mobile view
+  const isMobile = windowSize.value.width <= 768;
+
   // More generous container dimensions to better utilize available space
   // Account for padding, margins, and other UI elements
-  const availableWidth = Math.min(window.innerWidth * 0.8, 600);
-  const availableHeight = Math.min(window.innerHeight * 0.7, 500);
+  // Use smaller dimensions for mobile
+  const availableWidth = isMobile
+    ? Math.min(windowSize.value.width * 0.7, 320) // Even smaller for mobile
+    : Math.min(windowSize.value.width * 0.8, 600);
+  const availableHeight = isMobile
+    ? Math.min(windowSize.value.height * 0.3, 250) // Smaller height for mobile
+    : Math.min(windowSize.value.height * 0.7, 500);
 
   let frameWidth, frameHeight;
 
@@ -92,7 +110,7 @@ const calculateFrameSize = () => {
   }
 
   // Ensure minimum viable size
-  const minSize = 150;
+  const minSize = isMobile ? 120 : 150; // Smaller minimum size for mobile
   if (frameWidth < minSize || frameHeight < minSize) {
     if (aspectRatioValue > 1) {
       frameWidth = minSize * aspectRatioValue;
@@ -111,6 +129,8 @@ const calculateFrameSize = () => {
 
 // Computed styles
 const frameContainerStyle = computed(() => {
+  // Trigger recalculation when window size changes
+  const _ = windowSize.value;
   const size = calculateFrameSize();
 
   return {
@@ -131,6 +151,15 @@ const onImageLoad = (event) => {
 const onImageError = (event) => {
   emit("image-error", event);
 };
+
+// Lifecycle
+onMounted(() => {
+  window.addEventListener("resize", updateWindowSize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", updateWindowSize);
+});
 </script>
 
 <style scoped>
@@ -166,8 +195,11 @@ const onImageError = (event) => {
   /* Ensure the frame is properly sized and centered */
   flex-shrink: 0;
 
-  /* Additional centering insurance */
+  /* Better centering */
   margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   /* Prevent the frame from being larger than its container */
   max-width: calc(100% - 24px);
@@ -222,31 +254,52 @@ const onImageError = (event) => {
 /* Responsive behavior */
 @media (max-width: 768px) {
   .frame-visualizer {
-    padding: var(--spacing-md);
-    min-height: 300px;
+    padding: var(--spacing-sm);
+    min-height: 200px; /* Smaller min height for mobile */
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .visualizer-container {
-    padding: 10px;
+    padding: 6px; /* Less padding for mobile */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .frame-container {
+    /* Ensure frame doesn't get too large on mobile */
+    max-width: calc(100% - 12px) !important;
+    max-height: calc(100% - 12px) !important;
+    /* Better centering for mobile */
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .no-photo-placeholder {
-    min-height: 120px;
+    min-height: 100px;
   }
 }
 
 @media (max-width: 600px) {
   .frame-visualizer {
-    padding: var(--spacing-sm);
-    min-height: 250px;
+    padding: var(--spacing-xs);
+    min-height: 180px; /* Even smaller for small screens */
   }
 
   .visualizer-container {
-    padding: 8px;
+    padding: 4px;
   }
 
   .no-photo-placeholder {
-    min-height: 100px;
+    min-height: 80px;
+  }
+
+  .frame-container {
+    max-width: calc(100% - 8px) !important;
+    max-height: calc(100% - 8px) !important;
   }
 }
 
