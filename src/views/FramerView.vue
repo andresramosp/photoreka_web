@@ -132,21 +132,7 @@
               <h3>Preview</h3>
               <div class="preview-controls">
                 <n-button
-                  @click="downloadCurrent"
-                  type="primary"
-                  ghost
-                  :loading="isDownloading"
-                  :disabled="isDownloading"
-                >
-                  <template #icon>
-                    <n-icon>
-                      <DownloadIcon />
-                    </n-icon>
-                  </template>
-                  Download
-                </n-button>
-                <n-button
-                  @click="downloadAll"
+                  @click="downloadPhotos"
                   type="primary"
                   :loading="isDownloading"
                   :disabled="isDownloading"
@@ -156,7 +142,11 @@
                       <DownloadIcon />
                     </n-icon>
                   </template>
-                  Download All ({{ selectedPhotos.length }})
+                  Download{{
+                    selectedCount > 0
+                      ? ` (${selectedCount})`
+                      : ` All (${selectedPhotos.length})`
+                  }}
                 </n-button>
               </div>
             </div>
@@ -468,41 +458,14 @@ const selectFrame = (frame) => {
   selectedFrame.value = frame;
 };
 
-const downloadCurrent = async () => {
+const downloadPhotos = async () => {
+  // Determine which photos to download
   const photosToDownload =
     selectedCount.value > 0
       ? selectedPhotos.value.filter((p) => selectedPhotoIds.value.has(p.id))
-      : currentPhoto.value
-      ? [currentPhoto.value]
-      : [];
+      : selectedPhotos.value;
 
   if (photosToDownload.length === 0 || !selectedFrame.value) return;
-
-  if (photosToDownload.length === 1) {
-    // Download single photo with frame
-    const frameConfig = {
-      aspectRatio: selectedFrame.value.aspectRatio,
-      ratio: selectedFrame.value.ratio,
-      frameColor: frameColor.value,
-      margin: marginValue.value,
-    };
-
-    await downloadFramedPhoto(photosToDownload[0], frameConfig);
-  } else {
-    // Download multiple selected photos as ZIP
-    const frameConfig = {
-      aspectRatio: selectedFrame.value.aspectRatio,
-      ratio: selectedFrame.value.ratio,
-      frameColor: frameColor.value,
-      margin: marginValue.value,
-    };
-
-    await downloadFramedPhotosZip(photosToDownload, frameConfig);
-  }
-};
-
-const downloadAll = async () => {
-  if (selectedPhotos.value.length === 0 || !selectedFrame.value) return;
 
   const frameConfig = {
     aspectRatio: selectedFrame.value.aspectRatio,
@@ -511,10 +474,12 @@ const downloadAll = async () => {
     margin: marginValue.value,
   };
 
-  if (selectedPhotos.value.length === 1) {
-    await downloadFramedPhoto(selectedPhotos.value[0], frameConfig);
+  if (photosToDownload.length === 1) {
+    // Download single photo with frame
+    await downloadFramedPhoto(photosToDownload[0], frameConfig);
   } else {
-    await downloadFramedPhotosZip(selectedPhotos.value, frameConfig);
+    // Download multiple photos as ZIP
+    await downloadFramedPhotosZip(photosToDownload, frameConfig);
   }
 };
 
