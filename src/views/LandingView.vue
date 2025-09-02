@@ -50,6 +50,9 @@
                 by various aesthetic aspects and find the hidden gems in your
                 catalog.
               </p>
+              <!-- <p class="hero-tools-subtitle">
+                Need to sequence or frame photos? Try our free tools
+              </p>
               <div class="hero-actions">
                 <n-button
                   v-if="!isMobileDevice()"
@@ -60,15 +63,15 @@
                   <template #icon>
                     <n-icon><Workspace /></n-icon>
                   </template>
-                  Free Canvas
+                  Canvas
                 </n-button>
                 <n-button size="medium" type="warning" @click="goToFreeFramer">
                   <template #icon>
                     <n-icon><StopOutline /></n-icon>
                   </template>
-                  Free Framer
+                  Framer
                 </n-button>
-              </div>
+              </div> -->
             </div>
             <div class="hero-visual">
               <div class="video-tabs-container" ref="demoSection">
@@ -158,9 +161,10 @@
             <h3 class="feature-title">Interactive Canvas</h3>
             <p class="feature-description">
               Create stunning photo layouts and compositions with our intuitive
-              canvas tool.
+              canvas tool. Drag, drop, resize, and arrange your photos to tell
+              your story.
             </p>
-            <n-button
+            <!-- <n-button
               style="margin-top: 16px"
               v-if="!isMobileDevice()"
               type="warning"
@@ -171,7 +175,7 @@
                 <n-icon><Workspace /></n-icon>
               </template>
               Try it Now
-            </n-button>
+            </n-button> -->
           </div>
           <div class="floating-feature-card">
             <div class="feature-icon">
@@ -224,8 +228,37 @@
           </p>
         </div> -->
         </div>
-      </section>
 
+        <!-- Free Tools CTA -->
+        <div class="features-cta">
+          <h3 class="features-cta-title">Need to sequence or frame photos?</h3>
+          <p class="features-cta-subtitle">Try our free tools to get started</p>
+          <div class="features-tools">
+            <div
+              v-if="!isMobileDevice()"
+              class="feature-tool-card"
+              @click="goToPlayground"
+            >
+              <div class="tool-icon">
+                <n-icon size="32" color="#8b5cf6">
+                  <Workspace />
+                </n-icon>
+              </div>
+              <h4 class="tool-title">Canvas</h4>
+              <p class="tool-description">Create layouts and compositions</p>
+            </div>
+            <div class="feature-tool-card" @click="goToFreeFramer">
+              <div class="tool-icon">
+                <n-icon size="32" color="#f59e0b">
+                  <StopOutline />
+                </n-icon>
+              </div>
+              <h4 class="tool-title">Framer</h4>
+              <p class="tool-description">Add frames and sequences to photos</p>
+            </div>
+          </div>
+        </div>
+      </section>
       <!-- How It Works Section -->
       <section class="how-it-works-section">
         <div class="floating-header">
@@ -1021,8 +1054,16 @@ if (typeof window !== "undefined") {
   font-size: 18px;
   line-height: 1.6;
   /* color: var(--text-secondary); */
-  margin-bottom: 40px;
+  margin-bottom: 30px;
   margin-top: 30px;
+}
+
+.hero-tools-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  font-weight: 400;
+  opacity: 0.8;
 }
 
 .hero-actions {
@@ -1248,6 +1289,94 @@ if (typeof window !== "undefined") {
   border-color: var(--primary-color);
   transform: translateY(-8px) scale(1.02);
   box-shadow: 0 20px 40px rgba(37, 99, 235, 0.25);
+}
+
+/* Features CTA */
+.features-cta {
+  text-align: center;
+  margin-top: 80px;
+  padding: 0 24px;
+}
+
+.features-cta-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.features-cta-subtitle {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-bottom: 40px;
+  opacity: 0.9;
+}
+
+.features-tools {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  align-items: center;
+}
+
+.feature-tool-card {
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  transition: all 0.4s ease;
+  width: 240px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-tool-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(37, 99, 235, 0.05),
+    rgba(139, 92, 246, 0.05)
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.feature-tool-card:hover::before {
+  opacity: 1;
+}
+
+.feature-tool-card:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.25);
+}
+
+.tool-icon {
+  margin-bottom: 20px;
+}
+
+.tool-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.tool-description {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 0;
 }
 
 /* Floating Steps */
@@ -1831,6 +1960,26 @@ if (typeof window !== "undefined") {
   .faq-answer p {
     font-size: 15px;
   }
+
+  .features-cta {
+    margin-top: 60px;
+    padding: 0 16px;
+  }
+
+  .features-cta-title {
+    font-size: 24px;
+  }
+
+  .features-tools {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .feature-tool-card {
+    width: calc(100% - 32px);
+    max-width: 300px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1887,6 +2036,20 @@ if (typeof window !== "undefined") {
 
   .faq-answer p {
     font-size: 14px;
+  }
+
+  .features-cta {
+    margin-top: 40px;
+    padding: 0 12px;
+  }
+
+  .features-cta-title {
+    font-size: 20px;
+  }
+
+  .feature-tool-card {
+    width: calc(100% - 24px);
+    padding: 24px 20px;
   }
 }
 
