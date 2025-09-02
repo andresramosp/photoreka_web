@@ -4,8 +4,8 @@
 
   <!-- Desktop/tablet layout -->
   <div v-else class="framer-container view-container">
-    <!-- Welcome state -->
-    <div v-if="!hasSelectedPhotos" class="empty-state">
+    <!-- Welcome state (only in non-playground mode) -->
+    <div v-if="!hasSelectedPhotos && !isPlaygroundMode" class="empty-state">
       <div class="empty-content">
         <div class="empty-icon">
           <n-icon :size="48">
@@ -64,13 +64,27 @@
     </div>
 
     <!-- Main framer interface -->
-    <div v-else class="framer-interface">
+    <div v-if="hasSelectedPhotos || isPlaygroundMode" class="framer-interface">
       <!-- Main content area -->
       <div class="framer-content">
         <!-- Left sidebar with frame options -->
         <div class="frame-sidebar">
           <div class="sidebar-header">
-            <h3>Frame Styles</h3>
+            <!-- Logo for playground mode -->
+            <div v-if="isPlaygroundMode" class="logo-container">
+              <img
+                src="@/assets/logo_name_sub_curation_lab_blue.png"
+                alt="Photoreka"
+                class="app-logo"
+              />
+            </div>
+            <!-- Title for authenticated mode -->
+            <h3 v-else>Frame Styles</h3>
+          </div>
+
+          <!-- Frame styles title (smaller, closer to options) -->
+          <div v-if="isPlaygroundMode" class="frame-styles-title">
+            <h4>Frame Styles</h4>
           </div>
 
           <div class="frame-options-grid">
@@ -130,11 +144,17 @@
         </div>
 
         <!-- Center preview area -->
-        <div class="preview-area">
+        <div
+          class="preview-area"
+          :class="{ 'playground-mode': isPlaygroundMode }"
+        >
           <div class="preview-container">
             <div class="preview-header">
+              <!-- Logo for playground mode -->
+
+              <!-- Title for authenticated mode -->
               <h3>Preview</h3>
-              <div class="preview-controls">
+              <div class="preview-controls" v-if="selectedCount > 0">
                 <n-button
                   @click="downloadPhotos"
                   type="primary"
@@ -155,27 +175,45 @@
               </div>
             </div>
 
-            <div class="photo-preview">
+            <div class="photo-preview" :class="{ 'has-photo': !!previewPhoto }">
               <div class="preview-wrapper">
-                <FrameVisualizer
-                  :photo-url="previewPhotoUrl"
-                  :photo-alt="
-                    previewPhoto?.file_name ||
-                    previewPhoto?.name ||
-                    'Selected photo'
-                  "
-                  :aspect-ratio="selectedFrame?.aspectRatio || '1/1'"
-                  :frame-color="frameColor"
-                  :margin="marginValue"
-                  max-width="95%"
-                  max-height="95%"
-                  @image-load="onImageLoad"
-                  @image-error="onImageError"
-                />
-                <!-- Photo count indicator -->
-                <div v-if="selectedCount > 1" class="photo-count-indicator">
-                  <span>{{ selectedCount }}</span>
-                </div>
+                <template v-if="previewPhoto">
+                  <FrameVisualizer
+                    :photo-url="previewPhotoUrl"
+                    :photo-alt="
+                      previewPhoto?.file_name ||
+                      previewPhoto?.name ||
+                      'Selected photo'
+                    "
+                    :aspect-ratio="selectedFrame?.aspectRatio || '1/1'"
+                    :frame-color="frameColor"
+                    :margin="marginValue"
+                    max-width="95%"
+                    max-height="95%"
+                    @image-load="onImageLoad"
+                    @image-error="onImageError"
+                  />
+                  <!-- Photo count indicator -->
+                  <div v-if="selectedCount > 1" class="photo-count-indicator">
+                    <span>{{ selectedCount }}</span>
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="no-photo-preview">
+                    <n-button
+                      type="primary"
+                      size="large"
+                      @click="openPhotoDialog"
+                    >
+                      <template #icon>
+                        <n-icon>
+                          <AddIcon />
+                        </n-icon>
+                      </template>
+                      Add Photos to Start
+                    </n-button>
+                  </div>
+                </template>
               </div>
             </div>
           </div>
@@ -696,7 +734,7 @@ onUnmounted(() => {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 8px;
 }
 
 .sidebar-header h3 {
@@ -706,11 +744,33 @@ onUnmounted(() => {
   color: var(--text-primary);
 }
 
+.logo-container {
+  display: flex;
+  justify-content: center;
+}
+
+.app-logo {
+  max-height: 50px;
+  width: auto;
+  object-fit: contain;
+}
+
+.frame-styles-title {
+  margin-bottom: var(--spacing-md);
+}
+
+.frame-styles-title h4 {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
 .frame-options-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-sm);
-  margin-top: var(--spacing-lg);
+  margin-top: 0; /* Reduced margin since title is now above */
   overflow-y: auto;
   padding-right: var(--spacing-xs);
 }
@@ -862,13 +922,17 @@ onUnmounted(() => {
 /* Preview Area */
 .preview-area {
   flex: 1;
-  max-height: 87vh;
   display: flex;
   flex-direction: column;
   background-color: var(--bg-secondary);
   border-radius: var(--border-radius-lg);
   border: 1px solid var(--border-color);
   overflow: hidden;
+}
+
+/* Solo aplica el max-height si NO es playground */
+.preview-area:not(.playground-mode) {
+  max-height: 87vh;
 }
 
 .preview-container {
@@ -893,6 +957,17 @@ onUnmounted(() => {
   color: var(--text-primary);
 }
 
+.preview-logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.preview-logo {
+  max-height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
 .preview-controls {
   display: flex;
   gap: var(--spacing-sm);
@@ -903,14 +978,28 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background with checkered pattern when photo is present */
+/* Background with checkered pattern always visible in preview */
+.photo-preview .preview-wrapper {
   background: linear-gradient(45deg, #f8fafc 25%, transparent 25%),
     linear-gradient(-45deg, #f8fafc 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, #f8fafc 75%),
     linear-gradient(-45deg, transparent 75%, #f8fafc 75%);
   background-size: 20px 20px;
   background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-  position: relative;
-  overflow: hidden;
+}
+
+.no-photo-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  /* Eliminar background-color para que se vea el patrón de fondo */
 }
 
 .preview-wrapper {

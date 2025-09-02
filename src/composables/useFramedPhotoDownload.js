@@ -218,7 +218,12 @@ export function useFramedPhotoDownload() {
               const nameWithoutExt = originalName.replace(/\.[^/.]+$/, "");
               const frameRatio =
                 frameConfig.ratio || frameConfig.aspectRatio.replace("/", "-");
-              const filename = `${nameWithoutExt}_framed_${frameRatio}.jpg`;
+              // Reemplaza caracteres inválidos para Windows
+              const safeFrameRatio = String(frameRatio).replace(
+                /[:*?"<>|]/g,
+                "-"
+              );
+              const filename = `${nameWithoutExt}_framed_${safeFrameRatio}.jpg`;
 
               zip.file(filename, framedBlob);
             } catch (error) {

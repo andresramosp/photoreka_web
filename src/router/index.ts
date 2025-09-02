@@ -156,8 +156,8 @@ const router = createRouter({
       },
     },
     {
-      path: "/framer-playground",
-      name: "framer-playground",
+      path: "/free-framer",
+      name: "free-framer",
       component: FramerView,
       meta: {
         requiresGuest: false, // Accessible without authentication

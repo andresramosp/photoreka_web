@@ -5,7 +5,19 @@
       <!-- Preview area at top -->
       <div class="mobile-preview-area">
         <div class="preview-header">
-          <h3>Preview</h3>
+          <!-- Logo for playground mode -->
+          <div
+            v-if="props.playgroundMode"
+            class="mobile-preview-logo-container"
+          >
+            <img
+              src="@/assets/logo_name_sub_curation_lab_blue.png"
+              alt="Photoreka"
+              class="mobile-preview-logo"
+            />
+          </div>
+          <!-- Title for authenticated mode -->
+          <h3 v-else>Preview</h3>
           <n-button
             @click="downloadPhotos"
             type="primary"
@@ -22,7 +34,10 @@
           </n-button>
         </div>
 
-        <div class="mobile-photo-preview">
+        <div
+          class="mobile-photo-preview"
+          :class="{ 'has-photo': !!previewPhoto }"
+        >
           <div v-if="!previewPhoto" class="no-photo-preview">
             <n-button type="primary" size="medium" @click="openPhotoDialog">
               <template #icon>
@@ -57,7 +72,21 @@
       <!-- Frame styles section -->
       <div class="mobile-frame-section">
         <div class="section-header">
+          <!-- Logo for playground mode -->
+          <!-- <div v-if="props.playgroundMode" class="mobile-frame-logo-container">
+            <img
+              src="@/assets/logo_name_sub_curation_lab_blue.png"
+              alt="Photoreka"
+              class="mobile-frame-logo"
+            />
+          </div> -->
+          <!-- Title for authenticated mode -->
           <h4>Frame Styles</h4>
+        </div>
+
+        <!-- Frame styles title (smaller, closer to options) for playground mode -->
+        <div v-if="props.playgroundMode" class="mobile-frame-styles-title">
+          <h5>Frame Styles</h5>
         </div>
 
         <div class="frame-styles-scroll">
@@ -457,22 +486,37 @@ onMounted(async () => {
   color: var(--text-primary);
 }
 
+.mobile-preview-logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.mobile-preview-logo {
+  max-height: 28px;
+  width: auto;
+  object-fit: contain;
+}
+
 .mobile-photo-preview {
   height: calc(40vh - 60px);
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  padding: var(--spacing-xs);
+  /* Better centering for mobile */
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Background with checkered pattern only when photo is present */
+.mobile-photo-preview {
   background: linear-gradient(45deg, #f8fafc 25%, transparent 25%),
     linear-gradient(-45deg, #f8fafc 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, #f8fafc 75%),
     linear-gradient(-45deg, transparent 75%, #f8fafc 75%);
   background-size: 15px 15px;
   background-position: 0 0, 0 7px, 7px -7px, -7px 0px;
-  position: relative;
-  padding: var(--spacing-xs);
-  /* Better centering for mobile */
-  overflow: hidden;
-  box-sizing: border-box;
 }
 
 .no-photo-preview {
@@ -481,6 +525,7 @@ onMounted(async () => {
   justify-content: center;
   width: 100%;
   height: 100%;
+  /* Sin background-color para mostrar el patrón */
 }
 
 .photo-count-indicator {
@@ -524,6 +569,30 @@ onMounted(async () => {
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.mobile-frame-logo-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.mobile-frame-logo {
+  max-height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
+.mobile-frame-styles-title {
+  padding: 0 var(--spacing-md) var(--spacing-xs) var(--spacing-md);
+  background-color: var(--bg-secondary);
+}
+
+.mobile-frame-styles-title h5 {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
 .frame-styles-scroll {
