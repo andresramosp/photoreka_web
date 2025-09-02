@@ -61,42 +61,6 @@
 
     <!-- Main framer interface -->
     <div v-else class="framer-interface">
-      <!-- Header -->
-      <div class="framer-header">
-        <div class="header-left">
-          <h1 class="framer-title">
-            <n-icon :size="28" class="title-icon">
-              <SquareOutline />
-            </n-icon>
-            Framer
-          </h1>
-          <p class="framer-subtitle">
-            {{ selectedPhotos.length }} photo{{
-              selectedPhotos.length > 1 ? "s" : ""
-            }}
-            selected
-          </p>
-        </div>
-        <div class="header-actions">
-          <n-button @click="openPhotoDialog" quaternary>
-            <template #icon>
-              <n-icon>
-                <AddIcon />
-              </n-icon>
-            </template>
-            Add More Photos
-          </n-button>
-          <n-button @click="clearAllPhotos" quaternary type="error">
-            <template #icon>
-              <n-icon>
-                <TrashIcon />
-              </n-icon>
-            </template>
-            Clear All
-          </n-button>
-        </div>
-      </div>
-
       <!-- Main content area -->
       <div class="framer-content">
         <!-- Left sidebar with frame options -->
@@ -105,67 +69,57 @@
             <h3>Frame Styles</h3>
           </div>
 
-          <div class="frame-categories">
-            <div class="frame-category">
-              <h4>Social Media</h4>
-              <div class="frame-options">
+          <div class="frame-options-grid">
+            <!-- Aspect ratio options -->
+            <div
+              v-for="frame in allFrames"
+              :key="frame.id"
+              class="frame-option"
+              :class="{ active: selectedFrame?.id === frame.id }"
+              @click="selectFrame(frame)"
+            >
+              <div class="frame-icon">
                 <div
-                  v-for="frame in socialMediaFrames"
-                  :key="frame.id"
-                  class="frame-option"
-                  :class="{ active: selectedFrame?.id === frame.id }"
-                  @click="selectFrame(frame)"
-                >
-                  <div
-                    class="frame-preview"
-                    :style="{ aspectRatio: frame.aspectRatio }"
-                  >
-                    <div class="frame-inner"></div>
-                  </div>
-                  <span class="frame-label">{{ frame.name }}</span>
-                </div>
+                  class="frame-shape"
+                  :style="{ aspectRatio: frame.aspectRatio }"
+                ></div>
+              </div>
+              <span class="frame-ratio">{{ frame.ratio }}</span>
+            </div>
+          </div>
+
+          <!-- Frame controls -->
+          <div class="frame-controls" v-if="selectedFrame">
+            <div class="controls-header">
+              <h4>Frame Settings</h4>
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Margin Size</label>
+              <div class="slider-container">
+                <n-slider
+                  v-model:value="marginValue"
+                  :min="0"
+                  :max="200"
+                  :step="5"
+                  class="margin-slider"
+                />
+                <span class="slider-value">{{ marginValue }}px</span>
               </div>
             </div>
 
-            <div class="frame-category">
-              <h4>Standard</h4>
-              <div class="frame-options">
+            <div class="control-group">
+              <label class="control-label">Frame Color</label>
+              <div class="color-options">
                 <div
-                  v-for="frame in standardFrames"
-                  :key="frame.id"
-                  class="frame-option"
-                  :class="{ active: selectedFrame?.id === frame.id }"
-                  @click="selectFrame(frame)"
-                >
-                  <div
-                    class="frame-preview"
-                    :style="{ aspectRatio: frame.aspectRatio }"
-                  >
-                    <div class="frame-inner"></div>
-                  </div>
-                  <span class="frame-label">{{ frame.name }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="frame-category">
-              <h4>Print</h4>
-              <div class="frame-options">
-                <div
-                  v-for="frame in printFrames"
-                  :key="frame.id"
-                  class="frame-option"
-                  :class="{ active: selectedFrame?.id === frame.id }"
-                  @click="selectFrame(frame)"
-                >
-                  <div
-                    class="frame-preview"
-                    :style="{ aspectRatio: frame.aspectRatio }"
-                  >
-                    <div class="frame-inner"></div>
-                  </div>
-                  <span class="frame-label">{{ frame.name }}</span>
-                </div>
+                  v-for="color in frameColors"
+                  :key="color.value"
+                  class="color-option"
+                  :class="{ active: frameColor === color.value }"
+                  :style="{ backgroundColor: color.value }"
+                  @click="frameColor = color.value"
+                  :title="color.name"
+                ></div>
               </div>
             </div>
           </div>
@@ -177,7 +131,13 @@
             <div class="preview-header">
               <h3>Preview</h3>
               <div class="preview-controls">
-                <n-button @click="downloadCurrent" type="primary" ghost>
+                <n-button
+                  @click="downloadCurrent"
+                  type="primary"
+                  ghost
+                  :loading="isDownloading"
+                  :disabled="isDownloading"
+                >
                   <template #icon>
                     <n-icon>
                       <DownloadIcon />
@@ -185,7 +145,12 @@
                   </template>
                   Download
                 </n-button>
-                <n-button @click="downloadAll" type="primary">
+                <n-button
+                  @click="downloadAll"
+                  type="primary"
+                  :loading="isDownloading"
+                  :disabled="isDownloading"
+                >
                   <template #icon>
                     <n-icon>
                       <DownloadIcon />
@@ -197,112 +162,125 @@
             </div>
 
             <div class="photo-preview">
-              <div v-if="currentPhoto" class="preview-wrapper">
-                <div
-                  class="framed-photo"
-                  :style="{
-                    aspectRatio: selectedFrame?.aspectRatio || '1/1',
-                    padding: `${marginValue}px`,
-                    backgroundColor: frameColor,
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-                    borderRadius: '4px',
-                  }"
-                >
-                  <img
-                    :src="currentPhoto.url_medium || currentPhoto.path_thumb"
-                    :alt="currentPhoto.file_name || currentPhoto.name"
-                    class="photo-image"
-                    @load="onImageLoad"
-                    @error="onImageError"
-                  />
+              <div class="preview-wrapper">
+                <FrameVisualizer
+                  :photo-url="previewPhoto?.originalUrl"
+                  :photo-alt="previewPhoto?.file_name || 'Selected photo'"
+                  :aspect-ratio="selectedFrame?.aspectRatio || '1/1'"
+                  :frame-color="frameColor"
+                  :margin="marginValue"
+                  max-width="95%"
+                  max-height="95%"
+                  @image-load="onImageLoad"
+                  @image-error="onImageError"
+                />
+                <!-- Photo count indicator -->
+                <div v-if="selectedCount > 1" class="photo-count-indicator">
+                  <span>{{ selectedCount }}</span>
                 </div>
               </div>
-              <div v-else class="no-photo-selected">
-                <n-icon :size="64" color="#ddd">
-                  <ImageIcon />
+            </div>
+          </div>
+        </div>
+
+        <!-- Right sidebar with photo selection (desktop only) -->
+        <div class="photo-sidebar desktop-only">
+          <div class="sidebar-header">
+            <h4>Selected Photos</h4>
+            <div class="strip-actions">
+              <span class="photo-count"
+                >{{ selectedPhotos.length }} photos</span
+              >
+              <n-button
+                @click="clearAllPhotos"
+                quaternary
+                type="error"
+                size="small"
+              >
+                <template #icon>
+                  <n-icon>
+                    <TrashIcon />
+                  </n-icon>
+                </template>
+                Clear All
+              </n-button>
+            </div>
+          </div>
+          <div class="photo-grid">
+            <!-- Add more photos button -->
+            <div class="add-photo-card" @click="openPhotoDialog">
+              <div class="add-photo-card-content">
+                <n-icon :size="32" color="var(--primary-color)">
+                  <AddIcon />
                 </n-icon>
-                <p>Select a photo from the strip below to preview</p>
+                <span class="add-photo-card-text">Add Photos</span>
               </div>
             </div>
 
-            <!-- Margin controls -->
-            <div class="margin-controls" v-if="selectedFrame">
-              <div class="control-group">
-                <label class="control-label">Margin Size</label>
-                <div class="slider-container">
-                  <n-slider
-                    v-model:value="marginValue"
-                    :min="0"
-                    :max="200"
-                    :step="5"
-                    class="margin-slider"
-                  />
-                  <span class="slider-value">{{ marginValue }}px</span>
-                </div>
-              </div>
-
-              <div class="control-group">
-                <label class="control-label">Frame Color</label>
-                <div class="color-options">
-                  <div
-                    v-for="color in frameColors"
-                    :key="color.value"
-                    class="color-option"
-                    :class="{ active: frameColor === color.value }"
-                    :style="{ backgroundColor: color.value }"
-                    @click="frameColor = color.value"
-                    :title="color.name"
-                  ></div>
-                </div>
-              </div>
-            </div>
+            <!-- Photo thumbnails -->
+            <PhotoCard
+              v-for="photo in selectedPhotos"
+              :key="photo.id"
+              :photo="photo"
+              :selected="selectedPhotoIds.has(photo.id)"
+              mode="selection"
+              :show-stars="false"
+              :show-tags="false"
+              :show-return-button="false"
+              @select="selectPhoto"
+              @move-to-curation="removePhoto"
+              class="framer-photo-card"
+            />
           </div>
         </div>
       </div>
 
-      <!-- Bottom photo strip -->
-      <div class="photo-strip">
+      <!-- Bottom photo strip (mobile only) -->
+      <div class="photo-strip mobile-only">
         <div class="strip-header">
           <h4>Selected Photos</h4>
-          <span class="photo-count">{{ selectedPhotos.length }} photos</span>
-        </div>
-        <div class="photo-thumbnails">
-          <div
-            v-for="photo in selectedPhotos"
-            :key="photo.id"
-            class="photo-thumbnail-wrapper"
-            :class="{ active: currentPhoto?.id === photo.id }"
-            @click="selectPhoto(photo)"
-          >
-            <div class="thumbnail-container">
-              <img
-                :src="photo.url_small || photo.path_thumb"
-                :alt="photo.file_name || photo.name"
-                class="thumbnail-image"
-              />
-              <div
-                class="thumbnail-overlay"
-                v-if="currentPhoto?.id === photo.id"
-              >
-                <n-icon :size="16" color="white">
-                  <CheckIcon />
-                </n-icon>
-              </div>
-            </div>
+          <div class="strip-actions">
+            <span class="photo-count">{{ selectedPhotos.length }} photos</span>
             <n-button
+              @click="clearAllPhotos"
               quaternary
-              size="tiny"
               type="error"
-              class="remove-button"
-              @click.stop="removePhoto(photo.id)"
+              size="small"
             >
               <template #icon>
-                <n-icon size="12">
-                  <CloseIcon />
+                <n-icon>
+                  <TrashIcon />
                 </n-icon>
               </template>
+              Clear All
             </n-button>
           </div>
+        </div>
+        <div class="photo-thumbnails">
+          <!-- Add more photos button -->
+          <div class="add-photo-card mobile-add" @click="openPhotoDialog">
+            <div class="add-photo-card-content">
+              <n-icon :size="24" color="var(--primary-color)">
+                <AddIcon />
+              </n-icon>
+              <span class="add-photo-card-text">Add</span>
+            </div>
+          </div>
+
+          <!-- Photo thumbnails -->
+          <PhotoCard
+            v-for="photo in selectedPhotos"
+            :key="photo.id"
+            :photo="photo"
+            :selected="selectedPhotoIds.has(photo.id)"
+            mode="selection"
+            :show-stars="false"
+            :show-tags="false"
+            :show-return-button="false"
+            @select="selectPhoto"
+            @move-to-curation="removePhoto"
+            class="framer-photo-card mobile-card"
+          />
         </div>
       </div>
     </div>
@@ -322,6 +300,8 @@ import { usePhotosStore } from "@/stores/photos.js";
 import { useMessage } from "naive-ui";
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
 import PhotosDialog from "@/components/PhotosDialog.vue";
+import FrameVisualizer from "@/components/FrameVisualizer.vue";
+import { useFramedPhotoDownload } from "@/composables/useFramedPhotoDownload.js";
 import { NButton, NIcon, NSlider } from "naive-ui";
 
 // Icons
@@ -339,38 +319,47 @@ import {
 
 const photosStore = usePhotosStore();
 const message = useMessage();
+const { downloadFramedPhoto, downloadFramedPhotosZip, isDownloading } =
+  useFramedPhotoDownload();
 
 // State
 const selectedPhotos = ref([]);
 const currentPhoto = ref(null);
+const selectedPhotoIds = ref(new Set());
 const selectedFrame = ref(null);
 const marginValue = ref(20);
 const frameColor = ref("#ffffff");
 const showPhotoDialog = ref(false);
 
-// Frame presets
-const socialMediaFrames = ref([
-  { id: "instagram-square", name: "Instagram Square", aspectRatio: "1/1" },
-  { id: "instagram-story", name: "Instagram Story", aspectRatio: "9/16" },
-  { id: "facebook-post", name: "Facebook Post", aspectRatio: "4/3" },
-  { id: "twitter-post", name: "Twitter Post", aspectRatio: "16/9" },
-  { id: "linkedin-post", name: "LinkedIn Post", aspectRatio: "1.91/1" },
-]);
+// All frame options combined for the grid layout
+const allFrames = ref([
+  // Row 1
+  { id: "square", ratio: "1:1", aspectRatio: "1/1" },
+  { id: "portrait-3-4", ratio: "3:4", aspectRatio: "3/4" },
+  { id: "landscape-4-3", ratio: "4:3", aspectRatio: "4/3" },
 
-const standardFrames = ref([
-  { id: "square", name: "Square", aspectRatio: "1/1" },
-  { id: "landscape", name: "Landscape", aspectRatio: "4/3" },
-  { id: "portrait", name: "Portrait", aspectRatio: "3/4" },
-  { id: "widescreen", name: "Widescreen", aspectRatio: "16/9" },
-  { id: "ultrawide", name: "Ultrawide", aspectRatio: "21/9" },
-]);
+  // Row 2
+  { id: "widescreen", ratio: "16:9", aspectRatio: "16/9" },
+  { id: "instagram-story", ratio: "9:16", aspectRatio: "9/16" },
+  { id: "cinema-2-3", ratio: "2:3", aspectRatio: "2/3" },
 
-const printFrames = ref([
-  { id: "print-4x6", name: '4x6"', aspectRatio: "6/4" },
-  { id: "print-5x7", name: '5x7"', aspectRatio: "7/5" },
-  { id: "print-8x10", name: '8x10"', aspectRatio: "10/8" },
-  { id: "print-11x14", name: '11x14"', aspectRatio: "14/11" },
-  { id: "print-16x20", name: '16x20"', aspectRatio: "20/16" },
+  // Row 3
+  { id: "golden-3-2", ratio: "3:2", aspectRatio: "3/2" },
+  { id: "movie", ratio: "Movie", aspectRatio: "2.39/1" },
+
+  // Social Media frames
+  { id: "instagram-square", ratio: "Instagram", aspectRatio: "1/1" },
+  { id: "facebook-post", ratio: "Facebook", aspectRatio: "4/3" },
+  { id: "twitter-post", ratio: "Twitter", aspectRatio: "16/9" },
+  { id: "linkedin-post", ratio: "LinkedIn", aspectRatio: "1.91/1" },
+
+  // Print frames
+  { id: "print-4x6", ratio: '4x6"', aspectRatio: "6/4" },
+  { id: "print-5x7", ratio: '5x7"', aspectRatio: "7/5" },
+  { id: "print-8x10", ratio: '8x10"', aspectRatio: "10/8" },
+  { id: "print-11x14", ratio: '11x14"', aspectRatio: "14/11" },
+  { id: "print-16x20", ratio: '16x20"', aspectRatio: "20/16" },
+  { id: "ultrawide", ratio: "21:9", aspectRatio: "21/9" },
 ]);
 
 const frameColors = ref([
@@ -384,38 +373,86 @@ const frameColors = ref([
 
 // Computed
 const hasSelectedPhotos = computed(() => selectedPhotos.value.length > 0);
+const selectedCount = computed(() => selectedPhotoIds.value.size);
+const previewPhoto = computed(() => {
+  // Only show photo if there are actually selected photos
+  if (selectedCount.value === 0) {
+    return null;
+  }
+
+  // Show the first selected photo from the multi-selection
+  const firstSelectedId = Array.from(selectedPhotoIds.value)[0];
+  if (firstSelectedId) {
+    return selectedPhotos.value.find((p) => p.id === firstSelectedId);
+  }
+
+  return null;
+});
 
 // Methods
 const openPhotoDialog = () => {
   showPhotoDialog.value = true;
 };
 
-const handlePhotosAdded = (photos) => {
-  selectedPhotos.value.push(...photos);
-  if (!currentPhoto.value && photos.length > 0) {
-    currentPhoto.value = photos[0];
+const handlePhotosAdded = (photoIds) => {
+  // Get the full photo objects from the store using the IDs
+  const photoObjects = photoIds
+    .map((id) => photosStore.photos.find((photo) => photo.id === id))
+    .filter(Boolean); // Remove any undefined values
+
+  // Add the photo objects to our selection
+  selectedPhotos.value.push(...photoObjects);
+
+  // Auto-select the first photo if no photos are currently selected
+  if (selectedCount.value === 0 && photoObjects.length > 0) {
+    const firstPhoto = photoObjects[0];
+    currentPhoto.value = firstPhoto;
+    selectedPhotoIds.value.add(firstPhoto.id);
   }
+
   if (!selectedFrame.value) {
-    selectedFrame.value = socialMediaFrames.value[0]; // Default to Instagram Square
+    selectedFrame.value = allFrames.value[0]; // Default to 1:1
   }
   message.success(
-    `Added ${photos.length} photo${photos.length > 1 ? "s" : ""} to framer`
+    `Added ${photoObjects.length} photo${
+      photoObjects.length > 1 ? "s" : ""
+    } to framer`
   );
 };
 
-const selectPhoto = (photo) => {
-  currentPhoto.value = photo;
+const selectPhoto = (photoId) => {
+  const photo = selectedPhotos.value.find((p) => p.id === photoId);
+  if (photo) {
+    currentPhoto.value = photo;
+
+    // Toggle multi-selection
+    if (selectedPhotoIds.value.has(photoId)) {
+      selectedPhotoIds.value.delete(photoId);
+    } else {
+      selectedPhotoIds.value.add(photoId);
+    }
+  }
 };
 
 const removePhoto = (photoId) => {
   const index = selectedPhotos.value.findIndex((p) => p.id === photoId);
   if (index > -1) {
     selectedPhotos.value.splice(index, 1);
+    selectedPhotoIds.value.delete(photoId);
 
-    // If we removed the current photo, select another one
+    // If we removed the current photo, update currentPhoto
     if (currentPhoto.value?.id === photoId) {
-      currentPhoto.value =
-        selectedPhotos.value.length > 0 ? selectedPhotos.value[0] : null;
+      // If there are still selected photos, pick the first one
+      if (selectedCount.value > 0) {
+        const firstSelectedId = Array.from(selectedPhotoIds.value)[0];
+        currentPhoto.value = selectedPhotos.value.find(
+          (p) => p.id === firstSelectedId
+        );
+      } else {
+        // If no photos selected, try the first available photo or null
+        currentPhoto.value =
+          selectedPhotos.value.length > 0 ? selectedPhotos.value[0] : null;
+      }
     }
   }
 };
@@ -424,6 +461,7 @@ const clearAllPhotos = () => {
   selectedPhotos.value = [];
   currentPhoto.value = null;
   selectedFrame.value = null;
+  selectedPhotoIds.value.clear();
 };
 
 const selectFrame = (frame) => {
@@ -431,17 +469,53 @@ const selectFrame = (frame) => {
 };
 
 const downloadCurrent = async () => {
-  if (!currentPhoto.value || !selectedFrame.value) return;
+  const photosToDownload =
+    selectedCount.value > 0
+      ? selectedPhotos.value.filter((p) => selectedPhotoIds.value.has(p.id))
+      : currentPhoto.value
+      ? [currentPhoto.value]
+      : [];
 
-  message.info("Download functionality coming soon...");
-  // TODO: Implement download logic
+  if (photosToDownload.length === 0 || !selectedFrame.value) return;
+
+  if (photosToDownload.length === 1) {
+    // Download single photo with frame
+    const frameConfig = {
+      aspectRatio: selectedFrame.value.aspectRatio,
+      ratio: selectedFrame.value.ratio,
+      frameColor: frameColor.value,
+      margin: marginValue.value,
+    };
+
+    await downloadFramedPhoto(photosToDownload[0], frameConfig);
+  } else {
+    // Download multiple selected photos as ZIP
+    const frameConfig = {
+      aspectRatio: selectedFrame.value.aspectRatio,
+      ratio: selectedFrame.value.ratio,
+      frameColor: frameColor.value,
+      margin: marginValue.value,
+    };
+
+    await downloadFramedPhotosZip(photosToDownload, frameConfig);
+  }
 };
 
 const downloadAll = async () => {
   if (selectedPhotos.value.length === 0 || !selectedFrame.value) return;
 
-  message.info("Batch download functionality coming soon...");
-  // TODO: Implement batch download logic
+  const frameConfig = {
+    aspectRatio: selectedFrame.value.aspectRatio,
+    ratio: selectedFrame.value.ratio,
+    frameColor: frameColor.value,
+    margin: marginValue.value,
+  };
+
+  if (selectedPhotos.value.length === 1) {
+    await downloadFramedPhoto(selectedPhotos.value[0], frameConfig);
+  } else {
+    await downloadFramedPhotosZip(selectedPhotos.value, frameConfig);
+  }
 };
 
 // Image handling functions
@@ -556,47 +630,7 @@ onMounted(async () => {
 .framer-interface {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 120px);
-}
-
-.framer-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-xl);
-  padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.header-left {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.framer-title {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  font-size: var(--font-size-2xl);
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.title-icon {
-  color: var(--primary-color);
-}
-
-.framer-subtitle {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-.header-actions {
-  display: flex;
-  gap: var(--spacing-md);
+  height: calc(100vh - 80px);
 }
 
 .framer-content {
@@ -608,13 +642,16 @@ onMounted(async () => {
 
 /* Frame Sidebar */
 .frame-sidebar {
-  width: 280px;
+  width: 330px;
   background-color: var(--bg-secondary);
   border-radius: var(--border-radius-lg);
   border: 1px solid var(--border-color);
   padding: var(--spacing-lg);
   overflow-y: auto;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
 }
 
 .sidebar-header h3 {
@@ -624,76 +661,163 @@ onMounted(async () => {
   color: var(--text-primary);
 }
 
-.frame-categories {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xl);
-}
-
-.frame-category h4 {
-  margin: 0 0 var(--spacing-md) 0;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.frame-options {
+.frame-options-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-sm);
+  margin-top: var(--spacing-lg);
+  overflow-y: auto;
+  padding-right: var(--spacing-xs);
+}
+
+/* Frame Controls */
+.frame-controls {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+}
+
+.controls-header {
+  margin-bottom: var(--spacing-md);
+}
+
+.controls-header h4 {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .frame-option {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm);
-  border-radius: var(--border-radius-md);
-  border: 2px solid transparent;
-  background-color: var(--bg-tertiary);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-lg);
+  border: 2px solid var(--border-color);
+  background-color: var(--bg-body);
   cursor: pointer;
   transition: all 0.2s ease;
+  aspect-ratio: 1;
+  justify-content: center;
 }
 
 .frame-option:hover {
-  background-color: var(--bg-hover);
-  border-color: var(--border-color-hover);
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .frame-option.active {
   border-color: var(--primary-color);
-  background-color: var(--primary-color-light);
+  background-color: var(--primary-color);
+  color: white;
 }
 
-.frame-preview {
-  width: 100%;
-  max-width: 60px;
-  background-color: var(--bg-body);
-  border-radius: var(--border-radius-sm);
-  padding: 4px;
-  border: 1px solid var(--border-color);
+.frame-option.active .frame-shape {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
-.frame-inner {
-  width: 100%;
-  height: 100%;
-  background-color: var(--bg-secondary);
-  border-radius: 2px;
+.frame-option.active .frame-ratio {
+  color: white;
 }
 
-.frame-label {
+.frame-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+}
+
+.frame-shape {
+  border: 2px solid var(--border-color);
+  background-color: transparent;
+  max-width: 40px;
+  max-height: 40px;
+  min-width: 16px;
+  min-height: 16px;
+  transition: all 0.2s ease;
+}
+
+.frame-ratio {
   font-size: var(--font-size-xs);
+  font-weight: 500;
   color: var(--text-secondary);
   text-align: center;
-  line-height: 1.2;
+  transition: all 0.2s ease;
+}
+
+/* Frame Controls */
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.control-group:last-child {
+  margin-bottom: 0;
+}
+
+.control-label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.margin-slider {
+  flex: 1;
+}
+
+.slider-value {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  min-width: 50px;
+  text-align: right;
+  font-weight: 500;
+}
+
+.color-options {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.color-option {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.color-option:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.color-option.active {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-color-light);
+  transform: scale(1.05);
 }
 
 /* Preview Area */
 .preview-area {
   flex: 1;
+  max-height: 87vh;
   display: flex;
   flex-direction: column;
   background-color: var(--bg-secondary);
@@ -702,12 +826,19 @@ onMounted(async () => {
   overflow: hidden;
 }
 
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .preview-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-lg);
   border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .preview-header h3 {
@@ -727,16 +858,18 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-2xl);
   background: linear-gradient(45deg, #f8fafc 25%, transparent 25%),
     linear-gradient(-45deg, #f8fafc 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, #f8fafc 75%),
     linear-gradient(-45deg, transparent 75%, #f8fafc 75%);
   background-size: 20px 20px;
   background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  position: relative;
+  overflow: hidden;
 }
 
 .preview-wrapper {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -744,95 +877,113 @@ onMounted(async () => {
   height: 100%;
 }
 
-.framed-photo {
-  max-width: 80%;
-  max-height: 80%;
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.photo-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: var(--border-radius-sm);
-  display: block;
-}
-
-.no-photo-selected {
+.photo-count-indicator {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: var(--spacing-md);
-  color: var(--text-tertiary);
-}
-
-.margin-controls {
-  padding: var(--spacing-lg);
-  border-top: 1px solid var(--border-color);
-  background-color: var(--bg-tertiary);
-}
-
-.control-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
-}
-
-.control-group:last-child {
-  margin-bottom: 0;
-}
-
-.control-label {
+  justify-content: center;
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+/* Photo Sidebar (Desktop) */
+.photo-sidebar {
+  width: 280px;
+  background-color: var(--bg-secondary);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.photo-sidebar .sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.photo-sidebar .sidebar-header h4 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
   color: var(--text-primary);
 }
 
-.slider-container {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.margin-slider {
-  flex: 1;
-}
-
-.slider-value {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  min-width: 60px;
-  text-align: right;
-}
-
-.color-options {
-  display: flex;
+.photo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--spacing-sm);
-  flex-wrap: wrap;
 }
 
-.color-option {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 3px solid transparent;
+.photo-grid .add-photo-container {
+  width: 100%;
+  height: 100px;
+  aspect-ratio: 1;
+}
+
+/* Add photo card that matches PhotoCard style */
+.add-photo-card {
+  background-color: var(--bg-tertiary);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--border-radius-md);
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px; /* Match typical PhotoCard height */
 }
 
-.color-option:hover {
-  transform: scale(1.1);
-}
-
-.color-option.active {
+.add-photo-card:hover {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px var(--primary-color-light);
+  background-color: var(--primary-color-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Photo Strip */
+.add-photo-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.add-photo-card-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  text-align: center;
+  font-weight: 500;
+}
+
+.add-photo-card.mobile-add {
+  min-height: 120px; /* Match PhotoCard height in mobile */
+  width: 120px; /* Match PhotoCard width in mobile */
+  flex-shrink: 0;
+}
+
+/* Responsive visibility classes */
+.desktop-only {
+  display: block;
+}
+
+.mobile-only {
+  display: none;
+}
+
+/* Photo Strip (Mobile) */
 .photo-strip {
   background-color: var(--bg-secondary);
   border-top: 1px solid var(--border-color);
@@ -844,6 +995,12 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--spacing-md);
+}
+
+.strip-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
 }
 
 .strip-header h4 {
@@ -962,6 +1119,24 @@ onMounted(async () => {
   background: var(--border-color-hover);
 }
 
+.photo-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.photo-sidebar::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-sm);
+}
+
+.photo-sidebar::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--border-radius-sm);
+}
+
+.photo-sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--border-color-hover);
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 1024px) {
   .framer-content {
@@ -977,6 +1152,20 @@ onMounted(async () => {
     order: 1;
     min-height: 400px;
   }
+
+  .photo-sidebar {
+    order: 3;
+    width: 100%;
+  }
+
+  /* Switch to mobile layout */
+  .desktop-only {
+    display: none;
+  }
+
+  .mobile-only {
+    display: block;
+  }
 }
 
 @media (max-width: 768px) {
@@ -984,33 +1173,66 @@ onMounted(async () => {
     padding: var(--spacing-lg);
   }
 
-  .framer-header {
-    flex-direction: column;
-    gap: var(--spacing-md);
-    align-items: stretch;
-  }
-
-  .header-actions {
-    justify-content: stretch;
-  }
-
-  .frame-options {
+  .frame-options-grid {
     grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-sm);
   }
 
   .preview-controls {
     flex-direction: column;
     gap: var(--spacing-sm);
   }
+
+  .photo-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Compact frame controls for mobile */
+  .frame-controls {
+    padding: var(--spacing-sm);
+  }
+
+  .color-options {
+    justify-content: center;
+  }
+
+  .color-option {
+    width: 24px;
+    height: 24px;
+  }
 }
 
 @media (max-width: 480px) {
-  .frame-options {
-    grid-template-columns: 1fr 1fr;
+  .frame-options-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .photo-thumbnails {
     gap: var(--spacing-xs);
+  }
+
+  .photo-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* Even more compact controls for small screens */
+  .frame-controls {
+    padding: var(--spacing-xs);
+  }
+
+  .controls-header h4 {
+    font-size: var(--font-size-sm);
+  }
+
+  .slider-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-xs);
+  }
+
+  .slider-value {
+    text-align: center;
+    min-width: auto;
   }
 }
 </style>
