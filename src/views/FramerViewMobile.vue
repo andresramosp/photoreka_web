@@ -35,8 +35,10 @@
           </div>
           <FrameVisualizer
             v-else
-            :photo-url="previewPhoto?.originalUrl"
-            :photo-alt="previewPhoto?.file_name || 'Selected photo'"
+            :photo-url="previewPhotoUrl"
+            :photo-alt="
+              previewPhoto?.file_name || previewPhoto?.name || 'Selected photo'
+            "
             :aspect-ratio="selectedFrame?.aspectRatio || '1/1'"
             :frame-color="frameColor"
             :margin="marginValue"
@@ -162,9 +164,17 @@
 
     <!-- Photo selection dialog -->
     <PhotosDialog
+      v-if="!props.playgroundMode"
       v-model="showPhotoDialog"
       title="Select Photos"
       @add-photos="handlePhotosAdded"
+    />
+
+    <!-- Playground photo selection dialog -->
+    <PlaygroundPhotosDialog
+      v-else
+      v-model="showPhotoDialog"
+      @add-photos="handlePlaygroundPhotosAdded"
     />
   </div>
 </template>
@@ -175,9 +185,18 @@ import { usePhotosStore } from "@/stores/photos.js";
 import { useMessage } from "naive-ui";
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
 import PhotosDialog from "@/components/PhotosDialog.vue";
+import PlaygroundPhotosDialog from "@/components/PlaygroundPhotosDialog.vue";
 import FrameVisualizer from "@/components/FrameVisualizer.vue";
 import { useFramedPhotoDownload } from "@/composables/useFramedPhotoDownload.js";
 import { NButton, NIcon, NSlider } from "naive-ui";
+
+// Props
+const props = defineProps({
+  playgroundMode: {
+    type: Boolean,
+    default: false,
+  },
+});
 
 // Icons
 import {
@@ -244,6 +263,19 @@ const previewPhoto = computed(() => {
   return null;
 });
 
+// Get the correct photo URL based on mode (playground vs authenticated)
+const previewPhotoUrl = computed(() => {
+  if (!previewPhoto.value) return null;
+
+  // In playground mode, use thumbnailUrl (which is the blob URL from local files)
+  if (props.playgroundMode) {
+    return previewPhoto.value.thumbnailUrl;
+  }
+
+  // In authenticated mode, use originalUrl
+  return previewPhoto.value.originalUrl;
+});
+
 // Methods
 const openPhotoDialog = () => {
   showPhotoDialog.value = true;
@@ -254,6 +286,25 @@ const handlePhotosAdded = (photoIds) => {
     .map((id) => photosStore.photos.find((photo) => photo.id === id))
     .filter(Boolean);
 
+  selectedPhotos.value.push(...photoObjects);
+
+  if (selectedCount.value === 0 && photoObjects.length > 0) {
+    const firstPhoto = photoObjects[0];
+    currentPhoto.value = firstPhoto;
+    selectedPhotoIds.value.add(firstPhoto.id);
+  }
+
+  if (!selectedFrame.value) {
+    selectedFrame.value = allFrames.value[0];
+  }
+
+  message.success(
+    `Added ${photoObjects.length} photo${photoObjects.length > 1 ? "s" : ""}`
+  );
+};
+
+const handlePlaygroundPhotosAdded = (photoObjects) => {
+  // For playground mode, we receive photo objects directly from PlaygroundPhotosDialog
   selectedPhotos.value.push(...photoObjects);
 
   if (selectedCount.value === 0 && photoObjects.length > 0) {
@@ -331,9 +382,17 @@ const downloadPhotos = async () => {
   };
 
   if (photosToDownload.length === 1) {
-    await downloadFramedPhoto(photosToDownload[0], frameConfig);
+    await downloadFramedPhoto(
+      photosToDownload[0],
+      frameConfig,
+      props.playgroundMode
+    );
   } else {
-    await downloadFramedPhotosZip(photosToDownload, frameConfig);
+    await downloadFramedPhotosZip(
+      photosToDownload,
+      frameConfig,
+      props.playgroundMode
+    );
   }
 };
 
@@ -346,7 +405,8 @@ const onImageError = () => {
 };
 
 onMounted(async () => {
-  if (photosStore.photos?.length === 0) {
+  // Only load photos from store in authenticated mode
+  if (!props.playgroundMode && photosStore.photos?.length === 0) {
     await photosStore.getOrFetch(false);
   }
 });

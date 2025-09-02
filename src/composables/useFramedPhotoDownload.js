@@ -94,20 +94,31 @@ export function useFramedPhotoDownload() {
   };
 
   // Download single framed photo
-  const downloadFramedPhoto = async (photo, frameConfig) => {
+  const downloadFramedPhoto = async (
+    photo,
+    frameConfig,
+    isPlayground = false
+  ) => {
     if (!photo || !frameConfig) return;
 
     isDownloading.value = true;
 
     try {
-      // First, download the original photo using your API
-      const apiUrl = `/download-photo`;
-      const response = await api.post(
-        apiUrl,
-        { ids: [photo.id] },
-        { responseType: "blob" }
-      );
-      const originalImageBlob = response.data;
+      let originalImageBlob;
+
+      if (isPlayground) {
+        // In playground mode, use the local file blob directly
+        originalImageBlob = photo.file; // This is the resized blob from PlaygroundPhotosDialog
+      } else {
+        // In authenticated mode, download from API
+        const apiUrl = `/download-photo`;
+        const response = await api.post(
+          apiUrl,
+          { ids: [photo.id] },
+          { responseType: "blob" }
+        );
+        originalImageBlob = response.data;
+      }
 
       // Create framed version
       const canvas = await createFramedPhotoCanvas(
@@ -126,8 +137,9 @@ export function useFramedPhotoDownload() {
       link.href = blobUrl;
 
       // Generate filename
-      const originalName =
-        photo.originalFileName || photo.file_name || `photo-${photo.id}`;
+      const originalName = isPlayground
+        ? photo.name || `photo-${photo.id}`
+        : photo.originalFileName || photo.file_name || `photo-${photo.id}`;
       const nameWithoutExt = originalName.replace(/\.[^/.]+$/, "");
       const frameRatio =
         frameConfig.ratio || frameConfig.aspectRatio.replace("/", "-");
@@ -149,7 +161,11 @@ export function useFramedPhotoDownload() {
   };
 
   // Download multiple framed photos as ZIP
-  const downloadFramedPhotosZip = async (photos, frameConfig) => {
+  const downloadFramedPhotosZip = async (
+    photos,
+    frameConfig,
+    isPlayground = false
+  ) => {
     if (!photos || photos.length === 0 || !frameConfig) return;
 
     isDownloading.value = true;
@@ -157,8 +173,8 @@ export function useFramedPhotoDownload() {
     try {
       const zip = new JSZip();
 
-      // Process photos in batches to avoid overwhelming the API
-      const batchSize = 5;
+      // Process photos in batches to avoid overwhelming the API (or process all at once in playground)
+      const batchSize = isPlayground ? photos.length : 5; // No need to batch local files
       for (let i = 0; i < photos.length; i += batchSize) {
         const batch = photos.slice(i, i + batchSize);
         const batchPromises = [];
@@ -166,14 +182,21 @@ export function useFramedPhotoDownload() {
         for (const photo of batch) {
           const promise = (async () => {
             try {
-              // Download original photo from API
-              const apiUrl = `/download-photo`;
-              const response = await api.post(
-                apiUrl,
-                { ids: [photo.id] },
-                { responseType: "blob" }
-              );
-              const originalImageBlob = response.data;
+              let originalImageBlob;
+
+              if (isPlayground) {
+                // In playground mode, use the local file blob directly
+                originalImageBlob = photo.file; // This is the resized blob from PlaygroundPhotosDialog
+              } else {
+                // In authenticated mode, download from API
+                const apiUrl = `/download-photo`;
+                const response = await api.post(
+                  apiUrl,
+                  { ids: [photo.id] },
+                  { responseType: "blob" }
+                );
+                originalImageBlob = response.data;
+              }
 
               // Create framed version
               const canvas = await createFramedPhotoCanvas(
@@ -187,10 +210,11 @@ export function useFramedPhotoDownload() {
               });
 
               // Add to ZIP
-              const originalName =
-                photo.originalFileName ||
-                photo.file_name ||
-                `photo-${photo.id}`;
+              const originalName = isPlayground
+                ? photo.name || `photo-${photo.id}`
+                : photo.originalFileName ||
+                  photo.file_name ||
+                  `photo-${photo.id}`;
               const nameWithoutExt = originalName.replace(/\.[^/.]+$/, "");
               const frameRatio =
                 frameConfig.ratio || frameConfig.aspectRatio.replace("/", "-");

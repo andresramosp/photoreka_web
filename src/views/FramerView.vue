@@ -1,6 +1,6 @@
 <template>
   <!-- Use mobile component on small screens -->
-  <FramerViewMobile v-if="isMobileView" />
+  <FramerViewMobile v-if="isMobileView" :playground-mode="isPlaygroundMode" />
 
   <!-- Desktop/tablet layout -->
   <div v-else class="framer-container view-container">
@@ -158,8 +158,12 @@
             <div class="photo-preview">
               <div class="preview-wrapper">
                 <FrameVisualizer
-                  :photo-url="previewPhoto?.originalUrl"
-                  :photo-alt="previewPhoto?.file_name || 'Selected photo'"
+                  :photo-url="previewPhotoUrl"
+                  :photo-alt="
+                    previewPhoto?.file_name ||
+                    previewPhoto?.name ||
+                    'Selected photo'
+                  "
                   :aspect-ratio="selectedFrame?.aspectRatio || '1/1'"
                   :frame-color="frameColor"
                   :margin="marginValue"
@@ -281,19 +285,29 @@
 
     <!-- Photo selection dialog -->
     <PhotosDialog
+      v-if="!isPlaygroundMode"
       v-model="showPhotoDialog"
       title="Select Photos for Framing"
       @add-photos="handlePhotosAdded"
+    />
+
+    <!-- Playground photo selection dialog -->
+    <PlaygroundPhotosDialog
+      v-else
+      v-model="showPhotoDialog"
+      @add-photos="handlePlaygroundPhotosAdded"
     />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
+import { useRoute } from "vue-router";
 import { usePhotosStore } from "@/stores/photos.js";
 import { useMessage } from "naive-ui";
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
 import PhotosDialog from "@/components/PhotosDialog.vue";
+import PlaygroundPhotosDialog from "@/components/PlaygroundPhotosDialog.vue";
 import FrameVisualizer from "@/components/FrameVisualizer.vue";
 import FramerViewMobile from "@/views/FramerViewMobile.vue";
 import { useFramedPhotoDownload } from "@/composables/useFramedPhotoDownload.js";
@@ -312,10 +326,14 @@ import {
   CheckmarkOutline as CheckIcon,
 } from "@vicons/ionicons5";
 
+const route = useRoute();
 const photosStore = usePhotosStore();
 const message = useMessage();
 const { downloadFramedPhoto, downloadFramedPhotosZip, isDownloading } =
   useFramedPhotoDownload();
+
+// Playground mode detection
+const isPlaygroundMode = computed(() => route.meta?.playground === true);
 
 // State
 const selectedPhotos = ref([]);
@@ -392,6 +410,19 @@ const previewPhoto = computed(() => {
   return null;
 });
 
+// Get the correct photo URL based on mode (playground vs authenticated)
+const previewPhotoUrl = computed(() => {
+  if (!previewPhoto.value) return null;
+
+  // In playground mode, use thumbnailUrl (which is the blob URL from local files)
+  if (isPlaygroundMode.value) {
+    return previewPhoto.value.thumbnailUrl;
+  }
+
+  // In authenticated mode, use originalUrl
+  return previewPhoto.value.originalUrl;
+});
+
 // Methods
 const openPhotoDialog = () => {
   showPhotoDialog.value = true;
@@ -404,6 +435,27 @@ const handlePhotosAdded = (photoIds) => {
     .filter(Boolean); // Remove any undefined values
 
   // Add the photo objects to our selection
+  selectedPhotos.value.push(...photoObjects);
+
+  // Auto-select the first photo if no photos are currently selected
+  if (selectedCount.value === 0 && photoObjects.length > 0) {
+    const firstPhoto = photoObjects[0];
+    currentPhoto.value = firstPhoto;
+    selectedPhotoIds.value.add(firstPhoto.id);
+  }
+
+  if (!selectedFrame.value) {
+    selectedFrame.value = allFrames.value[0]; // Default to 1:1
+  }
+  message.success(
+    `Added ${photoObjects.length} photo${
+      photoObjects.length > 1 ? "s" : ""
+    } to framer`
+  );
+};
+
+const handlePlaygroundPhotosAdded = (photoObjects) => {
+  // For playground mode, we receive photo objects directly from PlaygroundPhotosDialog
   selectedPhotos.value.push(...photoObjects);
 
   // Auto-select the first photo if no photos are currently selected
@@ -489,10 +541,18 @@ const downloadPhotos = async () => {
 
   if (photosToDownload.length === 1) {
     // Download single photo with frame
-    await downloadFramedPhoto(photosToDownload[0], frameConfig);
+    await downloadFramedPhoto(
+      photosToDownload[0],
+      frameConfig,
+      isPlaygroundMode.value
+    );
   } else {
     // Download multiple photos as ZIP
-    await downloadFramedPhotosZip(photosToDownload, frameConfig);
+    await downloadFramedPhotosZip(
+      photosToDownload,
+      frameConfig,
+      isPlaygroundMode.value
+    );
   }
 };
 
@@ -507,8 +567,8 @@ const onImageError = () => {
 
 // Initialize
 onMounted(async () => {
-  // Ensure photos are loaded
-  if (photosStore.photos?.length === 0) {
+  // Ensure photos are loaded (only in authenticated mode)
+  if (!isPlaygroundMode.value && photosStore.photos?.length === 0) {
     await photosStore.getOrFetch(false);
   }
 

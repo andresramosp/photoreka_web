@@ -156,6 +156,15 @@ const router = createRouter({
       },
     },
     {
+      path: "/framer-playground",
+      name: "framer-playground",
+      component: FramerView,
+      meta: {
+        requiresGuest: false, // Accessible without authentication
+        playground: true,
+      },
+    },
+    {
       path: "/portfolio-report",
       name: "portfolio-report",
       component: PortfolioReportView,
