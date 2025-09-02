@@ -26,17 +26,6 @@
               </template>
               Request Access
             </n-button>
-            <n-button
-              v-if="!isMobileDevice()"
-              type="warning"
-              size="large"
-              @click="goToPlayground"
-            >
-              <template #icon>
-                <n-icon><Workspace /></n-icon>
-              </template>
-              Free Canvas
-            </n-button>
           </div>
         </div>
       </nav>
@@ -61,12 +50,23 @@
                 by various aesthetic aspects and find the hidden gems in your
                 catalog.
               </p>
-              <div v-if="isMobileDevice()" class="hero-actions">
-                <n-button type="warning" size="medium" @click="goToPlayground">
+              <div class="hero-actions">
+                <n-button
+                  v-if="!isMobileDevice()"
+                  type="warning"
+                  size="medium"
+                  @click="goToPlayground"
+                >
                   <template #icon>
                     <n-icon><Workspace /></n-icon>
                   </template>
-                  Playground
+                  Free Canvas
+                </n-button>
+                <n-button size="medium" type="warning" @click="goToFreeFramer">
+                  <template #icon>
+                    <n-icon><StopOutline /></n-icon>
+                  </template>
+                  Free Framer
                 </n-button>
               </div>
             </div>
@@ -495,6 +495,7 @@ import {
   PersonOutline,
   LogInOutline,
   ChevronDownOutline,
+  StopOutline,
 } from "@vicons/ionicons5";
 import { Workspace } from "@vicons/carbon";
 import logoName from "@/assets/logo_name.png";
@@ -620,6 +621,11 @@ const goToPlayground = () => {
     return;
   }
   const playgroundUrl = router.resolve({ name: "canvas-playground" }).href;
+  window.open(playgroundUrl, "_blank");
+};
+
+const goToFreeFramer = () => {
+  const playgroundUrl = router.resolve({ name: "free-framer" }).href;
   window.open(playgroundUrl, "_blank");
 };
 
