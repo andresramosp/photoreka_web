@@ -51,13 +51,15 @@
             size="large"
             class="generate-button"
             @click="openPhotoDialog"
+            :loading="isProcessingFiles"
+            :disabled="isProcessingFiles"
           >
             <template #icon>
               <n-icon>
                 <AddIcon />
               </n-icon>
             </template>
-            Add Photos
+            {{ isProcessingFiles ? "Processing..." : "Add Photos" }}
           </n-button>
         </div>
       </div>
@@ -204,13 +206,19 @@
                       type="primary"
                       size="large"
                       @click="openPhotoDialog"
+                      :loading="isProcessingFiles"
+                      :disabled="isProcessingFiles"
                     >
                       <template #icon>
                         <n-icon>
                           <AddIcon />
                         </n-icon>
                       </template>
-                      Add Photos to Start
+                      {{
+                        isProcessingFiles
+                          ? "Processing..."
+                          : "Add Photos to Start"
+                      }}
                     </n-button>
                   </div>
                 </template>
@@ -244,12 +252,23 @@
           </div>
           <div class="photo-grid">
             <!-- Add more photos button -->
-            <div class="add-photo-card" @click="openPhotoDialog">
+            <div
+              class="add-photo-card"
+              @click="openPhotoDialog"
+              :class="{ processing: isProcessingFiles }"
+            >
               <div class="add-photo-card-content">
-                <n-icon :size="32" color="var(--primary-color)">
+                <n-icon
+                  :size="32"
+                  color="var(--primary-color)"
+                  v-if="!isProcessingFiles"
+                >
                   <AddIcon />
                 </n-icon>
-                <span class="add-photo-card-text">Add Photos</span>
+                <n-spin :size="32" v-else />
+                <span class="add-photo-card-text">
+                  {{ isProcessingFiles ? "Processing..." : "Add Photos" }}
+                </span>
               </div>
             </div>
 
@@ -294,12 +313,23 @@
         </div>
         <div class="photo-thumbnails">
           <!-- Add more photos button -->
-          <div class="add-photo-card mobile-add" @click="openPhotoDialog">
+          <div
+            class="add-photo-card mobile-add"
+            @click="openPhotoDialog"
+            :class="{ processing: isProcessingFiles }"
+          >
             <div class="add-photo-card-content">
-              <n-icon :size="24" color="var(--primary-color)">
+              <n-icon
+                :size="24"
+                color="var(--primary-color)"
+                v-if="!isProcessingFiles"
+              >
                 <AddIcon />
               </n-icon>
-              <span class="add-photo-card-text">Add</span>
+              <n-spin :size="24" v-else />
+              <span class="add-photo-card-text">
+                {{ isProcessingFiles ? "Processing..." : "Add" }}
+              </span>
             </div>
           </div>
 
@@ -321,6 +351,16 @@
       </div>
     </div>
 
+    <!-- Hidden file input for playground mode -->
+    <input
+      ref="fileInputRef"
+      type="file"
+      multiple
+      accept="image/*"
+      style="display: none"
+      @change="handleFileSelect"
+    />
+
     <!-- Photo selection dialog -->
     <PhotosDialog
       v-if="!isPlaygroundMode"
@@ -329,9 +369,10 @@
       @add-photos="handlePhotosAdded"
     />
 
-    <!-- Playground photo selection dialog -->
+    <!-- Playground photo selection dialog (only shown when explicitly requested) -->
+    <!-- This is now only used as fallback, normal flow goes directly to file input -->
     <PlaygroundPhotosDialog
-      v-else
+      v-if="isPlaygroundMode && showPhotoDialog"
       v-model="showPhotoDialog"
       @add-photos="handlePlaygroundPhotosAdded"
     />
@@ -349,7 +390,8 @@ import PlaygroundPhotosDialog from "@/components/PlaygroundPhotosDialog.vue";
 import FrameVisualizer from "@/components/FrameVisualizer.vue";
 import FramerViewMobile from "@/views/FramerViewMobile.vue";
 import { useFramedPhotoDownload } from "@/composables/useFramedPhotoDownload.js";
-import { NButton, NIcon, NSlider } from "naive-ui";
+import { useImageProcessing } from "@/composables/useImageProcessing.js";
+import { NButton, NIcon, NSlider, NSpin } from "naive-ui";
 
 // Icons
 import {
@@ -369,6 +411,7 @@ const photosStore = usePhotosStore();
 const message = useMessage();
 const { downloadFramedPhoto, downloadFramedPhotosZip, isDownloading } =
   useFramedPhotoDownload();
+const { resizeWithStepDown, loadImage } = useImageProcessing();
 
 // Playground mode detection
 const isPlaygroundMode = computed(() => route.meta?.playground === true);
@@ -381,6 +424,8 @@ const selectedFrame = ref(null);
 const marginValue = ref(20);
 const frameColor = ref("#ffffff");
 const showPhotoDialog = ref(false);
+const fileInputRef = ref(null);
+const isProcessingFiles = ref(false);
 
 // Mobile detection
 const windowWidth = ref(window.innerWidth);
@@ -463,7 +508,110 @@ const previewPhotoUrl = computed(() => {
 
 // Methods
 const openPhotoDialog = () => {
-  showPhotoDialog.value = true;
+  if (isPlaygroundMode.value) {
+    // In playground mode, directly open file selector
+    triggerFileSelect();
+  } else {
+    // In authenticated mode, show photo dialog
+    showPhotoDialog.value = true;
+  }
+};
+
+const triggerFileSelect = () => {
+  fileInputRef.value?.click();
+};
+
+const handleFileSelect = async (event) => {
+  const files = Array.from(event.target.files).filter((file) =>
+    file.type.startsWith("image/")
+  );
+
+  if (files.length > 0) {
+    await processLocalFiles(files);
+  }
+
+  // Reset input to allow selecting the same files again
+  event.target.value = "";
+};
+
+const processLocalFiles = async (files) => {
+  if (files.length === 0) return;
+
+  isProcessingFiles.value = true;
+
+  try {
+    const processedPhotos = [];
+
+    for (const file of files) {
+      try {
+        // Process image similar to PlaygroundPhotosDialog but using resizeWithStepDown
+        const [resizedBlob, thumbnailBlob] = await Promise.all([
+          resizeWithStepDown(file, 1500), // Main image
+          resizeWithStepDown(file, 800), // Thumbnail
+        ]);
+
+        // Create preview URL from thumbnail
+        const preview = URL.createObjectURL(thumbnailBlob);
+
+        // Get dimensions from the resized image
+        const dimensions = await getImageDimensions(preview);
+
+        const photoObject = {
+          id: Date.now() + Math.random(), // Simple ID generation
+          thumbnailUrl: preview,
+          name: file.name,
+          file: resizedBlob, // Use resized image
+          originalFile: file, // Keep reference to original
+          dimensions: dimensions,
+          tags: [],
+          detectionAreas: [],
+        };
+
+        processedPhotos.push(photoObject);
+      } catch (error) {
+        console.error("Error processing file:", file.name, error);
+        message.error(`Failed to process ${file.name}`);
+      }
+    }
+
+    if (processedPhotos.length > 0) {
+      // Add processed photos directly to the selection
+      selectedPhotos.value.push(...processedPhotos);
+
+      // Auto-select first photo if none selected
+      if (selectedCount.value === 0 && processedPhotos.length > 0) {
+        const firstPhoto = processedPhotos[0];
+        currentPhoto.value = firstPhoto;
+        selectedPhotoIds.value.add(firstPhoto.id);
+      }
+
+      // Auto-select first frame if none selected
+      if (!selectedFrame.value) {
+        selectedFrame.value = allFrames.value[0];
+      }
+
+      message.success(
+        `Added ${processedPhotos.length} photo${
+          processedPhotos.length > 1 ? "s" : ""
+        } to framer`
+      );
+    }
+  } catch (error) {
+    console.error("Error processing files:", error);
+    message.error("Failed to process images");
+  } finally {
+    isProcessingFiles.value = false;
+  }
+};
+
+// Get image dimensions function
+const getImageDimensions = (url) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve({ width: img.width, height: img.height });
+    img.onerror = reject;
+    img.src = url;
+  });
 };
 
 const handlePhotosAdded = (photoIds) => {
@@ -1086,6 +1234,13 @@ onUnmounted(() => {
   background-color: var(--primary-color-light);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.add-photo-card.processing {
+  pointer-events: none;
+  opacity: 0.7;
+  border-color: var(--primary-color);
+  background-color: var(--primary-color-light);
 }
 
 .add-photo-card-content {
