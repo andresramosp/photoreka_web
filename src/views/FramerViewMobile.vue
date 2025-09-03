@@ -95,11 +95,8 @@
         </div>
 
         <!-- Frame styles title (smaller, closer to options) for playground mode -->
-        <div v-if="props.playgroundMode" class="mobile-frame-styles-title">
-          <h5>Frame Styles</h5>
-        </div>
 
-        <div class="frame-styles-scroll">
+        <div class="frame-styles-container">
           <div class="frame-styles-grid">
             <div
               v-for="frame in allFrames"
@@ -123,13 +120,13 @@
                 >
                   <n-icon
                     v-if="frame.icon"
-                    :size="12"
+                    :size="14"
                     class="mobile-social-icon"
                     :component="getFrameIcon(frame)"
                   />
                   <n-icon
                     v-else
-                    :size="10"
+                    :size="12"
                     class="mobile-category-icon"
                     :component="getFrameIcon(frame)"
                   />
@@ -891,34 +888,38 @@ onMounted(async () => {
   color: var(--text-secondary);
 }
 
-.frame-styles-scroll {
-  overflow-x: auto;
-  overflow-y: hidden;
+.frame-styles-container {
   padding: var(--spacing-md);
+  max-height: 200px; /* Increased height for larger frames */
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 .frame-styles-grid {
-  display: flex;
-  gap: var(--spacing-sm);
-  min-width: max-content;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-md); /* Increased gap */
+  grid-auto-rows: minmax(min-content, max-content);
+  align-items: start;
+  justify-items: center;
 }
 
 .mobile-frame-option {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm);
+  gap: var(--spacing-sm); /* Increased gap */
+  padding: var(--spacing-md); /* Increased padding */
   border-radius: var(--border-radius-md);
   border: 2px solid var(--border-color);
   background-color: var(--bg-body);
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 60px;
-  flex-shrink: 0;
+  width: 100%;
+  aspect-ratio: 1;
   position: relative;
   overflow: visible;
+  box-sizing: border-box;
 }
 
 .mobile-frame-option::before {
@@ -984,9 +985,9 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  width: 28px;
-  height: 28px;
+  gap: var(--spacing-xs); /* Increased gap */
+  width: 40px; /* Increased size */
+  height: 40px; /* Increased size */
   position: relative;
 }
 
@@ -994,7 +995,7 @@ onMounted(async () => {
   display: flex;
   justify-content: flex-end;
   width: 100%;
-  margin-bottom: -6px;
+  margin-bottom: -8px; /* Adjusted for larger icons */
   z-index: 2;
 }
 
@@ -1003,7 +1004,7 @@ onMounted(async () => {
   transition: all 0.2s ease;
   background: var(--bg-body);
   border-radius: 50%;
-  padding: 2px;
+  padding: 3px; /* Increased padding */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
@@ -1012,29 +1013,29 @@ onMounted(async () => {
   transition: all 0.2s ease;
   background: var(--bg-body);
   border-radius: 50%;
-  padding: 2px;
+  padding: 3px; /* Increased padding */
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .mobile-frame-shape {
-  border: 1px solid var(--frame-color, var(--border-color));
+  border: 2px solid var(--frame-color, var(--border-color)); /* Thicker border */
   background-color: transparent;
-  max-width: 20px;
-  max-height: 20px;
-  min-width: 8px;
-  min-height: 8px;
+  max-width: 28px; /* Increased size */
+  max-height: 28px; /* Increased size */
+  min-width: 12px; /* Increased min size */
+  min-height: 12px; /* Increased min size */
   transition: all 0.2s ease;
-  border-radius: 1px;
-  margin-top: -2px;
+  border-radius: 2px;
+  margin-top: -3px; /* Adjusted margin */
 }
 
 .mobile-frame-ratio {
-  font-size: 10px;
+  font-size: 11px; /* Increased font size */
   font-weight: 500;
   color: var(--text-secondary);
   text-align: center;
   transition: all 0.2s ease;
-  line-height: 1;
+  line-height: 1.2; /* Better line height */
 }
 
 /* Mobile Controls Section */
@@ -1188,24 +1189,25 @@ onMounted(async () => {
 }
 
 /* Custom scrollbars for mobile */
-.frame-styles-scroll::-webkit-scrollbar,
+.frame-styles-container::-webkit-scrollbar,
 .mobile-photos-scroll::-webkit-scrollbar {
+  width: 4px;
   height: 4px;
 }
 
-.frame-styles-scroll::-webkit-scrollbar-track,
+.frame-styles-container::-webkit-scrollbar-track,
 .mobile-photos-scroll::-webkit-scrollbar-track {
   background: var(--bg-tertiary);
   border-radius: var(--border-radius-sm);
 }
 
-.frame-styles-scroll::-webkit-scrollbar-thumb,
+.frame-styles-container::-webkit-scrollbar-thumb,
 .mobile-photos-scroll::-webkit-scrollbar-thumb {
   background: var(--border-color);
   border-radius: var(--border-radius-sm);
 }
 
-.frame-styles-scroll::-webkit-scrollbar-thumb:hover,
+.frame-styles-container::-webkit-scrollbar-thumb:hover,
 .mobile-photos-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--border-color-hover);
 }
