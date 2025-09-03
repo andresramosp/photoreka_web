@@ -84,7 +84,8 @@ const updateWindowSize = () => {
 
 // Detect Android device
 const isAndroidDevice = computed(() => {
-  return /Android/i.test(navigator.userAgent);
+  return false;
+  // return /Android/i.test(navigator.userAgent);
 });
 
 // Calculate optimal frame size based on container and aspect ratio
@@ -160,7 +161,7 @@ const onImageLoad = (event) => {
   const img = event.target;
 
   // Apply Android-specific optimizations without affecting desktop
-  const isAndroid = /Android/i.test(navigator.userAgent);
+  const isAndroid = false; //; /Android/i.test(navigator.userAgent);
 
   if (isAndroid) {
     // Force layer creation for better GPU handling on Android

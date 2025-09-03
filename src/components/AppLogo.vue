@@ -1,13 +1,19 @@
 <template>
-  <div class="photoreka-logo" :class="{ 'logo-large': size === 'large', 'logo-tiny': size === 'tiny' }">
-    <div class="logo-icon" :class="{ 'logo-small': size === 'small', 'logo-tiny': size === 'tiny' }">
+  <div
+    class="photoreka-logo"
+    :class="{ 'logo-large': size === 'large', 'logo-tiny': size === 'tiny' }"
+  >
+    <div
+      class="logo-icon"
+      :class="{ 'logo-small': size === 'small', 'logo-tiny': size === 'tiny' }"
+    >
       <img
         :src="logoName"
         alt="Photoreka"
         class="logo-image"
         :class="{
           'logo-small-image': size === 'small',
-          'logo-tiny-image': size === 'tiny'
+          'logo-tiny-image': size === 'tiny',
         }"
       />
     </div>

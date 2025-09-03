@@ -93,10 +93,33 @@
               v-for="frame in allFrames"
               :key="frame.id"
               class="frame-option"
-              :class="{ active: selectedFrame?.id === frame.id }"
+              :class="{
+                active: selectedFrame?.id === frame.id,
+                [`frame-${frame.category}`]: true,
+              }"
+              :style="{
+                '--frame-color': frame.color,
+                '--frame-color-light': frame.color + '20',
+              }"
               @click="selectFrame(frame)"
             >
               <div class="frame-icon">
+                <!-- Show social media icon or category icon -->
+                <div class="icon-container">
+                  <n-icon
+                    v-if="frame.icon"
+                    :size="16"
+                    class="social-icon"
+                    :component="getFrameIcon(frame)"
+                  />
+                  <n-icon
+                    v-else
+                    :size="14"
+                    class="category-icon"
+                    :component="getFrameIcon(frame)"
+                  />
+                </div>
+                <!-- Frame shape -->
                 <div
                   class="frame-shape"
                   :style="{ aspectRatio: frame.aspectRatio }"
@@ -107,7 +130,7 @@
           </div>
 
           <!-- Frame controls -->
-          <div class="frame-controls" v-if="selectedFrame">
+          <div class="frame-controls">
             <div class="controls-header">
               <h4>Frame Settings</h4>
             </div>
@@ -404,6 +427,17 @@ import {
   CloseOutline as CloseIcon,
   CheckmarkOutline as CheckIcon,
 } from "@vicons/ionicons5";
+import {
+  LogoInstagram,
+  LogoFacebook,
+  LogoTwitter,
+  LogoLinkedin,
+} from "@vicons/ionicons5";
+import {
+  MoveOutline as MovieIcon,
+  Print as PrintIcon,
+  Camera as PhotoIcon,
+} from "@vicons/ionicons5";
 import AppLogo from "@/components/AppLogo.vue";
 
 const route = useRoute();
@@ -439,25 +473,120 @@ const updateWindowWidth = () => {
 // All frame options combined for the grid layout
 const allFrames = ref([
   // Social Media frames
-  { id: "instagram-square", ratio: "Instagram", aspectRatio: "1/1" },
-  { id: "instagram-story", ratio: "9:16", aspectRatio: "9/16" },
-  { id: "facebook-post", ratio: "Facebook", aspectRatio: "4/3" },
-  { id: "twitter-post", ratio: "Twitter", aspectRatio: "16/9" },
-  { id: "linkedin-post", ratio: "LinkedIn", aspectRatio: "1.91/1" },
+  {
+    id: "instagram-square",
+    ratio: "1:1",
+    aspectRatio: "1/1",
+    color: "#E4405F",
+    category: "social",
+    icon: "instagram",
+  },
+  {
+    id: "instagram-story",
+    ratio: "9:16",
+    aspectRatio: "9/16",
+    color: "#E4405F",
+    category: "social",
+    icon: "instagram",
+  },
+  {
+    id: "facebook-post",
+    ratio: "4:3",
+    aspectRatio: "4/3",
+    color: "#1877F2",
+    category: "social",
+    icon: "facebook",
+  },
+  {
+    id: "twitter-post",
+    ratio: "16:9",
+    aspectRatio: "16/9",
+    color: "#1DA1F2",
+    category: "social",
+    icon: "twitter",
+  },
+  {
+    id: "linkedin-post",
+    ratio: "1.91:1",
+    aspectRatio: "1.91/1",
+    color: "#0A66C2",
+    category: "social",
+    icon: "linkedin",
+  },
 
   // General photography & cinema
-  { id: "golden-3-2", ratio: "3:2", aspectRatio: "3/2" },
-  { id: "cinema-2-3", ratio: "2:3", aspectRatio: "2/3" },
-  { id: "portrait-3-4", ratio: "3:4", aspectRatio: "3/4" },
-  { id: "movie", ratio: "Movie", aspectRatio: "2.39/1" },
-  { id: "ultrawide", ratio: "21:9", aspectRatio: "21/9" },
+  {
+    id: "golden-3-2",
+    ratio: "3:2",
+    aspectRatio: "3/2",
+    color: "#8B5CF6",
+    category: "photo",
+  },
+  {
+    id: "cinema-2-3",
+    ratio: "2:3",
+    aspectRatio: "2/3",
+    color: "#8B5CF6",
+    category: "photo",
+  },
+  {
+    id: "portrait-3-4",
+    ratio: "3:4",
+    aspectRatio: "3/4",
+    color: "#8B5CF6",
+    category: "photo",
+  },
+  {
+    id: "movie",
+    ratio: "Movie",
+    aspectRatio: "2.39/1",
+    color: "#F59E0B",
+    category: "cinema",
+  },
+  {
+    id: "ultrawide",
+    ratio: "21:9",
+    aspectRatio: "21/9",
+    color: "#F59E0B",
+    category: "cinema",
+  },
 
   // Print frames
-  { id: "print-4x6", ratio: '4x6"', aspectRatio: "6/4" },
-  { id: "print-5x7", ratio: '5x7"', aspectRatio: "7/5" },
-  { id: "print-8x10", ratio: '8x10"', aspectRatio: "10/8" },
-  { id: "print-11x14", ratio: '11x14"', aspectRatio: "14/11" },
-  { id: "print-16x20", ratio: '16x20"', aspectRatio: "20/16" },
+  {
+    id: "print-4x6",
+    ratio: '4x6"',
+    aspectRatio: "6/4",
+    color: "#10B981",
+    category: "print",
+  },
+  {
+    id: "print-5x7",
+    ratio: '5x7"',
+    aspectRatio: "7/5",
+    color: "#10B981",
+    category: "print",
+  },
+  {
+    id: "print-8x10",
+    ratio: '8x10"',
+    aspectRatio: "10/8",
+    color: "#10B981",
+    category: "print",
+  },
+  {
+    id: "print-11x14",
+    ratio: '11x14"',
+    aspectRatio: "14/11",
+    color: "#10B981",
+    category: "print",
+  },
+  {
+    id: "print-16x20",
+    ratio: '16x20"',
+    aspectRatio: "20/16",
+    color: "#10B981",
+    category: "print",
+  },
 ]);
 
 const frameColors = ref([
@@ -499,6 +628,31 @@ const previewPhotoUrl = computed(() => {
   // In authenticated mode, use originalUrl
   return previewPhoto.value.originalUrl;
 });
+
+// Get icon component for frame
+const getFrameIcon = (frame) => {
+  switch (frame.icon) {
+    case "instagram":
+      return LogoInstagram;
+    case "facebook":
+      return LogoFacebook;
+    case "twitter":
+      return LogoTwitter;
+    case "linkedin":
+      return LogoLinkedin;
+    default:
+      switch (frame.category) {
+        case "cinema":
+          return MovieIcon;
+        case "print":
+          return PrintIcon;
+        case "photo":
+          return PhotoIcon;
+        default:
+          return SquareOutline;
+      }
+  }
+};
 
 // Methods
 const openPhotoDialog = () => {
@@ -920,6 +1074,9 @@ onUnmounted(() => {
   margin-top: 0; /* Reduced margin since title is now above */
   overflow-y: auto;
   padding-right: var(--spacing-xs);
+  grid-auto-rows: minmax(min-content, max-content);
+  align-items: start;
+  justify-items: center;
 }
 
 /* Frame Controls */
@@ -954,56 +1111,154 @@ onUnmounted(() => {
   transition: all 0.2s ease;
   aspect-ratio: 1;
   justify-content: center;
+  position: relative;
+  overflow: visible;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.frame-option::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--frame-color, var(--primary-color)),
+    var(--frame-color, var(--primary-color))
+  );
+  opacity: 0;
+  transition: all 0.3s ease;
 }
 
 .frame-option:hover {
-  border-color: var(--primary-color);
+  border-color: var(--frame-color, var(--primary-color));
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(
+    135deg,
+    var(--bg-body) 0%,
+    var(--frame-color-light, var(--primary-color-light)) 100%
+  );
+}
+
+.frame-option:hover::before {
+  opacity: 1;
 }
 
 .frame-option.active {
-  border-color: var(--primary-color);
-  background-color: var(--primary-color);
+  border-color: var(--frame-color, var(--primary-color));
+  background: var(--frame-color, var(--primary-color));
   color: white;
+  transform: translateY(-2px);
+}
+
+.frame-option.active::before {
+  opacity: 1;
+  height: 100%;
+  background: var(--frame-color, var(--primary-color));
 }
 
 .frame-option.active .frame-shape {
   background-color: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .frame-option.active .frame-ratio {
   color: white;
+  font-weight: 600;
+}
+
+.frame-option.active .social-icon,
+.frame-option.active .category-icon {
+  color: white;
+}
+
+/* Category-specific styling */
+.frame-option.frame-social:hover {
+  border-color: var(--frame-color);
+  box-shadow: 0 4px 20px var(--frame-color-light);
+}
+
+.frame-option.frame-photo:hover {
+  border-color: var(--frame-color);
+  box-shadow: 0 4px 20px var(--frame-color-light);
+}
+
+.frame-option.frame-cinema:hover {
+  border-color: var(--frame-color);
+  box-shadow: 0 4px 20px var(--frame-color-light);
+}
+
+.frame-option.frame-print:hover {
+  border-color: var(--frame-color);
+  box-shadow: 0 4px 20px var(--frame-color-light);
 }
 
 .frame-icon {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: var(--spacing-xs);
   width: 48px;
   height: 48px;
+  position: relative;
+}
+
+.icon-container {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-bottom: -8px;
+  z-index: 2;
+}
+
+.social-icon {
+  color: var(--frame-color, var(--primary-color));
+  transition: all 0.2s ease;
+  background: var(--bg-body);
+  border-radius: 50%;
+  padding: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.category-icon {
+  color: var(--frame-color, var(--text-tertiary));
+  transition: all 0.2s ease;
+  background: var(--bg-body);
+  border-radius: 50%;
+  padding: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .frame-shape {
-  border: 2px solid var(--border-color);
+  border: 2px solid var(--frame-color, var(--border-color));
   background-color: transparent;
-  max-width: 40px;
-  max-height: 40px;
+  max-width: 32px;
+  max-height: 32px;
   min-width: 16px;
   min-height: 16px;
   transition: all 0.2s ease;
+  border-radius: 2px;
+  z-index: 1;
+  margin-top: -4px;
 }
 
 .frame-ratio {
   font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--text-secondary);
-  text-align: center;
   transition: all 0.2s ease;
+  text-align: center;
+  line-height: 1.2;
+  z-index: 1;
+  position: relative;
 }
 
-/* Frame Controls */
 .control-group {
   display: flex;
   flex-direction: column;
