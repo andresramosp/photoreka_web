@@ -74,11 +74,9 @@
           <div class="sidebar-header">
             <!-- Logo for playground mode -->
             <div v-if="isPlaygroundMode" class="logo-container">
-              <img
-                src="@/assets/logo_name_sub_curation_lab_blue.png"
-                alt="Photoreka"
-                class="app-logo"
-              />
+              <router-link to="/" class="logo-link" aria-label="Inicio">
+                <AppLogo size="small" />
+              </router-link>
             </div>
             <!-- Title for authenticated mode -->
             <h3 v-else>Frame Styles</h3>
@@ -181,6 +179,7 @@
               <div class="preview-wrapper">
                 <template v-if="previewPhoto">
                   <FrameVisualizer
+                    ref="frameVisualizerRef"
                     :photo-url="previewPhotoUrl"
                     :photo-alt="
                       previewPhoto?.file_name ||
@@ -405,6 +404,7 @@ import {
   CloseOutline as CloseIcon,
   CheckmarkOutline as CheckIcon,
 } from "@vicons/ionicons5";
+import AppLogo from "@/components/AppLogo.vue";
 
 const route = useRoute();
 const photosStore = usePhotosStore();
@@ -426,6 +426,7 @@ const frameColor = ref("#ffffff");
 const showPhotoDialog = ref(false);
 const fileInputRef = ref(null);
 const isProcessingFiles = ref(false);
+const frameVisualizerRef = ref(null);
 
 // Mobile detection
 const windowWidth = ref(window.innerWidth);
@@ -437,25 +438,19 @@ const updateWindowWidth = () => {
 
 // All frame options combined for the grid layout
 const allFrames = ref([
-  // Row 1
-  { id: "square", ratio: "1:1", aspectRatio: "1/1" },
-  { id: "portrait-3-4", ratio: "3:4", aspectRatio: "3/4" },
-  { id: "landscape-4-3", ratio: "4:3", aspectRatio: "4/3" },
-
-  // Row 2
-  { id: "widescreen", ratio: "16:9", aspectRatio: "16/9" },
-  { id: "instagram-story", ratio: "9:16", aspectRatio: "9/16" },
-  { id: "cinema-2-3", ratio: "2:3", aspectRatio: "2/3" },
-
-  // Row 3
-  { id: "golden-3-2", ratio: "3:2", aspectRatio: "3/2" },
-  { id: "movie", ratio: "Movie", aspectRatio: "2.39/1" },
-
   // Social Media frames
   { id: "instagram-square", ratio: "Instagram", aspectRatio: "1/1" },
+  { id: "instagram-story", ratio: "9:16", aspectRatio: "9/16" },
   { id: "facebook-post", ratio: "Facebook", aspectRatio: "4/3" },
   { id: "twitter-post", ratio: "Twitter", aspectRatio: "16/9" },
   { id: "linkedin-post", ratio: "LinkedIn", aspectRatio: "1.91/1" },
+
+  // General photography & cinema
+  { id: "golden-3-2", ratio: "3:2", aspectRatio: "3/2" },
+  { id: "cinema-2-3", ratio: "2:3", aspectRatio: "2/3" },
+  { id: "portrait-3-4", ratio: "3:4", aspectRatio: "3/4" },
+  { id: "movie", ratio: "Movie", aspectRatio: "2.39/1" },
+  { id: "ultrawide", ratio: "21:9", aspectRatio: "21/9" },
 
   // Print frames
   { id: "print-4x6", ratio: '4x6"', aspectRatio: "6/4" },
@@ -463,7 +458,6 @@ const allFrames = ref([
   { id: "print-8x10", ratio: '8x10"', aspectRatio: "10/8" },
   { id: "print-11x14", ratio: '11x14"', aspectRatio: "14/11" },
   { id: "print-16x20", ratio: '16x20"', aspectRatio: "20/16" },
-  { id: "ultrawide", ratio: "21:9", aspectRatio: "21/9" },
 ]);
 
 const frameColors = ref([
@@ -726,18 +720,23 @@ const downloadPhotos = async () => {
   };
 
   if (photosToDownload.length === 1) {
-    // Download single photo with frame
+    // Download single photo with frame using DOM capture for perfect consistency
+    // Add small delay to ensure image is fully rendered
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
     await downloadFramedPhoto(
       photosToDownload[0],
       frameConfig,
-      isPlaygroundMode.value
+      isPlaygroundMode.value,
+      frameVisualizerRef.value // Pass the FrameVisualizer reference for DOM capture
     );
   } else {
-    // Download multiple photos as ZIP
+    // Download multiple photos as ZIP (now uses improved method with real margins)
     await downloadFramedPhotosZip(
       photosToDownload,
       frameConfig,
-      isPlaygroundMode.value
+      isPlaygroundMode.value,
+      frameVisualizerRef.value // Pass the FrameVisualizer reference to extract real margins
     );
   }
 };

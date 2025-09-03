@@ -1,5 +1,5 @@
 <template>
-  <div class="frame-visualizer">
+  <div ref="frameVisualizerRef" class="frame-visualizer">
     <div class="visualizer-container">
       <!-- Frame container with dynamic aspect ratio -->
       <div class="frame-container" :style="frameContainerStyle">
@@ -33,6 +33,9 @@
 import { computed, ref, onMounted, onUnmounted } from "vue";
 import { NIcon } from "naive-ui";
 import { ImageOutline as ImageIcon } from "@vicons/ionicons5";
+
+// Template refs
+const frameVisualizerRef = ref(null);
 
 // Props
 const props = defineProps({
@@ -312,9 +315,12 @@ onUnmounted(() => {
 }
 
 /* Hover effect for better UX - disabled on Android to prevent rendering issues */
+/* Temporarily disabled for better capture consistency */
+/*
 .frame-container:hover .photo-image:not(.android-optimized) {
   transform: scale(1.02);
 }
+*/
 
 .no-photo-placeholder {
   display: flex;

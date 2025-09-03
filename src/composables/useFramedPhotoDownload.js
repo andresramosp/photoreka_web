@@ -7,8 +7,12 @@ export function useFramedPhotoDownload() {
   const message = useMessage();
   const isDownloading = ref(false);
 
-  // Create a framed photo canvas from a downloaded image blob
-  const createFramedPhotoCanvas = async (imageBlob, frameConfig) => {
+  // Create a framed photo canvas with improved margin calculation
+  const createFramedPhotoCanvas = async (
+    imageBlob,
+    frameConfig,
+    realMargins = null
+  ) => {
     return new Promise((resolve, reject) => {
       const img = new Image();
 
@@ -44,8 +48,28 @@ export function useFramedPhotoDownload() {
           ctx.fillStyle = frameConfig.frameColor || "#ffffff";
           ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
+          // Use real margins if provided, otherwise fallback to config margin
+          let marginPx;
+          if (realMargins) {
+            // Use proportional margins based on real DOM measurements
+            const avgRealMargin =
+              (realMargins.top +
+                realMargins.left +
+                realMargins.right +
+                realMargins.bottom) /
+              4;
+            // Scale the margin proportionally to the high-res canvas
+            const scaleFactorWidth = canvasWidth / realMargins.containerWidth;
+            const scaleFactorHeight =
+              canvasHeight / realMargins.containerHeight;
+            const avgScaleFactor = (scaleFactorWidth + scaleFactorHeight) / 2;
+            marginPx = avgRealMargin * avgScaleFactor;
+          } else {
+            // Fallback to original method
+            marginPx = frameConfig.margin || 20;
+          }
+
           // Calculate photo area (with margin)
-          const marginPx = frameConfig.margin || 20;
           const photoX = marginPx;
           const photoY = marginPx;
           const photoWidth = canvasWidth - marginPx * 2;
@@ -93,38 +117,181 @@ export function useFramedPhotoDownload() {
     });
   };
 
+  // Extract real margins from FrameVisualizer DOM
+  const extractRealMargins = (frameVisualizerRef) => {
+    if (!frameVisualizerRef) return null;
+
+    try {
+      const frameElement = frameVisualizerRef.$el || frameVisualizerRef;
+      const frameContainer = frameElement.querySelector(".frame-container");
+
+      if (!frameContainer) return null;
+
+      const containerRect = frameContainer.getBoundingClientRect();
+      const containerStyles = window.getComputedStyle(frameContainer);
+
+      return {
+        top: parseFloat(containerStyles.paddingTop) || 0,
+        left: parseFloat(containerStyles.paddingLeft) || 0,
+        right: parseFloat(containerStyles.paddingRight) || 0,
+        bottom: parseFloat(containerStyles.paddingBottom) || 0,
+        containerWidth: containerRect.width,
+        containerHeight: containerRect.height,
+      };
+    } catch (error) {
+      console.warn("Could not extract real margins:", error);
+      return null;
+    }
+  };
+
+  // NEW: Recreate the exact FrameVisualizer composition manually
+  const captureFramedPhotoFromDOM = async (
+    frameVisualizerRef,
+    scaleFactor = 3
+  ) => {
+    if (!frameVisualizerRef) {
+      throw new Error("FrameVisualizer reference not provided");
+    }
+
+    // Get the frame container element
+    const frameElement = frameVisualizerRef.$el || frameVisualizerRef;
+    const frameContainer = frameElement.querySelector(".frame-container");
+
+    if (!frameContainer) {
+      throw new Error("Frame container not found in DOM");
+    }
+
+    const img = frameContainer.querySelector(".photo-image");
+    if (!img || !img.complete) {
+      throw new Error("Image not loaded or not found");
+    }
+
+    try {
+      // Get the exact visual dimensions and styles from the DOM
+      const containerRect = frameContainer.getBoundingClientRect();
+      const containerStyles = window.getComputedStyle(frameContainer);
+
+      // Get margin from padding (this is the frame margin)
+      const paddingTop = parseFloat(containerStyles.paddingTop) || 0;
+      const paddingLeft = parseFloat(containerStyles.paddingLeft) || 0;
+      const paddingRight = parseFloat(containerStyles.paddingRight) || 0;
+      const paddingBottom = parseFloat(containerStyles.paddingBottom) || 0;
+
+      // Create high-resolution canvas
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      // Scale up for high quality
+      canvas.width = containerRect.width * scaleFactor;
+      canvas.height = containerRect.height * scaleFactor;
+      ctx.scale(scaleFactor, scaleFactor);
+
+      // Fill frame background
+      const backgroundColor = containerStyles.backgroundColor || "#ffffff";
+      ctx.fillStyle = backgroundColor;
+      ctx.fillRect(0, 0, containerRect.width, containerRect.height);
+
+      // Calculate the photo area (same as CSS .photo-container)
+      const photoAreaX = paddingLeft;
+      const photoAreaY = paddingTop;
+      const photoAreaWidth = containerRect.width - paddingLeft - paddingRight;
+      const photoAreaHeight = containerRect.height - paddingTop - paddingBottom;
+
+      // Get image natural dimensions
+      const imgNaturalWidth = img.naturalWidth;
+      const imgNaturalHeight = img.naturalHeight;
+      const imgAspectRatio = imgNaturalWidth / imgNaturalHeight;
+      const photoAreaAspectRatio = photoAreaWidth / photoAreaHeight;
+
+      // Calculate how the image fits within the photo area (object-fit: contain logic)
+      let drawWidth, drawHeight, drawX, drawY;
+
+      if (imgAspectRatio > photoAreaAspectRatio) {
+        // Image is wider than photo area - fit by width
+        drawWidth = photoAreaWidth;
+        drawHeight = photoAreaWidth / imgAspectRatio;
+        drawX = photoAreaX;
+        drawY = photoAreaY + (photoAreaHeight - drawHeight) / 2;
+      } else {
+        // Image is taller than photo area - fit by height
+        drawHeight = photoAreaHeight;
+        drawWidth = photoAreaHeight * imgAspectRatio;
+        drawX = photoAreaX + (photoAreaWidth - drawWidth) / 2;
+        drawY = photoAreaY;
+      }
+
+      // Draw the image with exact same positioning logic as CSS
+      ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+
+      return canvas;
+    } catch (error) {
+      console.error("Error capturing frame with manual DOM method:", error);
+      throw error;
+    }
+  };
+
   // Download single framed photo
   const downloadFramedPhoto = async (
     photo,
     frameConfig,
-    isPlayground = false
+    isPlayground = false,
+    frameVisualizerRef = null
   ) => {
     if (!photo || !frameConfig) return;
 
     isDownloading.value = true;
 
     try {
-      let originalImageBlob;
+      let canvas;
 
-      if (isPlayground) {
-        // In playground mode, use the local file blob directly
-        originalImageBlob = photo.file; // This is the resized blob from PlaygroundPhotosDialog
-      } else {
-        // In authenticated mode, download from API
-        const apiUrl = `/download-photo`;
-        const response = await api.post(
-          apiUrl,
-          { ids: [photo.id] },
-          { responseType: "blob" }
-        );
-        originalImageBlob = response.data;
+      // Use DOM capture if frameVisualizerRef is provided (preferred method)
+      if (frameVisualizerRef) {
+        try {
+          console.log("Attempting DOM capture with manual recreation...");
+          canvas = await captureFramedPhotoFromDOM(frameVisualizerRef, 3);
+          console.log(
+            "DOM capture successful:",
+            canvas.width,
+            "x",
+            canvas.height
+          );
+        } catch (domError) {
+          console.warn(
+            "DOM capture failed, falling back to original method:",
+            domError
+          );
+          // Fall back to original method if DOM capture fails
+          frameVisualizerRef = null;
+        }
       }
 
-      // Create framed version
-      const canvas = await createFramedPhotoCanvas(
-        originalImageBlob,
-        frameConfig
-      );
+      if (!canvas) {
+        // Fallback to original method for backward compatibility
+        console.log("Using original download method...");
+        let originalImageBlob;
+
+        if (isPlayground) {
+          // In playground mode, use the local file blob directly
+          originalImageBlob = photo.file; // This is the resized blob from PlaygroundPhotosDialog
+        } else {
+          // In authenticated mode, download from API
+          const apiUrl = `/download-photo`;
+          const response = await api.post(
+            apiUrl,
+            { ids: [photo.id] },
+            { responseType: "blob" }
+          );
+          originalImageBlob = response.data;
+        }
+
+        // Create framed version using improved method
+        const realMargins = extractRealMargins(frameVisualizerRef);
+        canvas = await createFramedPhotoCanvas(
+          originalImageBlob,
+          frameConfig,
+          realMargins
+        );
+      }
 
       // Convert canvas to blob
       const framedBlob = await new Promise((resolve) => {
@@ -164,7 +331,8 @@ export function useFramedPhotoDownload() {
   const downloadFramedPhotosZip = async (
     photos,
     frameConfig,
-    isPlayground = false
+    isPlayground = false,
+    frameVisualizerRef = null
   ) => {
     if (!photos || photos.length === 0 || !frameConfig) return;
 
@@ -172,6 +340,14 @@ export function useFramedPhotoDownload() {
 
     try {
       const zip = new JSZip();
+
+      // Extract real margins from DOM if frameVisualizerRef is available
+      const realMargins = extractRealMargins(frameVisualizerRef);
+      if (realMargins) {
+        console.log("Using real margins for ZIP:", realMargins);
+      } else {
+        console.log("Using fallback margins for ZIP");
+      }
 
       // Process photos in batches to avoid overwhelming the API (or process all at once in playground)
       const batchSize = isPlayground ? photos.length : 5; // No need to batch local files
@@ -182,6 +358,9 @@ export function useFramedPhotoDownload() {
         for (const photo of batch) {
           const promise = (async () => {
             try {
+              let canvas;
+
+              // For multiple photos, use the improved original method with real margins
               let originalImageBlob;
 
               if (isPlayground) {
@@ -198,10 +377,11 @@ export function useFramedPhotoDownload() {
                 originalImageBlob = response.data;
               }
 
-              // Create framed version
-              const canvas = await createFramedPhotoCanvas(
+              // Create framed version using improved method with real margins
+              canvas = await createFramedPhotoCanvas(
                 originalImageBlob,
-                frameConfig
+                frameConfig,
+                realMargins // Pass the real margins
               );
 
               // Convert to blob

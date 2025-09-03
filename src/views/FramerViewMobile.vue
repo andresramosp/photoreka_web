@@ -10,11 +10,14 @@
             v-if="props.playgroundMode"
             class="mobile-preview-logo-container"
           >
-            <img
+            <!-- <img
               src="@/assets/logo_name_sub_curation_lab_blue.png"
               alt="Photoreka"
               class="mobile-preview-logo"
-            />
+            /> -->
+            <router-link to="/" class="logo-link" aria-label="Inicio">
+              <AppLogo size="tiny" />
+            </router-link>
           </div>
           <!-- Title for authenticated mode -->
           <h3 v-else>Preview</h3>
@@ -256,6 +259,7 @@ import {
   DownloadOutline as DownloadIcon,
   TrashOutline as TrashIcon,
 } from "@vicons/ionicons5";
+import AppLogo from "@/components/AppLogo.vue";
 
 const photosStore = usePhotosStore();
 const message = useMessage();
@@ -276,23 +280,26 @@ const isProcessingFiles = ref(false);
 
 // Curated frames for mobile (fewer options, better organized)
 const allFrames = ref([
-  // Most common ratios first
-  { id: "square", ratio: "1:1", aspectRatio: "1/1" },
-  { id: "portrait-3-4", ratio: "3:4", aspectRatio: "3/4" },
-  { id: "landscape-4-3", ratio: "4:3", aspectRatio: "4/3" },
-  { id: "widescreen", ratio: "16:9", aspectRatio: "16/9" },
+  // Social Media frames
+  { id: "instagram-square", ratio: "Instagram", aspectRatio: "1/1" },
   { id: "instagram-story", ratio: "9:16", aspectRatio: "9/16" },
+  { id: "facebook-post", ratio: "Facebook", aspectRatio: "4/3" },
+  { id: "twitter-post", ratio: "Twitter", aspectRatio: "16/9" },
+  { id: "linkedin-post", ratio: "LinkedIn", aspectRatio: "1.91/1" },
+
+  // General photography & cinema
   { id: "golden-3-2", ratio: "3:2", aspectRatio: "3/2" },
+  { id: "cinema-2-3", ratio: "2:3", aspectRatio: "2/3" },
+  { id: "portrait-3-4", ratio: "3:4", aspectRatio: "3/4" },
+  { id: "movie", ratio: "Movie", aspectRatio: "2.39/1" },
+  { id: "ultrawide", ratio: "21:9", aspectRatio: "21/9" },
 
-  // Social Media
-  { id: "instagram-square", ratio: "IG", aspectRatio: "1/1" },
-  { id: "facebook-post", ratio: "FB", aspectRatio: "4/3" },
-  { id: "twitter-post", ratio: "X", aspectRatio: "16/9" },
-
-  // Print formats
+  // Print frames
   { id: "print-4x6", ratio: '4x6"', aspectRatio: "6/4" },
   { id: "print-5x7", ratio: '5x7"', aspectRatio: "7/5" },
   { id: "print-8x10", ratio: '8x10"', aspectRatio: "10/8" },
+  { id: "print-11x14", ratio: '11x14"', aspectRatio: "14/11" },
+  { id: "print-16x20", ratio: '16x20"', aspectRatio: "20/16" },
 ]);
 
 const frameColors = ref([
@@ -603,7 +610,7 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-md);
+  padding: 2px;
   border-bottom: 1px solid var(--border-color);
   background-color: var(--bg-secondary);
 }

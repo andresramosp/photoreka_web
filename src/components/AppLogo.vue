@@ -1,7 +1,15 @@
 <template>
-  <div class="photoreka-logo" :class="{ 'logo-large': size === 'large' }">
-    <div class="logo-icon">
-      <img :src="logoName" alt="Photoreka" class="logo-image" />
+  <div class="photoreka-logo" :class="{ 'logo-large': size === 'large', 'logo-tiny': size === 'tiny' }">
+    <div class="logo-icon" :class="{ 'logo-small': size === 'small', 'logo-tiny': size === 'tiny' }">
+      <img
+        :src="logoName"
+        alt="Photoreka"
+        class="logo-image"
+        :class="{
+          'logo-small-image': size === 'small',
+          'logo-tiny-image': size === 'tiny'
+        }"
+      />
     </div>
   </div>
 </template>
@@ -13,7 +21,7 @@ import { CameraOutline } from "@vicons/ionicons5";
 import logoName from "@/assets/logo_name_sub_curation_lab.png";
 
 interface Props {
-  size?: "normal" | "large";
+  size?: "normal" | "large" | "small" | "tiny";
   showText?: boolean;
 }
 
@@ -23,7 +31,10 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const iconSize = computed(() => {
-  return props.size === "large" ? 48 : 32;
+  if (props.size === "large") return 48;
+  if (props.size === "small") return 24;
+  if (props.size === "tiny") return 16;
+  return 32;
 });
 </script>
 
@@ -65,6 +76,14 @@ export default {
   height: 100px;
 }
 
+.logo-small-image {
+  height: 70px;
+}
+
+.logo-tiny-image {
+  height: 40px;
+}
+
 .logo-text {
   font-size: 24px;
   font-weight: 700;
@@ -76,6 +95,14 @@ export default {
 
 .logo-large .logo-text {
   font-size: 32px;
+}
+
+.logo-small .logo-text {
+  font-size: 18px;
+}
+
+.logo-tiny .logo-text {
+  font-size: 12px;
 }
 
 /* Animation for the camera icon */
