@@ -10,8 +10,12 @@
             :src="photoUrl"
             :alt="photoAlt"
             class="photo-image"
+            :class="{ 'android-optimized': isAndroidDevice }"
             @load="onImageLoad"
             @error="onImageError"
+            loading="lazy"
+            :decoding="isAndroidDevice ? 'sync' : 'async'"
+            crossorigin="anonymous"
           />
           <div v-else class="no-photo-placeholder">
             <n-icon :size="48" color="#ccc">
@@ -74,6 +78,11 @@ const windowSize = ref({
 const updateWindowSize = () => {
   windowSize.value = { width: window.innerWidth, height: window.innerHeight };
 };
+
+// Detect Android device
+const isAndroidDevice = computed(() => {
+  return /Android/i.test(navigator.userAgent);
+});
 
 // Calculate optimal frame size based on container and aspect ratio
 const calculateFrameSize = () => {
@@ -145,10 +154,51 @@ const frameContainerStyle = computed(() => {
 
 // Methods
 const onImageLoad = (event) => {
+  const img = event.target;
+
+  // Apply Android-specific optimizations without affecting desktop
+  const isAndroid = /Android/i.test(navigator.userAgent);
+
+  if (isAndroid) {
+    // Force layer creation for better GPU handling on Android
+    img.style.transform = "translateZ(0)";
+    img.style.backfaceVisibility = "hidden";
+
+    // Check for large images that might cause fragmentation
+    if (img.naturalWidth > 2048 || img.naturalHeight > 2048) {
+      // Disable hardware acceleration for very large images on Android
+      img.style.willChange = "auto";
+      img.style.transform = "translate3d(0,0,0)"; // Keep layer but simpler transform
+
+      // Add a slight delay to ensure proper rendering
+      setTimeout(() => {
+        img.style.opacity = "0.999";
+        requestAnimationFrame(() => {
+          img.style.opacity = "1";
+        });
+      }, 100);
+    }
+
+    // Force image to use software decoding on Android if needed
+    if (img.naturalWidth * img.naturalHeight > 4194304) {
+      // 4MP threshold
+      img.decoding = "sync";
+    }
+  }
+
   emit("image-load", event);
 };
 
 const onImageError = (event) => {
+  console.error("Image loading error:", event);
+
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  if (isAndroid) {
+    console.warn(
+      "Image error on Android device, this might be due to memory constraints or rendering issues"
+    );
+  }
+
   emit("image-error", event);
 };
 
@@ -227,10 +277,42 @@ onUnmounted(() => {
   display: block;
   transition: transform 0.3s ease;
   background-color: var(--bg-tertiary);
+
+  /* Standard optimizations */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+
+  /* Conservative hardware acceleration - let browser decide */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  /* Better memory management */
+  max-width: 100%;
+  max-height: 100%;
+
+  /* Prevent dragging */
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-/* Hover effect for better UX */
-.frame-container:hover .photo-image {
+/* Android-specific optimizations that don't affect desktop */
+.photo-image.android-optimized {
+  /* More conservative approach for Android */
+  image-rendering: auto;
+  will-change: auto; /* Let browser decide */
+  transform: none; /* Will be set via JS if needed */
+
+  /* Prevent potential memory issues */
+  image-orientation: from-image;
+
+  /* Force composite layer only when needed */
+  contain: paint;
+}
+
+/* Hover effect for better UX - disabled on Android to prevent rendering issues */
+.frame-container:hover .photo-image:not(.android-optimized) {
   transform: scale(1.02);
 }
 

@@ -231,21 +231,17 @@
 
         <!-- Free Tools CTA -->
         <div class="features-cta">
-          <h3 class="features-cta-title">Need to sequence or frame photos?</h3>
-          <p class="features-cta-subtitle">Try our free tools to get started</p>
+          <h4 class="features-cta-title">Try our free tools to get started</h4>
+          <!-- <p class="features-cta-subtitle">Try our free tools to get started</p> -->
           <div class="features-tools">
-            <div
-              v-if="!isMobileDevice()"
-              class="feature-tool-card"
-              @click="goToPlayground"
-            >
+            <div class="feature-tool-card" @click="goToPlayground">
               <div class="tool-icon">
                 <n-icon size="32" color="#8b5cf6">
                   <Workspace />
                 </n-icon>
               </div>
-              <h4 class="tool-title">Canvas</h4>
-              <p class="tool-description">Create layouts and compositions</p>
+              <h4 class="tool-title">Free Canvas</h4>
+              <p class="tool-description">Combine and sequence photos</p>
             </div>
             <div class="feature-tool-card" @click="goToFreeFramer">
               <div class="tool-icon">
@@ -254,7 +250,9 @@
                 </n-icon>
               </div>
               <h4 class="tool-title">Framer</h4>
-              <p class="tool-description">Add frames and sequences to photos</p>
+              <p class="tool-description">
+                Add all types of frames to your photos
+              </p>
             </div>
           </div>
         </div>
@@ -1302,7 +1300,7 @@ if (typeof window !== "undefined") {
   font-size: 28px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 12px;
+  margin-bottom: 50px;
 }
 
 .features-cta-subtitle {

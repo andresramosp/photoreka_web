@@ -118,7 +118,7 @@
             </div>
           </n-tab-pane>
 
-          <n-tab-pane v-if="displayLightboxTab" name="sync" tab="From Lightbox">
+          <n-tab-pane v-if="displayLightboxTab" name="sync" tab="Upload Files">
             <PhotosLightboxTab
               :selected-ids="syncSelectedIds"
               @update:selected-ids="syncSelectedIds = $event"
