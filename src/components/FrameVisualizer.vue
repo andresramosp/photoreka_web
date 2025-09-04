@@ -95,7 +95,7 @@ const calculateFrameSize = () => {
 
   // Base size for the frame (ideal size when there are no constraints)
   const isMobile = windowSize.value.width <= 768;
-  const baseSize = isMobile ? 300 : 400;
+  const baseSize = isMobile ? 200 : 500;
 
   // Calculate initial frame dimensions maintaining EXACT aspect ratio
   let frameWidth, frameHeight;

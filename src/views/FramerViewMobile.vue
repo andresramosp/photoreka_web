@@ -81,22 +81,13 @@
 
       <!-- Frame styles section -->
       <div class="mobile-frame-section">
-        <div class="section-header">
-          <!-- Logo for playground mode -->
-          <!-- <div v-if="props.playgroundMode" class="mobile-frame-logo-container">
-            <img
-              src="@/assets/logo_name_sub_curation_lab_blue.png"
-              alt="Photoreka"
-              class="mobile-frame-logo"
-            />
-          </div> -->
-          <!-- Title for authenticated mode -->
-          <h4>Frame Styles</h4>
-        </div>
+        <!-- Selected photos section at bottom -->
 
         <!-- Frame styles title (smaller, closer to options) for playground mode -->
-
         <div class="frame-styles-container">
+          <div class="section-header">
+            <h4>Frames</h4>
+          </div>
           <div class="frame-styles-grid">
             <div
               v-for="frame in allFrames"
@@ -120,13 +111,13 @@
                 >
                   <n-icon
                     v-if="frame.icon"
-                    :size="14"
+                    :size="16"
                     class="mobile-social-icon"
                     :component="getFrameIcon(frame)"
                   />
                   <n-icon
                     v-else
-                    :size="12"
+                    :size="14"
                     class="mobile-category-icon"
                     :component="getFrameIcon(frame)"
                   />
@@ -140,90 +131,96 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Frame controls section -->
-      <div class="mobile-controls-section" v-if="selectedFrame">
-        <div class="mobile-controls">
-          <div class="control-row">
-            <label class="control-label">Margin</label>
-            <div class="mobile-slider-container">
-              <n-slider
-                v-model:value="marginValue"
-                :min="0"
-                :max="200"
-                :step="5"
-                class="mobile-margin-slider"
-              />
-              <span class="mobile-slider-value">{{ marginValue }}px</span>
+        <div class="mobile-photos-section">
+          <div class="section-header">
+            <h4>Photos</h4>
+            <div class="photos-actions">
+              <span class="photo-count">{{ selectedPhotos.length }}</span>
+              <n-button
+                @click="clearAllPhotos"
+                quaternary
+                type="error"
+                size="tiny"
+              >
+                <template #icon>
+                  <n-icon>
+                    <TrashIcon />
+                  </n-icon>
+                </template>
+              </n-button>
             </div>
           </div>
 
-          <div class="control-row">
-            <div class="mobile-color-options">
-              <div
-                v-for="color in frameColors"
-                :key="color.value"
-                class="mobile-color-option"
-                :class="{ active: frameColor === color.value }"
-                :style="{ backgroundColor: color.value }"
-                @click="frameColor = color.value"
-                :title="color.name"
-              ></div>
+          <!-- Frame controls section -->
+          <div class="mobile-controls-section" v-if="selectedFrame">
+            <div class="mobile-controls">
+              <div class="control-row">
+                <!-- Color picker button -->
+                <div
+                  class="mobile-color-button"
+                  :style="{ backgroundColor: frameColor }"
+                  @click="toggleColorPicker"
+                  :title="'Frame Color'"
+                ></div>
+                <div class="mobile-slider-container">
+                  <n-slider
+                    v-model:value="marginValue"
+                    :min="0"
+                    :max="200"
+                    :step="5"
+                    class="mobile-margin-slider"
+                  />
+                  <span class="mobile-slider-value">{{ marginValue }}px</span>
+                </div>
+              </div>
+
+              <!-- Color picker dropdown (hidden by default) -->
+              <div class="control-row color-picker-row" v-if="showColorPicker">
+                <div class="mobile-color-options">
+                  <div
+                    v-for="color in frameColors"
+                    :key="color.value"
+                    class="mobile-color-option"
+                    :class="{ active: frameColor === color.value }"
+                    :style="{ backgroundColor: color.value }"
+                    @click="selectColor(color.value)"
+                    :title="color.name"
+                  ></div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Selected photos section at bottom -->
-      <div class="mobile-photos-section">
-        <div class="section-header">
-          <h4>Photos</h4>
-          <div class="photos-actions">
-            <span class="photo-count">{{ selectedPhotos.length }}</span>
-            <n-button
-              @click="clearAllPhotos"
-              quaternary
-              type="error"
-              size="tiny"
+          <div class="mobile-photos-scroll">
+            <!-- Add more photos button -->
+            <div
+              class="mobile-add-photo"
+              @click="openPhotoDialog"
+              :class="{ processing: isProcessingFiles }"
             >
-              <template #icon>
-                <n-icon>
-                  <TrashIcon />
-                </n-icon>
-              </template>
-            </n-button>
-          </div>
-        </div>
+              <n-icon :size="20">
+                <AddIcon v-if="!isProcessingFiles" />
+                <n-spin v-else :size="20" />
+              </n-icon>
+              <span>{{ isProcessingFiles ? "Processing..." : "Add" }}</span>
+            </div>
 
-        <div class="mobile-photos-scroll">
-          <!-- Add more photos button -->
-          <div
-            class="mobile-add-photo"
-            @click="openPhotoDialog"
-            :class="{ processing: isProcessingFiles }"
-          >
-            <n-icon :size="20">
-              <AddIcon v-if="!isProcessingFiles" />
-              <n-spin v-else :size="20" />
-            </n-icon>
-            <span>{{ isProcessingFiles ? "Processing..." : "Add" }}</span>
+            <!-- Photo thumbnails -->
+            <PhotoCard
+              v-for="photo in selectedPhotos"
+              :key="photo.id"
+              :photo="photo"
+              :selected="selectedPhotoIds.has(photo.id)"
+              mode="selection"
+              :show-stars="false"
+              :show-tags="false"
+              :show-return-button="false"
+              @select="selectPhoto"
+              @move-to-curation="removePhoto"
+              class="mobile-photo-card"
+            />
           </div>
-
-          <!-- Photo thumbnails -->
-          <PhotoCard
-            v-for="photo in selectedPhotos"
-            :key="photo.id"
-            :photo="photo"
-            :selected="selectedPhotoIds.has(photo.id)"
-            mode="selection"
-            :show-stars="false"
-            :show-tags="false"
-            :show-return-button="false"
-            @select="selectPhoto"
-            @move-to-curation="removePhoto"
-            class="mobile-photo-card"
-          />
         </div>
       </div>
     </div>
@@ -306,12 +303,13 @@ const selectedPhotos = ref([]);
 const currentPhoto = ref(null);
 const selectedPhotoIds = ref(new Set());
 const selectedFrame = ref(null);
-const marginValue = ref(20);
+const marginValue = ref(5);
 const frameColor = ref("#ffffff");
 const showPhotoDialog = ref(false);
 const fileInputRef = ref(null);
 const isProcessingFiles = ref(false);
 const frameVisualizerRef = ref(null);
+const showColorPicker = ref(false); // New state for color picker visibility
 
 // Curated frames for mobile (same as desktop with colors and icons)
 const allFrames = ref([
@@ -531,21 +529,18 @@ const processLocalFiles = async (files) => {
 
     for (const file of files) {
       try {
-        // Process image similar to PlaygroundPhotosDialog but using resizeWithStepDown
-        const [resizedBlob, thumbnailBlob] = await Promise.all([
-          resizeWithStepDown(file, 1500), // Main image
-          resizeWithStepDown(file, 800), // Thumbnail
-        ]);
+        // Process image - only resize to 1500px for good quality
+        const resizedBlob = await resizeWithStepDown(file, 2000);
 
-        // Create preview URL from thumbnail
-        const preview = URL.createObjectURL(thumbnailBlob);
+        // Create preview URL from the good quality image
+        const preview = URL.createObjectURL(resizedBlob);
 
         // Get dimensions from the resized image
         const dimensions = await getImageDimensions(preview);
 
         const photoObject = {
           id: Date.now() + Math.random(), // Simple ID generation
-          thumbnailUrl: preview,
+          thumbnailUrl: preview, // Use good quality image for thumbnail too
           name: file.name,
           file: resizedBlob, // Use resized image
           originalFile: file, // Keep reference to original
@@ -686,6 +681,15 @@ const selectFrame = (frame) => {
   selectedFrame.value = frame;
 };
 
+const toggleColorPicker = () => {
+  showColorPicker.value = !showColorPicker.value;
+};
+
+const selectColor = (color) => {
+  frameColor.value = color;
+  showColorPicker.value = false; // Hide color picker after selection
+};
+
 const downloadPhotos = async () => {
   const photosToDownload =
     selectedCount.value > 0
@@ -736,20 +740,22 @@ onMounted(async () => {
 
 <style scoped>
 .framer-mobile-container {
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm);
   background-color: var(--bg-body);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-y: auto; /* Allow vertical scroll */
+  position: relative;
 }
 
 /* Main Mobile Interface */
 .framer-mobile-interface {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  gap: var(--spacing-sm);
-  overflow: hidden;
+  min-height: 100vh; /* Changed from height to min-height */
+  gap: var(--spacing-xs);
+  flex: 1;
 }
 
 /* Mobile Preview Area */
@@ -758,7 +764,7 @@ onMounted(async () => {
   border-radius: var(--border-radius-lg);
   border: 1px solid var(--border-color);
   overflow: hidden;
-  flex: 0 0 40vh; /* Slightly smaller height */
+  flex: 0 0 45vh; /* Back to 45vh as requested */
   display: flex;
   flex-direction: column;
 }
@@ -767,7 +773,7 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 2px;
+  padding: var(--spacing-xs);
   border-bottom: 1px solid var(--border-color);
   background-color: var(--bg-secondary);
 }
@@ -791,7 +797,7 @@ onMounted(async () => {
 }
 
 .mobile-photo-preview {
-  height: calc(40vh - 60px);
+  height: calc(45vh - 50px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -828,12 +834,12 @@ onMounted(async () => {
   background-color: var(--primary-color);
   color: white;
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  width: 37px;
+  height: 37px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-size-xs);
+  font-size: 20px;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   z-index: 10;
@@ -852,7 +858,7 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm);
   border-bottom: 1px solid var(--border-color);
   background-color: var(--bg-secondary);
 }
@@ -889,8 +895,8 @@ onMounted(async () => {
 }
 
 .frame-styles-container {
-  padding: var(--spacing-md);
-  max-height: 200px; /* Increased height for larger frames */
+  padding: var(--spacing-sm);
+  max-height: 220px; /* Increased height */
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -898,7 +904,7 @@ onMounted(async () => {
 .frame-styles-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-md); /* Increased gap */
+  gap: var(--spacing-sm);
   grid-auto-rows: minmax(min-content, max-content);
   align-items: start;
   justify-items: center;
@@ -908,17 +914,18 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-sm); /* Increased gap */
-  padding: var(--spacing-md); /* Increased padding */
-  border-radius: var(--border-radius-md);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-lg);
   border: 2px solid var(--border-color);
   background-color: var(--bg-body);
   cursor: pointer;
   transition: all 0.2s ease;
-  width: 100%;
   aspect-ratio: 1;
+  justify-content: center;
   position: relative;
   overflow: visible;
+  width: 100%;
   box-sizing: border-box;
 }
 
@@ -928,22 +935,25 @@ onMounted(async () => {
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
-  background: var(--frame-color, var(--primary-color));
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--frame-color, var(--primary-color)),
+    var(--frame-color, var(--primary-color))
+  );
   opacity: 0;
   transition: all 0.3s ease;
-  border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
 }
 
 .mobile-frame-option:hover {
   border-color: var(--frame-color, var(--primary-color));
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   background: linear-gradient(
     135deg,
     var(--bg-body) 0%,
     var(--frame-color-light, var(--primary-color-light)) 100%
   );
-  box-shadow: 0 2px 8px var(--frame-color-light, rgba(0, 0, 0, 0.1));
 }
 
 .mobile-frame-option:hover::before {
@@ -952,22 +962,21 @@ onMounted(async () => {
 
 .mobile-frame-option.active {
   border-color: var(--frame-color, var(--primary-color));
-  background-color: var(--frame-color, var(--primary-color));
+  background: var(--frame-color, var(--primary-color));
   color: white;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 .mobile-frame-option.active::before {
   opacity: 1;
   height: 100%;
   background: var(--frame-color, var(--primary-color));
-  border-radius: var(--border-radius-md);
 }
 
 .mobile-frame-option.active .mobile-frame-shape {
   background-color: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .mobile-frame-option.active .mobile-frame-ratio {
@@ -980,14 +989,35 @@ onMounted(async () => {
   color: white;
 }
 
+/* Category-specific styling */
+.mobile-frame-option.frame-social:hover {
+  border-color: var(--frame-color);
+  box-shadow: 0 4px 20px var(--frame-color-light);
+}
+
+.mobile-frame-option.frame-photo:hover {
+  border-color: var(--frame-color);
+  box-shadow: 0 4px 20px var(--frame-color-light);
+}
+
+.mobile-frame-option.frame-cinema:hover {
+  border-color: var(--frame-color);
+  box-shadow: 0 4px 20px var(--frame-color-light);
+}
+
+.mobile-frame-option.frame-print:hover {
+  border-color: var(--frame-color);
+  box-shadow: 0 4px 20px var(--frame-color-light);
+}
+
 .mobile-frame-icon {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-xs); /* Increased gap */
-  width: 40px; /* Increased size */
-  height: 40px; /* Increased size */
+  gap: var(--spacing-xs);
+  width: 48px;
+  height: 48px;
   position: relative;
 }
 
@@ -995,7 +1025,7 @@ onMounted(async () => {
   display: flex;
   justify-content: flex-end;
   width: 100%;
-  margin-bottom: -8px; /* Adjusted for larger icons */
+  margin-bottom: -8px;
   z-index: 2;
 }
 
@@ -1004,8 +1034,8 @@ onMounted(async () => {
   transition: all 0.2s ease;
   background: var(--bg-body);
   border-radius: 50%;
-  padding: 3px; /* Increased padding */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .mobile-category-icon {
@@ -1013,29 +1043,32 @@ onMounted(async () => {
   transition: all 0.2s ease;
   background: var(--bg-body);
   border-radius: 50%;
-  padding: 3px; /* Increased padding */
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  padding: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .mobile-frame-shape {
-  border: 2px solid var(--frame-color, var(--border-color)); /* Thicker border */
+  border: 2px solid var(--frame-color, var(--border-color));
   background-color: transparent;
-  max-width: 28px; /* Increased size */
-  max-height: 28px; /* Increased size */
-  min-width: 12px; /* Increased min size */
-  min-height: 12px; /* Increased min size */
+  max-width: 32px;
+  max-height: 32px;
+  min-width: 16px;
+  min-height: 16px;
   transition: all 0.2s ease;
   border-radius: 2px;
-  margin-top: -3px; /* Adjusted margin */
+  z-index: 1;
+  margin-top: -4px;
 }
 
 .mobile-frame-ratio {
-  font-size: 11px; /* Increased font size */
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--text-secondary);
-  text-align: center;
   transition: all 0.2s ease;
-  line-height: 1.2; /* Better line height */
+  text-align: center;
+  line-height: 1.2;
+  z-index: 1;
+  position: relative;
 }
 
 /* Mobile Controls Section */
@@ -1048,17 +1081,22 @@ onMounted(async () => {
 }
 
 .mobile-controls {
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
 }
 
 .control-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-md);
+  gap: var(--spacing-sm);
+}
+
+.control-row.color-picker-row {
+  justify-content: center;
+  padding-top: var(--spacing-xs);
 }
 
 .control-label {
@@ -1066,6 +1104,24 @@ onMounted(async () => {
   font-weight: 500;
   color: var(--text-primary);
   min-width: 60px;
+}
+
+.mobile-color-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  margin-right: var(--spacing-sm);
+}
+
+.mobile-color-button:hover {
+  transform: scale(1.1);
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .mobile-slider-container {
@@ -1090,6 +1146,23 @@ onMounted(async () => {
 .mobile-color-options {
   display: flex;
   gap: var(--spacing-xs);
+  justify-content: center;
+  padding: var(--spacing-sm);
+  background-color: var(--bg-body);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .mobile-color-option {
@@ -1119,7 +1192,10 @@ onMounted(async () => {
   border: 1px solid var(--border-color);
   overflow: hidden;
   flex: 1;
-  min-height: 0;
+  min-height: 120px; /* Minimum height to ensure visibility */
+  max-height: 25vh; /* Limit max height to prevent taking too much space */
+  display: flex;
+  flex-direction: column;
 }
 
 .photos-actions {
@@ -1136,11 +1212,13 @@ onMounted(async () => {
 .mobile-photos-scroll {
   overflow-x: auto;
   overflow-y: hidden;
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm);
   display: flex;
   gap: var(--spacing-sm);
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
+  flex: 1;
+  min-height: 0;
 }
 
 .mobile-add-photo {
@@ -1215,30 +1293,25 @@ onMounted(async () => {
 /* Small screen adjustments */
 @media (max-width: 400px) {
   .framer-mobile-container {
-    padding: var(--spacing-sm);
-  }
-
-  .mobile-preview-area {
-    flex: 0 0 45vh;
-  }
-
-  .mobile-photo-preview {
-    height: calc(45vh - 60px);
-  }
-
-  .mobile-frame-option {
-    min-width: 50px;
     padding: var(--spacing-xs);
   }
 
-  .mobile-frame-icon {
-    width: 24px;
-    height: 24px;
+  .mobile-preview-area {
+    flex: 0 0 45vh; /* Reduced height for small screens */
+  }
+
+  .mobile-photo-preview {
+    height: calc(45vh - 50px);
+  }
+
+  .mobile-frame-option {
+    padding: var(--spacing-xs);
+    /* Keep aspect-ratio: 1 for squares */
   }
 
   .mobile-frame-shape {
-    max-width: 20px;
-    max-height: 20px;
+    max-width: 18px;
+    max-height: 18px;
   }
 
   .mobile-frame-ratio {
@@ -1249,47 +1322,77 @@ onMounted(async () => {
   .mobile-add-photo {
     width: 70px !important;
     min-width: 70px !important;
+    height: 70px !important;
   }
 
   .control-row {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row; /* Keep row layout on small screens */
+    align-items: center;
     gap: var(--spacing-sm);
+  }
+
+  .control-row.color-picker-row {
+    justify-content: center;
   }
 
   .control-label {
     min-width: auto;
     text-align: left;
+    font-size: var(--font-size-xs);
+  }
+
+  .mobile-color-button {
+    width: 24px;
+    height: 24px;
   }
 
   .mobile-slider-container {
-    justify-content: space-between;
+    flex: 1;
+  }
+
+  .frame-styles-container {
+    max-height: 200px; /* Reduced for small screens */
+  }
+
+  .section-header {
+    padding: var(--spacing-xs);
   }
 }
 
 /* Extra small screens */
 @media (max-width: 320px) {
   .mobile-preview-area {
-    flex: 0 0 30vh;
+    flex: 0 0 25vh; /* Very small for tiny screens */
   }
 
   .mobile-photo-preview {
-    height: calc(30vh - 60px);
+    height: calc(25vh - 45px);
   }
 
   .mobile-photo-card,
   .mobile-add-photo {
     width: 60px !important;
     min-width: 60px !important;
+    height: 60px !important;
   }
 
   .mobile-frame-option {
-    min-width: 45px;
+    /* Keep aspect-ratio: 1 for squares */
+    padding: var(--spacing-xs);
   }
 
   .mobile-color-option {
     width: 20px;
     height: 20px;
+  }
+
+  .frame-styles-container {
+    max-height: 120px;
+  }
+
+  .mobile-photos-section {
+    max-height: 20vh;
+    min-height: 100px;
   }
 }
 </style>

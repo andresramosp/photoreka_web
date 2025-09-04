@@ -28,7 +28,9 @@ export function useFramedPhotoDownload() {
           const aspectRatio = widthRatio / heightRatio;
 
           // Calculate dimensions - use high resolution for better quality
-          const baseWidth = 1200;
+          // Use higher base resolution on mobile to match DOM capture quality
+          const isMobile = window.innerWidth <= 768;
+          const baseWidth = isMobile ? 2400 : 1200; // Double resolution for mobile
           let canvasWidth, canvasHeight;
 
           if (aspectRatio >= 1) {
@@ -43,6 +45,10 @@ export function useFramedPhotoDownload() {
 
           canvas.width = canvasWidth;
           canvas.height = canvasHeight;
+
+          console.log(
+            `Creating framed canvas: ${canvasWidth}x${canvasHeight} (mobile: ${isMobile}, baseWidth: ${baseWidth})`
+          );
 
           // Fill frame background
           ctx.fillStyle = frameConfig.frameColor || "#ffffff";
@@ -248,12 +254,19 @@ export function useFramedPhotoDownload() {
       if (frameVisualizerRef) {
         try {
           console.log("Attempting DOM capture with manual recreation...");
-          canvas = await captureFramedPhotoFromDOM(frameVisualizerRef, 3);
+          // Use higher scale factor on mobile to compensate for smaller preview
+          const isMobile = window.innerWidth <= 768;
+          const scaleFactor = isMobile ? 8 : 3; // Higher scaling for mobile
+          canvas = await captureFramedPhotoFromDOM(
+            frameVisualizerRef,
+            scaleFactor
+          );
           console.log(
             "DOM capture successful:",
             canvas.width,
             "x",
-            canvas.height
+            canvas.height,
+            `(mobile: ${isMobile}, scale: ${scaleFactor})`
           );
         } catch (domError) {
           console.warn(
@@ -360,7 +373,12 @@ export function useFramedPhotoDownload() {
             try {
               let canvas;
 
-              // For multiple photos, use the improved original method with real margins
+              // For ZIP downloads, always use createFramedPhotoCanvas to process each individual photo
+              // DOM capture only works for the currently visible photo in the preview
+              console.log(
+                `Processing photo for ZIP: ${photo.name || photo.id}`
+              );
+
               let originalImageBlob;
 
               if (isPlayground) {
@@ -378,6 +396,7 @@ export function useFramedPhotoDownload() {
               }
 
               // Create framed version using improved method with real margins
+              // This will use the higher resolution we set for mobile devices
               canvas = await createFramedPhotoCanvas(
                 originalImageBlob,
                 frameConfig,

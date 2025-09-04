@@ -455,7 +455,7 @@ const selectedPhotos = ref([]);
 const currentPhoto = ref(null);
 const selectedPhotoIds = ref(new Set());
 const selectedFrame = ref(null);
-const marginValue = ref(20);
+const marginValue = ref(5);
 const frameColor = ref("#ffffff");
 const showPhotoDialog = ref(false);
 const fileInputRef = ref(null);
@@ -692,21 +692,18 @@ const processLocalFiles = async (files) => {
 
     for (const file of files) {
       try {
-        // Process image similar to PlaygroundPhotosDialog but using resizeWithStepDown
-        const [resizedBlob, thumbnailBlob] = await Promise.all([
-          resizeWithStepDown(file, 1500), // Main image
-          resizeWithStepDown(file, 800), // Thumbnail
-        ]);
+        // Process image - only resize to 1500px for good quality
+        const resizedBlob = await resizeWithStepDown(file, 2000);
 
-        // Create preview URL from thumbnail
-        const preview = URL.createObjectURL(thumbnailBlob);
+        // Create preview URL from the good quality image
+        const preview = URL.createObjectURL(resizedBlob);
 
         // Get dimensions from the resized image
         const dimensions = await getImageDimensions(preview);
 
         const photoObject = {
           id: Date.now() + Math.random(), // Simple ID generation
-          thumbnailUrl: preview,
+          thumbnailUrl: preview, // Use good quality image for thumbnail too
           name: file.name,
           file: resizedBlob, // Use resized image
           originalFile: file, // Keep reference to original
@@ -1420,12 +1417,12 @@ onUnmounted(() => {
   background-color: var(--primary-color);
   color: white;
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
+  width: 45px;
+  height: 45px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-size-sm);
+  font-size: 20px;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   z-index: 10;
