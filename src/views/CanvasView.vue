@@ -245,6 +245,16 @@
       @cancel="handleCollectionModalCancel"
     />
 
+    <!-- Photo Tool Selector Modal -->
+    <PhotoToolSelector
+      :show="showToolSelector"
+      :photo-count="selectedPhotosCount"
+      :tools="availableTools"
+      :is-processing="isProcessingTool"
+      @tool-selected="handleToolSelected"
+      @close="closeToolSelector"
+    />
+
     <!-- Top Left Controls -->
     <div class="canvas-controls top-left">
       <n-space>
@@ -386,7 +396,7 @@
               <CloudDownloadOutline />
             </n-icon>
           </template>
-          Download
+
           {{ selectedPhotosCount > 1 ? `(${selectedPhotosCount})` : "" }}
         </n-button>
 
@@ -406,7 +416,21 @@
               </svg>
             </n-icon>
           </template>
-          Collection
+
+          {{ selectedPhotosCount > 1 ? `(${selectedPhotosCount})` : "" }}
+        </n-button>
+
+        <!-- Take Photos To Tool Button - Only show when photos are selected -->
+        <n-button
+          v-if="selectedPhotosCount > 0"
+          type="info"
+          @click="openToolSelector"
+          :disabled="isProcessingTool"
+        >
+          <template #icon>
+            <n-icon> <MagicWand /> </n-icon>
+          </template>
+
           {{ selectedPhotosCount > 1 ? `(${selectedPhotosCount})` : "" }}
         </n-button>
 
@@ -675,12 +699,14 @@ import RelatedPhotosToolbar from "@/components/canvas/RelatedPhotosToolbar.vue";
 import PlaygroundUpgradeModal from "@/components/PlaygroundUpgradeModal.vue";
 import PlaygroundPhotosDialog from "@/components/PlaygroundPhotosDialog.vue";
 import CollectionModal from "@/components/CollectionModal.vue";
+import PhotoToolSelector from "@/components/PhotoToolSelector.vue";
 import { SaveOutline, CloudDownloadOutline } from "@vicons/ionicons5";
 import { SelectAllFilled } from "@vicons/material";
-import { Workspace } from "@vicons/carbon";
+import { MagicWand, Workspace } from "@vicons/carbon";
 import logoName from "@/assets/logo_name_sub_curation_lab_blue.png";
 import { usePhotoDownload } from "@/composables/usePhotoDownload.js";
 import { useCanvasPersistence } from "@/composables/useCanvasPersistence.js";
+import { usePhotoToolSelection } from "@/composables/usePhotoToolSelection.js";
 
 const canvasStore = useCanvasStore();
 const photosStore = usePhotosStore();
@@ -695,6 +721,26 @@ const {
   hasSavedCanvas,
   initializeChangeDetection,
 } = useCanvasPersistence();
+
+// Photo tool selection (only Framer available from Canvas)
+const canvasTools = [
+  {
+    id: "framer",
+    name: "Framer",
+    description: "Add frames and borders to photos",
+    icon: "ImageFrame",
+    route: "/framer",
+  },
+];
+
+const {
+  isProcessing: isProcessingTool,
+  showToolSelector,
+  availableTools,
+  takeToTool,
+  openToolSelector,
+  closeToolSelector,
+} = usePhotoToolSelection(canvasTools);
 
 // Playground mode detection
 const isPlayground = computed(() => route.meta?.playground === true);
@@ -1096,6 +1142,26 @@ const handleCollectionAdded = (data) => {
 
 const handleCollectionModalCancel = () => {
   showCollectionModal.value = false;
+};
+
+const handleToolSelected = async (toolId) => {
+  // Get selected photo IDs
+  const selectedIds = photos.value
+    .filter((photo) => photo.selected)
+    .map((photo) => photo.id);
+
+  // Clear selections
+  const clearSelections = () => {
+    photos.value.forEach((photo) => {
+      if (photo.selected) {
+        photo.selected = false;
+      }
+    });
+  };
+
+  // Use the composable function to take photos to tool
+  await takeToTool(toolId, selectedIds, clearSelections);
+  closeToolSelector();
 };
 
 const openPhotoInfo = (photo, event) => {

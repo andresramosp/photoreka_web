@@ -4,7 +4,7 @@ import { useMessage } from "naive-ui";
 import { useCanvasStore } from "@/stores/canvas.js";
 import { usePhotosStore } from "@/stores/photos.js";
 
-export function usePhotoToolSelection() {
+export function usePhotoToolSelection(customTools = null) {
   const router = useRouter();
   const message = useMessage();
   const canvasStore = useCanvasStore();
@@ -13,8 +13,8 @@ export function usePhotoToolSelection() {
   const isProcessing = ref(false);
   const showToolSelector = ref(false);
 
-  // Available tools for photo selection
-  const availableTools = [
+  // Default available tools for photo selection
+  const defaultTools = [
     {
       id: "canvas",
       name: "Canvas",
@@ -30,6 +30,9 @@ export function usePhotoToolSelection() {
       route: "/framer",
     },
   ];
+
+  // Use custom tools if provided, otherwise use default tools
+  const availableTools = customTools || defaultTools;
 
   /**
    * Takes selected photos to Canvas

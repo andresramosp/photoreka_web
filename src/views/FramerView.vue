@@ -734,12 +734,6 @@ const processLocalFiles = async (files) => {
       if (!selectedFrame.value) {
         selectedFrame.value = allFrames.value[0];
       }
-
-      message.success(
-        `Added ${processedPhotos.length} photo${
-          processedPhotos.length > 1 ? "s" : ""
-        } to framer`
-      );
     }
   } catch (error) {
     console.error("Error processing files:", error);
@@ -778,11 +772,6 @@ const handlePhotosAdded = (photoIds) => {
   if (!selectedFrame.value) {
     selectedFrame.value = allFrames.value[0]; // Default to 1:1
   }
-  message.success(
-    `Added ${photoObjects.length} photo${
-      photoObjects.length > 1 ? "s" : ""
-    } to framer`
-  );
 };
 
 const handlePlaygroundPhotosAdded = (photoObjects) => {
@@ -799,11 +788,6 @@ const handlePlaygroundPhotosAdded = (photoObjects) => {
   if (!selectedFrame.value) {
     selectedFrame.value = allFrames.value[0]; // Default to 1:1
   }
-  message.success(
-    `Added ${photoObjects.length} photo${
-      photoObjects.length > 1 ? "s" : ""
-    } to framer`
-  );
 };
 
 const selectPhoto = (photoId) => {
@@ -933,12 +917,6 @@ onMounted(async () => {
           if (!selectedFrame.value) {
             selectedFrame.value = allFrames.value[0];
           }
-
-          message.success(
-            `Added ${photoObjects.length} photo${
-              photoObjects.length > 1 ? "s" : ""
-            } to framer`
-          );
         }
       }
 
