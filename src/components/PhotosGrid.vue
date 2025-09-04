@@ -51,7 +51,6 @@
             <template #icon>
               <n-icon> <CloudDownloadOutline /> </n-icon>
             </template>
-            Download
           </n-button>
           <n-button
             v-if="!props.collectionId && displayAddToCollection"
@@ -76,15 +75,12 @@
           <n-button
             type="info"
             size="small"
-            @click="moveToCanvas"
+            @click="openToolSelector"
             :disabled="selectedPhotoIds.length === 0"
           >
             <template #icon>
-              <n-icon>
-                <Workspace />
-              </n-icon>
+              <n-icon> <MagicWand /> </n-icon>
             </template>
-            Take to Canvas
           </n-button>
         </div>
       </div>
@@ -218,6 +214,16 @@
       @cancel="handleCollectionModalCancel"
     />
 
+    <!-- Photo Tool Selector Modal -->
+    <PhotoToolSelector
+      :show="showToolSelector"
+      :photo-count="selectedPhotoIds.length"
+      :tools="availableTools"
+      :is-processing="isProcessingTool"
+      @tool-selected="handleToolSelected"
+      @close="closeToolSelector"
+    />
+
     <!-- Delete Confirmation Modal -->
     <n-modal
       v-model:show="showDeleteConfirmDialog"
@@ -266,20 +272,21 @@ import {
   useMessage,
 } from "naive-ui";
 import { CloudDownloadOutline } from "@vicons/ionicons5";
-import { Workspace } from "@vicons/carbon";
 import { useRouter } from "vue-router";
 import PhotoCardHub from "./photoCards/PhotoCardHub.vue";
 import PhotoInfoDialog from "./PhotoInfoDialog.vue";
 import DuplicatePhotosDialog from "./DuplicatePhotosDialog.vue";
 import CollectionModal from "./CollectionModal.vue";
 import PhotosGridControls from "./PhotosGridControls.vue";
+import PhotoToolSelector from "./PhotoToolSelector.vue";
 import { usePhotosStore } from "@/stores/photos.js";
-import { useCanvasStore } from "@/stores/canvas.js";
 import { useCollectionsStore } from "@/stores/collections.js";
 import { usePhotoDownload } from "@/composables/usePhotoDownload.js";
 import { usePhotoUpload } from "@/composables/usePhotoUpload.js";
 import { useLocalPhotoSelection } from "@/composables/useLocalPhotoSelection.js";
 import { useArtisticScores } from "@/composables/useArtisticScores.js";
+import { usePhotoToolSelection } from "@/composables/usePhotoToolSelection.js";
+import { MagicWand } from "@vicons/carbon";
 
 const emit = defineEmits(["refreshCollection", "selection-change"]);
 const props = defineProps({
@@ -304,7 +311,6 @@ const props = defineProps({
 const message = useMessage();
 const router = useRouter();
 const photosStore = usePhotosStore();
-const canvasStore = useCanvasStore();
 const collectionsStore = useCollectionsStore();
 const { downloadPhotosZip, isDownloading } = usePhotoDownload();
 const { preprocessPhotos } = usePhotoUpload();
@@ -316,6 +322,15 @@ const {
   deselectAllPhotos,
   clearAllSelections,
 } = useLocalPhotoSelection();
+
+const {
+  isProcessing: isProcessingTool,
+  showToolSelector,
+  availableTools,
+  takeToTool,
+  openToolSelector,
+  closeToolSelector,
+} = usePhotoToolSelection();
 
 // Grid columns state
 const gridColumns = ref(8);
@@ -834,18 +849,9 @@ const handleDownloadMultiple = async () => {
   }
 };
 
-const moveToCanvas = async () => {
-  await Promise.all(
-    selectedPhotoIds.value.map((id) => photosStore.fetchPhoto(id))
-  );
-  const photosToAdd = selectedPhotoIds.value
-    .map((id) => photosStore.photos.find((p) => p.id == id))
-    .filter(Boolean);
-
-  clearAllSelections();
-  canvasStore.addPhotos(photosToAdd, false, true);
-
-  router.push("/canvas");
+const handleToolSelected = async (toolId) => {
+  await takeToTool(toolId, selectedPhotoIds.value, clearAllSelections);
+  closeToolSelector();
 };
 </script>
 

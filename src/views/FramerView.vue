@@ -908,6 +908,48 @@ onMounted(async () => {
     await photosStore.getOrFetch(false);
   }
 
+  // Check for photos to add from other views (via sessionStorage)
+  const photosToAddData = sessionStorage.getItem("framer_photos_to_add");
+  if (photosToAddData) {
+    try {
+      const photosData = JSON.parse(photosToAddData);
+      if (Array.isArray(photosData) && photosData.length > 0) {
+        // Convert stored data back to photo objects
+        const photoObjects = photosData
+          .map((data) => data.photoObject)
+          .filter(Boolean);
+
+        if (photoObjects.length > 0) {
+          selectedPhotos.value.push(...photoObjects);
+
+          // Auto-select first photo if none selected
+          if (selectedCount.value === 0) {
+            const firstPhoto = photoObjects[0];
+            currentPhoto.value = firstPhoto;
+            selectedPhotoIds.value.add(firstPhoto.id);
+          }
+
+          // Auto-select first frame if none selected
+          if (!selectedFrame.value) {
+            selectedFrame.value = allFrames.value[0];
+          }
+
+          message.success(
+            `Added ${photoObjects.length} photo${
+              photoObjects.length > 1 ? "s" : ""
+            } to framer`
+          );
+        }
+      }
+
+      // Clear the sessionStorage after processing
+      sessionStorage.removeItem("framer_photos_to_add");
+    } catch (error) {
+      console.error("Error processing photos from sessionStorage:", error);
+      sessionStorage.removeItem("framer_photos_to_add");
+    }
+  }
+
   // Add window resize listener for mobile detection
   window.addEventListener("resize", updateWindowWidth);
 });
