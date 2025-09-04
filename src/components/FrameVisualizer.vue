@@ -88,50 +88,54 @@ const isAndroidDevice = computed(() => {
   // return /Android/i.test(navigator.userAgent);
 });
 
-// Calculate optimal frame size based on container and aspect ratio
+// Calculate frame size maintaining EXACT aspect ratio - SACRED PROPORTIONS
 const calculateFrameSize = () => {
   const [widthRatio, heightRatio] = props.aspectRatio.split("/").map(Number);
-  const aspectRatioValue = widthRatio / heightRatio;
+  const exactAspectRatio = widthRatio / heightRatio;
 
-  // Check if we're in mobile view
+  // Base size for the frame (ideal size when there are no constraints)
   const isMobile = windowSize.value.width <= 768;
+  const baseSize = isMobile ? 300 : 400;
 
-  // More generous container dimensions to better utilize available space
-  // Account for padding, margins, and other UI elements
-  // Use smaller dimensions for mobile
-  const availableWidth = isMobile
-    ? Math.min(windowSize.value.width * 0.7, 320) // Even smaller for mobile
-    : Math.min(windowSize.value.width * 0.8, 600);
-  const availableHeight = isMobile
-    ? Math.min(windowSize.value.height * 0.3, 250) // Smaller height for mobile
-    : Math.min(windowSize.value.height * 0.7, 500);
-
+  // Calculate initial frame dimensions maintaining EXACT aspect ratio
   let frameWidth, frameHeight;
 
-  // Calculate size that fits within both constraints with some margin
-  const widthBasedHeight = availableWidth / aspectRatioValue;
-  const heightBasedWidth = availableHeight * aspectRatioValue;
-
-  if (widthBasedHeight <= availableHeight) {
-    // Width constraint is more restrictive
-    frameWidth = availableWidth;
-    frameHeight = widthBasedHeight;
+  if (exactAspectRatio >= 1) {
+    // Landscape or square: base size determines width
+    frameWidth = baseSize;
+    frameHeight = baseSize / exactAspectRatio;
   } else {
-    // Height constraint is more restrictive
-    frameWidth = heightBasedWidth;
-    frameHeight = availableHeight;
+    // Portrait: base size determines height
+    frameHeight = baseSize;
+    frameWidth = baseSize * exactAspectRatio;
   }
 
-  // Ensure minimum viable size
-  const minSize = isMobile ? 120 : 150; // Smaller minimum size for mobile
-  if (frameWidth < minSize || frameHeight < minSize) {
-    if (aspectRatioValue > 1) {
-      frameWidth = minSize * aspectRatioValue;
-      frameHeight = minSize;
-    } else {
-      frameWidth = minSize;
-      frameHeight = minSize / aspectRatioValue;
-    }
+  // Available space (account for padding and margins)
+  const padding = isMobile ? 40 : 60;
+  const availableWidth = windowSize.value.width - padding;
+  const availableHeight = windowSize.value.height - padding;
+
+  // Scale down PROPORTIONALLY only if frame exceeds available space
+  // This preserves the exact aspect ratio
+  const scaleX = frameWidth > availableWidth ? availableWidth / frameWidth : 1;
+  const scaleY =
+    frameHeight > availableHeight ? availableHeight / frameHeight : 1;
+
+  // Use the most restrictive scale factor to ensure frame fits completely
+  const scale = Math.min(scaleX, scaleY, 1);
+
+  // Apply the scale factor while maintaining EXACT aspect ratio
+  frameWidth *= scale;
+  frameHeight *= scale;
+
+  // Ensure minimum size while preserving aspect ratio
+  const minDimension = isMobile ? 150 : 200;
+  const smallestDimension = Math.min(frameWidth, frameHeight);
+
+  if (smallestDimension < minDimension) {
+    const minScale = minDimension / smallestDimension;
+    frameWidth *= minScale;
+    frameHeight *= minScale;
   }
 
   return {
@@ -226,7 +230,8 @@ onUnmounted(() => {
   min-height: 400px; /* Ensure minimum height for proper display */
   padding: var(--spacing-md);
   box-sizing: border-box;
-  overflow: hidden; /* Prevent content overflow */
+  overflow-x: auto; /* Allow horizontal scroll if frame is wider than container */
+  overflow-y: hidden; /* Prevent vertical overflow */
 }
 
 .visualizer-container {
@@ -247,7 +252,7 @@ onUnmounted(() => {
   position: relative;
 
   /* Ensure the frame is properly sized and centered */
-  flex-shrink: 0;
+  flex-shrink: 0; /* NEVER allow shrinking - preserves aspect ratio */
 
   /* Better centering */
   margin: auto;
@@ -255,9 +260,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
 
-  /* Prevent the frame from being larger than its container */
-  max-width: calc(100% - 24px);
-  max-height: calc(100% - 24px);
+  /* DO NOT constrain size - let the calculated dimensions be respected */
+  /* The aspect ratio is SACRED and must never be altered by container constraints */
 }
 
 /* Container query would be ideal here, but using aspect-ratio calculations instead */
@@ -358,13 +362,12 @@ onUnmounted(() => {
   }
 
   .frame-container {
-    /* Ensure frame doesn't get too large on mobile */
-    max-width: calc(100% - 12px) !important;
-    max-height: calc(100% - 12px) !important;
-    /* Better centering for mobile */
+    /* NO size constraints on mobile - aspect ratio is SACRED */
+    /* Let the calculated dimensions from calculateFrameSize() be respected */
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0; /* Never allow distortion */
   }
 
   .no-photo-placeholder {
@@ -387,8 +390,8 @@ onUnmounted(() => {
   }
 
   .frame-container {
-    max-width: calc(100% - 8px) !important;
-    max-height: calc(100% - 8px) !important;
+    /* NO size constraints - respect the SACRED aspect ratio */
+    flex-shrink: 0; /* Never allow distortion */
   }
 }
 
