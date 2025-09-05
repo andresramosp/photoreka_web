@@ -70,8 +70,7 @@
         <n-form-item path="hasLargeCollection" class="switch-form-item">
           <div class="switch-container">
             <span class="switch-label"
-              >I have a documentary, street, artistic, etc., photo collection
-              with more than 500 photos</span
+              >I have a photo collection with more than 500 photos</span
             >
             <n-switch
               v-model:value="formData.hasLargeCollection"
