@@ -646,11 +646,6 @@ const goToTerms = () => {
 };
 
 const goToPlayground = () => {
-  if (isMobileDevice()) {
-    // Show mobile notice for playground on mobile devices
-    showMobileNotice.value = true;
-    return;
-  }
   const playgroundUrl = router.resolve({ name: "canvas-playground" }).href;
   window.open(playgroundUrl, "_blank");
 };
