@@ -90,7 +90,7 @@
         <n-form-item path="noAIConcerns" class="switch-form-item">
           <div class="switch-container">
             <span class="switch-label"
-              >I agree to have my photos analyzed by AI (no model
+              >I agree to have my photos analyzed by AI (without model
               training)</span
             >
             <n-switch
