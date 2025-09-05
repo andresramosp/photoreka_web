@@ -86,6 +86,27 @@
             </span>
           </template>
         </n-form-item>
+
+        <n-form-item path="noAIConcerns" class="switch-form-item">
+          <div class="switch-container">
+            <span class="switch-label"
+              >I agree to have my photos analyzed by AI (no model
+              training)</span
+            >
+            <n-switch
+              v-model:value="formData.noAIConcerns"
+              :disabled="loading"
+              size="medium"
+            />
+          </div>
+          <template #feedback v-if="!formData.noAIConcerns">
+            <span class="info-message">
+              Photoreka requires linguistic and visual analysis of your images.
+              If you have concerns about this, or about AI in general, we
+              recommend considering whether this platform is right for you.
+            </span>
+          </template>
+        </n-form-item>
       </n-form>
     </div>
 
@@ -147,6 +168,7 @@ const formData = reactive({
   reason: "",
   portfolioLink: "",
   hasLargeCollection: true,
+  noAIConcerns: true,
 });
 
 const reasonOptions = [
@@ -177,7 +199,9 @@ const rules = {
 };
 
 const isFormValid = computed(() => {
-  return formData.email && formData.email.includes("@");
+  return (
+    formData.email && formData.email.includes("@") && formData.noAIConcerns
+  );
 });
 
 const handleCancel = () => {
@@ -195,6 +219,7 @@ const handleSubmit = async () => {
       reason: formData.reason,
       portfolioLink: formData.portfolioLink || null,
       hasLargeCollection: formData.hasLargeCollection,
+      noAIConcerns: formData.noAIConcerns,
     });
 
     message.success(
@@ -206,6 +231,7 @@ const handleSubmit = async () => {
     formData.reason = "";
     formData.portfolioLink = "";
     formData.hasLargeCollection = true;
+    formData.noAIConcerns = false;
 
     visible.value = false;
     emit("success");
@@ -235,6 +261,7 @@ watch(visible, (newValue) => {
       formData.reason = "";
       formData.portfolioLink = "";
       formData.hasLargeCollection = true;
+      formData.noAIConcerns = false;
     }, 300); // Delay to avoid visual glitch
   }
 });
@@ -286,8 +313,9 @@ watch(visible, (newValue) => {
   font-size: 12px;
   color: var(--warning-color);
   font-style: italic;
-  margin-top: -2px;
   display: block;
+  margin-top: -4px;
+  margin-bottom: -8px;
 }
 
 .switch-form-item :deep(.n-form-item-label) {
@@ -299,6 +327,17 @@ watch(visible, (newValue) => {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+}
+
+/* Reduce spacing between consecutive switch form items */
+:deep(.switch-form-item + .switch-form-item) {
+  margin-top: -26px;
+}
+
+/* Reduce spacing within switch form items */
+:deep(.switch-form-item .n-form-item__feedback) {
+  margin-top: -8px;
+  margin-bottom: -8px;
 }
 
 .switch-label {
