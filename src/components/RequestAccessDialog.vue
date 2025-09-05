@@ -100,7 +100,7 @@
           </div>
           <template #feedback v-if="!formData.noAIConcerns">
             <span class="info-message">
-              Photoreka requires linguistic and visual analysis of your images.
+              Photoreka requires linguistic and visual analysis of the images.
               If you have concerns about this, or about AI in general, we
               recommend considering whether this platform is right for you.
             </span>
