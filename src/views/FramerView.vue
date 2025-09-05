@@ -254,14 +254,11 @@
           <div class="sidebar-header">
             <h4>Selected Photos</h4>
             <div class="strip-actions">
-              <span class="photo-count"
-                >{{ selectedPhotos.length }} photos</span
-              >
               <n-button
                 @click="clearAllPhotos"
                 quaternary
                 type="error"
-                size="small"
+                size="tiny"
               >
                 <template #icon>
                   <n-icon>
@@ -482,6 +479,22 @@ const allFrames = ref([
     icon: "instagram",
   },
   {
+    id: "instagram-vertical", // Nuevo estándar en 2025
+    ratio: "3:4",
+    aspectRatio: "3/4",
+    color: "#E4405F",
+    category: "social",
+    icon: "instagram",
+  },
+  {
+    id: "instagram-portrait", // Aún usable, clásico feed
+    ratio: "4:5",
+    aspectRatio: "4/5",
+    color: "#E4405F",
+    category: "social",
+    icon: "instagram",
+  },
+  {
     id: "instagram-story",
     ratio: "9:16",
     aspectRatio: "9/16",
@@ -498,6 +511,14 @@ const allFrames = ref([
     icon: "facebook",
   },
   {
+    id: "facebook-cover",
+    ratio: "820:312",
+    aspectRatio: "820/312",
+    color: "#1877F2",
+    category: "social",
+    icon: "facebook",
+  },
+  {
     id: "twitter-post",
     ratio: "16:9",
     aspectRatio: "16/9",
@@ -506,9 +527,25 @@ const allFrames = ref([
     icon: "twitter",
   },
   {
+    id: "twitter-portrait",
+    ratio: "4:5",
+    aspectRatio: "4/5",
+    color: "#1DA1F2",
+    category: "social",
+    icon: "twitter",
+  },
+  {
     id: "linkedin-post",
     ratio: "1.91:1",
     aspectRatio: "1.91/1",
+    color: "#0A66C2",
+    category: "social",
+    icon: "linkedin",
+  },
+  {
+    id: "linkedin-square",
+    ratio: "1:1",
+    aspectRatio: "1/1",
     color: "#0A66C2",
     category: "social",
     icon: "linkedin",
@@ -537,8 +574,15 @@ const allFrames = ref([
     category: "photo",
   },
   {
+    id: "landscape-4-3",
+    ratio: "4:3",
+    aspectRatio: "4/3",
+    color: "#8B5CF6",
+    category: "photo",
+  },
+  {
     id: "movie",
-    ratio: "Movie",
+    ratio: "2.39:1",
     aspectRatio: "2.39/1",
     color: "#F59E0B",
     category: "cinema",
@@ -1450,22 +1494,21 @@ onUnmounted(() => {
 
 /* Photo Sidebar (Desktop) */
 .photo-sidebar {
-  width: 280px;
+  width: 150px;
   background-color: var(--bg-secondary);
   border-radius: var(--border-radius-lg);
   border: 1px solid var(--border-color);
   padding: var(--spacing-lg);
   overflow-y: auto;
   flex-shrink: 0;
+  max-height: 84vh;
 }
 
 .photo-sidebar .sidebar-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-lg);
+  justify-content: center;
+  margin-bottom: 5px;
   flex-wrap: wrap;
-  gap: var(--spacing-sm);
 }
 
 .photo-sidebar .sidebar-header h4 {
@@ -1477,7 +1520,7 @@ onUnmounted(() => {
 
 .photo-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: var(--spacing-sm);
 }
 
