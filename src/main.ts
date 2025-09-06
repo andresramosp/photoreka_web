@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import VueKonva from "vue-konva";
+import { initGA } from "./utils/analytics";
 import {
   create,
   NConfigProvider,
@@ -77,6 +78,9 @@ const naive = create({
 const app = createApp(App);
 const pinia = createPinia();
 app.use(pinia);
+
+// Inicializar Google Analytics
+initGA();
 
 // Inicializar autenticación después de registrar Pinia
 initializeAuth();

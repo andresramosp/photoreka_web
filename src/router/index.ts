@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useUserStore } from "../stores/userStore";
 import { useMaintenanceMode } from "../composables/useMaintenanceMode";
+import { trackPageView } from "../utils/analytics";
 import DashboardView from "../views/DashboardView.vue";
 import CanvasView from "../views/CanvasView.vue";
 import SearchView from "../views/SearchView.vue";
@@ -253,6 +254,17 @@ router.beforeEach((to, from, next) => {
   }
   // If accessing root and not authenticated, go to auth
   else next();
+});
+
+// Track page views after navigation
+router.afterEach((to) => {
+  // Track page view with GA4
+  const pageTitle =
+    (to.meta?.title as string) ||
+    document.title ||
+    to.name?.toString() ||
+    "Unknown Page";
+  trackPageView(to.fullPath, pageTitle);
 });
 
 export default router;

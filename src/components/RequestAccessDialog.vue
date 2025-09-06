@@ -143,6 +143,7 @@ import {
 } from "naive-ui";
 import { RocketOutline, SendOutline } from "@vicons/ionicons5";
 import { api } from "@/utils/axios.js";
+import { trackEvent, trackUserAction } from "@/utils/analytics";
 
 const props = defineProps({
   show: {
@@ -204,6 +205,7 @@ const isFormValid = computed(() => {
 });
 
 const handleCancel = () => {
+  trackUserAction("cancel", "request_access_dialog");
   visible.value = false;
 };
 
@@ -213,12 +215,25 @@ const handleSubmit = async () => {
 
     loading.value = true;
 
+    // Track form submission attempt
+    trackEvent("form_submit_attempt", {
+      form_type: "request_access",
+      has_portfolio: !!formData.portfolioLink,
+      has_large_collection: formData.hasLargeCollection,
+      agrees_to_ai: formData.noAIConcerns,
+    });
+
     const response = await api.post("/api/landing/request", {
       email: formData.email,
       reason: formData.reason,
       portfolioLink: formData.portfolioLink || null,
       hasLargeCollection: formData.hasLargeCollection,
       noAIConcerns: formData.noAIConcerns,
+    });
+
+    // Track successful submission
+    trackEvent("form_submit_success", {
+      form_type: "request_access",
     });
 
     message.success(
@@ -236,6 +251,12 @@ const handleSubmit = async () => {
     emit("success");
   } catch (error) {
     console.error("Error submitting request:", error);
+
+    // Track form submission error
+    trackEvent("form_submit_error", {
+      form_type: "request_access",
+      error_status: error.response?.status || "unknown",
+    });
 
     if (error.response?.status === 409) {
       message.warning(

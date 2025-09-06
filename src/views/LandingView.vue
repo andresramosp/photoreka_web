@@ -535,6 +535,7 @@ import MobileNoticeDialog from "@/components/MobileNoticeDialog.vue";
 import MaintenanceBanner from "@/components/MaintenanceBanner.vue";
 import { isMobileDevice } from "@/utils/utils.js";
 import { Trophy16Regular, Trophy20Regular } from "@vicons/fluent";
+import { trackUserAction, trackEvent } from "@/utils/analytics";
 
 const router = useRouter();
 const demoSection = ref(null);
@@ -630,6 +631,9 @@ const videoTabs = ref([
 ]);
 
 const goToAuth = (mode = "login") => {
+  // Track auth intent
+  trackUserAction("navigate_to_auth", "landing_page", mode);
+
   if (mode === "signup") {
     showRequestDialog.value = true;
   } else if (mode === "login" && isMobileDevice()) {
@@ -641,21 +645,25 @@ const goToAuth = (mode = "login") => {
 };
 
 const goToTerms = () => {
+  trackUserAction("navigate_to_terms", "landing_page");
   const termsUrl = router.resolve({ name: "terms" }).href;
   window.open(termsUrl, "_blank");
 };
 
 const goToPlayground = () => {
+  trackUserAction("navigate_to_playground", "landing_page", "canvas");
   const playgroundUrl = router.resolve({ name: "canvas-playground" }).href;
   window.open(playgroundUrl, "_blank");
 };
 
 const goToFreeFramer = () => {
+  trackUserAction("navigate_to_playground", "landing_page", "framer");
   const playgroundUrl = router.resolve({ name: "free-framer" }).href;
   window.open(playgroundUrl, "_blank");
 };
 
 const scrollToDemo = () => {
+  trackUserAction("scroll_to_demo", "landing_page");
   demoSection.value?.scrollIntoView({ behavior: "smooth" });
 };
 
@@ -668,6 +676,18 @@ const onMobileNoticeGoHome = () => {
 
 const setActiveTab = (index, isAutoSwitch = false) => {
   console.log(`Setting active tab to: ${index}, auto-switch: ${isAutoSwitch}`);
+
+  // Track video tab interaction if it's not an auto-switch
+  if (!isAutoSwitch) {
+    const tabName = videoTabs.value[index]?.title || `tab_${index}`;
+    trackEvent("video_tab_change", {
+      tab_name: tabName.toLowerCase().replace(" ", "_"),
+      tab_index: index,
+      previous_tab: activeTab.value,
+      is_manual: true,
+    });
+  }
+
   activeTab.value = index;
   videoProgress.value = 0;
   videoPlaying.value = false;
@@ -920,7 +940,16 @@ onUnmounted(() => {
 
 // FAQ functionality
 const toggleFAQ = (index) => {
+  const wasOpen = activeFAQ.value === index;
   activeFAQ.value = activeFAQ.value === index ? null : index;
+
+  // Track FAQ interaction
+  trackEvent("faq_toggle", {
+    faq_index: index,
+    action: wasOpen ? "close" : "open",
+    question:
+      faqs.value[index]?.question?.substring(0, 50) + "..." || `FAQ ${index}`,
+  });
 };
 
 // Attach goToAuth('signup') to window for FAQ HTML link
