@@ -86,7 +86,7 @@
           </template>
         </n-form-item>
 
-        <n-form-item path="noAIConcerns" class="switch-form-item">
+        <!-- <n-form-item path="noAIConcerns" class="switch-form-item">
           <div class="switch-container">
             <span class="switch-label"
               >I agree to have my photos analyzed by AI (without model
@@ -105,7 +105,7 @@
               recommend considering whether this platform is right for you.
             </span>
           </template>
-        </n-form-item>
+        </n-form-item> -->
       </n-form>
     </div>
 
