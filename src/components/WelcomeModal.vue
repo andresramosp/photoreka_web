@@ -37,7 +37,9 @@
               Watch your progress as you approach
               {{ MIN_PHOTOS_THRESHOLD }} photos
             </li>
-            <li>Analyze your first batch of 100+ photos</li>
+            <li>
+              Analyze your first batch of {{ MIN_PHOTOS_THRESHOLD }}+ photos
+            </li>
             <li>Enjoy unrestricted access with no minimum limits thereafter</li>
           </ul>
 
