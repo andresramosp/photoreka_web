@@ -197,7 +197,6 @@
               class="upload-btn"
               @click.stop="triggerFileInput"
             >
-              >
               <template #icon>
                 <n-icon>
                   <svg viewBox="0 0 24 24">

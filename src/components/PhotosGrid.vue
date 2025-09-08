@@ -791,9 +791,9 @@ const filteredAndSortedPhotos = computed(() => {
       let compareResult = 0;
 
       if (currentBasicSortType === "date") {
-        // Sort by date (assuming there's a createdAt or similar field)
-        const dateA = new Date(a.createdAt || a.created_at || 0);
-        const dateB = new Date(b.createdAt || b.created_at || 0);
+        // Sort by date using EXIF dateTaken
+        const dateA = new Date(a.descriptions?.EXIF?.dateTaken || 0);
+        const dateB = new Date(b.descriptions?.EXIF?.dateTaken || 0);
         compareResult = dateA.getTime() - dateB.getTime();
       } else if (currentBasicSortType === "name") {
         // Sort by originalFileName

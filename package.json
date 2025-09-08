@@ -17,6 +17,7 @@
     "@vicons/ionicons5": "^0.13.0",
     "@vicons/material": "^0.13.0",
     "axios": "^1.10.0",
+    "exifr": "^7.1.3",
     "html2canvas": "^1.4.1",
     "jszip": "^3.10.1",
     "konva": "^9.3.20",

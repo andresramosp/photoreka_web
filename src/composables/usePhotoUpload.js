@@ -6,6 +6,10 @@ import { useImageProcessing } from "./useImageProcessing.js";
 import { api_analyzer, api } from "@/utils/axios";
 import { useMessage } from "naive-ui";
 import pLimit from "p-limit";
+import {
+  extractBasicExifData,
+  getCompactExifSummary,
+} from "@/utils/exifUtils.js";
 
 export function usePhotoUpload() {
   const photosStore = usePhotosStore();
@@ -44,6 +48,17 @@ export function usePhotoUpload() {
       fileName = file.name;
     }
 
+    // Extraer datos EXIF básicos del archivo original
+    let exifData = null;
+    try {
+      if (file) {
+        const rawExifData = await extractBasicExifData(file);
+        exifData = getCompactExifSummary(rawExifData);
+      }
+    } catch (error) {
+      console.warn(`⚠️ Could not extract EXIF data from ${fileName}:`, error);
+    }
+
     // A partir de aquí, flujo idéntico para ambos tipos
     const [resizedBlob, thumbnailBlob] = await Promise.all([
       resizeImage(file, 1500, 512000),
@@ -56,6 +71,7 @@ export function usePhotoUpload() {
       fileType: resizedBlob.type,
       originalName: fileName,
       source: type === "google" ? "google" : "local",
+      exifData: exifData, // Incluir datos EXIF básicos
     };
 
     const response = await api.post(endpoint, payload);
