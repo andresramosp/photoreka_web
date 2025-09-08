@@ -315,6 +315,13 @@ const emit = defineEmits([
   "custom-weights-change",
 ]);
 
+const props = defineProps({
+  basicSortActive: {
+    type: Boolean,
+    default: false,
+  },
+});
+
 // Visual Aspects Filters
 const selectedFilters = ref({});
 const isFiltersPanelExpanded = ref(false);
@@ -558,6 +565,18 @@ watch(
     emit("criteria-change", newCriteria);
   },
   { immediate: true }
+);
+
+// Watch for basic sort activation to deactivate scores sorting
+watch(
+  () => props.basicSortActive,
+  (isBasicSortActive) => {
+    if (isBasicSortActive) {
+      // When basic sort is activated, deactivate scores sorting
+      sortingType.value = "none";
+      selectedCriteria.value = [];
+    }
+  }
 );
 </script>
 

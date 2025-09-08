@@ -3,6 +3,7 @@
     <!-- Photos Grid Controls -->
     <PhotosGridControls
       v-if="!props.hiddeControls"
+      :basic-sort-active="basicSortActive"
       @filters-change="handleFiltersChange"
       @sorting-change="handleSortingChange"
       @sort-order-change="handleSortOrderChange"
@@ -117,7 +118,7 @@
                   </template>
                 </n-button>
               </template>
-              <span>Aplicar una herramienta a las fotos seleccionadas</span>
+              <span>Take selected photos to a tool</span>
             </n-tooltip>
           </n-button>
         </div>
@@ -175,6 +176,52 @@
             </n-button>
           </n-button-group>
         </div>
+
+        <!-- Basic Sort Controls -->
+        <div class="sort-controls sort-controls-base">
+          <span class="sort-label sort-label-base">Sort:</span>
+          <n-select
+            v-model:value="basicSortType"
+            :options="sortOptions"
+            size="small"
+            style="width: 100px"
+            clearable
+            placeholder="None"
+            :disabled="sortByQuality"
+            @update:value="handleBasicSortChange"
+          />
+          <n-button
+            v-if="basicSortActive"
+            text
+            size="tiny"
+            @click="toggleBasicSortOrder"
+            class="sort-order-icon"
+            :disabled="sortByQuality"
+            :title="
+              basicSortOrder === 'desc'
+                ? 'Descending (click for Ascending)'
+                : 'Ascending (click for Descending)'
+            "
+          >
+            <n-icon size="18">
+              <svg viewBox="0 0 24 24" style="width: 18px; height: 18px">
+                <!-- Desc (Descending) - Sort descending icon -->
+                <path
+                  v-if="basicSortOrder === 'desc'"
+                  d="M19,17H22L18,21L14,17H17V3H19V17M2,17V19H12V17H2M6,5V7H12V5H6M2,11V13H9V11H2Z"
+                  fill="currentColor"
+                />
+                <!-- Asc (Ascending) - Sort ascending icon -->
+                <path
+                  v-else
+                  d="M19,7H22L18,3L14,7H17V21H19V7M2,17V19H12V17H2M6,5V7H12V5H6M2,11V13H9V11H2Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </n-icon>
+          </n-button>
+        </div>
+
         <!-- Select All button (always visible) -->
         <n-button type="default" size="small" @click="handleSelectAll">
           <template #icon>
@@ -304,6 +351,7 @@ import {
   NCheckbox,
   NModal,
   NCard,
+  NSelect,
   useMessage,
   NTooltip,
 } from "naive-ui";
@@ -395,8 +443,24 @@ const selectedGenre = ref("street");
 const customWeights = ref({});
 const sortOrder = ref("desc"); // 'asc', 'desc'
 
+// Basic sorting state (date, name) - separate from scores sorting
+const basicSortType = ref(null); // null initially, no sort selected
+const basicSortOrder = ref("desc"); // 'asc', 'desc'
+const basicSortActive = ref(false); // whether basic sorting is currently active
+
+// Sort options for the dropdown
+const sortOptions = [
+  { label: "Date", value: "date" },
+  { label: "Name", value: "name" },
+];
+
 // Derived state for backward compatibility
 const sortByQuality = computed(() => {
+  // Only allow scores sorting if basic sorting is not active
+  if (basicSortActive.value) {
+    return false;
+  }
+
   if (sortingType.value === "none") {
     return false; // No sorting when "none" is selected
   } else if (sortingType.value === "criteria") {
@@ -523,6 +587,39 @@ const toggleSortOrder = () => {
   sortOrder.value = sortOrder.value === "desc" ? "asc" : "desc";
 };
 
+// Basic sort order toggle
+const toggleBasicSortOrder = () => {
+  basicSortOrder.value = basicSortOrder.value === "desc" ? "asc" : "desc";
+};
+
+// Clear basic sort
+const clearBasicSort = () => {
+  basicSortActive.value = false;
+};
+
+// Handle basic sort selection change
+const handleBasicSortChange = (value) => {
+  if (value === null || value === undefined) {
+    // Cleared the select - deactivate basic sort
+    basicSortActive.value = false;
+    basicSortType.value = null; // keep it null
+  } else {
+    // Selected a sort type - activate basic sort and deactivate scores sorting
+    basicSortType.value = value;
+    basicSortActive.value = true;
+    // Deactivate scores sorting
+    sortingType.value = "none";
+    selectedCriteria.value = [];
+  }
+};
+
+// Activate basic sort (and deactivate scores sorting if active)
+const activateBasicSort = () => {
+  basicSortActive.value = true;
+  // Optionally, you could reset scores sorting here if needed
+  // sortingType.value = "none";
+};
+
 // Handler functions for PhotosGridControls events
 const handleFiltersChange = (newFilters) => {
   selectedFilters.value = newFilters;
@@ -539,6 +636,11 @@ const handleSortOrderChange = (newSortOrder) => {
 
 const handleCriteriaChange = (newCriteria) => {
   selectedCriteria.value = newCriteria;
+  // If criteria are selected (activating scores sorting), deactivate basic sorting
+  if (newCriteria.length > 0) {
+    basicSortActive.value = false;
+    basicSortType.value = null;
+  }
 };
 
 const handleGenreChange = (newGenre) => {
@@ -547,6 +649,11 @@ const handleGenreChange = (newGenre) => {
 
 const handleSortingTypeChange = (newType) => {
   sortingType.value = newType;
+  // If activating scores sorting, deactivate basic sorting
+  if (newType !== "none") {
+    basicSortActive.value = false;
+    basicSortType.value = null;
+  }
 };
 
 const handleCustomWeightsChange = (newWeights) => {
@@ -671,12 +778,36 @@ const filteredAndSortedPhotos = computed(() => {
   // Explicitly reference all sorting-related reactive variables to ensure reactivity
   const currentSortByQuality = sortByQuality.value;
   const currentSortOrder = sortOrder.value;
-  const currentSortingType = sortingType.value;
-  const currentSelectedCriteria = selectedCriteria.value;
-  const currentSelectedGenre = selectedGenre.value;
-  const currentCustomWeights = customWeights.value;
 
-  if (currentSortByQuality) {
+  const currentBasicSortType = basicSortType.value;
+  const currentBasicSortOrder = basicSortOrder.value;
+  const currentBasicSortActive = basicSortActive.value;
+
+  // SORTING LOGIC - Two mutually exclusive modes
+
+  // Apply basic sorting (date, name) when active
+  if (currentBasicSortActive && currentBasicSortType) {
+    filtered = [...filtered].sort((a, b) => {
+      let compareResult = 0;
+
+      if (currentBasicSortType === "date") {
+        // Sort by date (assuming there's a createdAt or similar field)
+        const dateA = new Date(a.createdAt || a.created_at || 0);
+        const dateB = new Date(b.createdAt || b.created_at || 0);
+        compareResult = dateA.getTime() - dateB.getTime();
+      } else if (currentBasicSortType === "name") {
+        // Sort by originalFileName
+        const nameA = (a.originalFileName || "").toLowerCase();
+        const nameB = (b.originalFileName || "").toLowerCase();
+        compareResult = nameA.localeCompare(nameB);
+      }
+
+      // Apply sort order
+      return currentBasicSortOrder === "desc" ? -compareResult : compareResult;
+    });
+  }
+  // Apply artistic score sorting when no basic sorting is active
+  else if (currentSortByQuality) {
     filtered = [...filtered].sort((a, b) => {
       const scoreA = getPhotoArtisticScore(a);
       const scoreB = getPhotoArtisticScore(b);
@@ -761,6 +892,9 @@ watch(
     customWeights,
     sortOrder,
     filterDuplicates,
+    basicSortType,
+    basicSortOrder,
+    basicSortActive,
   ],
   () => {
     resetPagination();
@@ -952,6 +1086,31 @@ const handleToolSelected = async (toolId) => {
   font-size: 14px;
   color: #ffffff73;
   font-weight: 500;
+}
+
+.sort-controls-base {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sort-label-base {
+  font-size: 14px;
+  color: #ffffff73;
+  font-weight: 500;
+}
+
+.sort-order-icon {
+  color: #ffffff73;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+  opacity: 0.7;
+}
+
+.sort-order-icon:hover {
+  color: #8b5cf6;
+  opacity: 1;
+  transform: scale(1.1);
 }
 
 .filter-duplicates-container {
