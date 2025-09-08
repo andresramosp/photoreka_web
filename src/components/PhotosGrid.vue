@@ -21,24 +21,127 @@
             {{ filteredAndSortedPhotos.length }} photos
           </span>
         </div>
+
+        <!-- Action buttons (show when photos are selected) -->
+        <div v-if="selectedPhotoIds.length > 0" class="action-buttons">
+          <n-tooltip placement="bottom" trigger="hover">
+            <template #trigger>
+              <n-button
+                type="error"
+                size="small"
+                @click="handleDeleteMultiple"
+                :disabled="selectedPhotoIds.length === 0"
+                :loading="isDeletingPhotos"
+              >
+                <template #icon v-if="!isDeletingPhotos">
+                  <n-icon>
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3H9M7 6h10v13H7V6Z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+              </n-button>
+            </template>
+            <span>Delete selected photos</span>
+          </n-tooltip>
+          <n-button
+            type="info"
+            size="small"
+            @click="handleDownloadMultiple"
+            :disabled="selectedPhotoIds.length === 0 || isDownloading"
+            :loading="isDownloading"
+          >
+            <n-tooltip placement="bottom" trigger="hover">
+              <template #trigger>
+                <n-button
+                  type="info"
+                  size="small"
+                  @click="handleDownloadMultiple"
+                  :disabled="selectedPhotoIds.length === 0 || isDownloading"
+                  :loading="isDownloading"
+                >
+                  <template #icon>
+                    <n-icon> <CloudDownloadOutline /> </n-icon>
+                  </template>
+                </n-button>
+              </template>
+              <span>Download selected photos</span>
+            </n-tooltip>
+          </n-button>
+          <n-button
+            v-if="!props.collectionId && displayAddToCollection"
+            type="info"
+            size="small"
+            @click="handleAddToCollection"
+            :disabled="selectedPhotoIds.length === 0"
+          >
+            <n-tooltip placement="bottom" trigger="hover">
+              <template #trigger>
+                <n-button
+                  v-if="!props.collectionId && displayAddToCollection"
+                  type="info"
+                  size="small"
+                  @click="handleAddToCollection"
+                  :disabled="selectedPhotoIds.length === 0"
+                >
+                  <template #icon>
+                    <n-icon>
+                      <AlbumsOutline />
+                    </n-icon>
+                  </template>
+                </n-button>
+              </template>
+              <span>Add selected photos to a collection</span>
+            </n-tooltip>
+          </n-button>
+
+          <n-button
+            type="info"
+            size="small"
+            @click="openToolSelector"
+            :disabled="selectedPhotoIds.length === 0"
+          >
+            <n-tooltip placement="bottom" trigger="hover">
+              <template #trigger>
+                <n-button
+                  type="info"
+                  size="small"
+                  @click="openToolSelector"
+                  :disabled="selectedPhotoIds.length === 0"
+                >
+                  <template #icon>
+                    <n-icon> <MagicWand /> </n-icon>
+                  </template>
+                </n-button>
+              </template>
+              <span>Aplicar una herramienta a las fotos seleccionadas</span>
+            </n-tooltip>
+          </n-button>
+        </div>
         <div class="duplicates-controls-container">
           <!-- Review Duplicates Button -->
-          <n-button
-            type="warning"
-            size="small"
-            @click="handleReviewDuplicates"
-            :disabled="duplicatesReviewed"
-            :loading="isCheckingDuplicates"
-          >
-            <template #icon v-if="!isCheckingDuplicates">
-              <n-icon>
-                <DuplicateOutline />
-              </n-icon>
+          <n-tooltip placement="bottom" trigger="hover">
+            <template #trigger>
+              <n-button
+                type="warning"
+                size="small"
+                @click="handleReviewDuplicates"
+                :disabled="duplicatesReviewed"
+                :loading="isCheckingDuplicates"
+              >
+                <template #icon v-if="!isCheckingDuplicates">
+                  <n-icon>
+                    <DuplicateOutline />
+                  </n-icon>
+                </template>
+                {{ "Find duplicates" }}
+              </n-button>
             </template>
-            {{
-              duplicatesReviewed ? "Duplicates Reviewed" : "Review Duplicates"
-            }}
-          </n-button>
+            <span>Review duplicate photos in your selection</span>
+          </n-tooltip>
 
           <!-- Filter Duplicates Checkbox (only show if duplicates were reviewed and found) -->
           <div
@@ -53,67 +156,6 @@
               Filter duplicates
             </n-checkbox>
           </div>
-        </div>
-        <!-- Action buttons (show when photos are selected) -->
-        <div v-if="selectedPhotoIds.length > 0" class="action-buttons">
-          <n-button
-            type="error"
-            size="small"
-            @click="handleDeleteMultiple"
-            :disabled="selectedPhotoIds.length === 0"
-            :loading="isDeletingPhotos"
-          >
-            <template #icon v-if="!isDeletingPhotos">
-              <n-icon>
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3H9M7 6h10v13H7V6Z"
-                  />
-                </svg>
-              </n-icon>
-            </template>
-          </n-button>
-          <n-button
-            type="info"
-            size="small"
-            @click="handleDownloadMultiple"
-            :disabled="selectedPhotoIds.length === 0 || isDownloading"
-            :loading="isDownloading"
-          >
-            <template #icon>
-              <n-icon> <CloudDownloadOutline /> </n-icon>
-            </template>
-          </n-button>
-          <n-button
-            v-if="!props.collectionId && displayAddToCollection"
-            type="info"
-            size="small"
-            @click="handleAddToCollection"
-            :disabled="selectedPhotoIds.length === 0"
-          >
-            <template #icon>
-              <n-icon>
-                <svg viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M17 14H19V17H22V19H19V22H17V19H14V17H17V14M12 18H6V16H12V18M12 14H6V12H12V14M16 10H6V8H16V10M20 6H4C2.9 6 2 6.9 2 8V20C2 21.1 2.9 22 4 22H13.35C13.13 21.37 13 20.7 13 20C13 16.69 15.69 14 19 14C19.34 14 19.67 14.03 20 14.08V8C20 6.9 19.1 6 18 6H20Z"
-                  />
-                </svg>
-              </n-icon>
-            </template>
-          </n-button>
-
-          <n-button
-            type="info"
-            size="small"
-            @click="openToolSelector"
-            :disabled="selectedPhotoIds.length === 0"
-          >
-            <template #icon>
-              <n-icon> <MagicWand /> </n-icon>
-            </template>
-          </n-button>
         </div>
       </div>
 
@@ -263,8 +305,10 @@ import {
   NModal,
   NCard,
   useMessage,
+  NTooltip,
 } from "naive-ui";
 import {
+  AlbumsOutline,
   CloudDownloadOutline,
   DuplicateOutline,
   EyeOutline,
