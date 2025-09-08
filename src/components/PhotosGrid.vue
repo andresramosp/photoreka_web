@@ -21,6 +21,39 @@
             {{ filteredAndSortedPhotos.length }} photos
           </span>
         </div>
+        <div class="duplicates-controls-container">
+          <!-- Review Duplicates Button -->
+          <n-button
+            type="warning"
+            size="small"
+            @click="handleReviewDuplicates"
+            :disabled="duplicatesReviewed"
+            :loading="isCheckingDuplicates"
+          >
+            <template #icon v-if="!isCheckingDuplicates">
+              <n-icon>
+                <DuplicateOutline />
+              </n-icon>
+            </template>
+            {{
+              duplicatesReviewed ? "Duplicates Reviewed" : "Review Duplicates"
+            }}
+          </n-button>
+
+          <!-- Filter Duplicates Checkbox (only show if duplicates were reviewed and found) -->
+          <div
+            v-if="duplicatesReviewed && hasDuplicates"
+            class="filter-duplicates-checkbox"
+          >
+            <n-checkbox
+              :checked="filterDuplicates"
+              @update:checked="handleFilterDuplicatesChange"
+              size="small"
+            >
+              Filter duplicates
+            </n-checkbox>
+          </div>
+        </div>
         <!-- Action buttons (show when photos are selected) -->
         <div v-if="selectedPhotoIds.length > 0" class="action-buttons">
           <n-button
@@ -69,7 +102,6 @@
                 </svg>
               </n-icon>
             </template>
-            Collection
           </n-button>
 
           <n-button
@@ -86,46 +118,7 @@
       </div>
 
       <div class="controls-right">
-        <div class="filter-controls" v-if="!props.collectionId">
-          <div class="duplicates-controls-container">
-            <!-- Review Duplicates Button -->
-            <n-button
-              type="warning"
-              size="small"
-              @click="handleReviewDuplicates"
-              :disabled="duplicatesReviewed"
-              :loading="isCheckingDuplicates"
-            >
-              <template #icon v-if="!isCheckingDuplicates">
-                <n-icon>
-                  <svg viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 13L13.5 11.5C12.1 10.1 9.9 10.1 8.5 11.5L3 17V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V9ZM5 19L8.5 15.5C9.3 14.7 10.7 14.7 11.5 15.5L13 17L19 11V19H5Z"
-                    />
-                  </svg>
-                </n-icon>
-              </template>
-              {{
-                duplicatesReviewed ? "Duplicates Reviewed" : "Review Duplicates"
-              }}
-            </n-button>
-
-            <!-- Filter Duplicates Checkbox (only show if duplicates were reviewed and found) -->
-            <div
-              v-if="duplicatesReviewed && hasDuplicates"
-              class="filter-duplicates-checkbox"
-            >
-              <n-checkbox
-                :checked="filterDuplicates"
-                @update:checked="handleFilterDuplicatesChange"
-                size="small"
-              >
-                Filter duplicates
-              </n-checkbox>
-            </div>
-          </div>
-        </div>
+        <div class="filter-controls" v-if="!props.collectionId"></div>
         <div class="grid-size-controls grid-size-controls-base">
           <span class="grid-label grid-label-base">Columns:</span>
           <n-button-group>
@@ -271,7 +264,13 @@ import {
   NCard,
   useMessage,
 } from "naive-ui";
-import { CloudDownloadOutline } from "@vicons/ionicons5";
+import {
+  CloudDownloadOutline,
+  DuplicateOutline,
+  EyeOutline,
+  RepeatOutline,
+  WarningOutline,
+} from "@vicons/ionicons5";
 import { useRouter } from "vue-router";
 import PhotoCardHub from "./photoCards/PhotoCardHub.vue";
 import PhotoInfoDialog from "./PhotoInfoDialog.vue";
