@@ -638,7 +638,7 @@ const goToAuth = (mode = "login") => {
     showRequestDialog.value = true;
   } else if (mode === "login" && isMobileDevice()) {
     // Show mobile notice for login on mobile devices
-    showMobileNotice.value = true;
+    showMobileNotice.value = false;
   } else {
     router.push({ name: "auth", query: { mode } });
   }

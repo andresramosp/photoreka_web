@@ -73,7 +73,7 @@ const onMobileNoticeGoHome = () => {
 // Check for mobile device on mount
 const checkMobileDevice = () => {
   if (isMobileDevice()) {
-    showMobileNotice.value = true;
+    showMobileNotice.value = false;
   }
 };
 
