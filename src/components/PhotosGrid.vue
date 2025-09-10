@@ -48,79 +48,59 @@
             </template>
             <span>Delete selected photos</span>
           </n-tooltip>
-          <n-button
-            type="info"
-            size="small"
-            @click="handleDownloadMultiple"
-            :disabled="selectedPhotoIds.length === 0 || isDownloading"
-            :loading="isDownloading"
-          >
-            <n-tooltip placement="bottom" trigger="hover">
-              <template #trigger>
-                <n-button
-                  type="info"
-                  size="small"
-                  @click="handleDownloadMultiple"
-                  :disabled="selectedPhotoIds.length === 0 || isDownloading"
-                  :loading="isDownloading"
-                >
-                  <template #icon>
-                    <n-icon> <CloudDownloadOutline /> </n-icon>
-                  </template>
-                </n-button>
-              </template>
-              <span>Download selected photos</span>
-            </n-tooltip>
-          </n-button>
-          <n-button
+          <n-tooltip placement="bottom" trigger="hover">
+            <template #trigger>
+              <n-button
+                type="info"
+                size="small"
+                @click="handleDownloadMultiple"
+                :disabled="selectedPhotoIds.length === 0 || isDownloading"
+                :loading="isDownloading"
+              >
+                <template #icon>
+                  <n-icon> <CloudDownloadOutline /> </n-icon>
+                </template>
+              </n-button>
+            </template>
+            <span>Download selected photos</span>
+          </n-tooltip>
+          <n-tooltip
             v-if="!props.collectionId && displayAddToCollection"
-            type="info"
-            size="small"
-            @click="handleAddToCollection"
-            :disabled="selectedPhotoIds.length === 0"
+            placement="bottom"
+            trigger="hover"
           >
-            <n-tooltip placement="bottom" trigger="hover">
-              <template #trigger>
-                <n-button
-                  v-if="!props.collectionId && displayAddToCollection"
-                  type="info"
-                  size="small"
-                  @click="handleAddToCollection"
-                  :disabled="selectedPhotoIds.length === 0"
-                >
-                  <template #icon>
-                    <n-icon>
-                      <AlbumsOutline />
-                    </n-icon>
-                  </template>
-                </n-button>
-              </template>
-              <span>Add selected photos to a collection</span>
-            </n-tooltip>
-          </n-button>
+            <template #trigger>
+              <n-button
+                type="info"
+                size="small"
+                @click="handleAddToCollection"
+                :disabled="selectedPhotoIds.length === 0"
+              >
+                <template #icon>
+                  <n-icon>
+                    <AlbumsOutline />
+                  </n-icon>
+                </template>
+              </n-button>
+            </template>
+            <span>Add selected photos to a collection</span>
+          </n-tooltip>
 
-          <n-button
-            type="info"
-            size="small"
-            @click="openToolSelector"
-            :disabled="selectedPhotoIds.length === 0"
-          >
-            <n-tooltip placement="bottom" trigger="hover">
-              <template #trigger>
-                <n-button
-                  type="info"
-                  size="small"
-                  @click="openToolSelector"
-                  :disabled="selectedPhotoIds.length === 0"
-                >
-                  <template #icon>
-                    <n-icon> <MagicWand /> </n-icon>
-                  </template>
-                </n-button>
-              </template>
-              <span>Take selected photos to a tool</span>
-            </n-tooltip>
-          </n-button>
+          <n-tooltip placement="bottom" trigger="hover">
+            <template #trigger>
+              <n-button
+                type="info"
+                size="small"
+                @click="openToolSelector"
+                :disabled="selectedPhotoIds.length === 0"
+              >
+                <template #icon>
+                  <n-icon> <MagicWand /> </n-icon>
+                </template>
+              </n-button>
+            </template>
+            <span>Take selected photos to a tool</span>
+          </n-tooltip>
         </div>
         <div class="duplicates-controls-container">
           <!-- Review Duplicates Button -->
@@ -403,7 +383,7 @@ const message = useMessage();
 const router = useRouter();
 const photosStore = usePhotosStore();
 const collectionsStore = useCollectionsStore();
-const { downloadPhotosZip, isDownloading } = usePhotoDownload();
+const { downloadPhoto, downloadPhotosZip, isDownloading } = usePhotoDownload();
 const { preprocessPhotos } = usePhotoUpload();
 const {
   selectedPhotosRecord,
@@ -1020,7 +1000,13 @@ const handleDownloadMultiple = async () => {
       .map((id) => photosStore.photos.find((p) => p.id == id))
       .filter(Boolean);
 
-    await downloadPhotosZip(photosToDownload);
+    if (photosToDownload.length === 1) {
+      // Download single photo directly (not as ZIP)
+      await downloadPhoto(photosToDownload[0]);
+    } else {
+      // Download multiple photos as ZIP
+      await downloadPhotosZip(photosToDownload);
+    }
   } catch (error) {
     console.error("Download multiple photos failed:", error);
   }

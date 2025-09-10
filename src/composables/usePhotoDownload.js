@@ -16,6 +16,7 @@ export function usePhotoDownload() {
     const filename =
       photo.filename || photo.name || `photo-${photo.id || Date.now()}.jpg`;
 
+    isDownloading.value = true;
     try {
       const apiUrl = `/download-photo`;
       const response = await api.post(
@@ -41,6 +42,8 @@ export function usePhotoDownload() {
       message.error("Failed to download photo");
       console.error("Download photo failed:", error);
       throw error;
+    } finally {
+      isDownloading.value = false;
     }
   };
 

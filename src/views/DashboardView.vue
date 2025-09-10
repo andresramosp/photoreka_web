@@ -2,7 +2,7 @@
   <div class="dashboard-container view-container">
     <!-- Welcome Section -->
     <div class="welcome-section">
-      <h1 class="welcome-title">Welcome back, John! 👋</h1>
+      <h1 class="welcome-title">Welcome back! 👋</h1>
       <p class="welcome-subtitle">
         Ready to organize and enhance your photos with Photoreka smart tools.
       </p>

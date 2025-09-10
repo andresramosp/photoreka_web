@@ -716,42 +716,62 @@
             </div>
             <!-- Action buttons (show when photos are selected) -->
             <div v-if="localSelectedPhotoIds.length > 0" class="action-buttons">
-              <n-button
-                type="info"
-                size="small"
-                @click="handleAddToCollection"
-                :disabled="localSelectedPhotoIds.length === 0"
-              >
-                <template #icon>
-                  <n-icon>
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M17 14H19V17H22V19H19V22H17V19H14V17H17V14M12 18H6V16H12V18M12 14H6V12H12V14M16 10H6V8H16V10M20 6H4C2.9 6 2 6.9 2 8V20C2 21.1 2.9 22 4 22H13.35C13.13 21.37 13 20.7 13 20C13 16.69 15.69 14 19 14C19.34 14 19.67 14.03 20 14.08V8C20 6.9 19.1 6 18 6H20Z"
-                      />
-                    </svg>
-                  </n-icon>
+              <n-tooltip trigger="hover" placement="bottom">
+                <template #trigger>
+                  <n-button
+                    type="info"
+                    size="small"
+                    @click="handleDownloadMultiple"
+                    :disabled="
+                      localSelectedPhotoIds.length === 0 || isDownloading
+                    "
+                    :loading="isDownloading"
+                  >
+                    <template #icon>
+                      <n-icon>
+                        <CloudDownloadOutline />
+                      </n-icon>
+                    </template>
+                  </n-button>
                 </template>
-                Add to Collection ({{ localSelectedPhotoIds.length }})
-              </n-button>
-              <n-button
-                type="info"
-                size="small"
-                @click="moveToCanvas"
-                :disabled="localSelectedPhotoIds.length === 0"
-              >
-                <template #icon>
-                  <n-icon>
-                    <svg viewBox="0 0 24 24">
-                      <path
-                        fill="currentColor"
-                        d="M17 14H19V17H22V19H19V22H17V19H14V17H17V14M12 18H6V16H12V18M12 14H6V12H12V14M16 10H6V8H16V10M20 6H4C2.9 6 2 6.9 2 8V20C2 21.1 2.9 22 4 22H13.35C13.13 21.37 13 20.7 13 20C13 16.69 15.69 14 19 14C19.34 14 19.67 14.03 20 14.08V8C20 6.9 19.1 6 18 6H20Z"
-                      />
-                    </svg>
-                  </n-icon>
+                <span>Download selected photos</span>
+              </n-tooltip>
+
+              <n-tooltip trigger="hover" placement="bottom">
+                <template #trigger>
+                  <n-button
+                    type="info"
+                    size="small"
+                    @click="handleAddToCollection"
+                    :disabled="localSelectedPhotoIds.length === 0"
+                  >
+                    <template #icon>
+                      <n-icon>
+                        <AlbumsOutline />
+                      </n-icon>
+                    </template>
+                  </n-button>
                 </template>
-                Take to Canvas ({{ localSelectedPhotoIds.length }})
-              </n-button>
+                <span>Add selected photos to a collection</span>
+              </n-tooltip>
+
+              <n-tooltip trigger="hover" placement="bottom">
+                <template #trigger>
+                  <n-button
+                    type="info"
+                    size="small"
+                    @click="openToolSelector"
+                    :disabled="localSelectedPhotoIds.length === 0"
+                  >
+                    <template #icon>
+                      <n-icon>
+                        <MagicWand />
+                      </n-icon>
+                    </template>
+                  </n-button>
+                </template>
+                <span>Take selected photos to a tool</span>
+              </n-tooltip>
             </div>
           </div>
 
@@ -863,6 +883,15 @@
       @add-to-collection="handleCollectionAdded"
       @cancel="cancelCollectionModal"
     />
+    <!-- Photo Tool Selector Modal -->
+    <PhotoToolSelector
+      :show="showToolSelector"
+      :photo-count="localSelectedPhotoIds.length"
+      :tools="availableTools"
+      :is-processing="isProcessingTool"
+      @tool-selected="handleToolSelected"
+      @close="closeToolSelector"
+    />
   </div>
 </template>
 
@@ -893,14 +922,22 @@ import {
 import PhotoCard from "@/components/photoCards/PhotoCard.vue";
 import WarningBadge from "@/components/WarningBadge.vue";
 import CollectionModal from "@/components/CollectionModal.vue";
+import PhotoToolSelector from "@/components/PhotoToolSelector.vue";
 
 // Composable de tags y ejemplos
 import { useSearchTags } from "@/composables/useSearchTags";
 import { useLocalPhotoSelection } from "@/composables/useLocalPhotoSelection";
 import { useQueryExamples } from "@/composables/useQueryExamples";
 import queryExamples from "@/assets/query_examples.json";
-import { DocumentOutline, MapOutline, PencilOutline } from "@vicons/ionicons5";
+import {
+  DocumentOutline,
+  MapOutline,
+  PencilOutline,
+  AlbumsOutline,
+  CloudDownloadOutline,
+} from "@vicons/ionicons5";
 import { CheckOutlined, TagOutlined } from "@vicons/antd";
+import { MagicWand } from "@vicons/carbon";
 import { usePhotosStore } from "@/stores/photos";
 import { useCanvasStore } from "@/stores/canvas.js";
 import { useUserStore } from "@/stores/userStore";
@@ -911,6 +948,8 @@ import {
 import { useCollectionsStore } from "@/stores/collections";
 import { useRouter } from "vue-router";
 import { usePhotoScored } from "@/composables/usePhotoScored";
+import { usePhotoToolSelection } from "@/composables/usePhotoToolSelection";
+import { usePhotoDownload } from "@/composables/usePhotoDownload";
 import PhotoInfoDialog from "@/components/PhotoInfoDialog.vue";
 
 const photoStore = usePhotosStore();
@@ -924,6 +963,19 @@ const selectedDialogPhoto = ref();
 
 // Photo scoring utilities
 const { computePhotoStars, shouldShowLowRelevanceIcon } = usePhotoScored();
+
+// Photo tool selection utilities
+const {
+  isProcessing: isProcessingTool,
+  showToolSelector,
+  availableTools,
+  takeToTool,
+  openToolSelector,
+  closeToolSelector,
+} = usePhotoToolSelection();
+
+// Photo download utilities
+const { downloadPhotosZip, isDownloading, downloadPhoto } = usePhotoDownload();
 
 // Estado local de selección de fotos (independiente del store global)
 const {
@@ -1195,6 +1247,33 @@ const handleCollectionAdded = (data) => {
   showCollectionModal.value = false;
   // Clear selections after adding to collection
   localClearAllSelections();
+};
+
+const handleToolSelected = async (toolId) => {
+  await takeToTool(
+    toolId,
+    localSelectedPhotoIds.value,
+    localClearAllSelections
+  );
+  closeToolSelector();
+};
+
+const handleDownloadMultiple = async () => {
+  try {
+    const photosToDownload = localSelectedPhotoIds.value
+      .map((id) => photoStore.photos.find((p) => p.id == id))
+      .filter(Boolean);
+
+    if (photosToDownload.length === 1) {
+      // Download single photo directly (not as ZIP)
+      await downloadPhoto(photosToDownload[0]);
+    } else {
+      // Download multiple photos as ZIP
+      await downloadPhotosZip(photosToDownload);
+    }
+  } catch (error) {
+    console.error("Download multiple photos failed:", error);
+  }
 };
 
 async function moveToCanvas() {
