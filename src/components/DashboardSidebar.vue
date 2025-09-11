@@ -223,7 +223,7 @@ import logoImagoName from "@/assets/logo_imago.png";
 // Import @vicons icons from ionicons5 for reliability
 import {
   GridOutline as DashboardIcon,
-  ImagesOutline as PhotoHubIcon,
+  CameraOutline as PhotoHubIcon,
   AlbumsOutline as CollectionsIcon,
   ApertureOutline as StylerIcon,
   SearchOutline as SearchIcon,
@@ -235,7 +235,6 @@ import {
   HelpCircleOutline as HelpIcon,
   PersonOutline,
   LogOutOutline,
-  CameraOutline,
   ChevronForwardOutline as ChevronRightIcon,
   ChevronBackOutline as ChevronLeftIcon,
   ConstructOutline as ConstructionIcon,
@@ -274,7 +273,12 @@ const firstSectionOptions = computed(() => [
             "position: relative; display: flex; align-items: center; justify-content: center;",
         },
         [
-          h(NIcon, null, { default: () => h(PhotoHubIcon) }),
+          // Use theme primary color variable so the icon follows the app theme
+          h(
+            NIcon,
+            { color: "var(--primary-color)" },
+            { default: () => h(PhotoHubIcon) }
+          ),
           // Visual indicator when blocked (visible in both collapsed and expanded states)
           appAccessMode.value === "blocked"
             ? h("div", {
@@ -436,6 +440,19 @@ const secondSectionOptions = computed(() => {
         : {},
       icon: createIconWithIndicator(CurationIcon, "#f59e0b", true), // Warning color for curation + premium
     },
+
+    {
+      label: createMenuLabel("Reports"),
+      key: "portfolio-report",
+      disabled: isBlocked,
+      comingSoon: false,
+      props: isBlocked
+        ? {
+            title: "Add photos to your catalog",
+          }
+        : {},
+      icon: createIconWithIndicator(AnalyticsIcon, "#06b6d4", false, false), // Cyan color for analytics
+    },
     {
       label: createMenuLabel("Framer"),
       key: "framer",
@@ -447,18 +464,6 @@ const secondSectionOptions = computed(() => {
           }
         : {},
       icon: createIconWithIndicator(FramerIcon, "#dc2626", false, false), // Red color for framer
-    },
-    {
-      label: createMenuLabel("Portfolio Report"),
-      key: "portfolio-report",
-      disabled: isBlocked,
-      comingSoon: false,
-      props: isBlocked
-        ? {
-            title: "Add photos to your catalog",
-          }
-        : {},
-      icon: createIconWithIndicator(AnalyticsIcon, "#06b6d4", false, false), // Cyan color for analytics
     },
     // {
     //   label: createMenuLabel("Visual Lab", true),
