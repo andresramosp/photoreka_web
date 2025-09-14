@@ -13,9 +13,6 @@
     <template #header>
       <div class="modal-header">
         <h2>Add Photos to Canvas</h2>
-        <!-- <div class="header-logo">
-          <img :src="logoName" alt="Photoreka" class="logo-brand-image" />
-        </div> -->
       </div>
     </template>
 
@@ -114,7 +111,6 @@
 import { ref, computed } from "vue";
 import { NModal, NButton, NIcon } from "naive-ui";
 import { ImagesOutline } from "@vicons/ionicons5";
-import logoName from "@/assets/logo_name_sub_curation_lab_blue.png";
 import pica from "pica";
 
 const props = defineProps({
@@ -303,12 +299,6 @@ const closeModal = () => {
 
 .header-logo {
   flex-shrink: 0;
-}
-
-.logo-brand-image {
-  height: 50px;
-  width: auto;
-  object-fit: contain;
 }
 
 .modal-header p {

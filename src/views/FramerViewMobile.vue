@@ -10,11 +10,6 @@
             v-if="props.playgroundMode"
             class="mobile-preview-logo-container"
           >
-            <!-- <img
-              src="@/assets/logo_name_sub_curation_lab_blue.png"
-              alt="Photoreka"
-              class="mobile-preview-logo"
-            /> -->
             <router-link to="/" class="logo-link" aria-label="Inicio">
               <AppLogo size="tiny" />
             </router-link>

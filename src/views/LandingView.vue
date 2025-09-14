@@ -10,7 +10,7 @@
         <div class="nav-container">
           <div class="nav-brand">
             <div class="logo">
-              <img :src="logoName" alt="Photoreka" class="logo-image" />
+              <AppLogo :inline="true" />
             </div>
           </div>
           <div class="nav-actions">
@@ -529,7 +529,7 @@ import {
   StopOutline,
 } from "@vicons/ionicons5";
 import { Workspace } from "@vicons/carbon";
-import logoName from "@/assets/logos/logo_name_white.png";
+import AppLogo from "@/components/AppLogo.vue";
 import RequestAccessDialog from "@/components/RequestAccessDialog.vue";
 import MobileNoticeDialog from "@/components/MobileNoticeDialog.vue";
 import MaintenanceBanner from "@/components/MaintenanceBanner.vue";

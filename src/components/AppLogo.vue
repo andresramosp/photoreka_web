@@ -1,20 +1,30 @@
 <template>
   <div
     class="photoreka-logo"
-    :class="{ 'logo-large': size === 'large', 'logo-tiny': size === 'tiny' }"
+    :class="{
+      'logo-large': size === 'large',
+      'logo-tiny': size === 'tiny',
+      'logo-inline': inline,
+    }"
   >
     <div
       class="logo-icon"
-      :class="{ 'logo-small': size === 'small', 'logo-tiny': size === 'tiny' }"
+      :class="{
+        'logo-small': size === 'small',
+        'logo-tiny': size === 'tiny',
+        'logo-inline': inline,
+      }"
     >
       <img
-        :src="logoName"
+        :src="inline ? logoNameInline : logoName"
         alt="Photoreka"
         class="logo-image"
         :class="{
           'logo-small-image': size === 'small',
           'logo-tiny-image': size === 'tiny',
+          'logo-inline-image': inline,
         }"
+        :style="props.height ? { height: props.height + 'px' } : {}"
       />
     </div>
   </div>
@@ -25,22 +35,19 @@ import { computed } from "vue";
 import { NIcon } from "naive-ui";
 import { CameraOutline } from "@vicons/ionicons5";
 import logoName from "@/assets/logos/logo_name_sub_white.png";
+import logoNameInline from "@/assets/logos/logo_name_white.png";
 
 interface Props {
   size?: "normal" | "large" | "small" | "tiny";
   showText?: boolean;
+  height?: number; // altura en px, prevalece sobre size
+  inline?: boolean; // usa el logo horizontal con texto
 }
 
 const props = withDefaults(defineProps<Props>(), {
   size: "normal",
   showText: true,
-});
-
-const iconSize = computed(() => {
-  if (props.size === "large") return 48;
-  if (props.size === "small") return 24;
-  if (props.size === "tiny") return 16;
-  return 32;
+  inline: false,
 });
 </script>
 
@@ -90,6 +97,10 @@ export default {
   height: 40px;
 }
 
+.logo-inline-image {
+  height: 50px;
+}
+
 .logo-text {
   font-size: 24px;
   font-weight: 700;
@@ -119,5 +130,28 @@ export default {
 /* Subtle glow effect */
 .logo-icon {
   filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.3));
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  .logo-image {
+    height: 40px !important;
+  }
+
+  .logo-inline-image {
+    height: 40px !important;
+  }
+
+  .logo-large .logo-image {
+    height: 40px !important;
+  }
+
+  .logo-small-image {
+    height: 40px !important;
+  }
+
+  .logo-tiny-image {
+    height: 40px !important;
+  }
 }
 </style>

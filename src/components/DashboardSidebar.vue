@@ -133,7 +133,8 @@
             />
           </div>
           <div v-if="!collapsed" class="logo-text">
-            <img :src="logoName" alt="Photoreka" class="logo-brand-image" />
+            <!-- <img :src="logoName" alt="Photoreka" class="logo-brand-image" /> -->
+            <AppLogo :height="55" :showText="true" />
             <!-- <div class="app-subtitle">Discovery Lab</div> -->
           </div>
         </div>
@@ -242,6 +243,7 @@ import {
   SquareOutline as FramerIcon,
 } from "@vicons/ionicons5";
 import { ConstructionOutlined, ConstructionSharp } from "@vicons/material";
+import AppLogo from "./AppLogo.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -624,7 +626,7 @@ onUnmounted(() => {
 }
 
 .logo-brand-image {
-  height: 45px;
+  height: 43px;
   width: auto;
   object-fit: contain;
 }

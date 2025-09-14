@@ -450,11 +450,12 @@
     <!-- Playground Logo - Top Right -->
     <div v-if="isPlayground" class="canvas-controls playground-logo">
       <div class="logo-container-playground">
-        <img
+        <!-- <img
           :src="logoName"
           alt="Photoreka"
           class="logo-brand-image-playground"
-        />
+        /> -->
+        <AppLogo :height="50" :showText="false" />
       </div>
     </div>
 
@@ -706,6 +707,7 @@ import logoName from "@/assets/logos/logo_name_sub_white.png";
 import { usePhotoDownload } from "@/composables/usePhotoDownload.js";
 import { useCanvasPersistence } from "@/composables/useCanvasPersistence.js";
 import { usePhotoToolSelection } from "@/composables/usePhotoToolSelection.js";
+import AppLogo from "@/components/AppLogo.vue";
 
 const canvasStore = useCanvasStore();
 const photosStore = usePhotosStore();
