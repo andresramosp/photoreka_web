@@ -24,7 +24,7 @@
 import { computed } from "vue";
 import { NIcon } from "naive-ui";
 import { CameraOutline } from "@vicons/ionicons5";
-import logoName from "@/assets/logo_name_sub_curation_lab.png";
+import logoName from "@/assets/logos/logo_name_sub_white.png";
 
 interface Props {
   size?: "normal" | "large" | "small" | "tiny";

@@ -102,7 +102,7 @@ import {
 } from "@vicons/ionicons5";
 import { useRouter } from "vue-router";
 import { useMaintenanceMode } from "@/composables/useMaintenanceMode";
-import logoName from "@/assets/logo_name.png";
+import logoName from "@/assets/logos/logo_name_white.png";
 import { Workspace } from "@vicons/carbon";
 
 const router = useRouter();

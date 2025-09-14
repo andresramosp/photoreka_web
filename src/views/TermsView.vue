@@ -213,7 +213,7 @@
 <script setup>
 import { useRouter } from "vue-router";
 import { NButton } from "naive-ui";
-import logoName from "@/assets/logo_name.png";
+import logoName from "@/assets/logos/logo_name_white.png";
 
 const router = useRouter();
 
