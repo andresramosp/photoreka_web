@@ -133,9 +133,7 @@
             />
           </div>
           <div v-if="!collapsed" class="logo-text">
-            <!-- <img :src="logoName" alt="Photoreka" class="logo-brand-image" /> -->
-            <AppLogo :height="55" :showText="true" />
-            <!-- <div class="app-subtitle">Discovery Lab</div> -->
+            <AppLogo :height="43" :showText="true" :inline="true" />
           </div>
         </div>
       </div>
