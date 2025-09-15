@@ -37,19 +37,146 @@
     </template>
 
     <div class="dialog-content">
-      <!-- Large Photo Display -->
-      <div class="photo-display">
-        <img
-          :src="
-            selectedPhoto?.originalUrl ||
-            selectedPhoto?.url ||
-            selectedPhoto?.thumbnailUrl
-          "
-          :alt="selectedPhoto?.filename || selectedPhoto?.name || 'Photo'"
-          class="main-photo"
-          @error="handleImageError"
-        />
+      <!-- Top Section: Photo + Technical Data -->
+      <div class="top-section">
+        <!-- Small Photo Display -->
+        <div class="photo-display-small">
+          <img
+            :src="
+              selectedPhoto?.originalUrl ||
+              selectedPhoto?.url ||
+              selectedPhoto?.thumbnailUrl
+            "
+            :alt="selectedPhoto?.filename || selectedPhoto?.name || 'Photo'"
+            class="small-photo"
+            @error="handleImageError"
+          />
+          <n-button
+            size="small"
+            type="primary"
+            class="fullscreen-btn"
+            @click="openFullscreen"
+            title="View fullscreen"
+          >
+            <template #icon>
+              <n-icon>
+                <InfoIcon />
+              </n-icon>
+            </template>
+            Full Screen
+          </n-button>
+        </div>
+
+        <!-- Technical Data Tabs -->
+        <div class="technical-data">
+          <n-tabs type="segment" animated>
+            <n-tab-pane name="visual" tab="Visual Aspects">
+              <div class="visual-aspects-content">
+                <!-- Visual aspects content will go here -->
+                <div v-if="selectedPhoto?.descriptions?.visual_aspects">
+                  <!-- Summary section -->
+                  <div
+                    v-if="selectedPhoto.descriptions.visual_aspects.summary"
+                    class="visual-aspects-summary"
+                  >
+                    <h6 class="summary-title">Summary</h6>
+                    <div class="summary-content">
+                      <p>
+                        {{ selectedPhoto.descriptions.visual_aspects.summary }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Visual aspects grid -->
+                  <div class="visual-aspects-grid">
+                    <div
+                      v-for="(values, category) in getFilteredVisualAspects(
+                        selectedPhoto.descriptions.visual_aspects
+                      )"
+                      :key="category"
+                      class="visual-aspect-category"
+                    >
+                      <h6 class="aspect-category-title">
+                        {{ formatCategoryName(category) }}
+                      </h6>
+                      <div class="aspect-tags">
+                        <n-tag
+                          v-for="value in values"
+                          :key="value"
+                          type="info"
+                          size="small"
+                          class="aspect-tag"
+                        >
+                          {{ value }}
+                        </n-tag>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </n-tab-pane>
+
+            <n-tab-pane name="exif" tab="EXIF Data">
+              <div class="exif-data-content">
+                <!-- EXIF data content will go here -->
+                <div v-if="selectedPhoto?.descriptions?.EXIF" class="exif-grid">
+                  <div class="exif-item">
+                    <span class="exif-label">Camera:</span>
+                    <span class="exif-value">{{
+                      selectedPhoto.descriptions.EXIF.camera
+                    }}</span>
+                  </div>
+                  <div class="exif-item">
+                    <span class="exif-label">Date Taken:</span>
+                    <span class="exif-value">{{
+                      formatDate(selectedPhoto.descriptions.EXIF.dateTaken)
+                    }}</span>
+                  </div>
+                  <div class="exif-item">
+                    <span class="exif-label">ISO:</span>
+                    <span class="exif-value">{{
+                      selectedPhoto.descriptions.EXIF.iso
+                    }}</span>
+                  </div>
+                  <div class="exif-item">
+                    <span class="exif-label">Aperture:</span>
+                    <span class="exif-value"
+                      >f/{{ selectedPhoto.descriptions.EXIF.aperture }}</span
+                    >
+                  </div>
+                  <div class="exif-item">
+                    <span class="exif-label">Focal Length:</span>
+                    <span class="exif-value"
+                      >{{ selectedPhoto.descriptions.EXIF.focalLength }}mm</span
+                    >
+                  </div>
+                  <div class="exif-item">
+                    <span class="exif-label">Exposure Time:</span>
+                    <span class="exif-value">{{
+                      formatExposureTime(
+                        selectedPhoto.descriptions.EXIF.exposureTime
+                      )
+                    }}</span>
+                  </div>
+                  <div class="exif-item">
+                    <span class="exif-label">Flash:</span>
+                    <span class="exif-value">{{
+                      selectedPhoto.descriptions.EXIF.flash
+                    }}</span>
+                  </div>
+                  <div class="exif-item">
+                    <span class="exif-label">White Balance:</span>
+                    <span class="exif-value">{{
+                      selectedPhoto.descriptions.EXIF.whiteBalance
+                    }}</span>
+                  </div>
+                </div>
+              </div>
+            </n-tab-pane>
+          </n-tabs>
+        </div>
       </div>
+
       <!-- Accordion Sections -->
       <div class="info-sections">
         <n-collapse :default-expanded-names="['metadata']">
@@ -104,57 +231,6 @@
                       </template>
                       Load more insights
                     </n-button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </n-collapse-item>
-
-          <!-- Visual Aspects Section -->
-          <n-collapse-item
-            title="Visual Aspects"
-            name="visual-aspects"
-            v-if="selectedPhoto?.descriptions?.visual_aspects"
-          >
-            <template #header-extra>
-              <n-icon>
-                <EyeIcon />
-              </n-icon>
-            </template>
-            <div class="visual-aspects-section">
-              <!-- Summary section -->
-              <div
-                v-if="selectedPhoto.descriptions.visual_aspects.summary"
-                class="visual-aspects-summary"
-              >
-                <h6 class="summary-title">Summary</h6>
-                <div class="summary-content">
-                  <p>{{ selectedPhoto.descriptions.visual_aspects.summary }}</p>
-                </div>
-              </div>
-
-              <!-- Visual aspects grid -->
-              <div class="visual-aspects-grid">
-                <div
-                  v-for="(values, category) in getFilteredVisualAspects(
-                    selectedPhoto.descriptions.visual_aspects
-                  )"
-                  :key="category"
-                  class="visual-aspect-category"
-                >
-                  <h6 class="aspect-category-title">
-                    {{ formatCategoryName(category) }}
-                  </h6>
-                  <div class="aspect-tags">
-                    <n-tag
-                      v-for="value in values"
-                      :key="value"
-                      type="info"
-                      size="small"
-                      class="aspect-tag"
-                    >
-                      {{ value }}
-                    </n-tag>
                   </div>
                 </div>
               </div>
@@ -506,6 +582,8 @@ import {
   NSpin,
   NSwitch,
   NTooltip,
+  NTabs,
+  NTabPane,
   useMessage,
 } from "naive-ui";
 import CustomArtisticWeights from "./CustomArtisticWeights.vue";
@@ -573,6 +651,7 @@ const photoNotes = ref("");
 const isSavingNotes = ref(false);
 
 const showCustomWeights = ref(false);
+const showFullscreenPhoto = ref(false);
 
 // Function to show custom weight controls
 const showCustomControls = () => {
@@ -695,6 +774,24 @@ const formatFileSize = (bytes) => {
   const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
   return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
+};
+
+const formatExposureTime = (exposureTime) => {
+  if (!exposureTime) return "Unknown";
+
+  if (exposureTime >= 1) {
+    return `${exposureTime}s`;
+  } else {
+    return `1/${Math.round(1 / exposureTime)}`;
+  }
+};
+
+const openFullscreen = () => {
+  showFullscreenPhoto.value = true;
+};
+
+const closeFullscreen = () => {
+  showFullscreenPhoto.value = false;
 };
 
 const formatCategoryName = (category) => {
@@ -1034,6 +1131,85 @@ if (typeof window !== "undefined") {
   max-height: calc(90vh - 120px);
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.top-section {
+  display: flex;
+  gap: var(--spacing-lg);
+  align-items: flex-start;
+  min-height: 300px;
+  flex-shrink: 0;
+}
+
+.photo-display-small {
+  position: relative;
+  width: 400px;
+  height: 300px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.small-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  background-color: transparent;
+}
+
+.fullscreen-btn {
+  position: absolute;
+  bottom: var(--spacing-sm);
+  right: var(--spacing-sm);
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.fullscreen-btn:hover {
+  opacity: 1;
+}
+
+.technical-data {
+  flex: 1;
+  min-height: 300px;
+}
+
+.visual-aspects-content,
+.exif-data-content {
+  padding: var(--spacing-md);
+  min-height: 240px;
+}
+
+.exif-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.exif-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+.exif-label {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+}
+
+.exif-value {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
 }
 
 .photo-display {
@@ -1653,6 +1829,20 @@ if (typeof window !== "undefined") {
     justify-content: center;
   }
 
+  .top-section {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .photo-display-small {
+    width: 100%;
+    height: 250px;
+  }
+
+  .technical-data {
+    min-height: auto;
+  }
+
   .metadata-grid {
     grid-template-columns: 1fr;
   }
@@ -1661,6 +1851,10 @@ if (typeof window !== "undefined") {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--spacing-xs);
+  }
+
+  .exif-grid {
+    grid-template-columns: 1fr;
   }
 
   .add-tag-section {
