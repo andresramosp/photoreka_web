@@ -193,7 +193,7 @@
       <!-- Info Sections with Lateral Tabs -->
       <div class="info-sections">
         <n-tabs type="line" placement="left" size="large" animated>
-          <n-tab-pane name="insights" display-directive="show:lazy">
+          <!-- <n-tab-pane name="insights" display-directive="show:lazy">
             <template #tab>
               <div class="tab-content">
                 <n-icon size="18">
@@ -260,7 +260,7 @@
                 </div>
               </div>
             </div>
-          </n-tab-pane>
+          </n-tab-pane> -->
 
           <n-tab-pane name="scores" display-directive="show:lazy">
             <template #tab>
