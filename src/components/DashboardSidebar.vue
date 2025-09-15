@@ -64,28 +64,6 @@
         @update:value="handleMenuSelect"
         class="sidebar-menu"
       />
-
-      <!-- User Profile Section -->
-      <div class="user-profile-section">
-        <div class="user-profile">
-          <n-avatar size="small" class="user-avatar" color="#2563eb">
-            <n-icon>
-              <PersonOutline />
-            </n-icon>
-          </n-avatar>
-          <div class="user-info">
-            <div class="user-name">John Doe</div>
-            <div class="user-email">john@example.com</div>
-          </div>
-          <n-button quaternary circle size="small" class="logout-btn">
-            <template #icon>
-              <n-icon>
-                <LogOutOutline />
-              </n-icon>
-            </template>
-          </n-button>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -176,34 +154,6 @@
         @update:value="handleMenuSelect"
         class="sidebar-menu"
       />
-
-      <!-- User Profile Section -->
-      <div class="user-profile-section" :class="{ collapsed }">
-        <div class="user-profile">
-          <n-avatar size="small" class="user-avatar" color="#2563eb">
-            <n-icon>
-              <PersonOutline />
-            </n-icon>
-          </n-avatar>
-          <div class="user-info" :class="{ collapsed }">
-            <div class="user-name">John Doe</div>
-            <div class="user-email">john@example.com</div>
-          </div>
-          <n-button
-            :class="{ collapsed }"
-            quaternary
-            circle
-            size="small"
-            class="logout-btn"
-          >
-            <template #icon>
-              <n-icon>
-                <LogOutOutline />
-              </n-icon>
-            </template>
-          </n-button>
-        </div>
-      </div>
     </div>
   </n-layout-sider>
 </template>
@@ -756,7 +706,7 @@ onUnmounted(() => {
 .toggle-button-fixed {
   position: absolute;
   right: 16px;
-  bottom: 80px;
+  bottom: 10px;
   z-index: 101;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }

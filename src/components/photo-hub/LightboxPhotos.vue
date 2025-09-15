@@ -316,6 +316,7 @@
       <PhotosGrid
         :photos="filteredPhotos"
         :displayAddToCollection="false"
+        :displayMoveToTool="false"
         :hiddeControls="true"
         @selection-change="handleSelectionChange"
       />

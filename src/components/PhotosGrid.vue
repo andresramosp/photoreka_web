@@ -86,7 +86,11 @@
             <span>Add selected photos to a collection</span>
           </n-tooltip>
 
-          <n-tooltip placement="bottom" trigger="hover">
+          <n-tooltip
+            placement="bottom"
+            trigger="hover"
+            v-if="!props.collectionId && displayMoveToTool"
+          >
             <template #trigger>
               <n-button
                 type="info"
@@ -370,6 +374,10 @@ const props = defineProps({
     default: null,
   },
   displayAddToCollection: {
+    type: Boolean,
+    default: true,
+  },
+  displayMoveToTool: {
     type: Boolean,
     default: true,
   },

@@ -36,13 +36,13 @@
 
       <div class="header-right">
         <n-space>
-          <n-button circle quaternary class="header-icon-btn">
+          <!-- <n-button circle quaternary class="header-icon-btn">
             <template #icon>
               <n-icon size="20">
                 <NotificationsIcon />
               </n-icon>
             </template>
-          </n-button>
+          </n-button> -->
 
           <!-- <n-button circle quaternary class="header-icon-btn">
             <template #icon>
