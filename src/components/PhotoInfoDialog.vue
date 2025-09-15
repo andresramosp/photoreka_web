@@ -190,392 +190,425 @@
         </div>
       </div>
 
-      <!-- Accordion Sections -->
+      <!-- Info Sections with Lateral Tabs -->
       <div class="info-sections">
-        <n-collapse :default-expanded-names="['metadata']">
-          <n-collapse-item title="Insights" name="descriptions">
-            <template #header-extra>
-              <n-icon>
-                <DocumentTextIcon />
-              </n-icon>
+        <n-tabs type="line" placement="left" size="large" animated>
+          <n-tab-pane name="insights" display-directive="show:lazy">
+            <template #tab>
+              <div class="tab-content">
+                <n-icon size="18">
+                  <SparklesIcon />
+                </n-icon>
+                <span>Insights</span>
+              </div>
             </template>
-            <div class="descriptions-section">
-              <div class="custom-description-section">
-                <div
-                  v-if="!photoInsight && !isGeneratingInsight"
-                  class="generate-section"
-                >
-                  <n-button
-                    type="primary"
-                    size="medium"
-                    @click="getInsight"
-                    block
-                  >
-                    <template #icon>
-                      <n-icon>
-                        <SparklesIcon />
-                      </n-icon>
-                    </template>
-                    Get a insight
-                  </n-button>
-                </div>
-                <div v-else-if="isGeneratingInsight" class="generating-section">
-                  <n-spin size="medium" />
-                  <p class="generating-text">Reviewing the image...</p>
-                </div>
-                <div v-else class="description-display">
-                  <div class="description-content">
-                    <p>{{ photoInsight }}</p>
-                  </div>
+            <div class="tab-panel-content">
+              <div class="descriptions-section">
+                <div class="custom-description-section">
                   <div
-                    style="display: flex; justify-content: center; width: 100%"
+                    v-if="!photoInsight && !isGeneratingInsight"
+                    class="generate-section"
                   >
                     <n-button
-                      size="small"
-                      @click="showNextInsight"
-                      :loading="isGeneratingInsight"
-                      class="regenerate-btn"
-                      v-if="hasMoreInsights"
+                      type="primary"
+                      size="medium"
+                      @click="getInsight"
+                      block
                     >
                       <template #icon>
                         <n-icon>
-                          <RefreshIcon />
+                          <SparklesIcon />
                         </n-icon>
                       </template>
-                      Load more insights
+                      Get a insight
                     </n-button>
                   </div>
-                </div>
-              </div>
-            </div>
-          </n-collapse-item>
-
-          <!-- Scores Section -->
-          <n-collapse-item title="Scores" name="scores">
-            <template #header-extra>
-              <n-icon>
-                <DocumentTextIcon />
-              </n-icon>
-            </template>
-            <div class="descriptions-section">
-              <div v-if="selectedPhoto?.descriptions" class="ai-descriptions">
-                <div
-                  class="description-item"
-                  v-if="selectedPhoto.descriptions.artistic_scores"
-                >
-                  <!-- Overall Rating -->
-                  <div class="overall-rating-container">
-                    <div class="overall-rating">
-                      <span class="overall-label">Overall Rating:</span>
-                      <div class="overall-score">
-                        <span class="overall-value"
-                          >{{ overallRating.average }}/{{
-                            scoreScale.max
-                          }}</span
-                        >
-                        <span
-                          class="overall-rating-text"
-                          :class="
-                            'rating-' +
-                            overallRating.rating
-                              .toLowerCase()
-                              .replace(' ', '-')
-                              .replace('/', '')
-                          "
-                        >
-                          {{ overallRating.rating }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Genre Presets -->
-                  <div class="genre-presets-container">
-                    <div class="genre-header">
-                      <h6 class="genre-title">Photography Genre Presets</h6>
-                      <p class="genre-subtitle">
-                        Quick configurations for different photography styles
-                      </p>
-                    </div>
-                    <div class="genre-buttons">
-                      <n-tooltip
-                        trigger="hover"
-                        placement="bottom"
-                        :show-arrow="true"
-                        delay="1200"
-                      >
-                        <template #trigger>
-                          <n-button
-                            :type="
-                              selectedGenre === 'street' ? 'primary' : 'default'
-                            "
-                            size="medium"
-                            @click="applyGenrePresetWithUI('street')"
-                            class="genre-button"
-                          >
-                            <template #icon>
-                              <n-icon>
-                                <WalkOutline />
-                              </n-icon>
-                            </template>
-                            Street
-                          </n-button>
-                        </template>
-                        <div v-html="formatGenreTooltip('street')"></div>
-                      </n-tooltip>
-
-                      <n-tooltip
-                        trigger="hover"
-                        placement="bottom"
-                        :show-arrow="true"
-                        delay="1200"
-                      >
-                        <template #trigger>
-                          <n-button
-                            :type="
-                              selectedGenre === 'documentary'
-                                ? 'primary'
-                                : 'default'
-                            "
-                            size="medium"
-                            @click="applyGenrePresetWithUI('documentary')"
-                            class="genre-button"
-                          >
-                            <template #icon>
-                              <n-icon>
-                                <BookOpen16Regular />
-                              </n-icon>
-                            </template>
-                            Documentary
-                          </n-button>
-                        </template>
-                        <div v-html="formatGenreTooltip('documentary')"></div>
-                      </n-tooltip>
-
-                      <n-tooltip
-                        trigger="hover"
-                        placement="bottom"
-                        :show-arrow="true"
-                        delay="1200"
-                      >
-                        <template #trigger>
-                          <n-button
-                            :type="
-                              selectedGenre === 'abstract'
-                                ? 'primary'
-                                : 'default'
-                            "
-                            size="medium"
-                            @click="applyGenrePresetWithUI('abstract')"
-                            class="genre-button"
-                          >
-                            <template #icon>
-                              <n-icon>
-                                <PaletteOutlined />
-                              </n-icon>
-                            </template>
-                            Artistic
-                          </n-button>
-                        </template>
-                        <div v-html="formatGenreTooltip('abstract')"></div>
-                      </n-tooltip>
-                    </div>
-                  </div>
-
-                  <!-- Weights Configuration -->
                   <div
-                    class="weights-configuration-container"
-                    v-if="showCustomWeights"
+                    v-else-if="isGeneratingInsight"
+                    class="generating-section"
                   >
-                    <div class="weights-header">
-                      <h6 class="weights-title">Score Weights Configuration</h6>
-                    </div>
-                    <CustomArtisticWeights
-                      v-model="artisticScoreWeights"
-                      :format-criterion-name="formatCriterionName"
-                    />
+                    <n-spin size="medium" />
+                    <p class="generating-text">Reviewing the image...</p>
                   </div>
-
-                  <div class="artistic-scores-grid">
+                  <div v-else class="description-display">
+                    <div class="description-content">
+                      <p>{{ photoInsight }}</p>
+                    </div>
                     <div
-                      v-for="scoreData in getOrderedArtisticScores(
-                        selectedPhoto.descriptions.artistic_scores
-                      )"
-                      :key="scoreData.criterion"
-                      class="score-item"
-                      :class="{ 'bonus-item': scoreData.group === 'bonus' }"
-                      :style="{
-                        '--weight-scale':
-                          artisticScoreWeights[scoreData.criterion],
-                        '--weight-opacity':
-                          artisticScoreWeights[scoreData.criterion],
-                      }"
+                      style="
+                        display: flex;
+                        justify-content: center;
+                        width: 100%;
+                      "
                     >
-                      <span
-                        class="score-label"
-                        :data-weight="`×${artisticScoreWeights[
-                          scoreData.criterion
-                        ].toFixed(1)}`"
-                        :title="`Score: ${scoreData.score}/${
-                          scoreScale.max
-                        } | Weight: ${artisticScoreWeights[
-                          scoreData.criterion
-                        ].toFixed(1)} | Impact: ${(
-                          scoreData.score *
-                          artisticScoreWeights[scoreData.criterion]
-                        ).toFixed(1)}`"
+                      <n-button
+                        size="small"
+                        @click="showNextInsight"
+                        :loading="isGeneratingInsight"
+                        class="regenerate-btn"
+                        v-if="hasMoreInsights"
                       >
-                        {{ scoreData.label }}
-                      </span>
-                      <div class="score-bar-container">
-                        <div class="score-bar">
-                          <div
-                            class="score-fill"
-                            :style="{
-                              width: (scoreData.score / 9) * 100 + '%',
-                              opacity: 0.8,
-                              background: getScoreBgColor(scoreData.score),
-                            }"
-                          ></div>
+                        <template #icon>
+                          <n-icon>
+                            <RefreshIcon />
+                          </n-icon>
+                        </template>
+                        Load more insights
+                      </n-button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </n-tab-pane>
+
+          <n-tab-pane name="scores" display-directive="show:lazy">
+            <template #tab>
+              <div class="tab-content">
+                <n-icon size="18">
+                  <ScoresIcon />
+                </n-icon>
+                <span>Scores</span>
+              </div>
+            </template>
+            <div class="tab-panel-content">
+              <div class="descriptions-section">
+                <div v-if="selectedPhoto?.descriptions" class="ai-descriptions">
+                  <div
+                    class="description-item"
+                    v-if="selectedPhoto.descriptions.artistic_scores"
+                  >
+                    <!-- Overall Rating -->
+                    <div class="overall-rating-container">
+                      <div class="overall-rating">
+                        <span class="overall-label">Overall Rating:</span>
+                        <div class="overall-score">
+                          <span class="overall-value"
+                            >{{ overallRating.average }}/{{
+                              scoreScale.max
+                            }}</span
+                          >
+                          <span
+                            class="overall-rating-text"
+                            :class="
+                              'rating-' +
+                              overallRating.rating
+                                .toLowerCase()
+                                .replace(' ', '-')
+                                .replace('/', '')
+                            "
+                          >
+                            {{ overallRating.rating }}
+                          </span>
                         </div>
-                        <span class="score-value">
-                          <span class="score-number">{{
-                            scoreData.score
-                          }}</span>
-                          <span class="max-score">/{{ scoreScale.max }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Genre Presets -->
+                    <div class="genre-presets-container">
+                      <div class="genre-header">
+                        <h6 class="genre-title">Photography Genre Presets</h6>
+                        <p class="genre-subtitle">
+                          Quick configurations for different photography styles
+                        </p>
+                      </div>
+                      <div class="genre-buttons">
+                        <n-tooltip
+                          trigger="hover"
+                          placement="bottom"
+                          :show-arrow="true"
+                          delay="1200"
+                        >
+                          <template #trigger>
+                            <n-button
+                              :type="
+                                selectedGenre === 'street'
+                                  ? 'primary'
+                                  : 'default'
+                              "
+                              size="medium"
+                              @click="applyGenrePresetWithUI('street')"
+                              class="genre-button"
+                            >
+                              <template #icon>
+                                <n-icon>
+                                  <WalkOutline />
+                                </n-icon>
+                              </template>
+                              Street
+                            </n-button>
+                          </template>
+                          <div v-html="formatGenreTooltip('street')"></div>
+                        </n-tooltip>
+
+                        <n-tooltip
+                          trigger="hover"
+                          placement="bottom"
+                          :show-arrow="true"
+                          delay="1200"
+                        >
+                          <template #trigger>
+                            <n-button
+                              :type="
+                                selectedGenre === 'documentary'
+                                  ? 'primary'
+                                  : 'default'
+                              "
+                              size="medium"
+                              @click="applyGenrePresetWithUI('documentary')"
+                              class="genre-button"
+                            >
+                              <template #icon>
+                                <n-icon>
+                                  <BookOpen16Regular />
+                                </n-icon>
+                              </template>
+                              Documentary
+                            </n-button>
+                          </template>
+                          <div v-html="formatGenreTooltip('documentary')"></div>
+                        </n-tooltip>
+
+                        <n-tooltip
+                          trigger="hover"
+                          placement="bottom"
+                          :show-arrow="true"
+                          delay="1200"
+                        >
+                          <template #trigger>
+                            <n-button
+                              :type="
+                                selectedGenre === 'abstract'
+                                  ? 'primary'
+                                  : 'default'
+                              "
+                              size="medium"
+                              @click="applyGenrePresetWithUI('abstract')"
+                              class="genre-button"
+                            >
+                              <template #icon>
+                                <n-icon>
+                                  <PaletteOutlined />
+                                </n-icon>
+                              </template>
+                              Artistic
+                            </n-button>
+                          </template>
+                          <div v-html="formatGenreTooltip('abstract')"></div>
+                        </n-tooltip>
+                      </div>
+                    </div>
+
+                    <!-- Weights Configuration -->
+                    <div
+                      class="weights-configuration-container"
+                      v-if="showCustomWeights"
+                    >
+                      <div class="weights-header">
+                        <h6 class="weights-title">
+                          Score Weights Configuration
+                        </h6>
+                      </div>
+                      <CustomArtisticWeights
+                        v-model="artisticScoreWeights"
+                        :format-criterion-name="formatCriterionName"
+                      />
+                    </div>
+
+                    <div class="artistic-scores-grid">
+                      <div
+                        v-for="scoreData in getOrderedArtisticScores(
+                          selectedPhoto.descriptions.artistic_scores
+                        )"
+                        :key="scoreData.criterion"
+                        class="score-item"
+                        :class="{ 'bonus-item': scoreData.group === 'bonus' }"
+                        :style="{
+                          '--weight-scale':
+                            artisticScoreWeights[scoreData.criterion],
+                          '--weight-opacity':
+                            artisticScoreWeights[scoreData.criterion],
+                        }"
+                      >
+                        <span
+                          class="score-label"
+                          :data-weight="`×${artisticScoreWeights[
+                            scoreData.criterion
+                          ].toFixed(1)}`"
+                          :title="`Score: ${scoreData.score}/${
+                            scoreScale.max
+                          } | Weight: ${artisticScoreWeights[
+                            scoreData.criterion
+                          ].toFixed(1)} | Impact: ${(
+                            scoreData.score *
+                            artisticScoreWeights[scoreData.criterion]
+                          ).toFixed(1)}`"
+                        >
+                          {{ scoreData.label }}
                         </span>
+                        <div class="score-bar-container">
+                          <div class="score-bar">
+                            <div
+                              class="score-fill"
+                              :style="{
+                                width: (scoreData.score / 9) * 100 + '%',
+                                opacity: 0.8,
+                                background: getScoreBgColor(scoreData.score),
+                              }"
+                            ></div>
+                          </div>
+                          <span class="score-value">
+                            <span class="score-number">{{
+                              scoreData.score
+                            }}</span>
+                            <span class="max-score">/{{ scoreScale.max }}</span>
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </n-collapse-item>
+          </n-tab-pane>
 
-          <n-collapse-item title="Tags" name="tags">
-            <template #header-extra>
-              <n-icon>
-                <TagIcon />
-              </n-icon>
+          <n-tab-pane name="tags" display-directive="show:lazy">
+            <template #tab>
+              <div class="tab-content">
+                <n-icon size="18">
+                  <TagIcon />
+                </n-icon>
+                <span>Tags</span>
+              </div>
             </template>
-            <div class="tags-section">
-              <div class="existing-tags" v-if="photoTags.length > 0">
-                <div class="tags-list">
-                  <n-tag
-                    v-for="tag in photoTags.filter(
-                      (tag) => tag.group !== 'misc'
-                    )"
-                    :key="tag.id || tag.name"
-                    closable
-                    type="info"
-                    :bordered="false"
-                    @close="removeTag(tag)"
-                    class="photo-tag"
-                  >
-                    {{ tag.name || tag }}
-                  </n-tag>
+            <div class="tab-panel-content">
+              <div class="tags-section">
+                <div class="existing-tags" v-if="photoTags.length > 0">
+                  <div class="tags-list">
+                    <n-tag
+                      v-for="tag in photoTags.filter(
+                        (tag) => tag.group !== 'misc'
+                      )"
+                      :key="tag.id || tag.name"
+                      closable
+                      type="info"
+                      :bordered="false"
+                      @close="removeTag(tag)"
+                      class="photo-tag"
+                    >
+                      {{ tag.name || tag }}
+                    </n-tag>
+                  </div>
+                </div>
+                <div class="add-tag-section">
+                  <n-input-group>
+                    <n-input
+                      v-model:value="newTagName"
+                      placeholder="Add a new tag..."
+                      @keydown.enter="addTag"
+                      :disabled="isAddingTag"
+                    />
+                    <n-button
+                      type="primary"
+                      @click="addTag"
+                      :loading="isAddingTag"
+                      :disabled="!newTagName.trim()"
+                    >
+                      Add
+                    </n-button>
+                  </n-input-group>
                 </div>
               </div>
-              <div class="add-tag-section">
-                <n-input-group>
-                  <n-input
-                    v-model:value="newTagName"
-                    placeholder="Add a new tag..."
-                    @keydown.enter="addTag"
-                    :disabled="isAddingTag"
-                  />
+            </div>
+          </n-tab-pane>
+
+          <n-tab-pane name="descriptions" display-directive="show:lazy">
+            <template #tab>
+              <div class="tab-content">
+                <n-icon size="18">
+                  <DocumentTextIcon />
+                </n-icon>
+                <span>Descriptions</span>
+              </div>
+            </template>
+            <div class="tab-panel-content">
+              <div class="descriptions-section">
+                <div v-if="selectedPhoto?.descriptions" class="ai-descriptions">
+                  <div class="description-item">
+                    <h5 class="description-label">Story</h5>
+                    <div class="description-content">
+                      <p
+                        v-html="
+                          highlightMatchingChunks(
+                            selectedPhoto.descriptions.story
+                          )
+                        "
+                      ></p>
+                    </div>
+                  </div>
+
+                  <div class="description-item">
+                    <h5 class="description-label">Context</h5>
+                    <div class="description-content">
+                      <p
+                        v-html="
+                          highlightMatchingChunks(
+                            selectedPhoto.descriptions.context
+                          )
+                        "
+                      ></p>
+                    </div>
+                  </div>
+
+                  <div class="description-item">
+                    <h5 class="description-label">Visual Accents</h5>
+                    <div class="description-content">
+                      <p
+                        v-html="
+                          highlightMatchingChunks(
+                            selectedPhoto.descriptions.visual_accents
+                          )
+                        "
+                      ></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </n-tab-pane>
+
+          <n-tab-pane name="notes" display-directive="show:lazy">
+            <template #tab>
+              <div class="tab-content">
+                <n-icon size="18">
+                  <EditIcon />
+                </n-icon>
+                <span>Notes</span>
+              </div>
+            </template>
+            <div class="tab-panel-content">
+              <div class="notes-section">
+                <n-input
+                  v-model:value="photoNotes"
+                  type="textarea"
+                  placeholder="Add your personal notes about this photo..."
+                  :autosize="{ minRows: 3, maxRows: 8 }"
+                  @blur="saveNotes"
+                />
+                <div class="notes-actions">
                   <n-button
+                    size="small"
                     type="primary"
-                    @click="addTag"
-                    :loading="isAddingTag"
-                    :disabled="!newTagName.trim()"
+                    @click="saveNotes"
+                    :loading="isSavingNotes"
                   >
-                    Add
+                    Save Notes
                   </n-button>
-                </n-input-group>
-              </div>
-            </div>
-          </n-collapse-item>
-
-          <!-- Descriptions Section -->
-          <n-collapse-item title="Descriptions" name="descriptions">
-            <template #header-extra>
-              <n-icon>
-                <DocumentTextIcon />
-              </n-icon>
-            </template>
-            <div class="descriptions-section">
-              <div v-if="selectedPhoto?.descriptions" class="ai-descriptions">
-                <div class="description-item">
-                  <h5 class="description-label">Story</h5>
-                  <div class="description-content">
-                    <p
-                      v-html="
-                        highlightMatchingChunks(
-                          selectedPhoto.descriptions.story
-                        )
-                      "
-                    ></p>
-                  </div>
-                </div>
-
-                <div class="description-item">
-                  <h5 class="description-label">Context</h5>
-                  <div class="description-content">
-                    <p
-                      v-html="
-                        highlightMatchingChunks(
-                          selectedPhoto.descriptions.context
-                        )
-                      "
-                    ></p>
-                  </div>
-                </div>
-
-                <div class="description-item">
-                  <h5 class="description-label">Visual Accents</h5>
-                  <div class="description-content">
-                    <p
-                      v-html="
-                        highlightMatchingChunks(
-                          selectedPhoto.descriptions.visual_accents
-                        )
-                      "
-                    ></p>
-                  </div>
                 </div>
               </div>
             </div>
-          </n-collapse-item>
-
-          <!-- Notes Section -->
-          <n-collapse-item title="Notes" name="notes">
-            <template #header-extra>
-              <n-icon>
-                <EditIcon />
-              </n-icon>
-            </template>
-            <div class="notes-section">
-              <n-input
-                v-model:value="photoNotes"
-                type="textarea"
-                placeholder="Add your personal notes about this photo..."
-                :autosize="{ minRows: 3, maxRows: 8 }"
-                @blur="saveNotes"
-              />
-              <div class="notes-actions">
-                <n-button
-                  size="small"
-                  type="primary"
-                  @click="saveNotes"
-                  :loading="isSavingNotes"
-                >
-                  Save Notes
-                </n-button>
-              </div>
-            </div>
-          </n-collapse-item>
-        </n-collapse>
+          </n-tab-pane>
+        </n-tabs>
       </div>
     </div>
   </n-modal>
@@ -654,6 +687,7 @@ import {
   EyeOutline as EyeIcon,
   WalkOutline,
   CloseOutline as CloseIcon,
+  StatsChartOutline as ScoresIcon,
 } from "@vicons/ionicons5";
 
 import { api } from "@/utils/axios.js";
@@ -1280,7 +1314,7 @@ if (typeof window !== "undefined") {
 
 .visual-aspects-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-sm);
   padding: var(--spacing-sm);
   background: var(--bg-surface);
@@ -1391,6 +1425,69 @@ if (typeof window !== "undefined") {
 
 .info-sections {
   flex: 1;
+}
+
+/* Lateral tabs styling */
+.info-sections :deep(.n-tabs) {
+  height: 100%;
+}
+
+.info-sections :deep(.n-tabs-nav) {
+  min-width: 140px !important;
+  width: 140px !important;
+}
+
+.info-sections :deep(.n-tabs-tab) {
+  justify-content: flex-start !important;
+  padding: var(--spacing-md) var(--spacing-sm) !important;
+  min-height: 48px !important;
+}
+
+.info-sections :deep(.n-tabs-content) {
+  padding: 0 !important;
+  flex: 1;
+}
+
+.info-sections :deep(.n-tab-pane) {
+  padding: var(--spacing-lg) !important;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.tab-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.tab-content span {
+  white-space: nowrap;
+}
+
+.tab-panel-content {
+  height: 100%;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.tab-panel-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tab-panel-content::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+  border-radius: 3px;
+}
+
+.tab-panel-content::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.tab-panel-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
 }
 
 .metadata-grid {
@@ -2006,7 +2103,7 @@ if (typeof window !== "undefined") {
   }
 
   .visual-aspects-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
     gap: var(--spacing-xs);
     padding: var(--spacing-xs);
   }
