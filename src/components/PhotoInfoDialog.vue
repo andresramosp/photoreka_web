@@ -566,6 +566,46 @@
       </div>
     </div>
   </n-modal>
+
+  <!-- Fullscreen Photo Modal -->
+  <n-modal
+    v-model:show="showFullscreenPhoto"
+    :mask-closable="true"
+    :show-icon="false"
+    :closable="false"
+    :style="{ padding: '0', background: 'transparent' }"
+    transform-origin="center"
+  >
+    <div class="fullscreen-container" @click="closeFullscreen">
+      <div class="fullscreen-content">
+        <img
+          :src="
+            selectedPhoto?.originalUrl ||
+            selectedPhoto?.url ||
+            selectedPhoto?.thumbnailUrl
+          "
+          :alt="selectedPhoto?.filename || selectedPhoto?.name || 'Photo'"
+          class="fullscreen-photo"
+          @error="handleImageError"
+          @click="closeFullscreen"
+        />
+        <n-button
+          class="close-fullscreen-btn"
+          size="large"
+          circle
+          type="primary"
+          @click.stop="closeFullscreen"
+          title="Close fullscreen"
+        >
+          <template #icon>
+            <n-icon size="20">
+              <CloseIcon />
+            </n-icon>
+          </template>
+        </n-button>
+      </div>
+    </div>
+  </n-modal>
 </template>
 
 <script setup>
@@ -600,6 +640,7 @@ import {
   CreateOutline as EditIcon,
   EyeOutline as EyeIcon,
   WalkOutline,
+  CloseOutline as CloseIcon,
 } from "@vicons/ionicons5";
 
 import { api } from "@/utils/axios.js";
@@ -1145,7 +1186,7 @@ if (typeof window !== "undefined") {
   position: relative;
   width: 400px;
   height: 300px;
-  background: var(--bg-card);
+  background: #f5f5f5;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -1158,7 +1199,7 @@ if (typeof window !== "undefined") {
 .small-photo {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   background-color: transparent;
 }
@@ -1914,5 +1955,91 @@ if (typeof window !== "undefined") {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
   max-width: 280px !important;
   padding: 12px !important;
+}
+
+/* Fullscreen Photo Modal Styles */
+.fullscreen-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: pointer;
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+.fullscreen-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+
+.fullscreen-photo {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+  border-radius: var(--radius-md);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.close-fullscreen-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+  transition: all 0.3s ease;
+  z-index: 10001;
+  width: 44px;
+  height: 44px;
+}
+
+.close-fullscreen-btn:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  transform: scale(1.1);
+}
+
+/* Responsive adjustments for fullscreen */
+@media (max-width: 768px) {
+  .fullscreen-container {
+    padding: 20px;
+  }
+  
+  .close-fullscreen-btn {
+    top: 15px;
+    right: 15px;
+    width: 40px;
+    height: 40px;
+  }
+}@media (max-height: 600px) {
+  .fullscreen-container {
+    padding: 20px;
+  }
+}
+
+/* Override modal styles for fullscreen */
+:deep(.n-modal-mask) {
+  background-color: transparent !important;
+}
+
+:deep(.n-modal-container) {
+  background: transparent !important;
 }
 </style>
