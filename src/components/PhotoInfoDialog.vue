@@ -53,122 +53,135 @@
           />
           <n-button
             size="small"
-            type="primary"
+            quaternary
+            circle
             class="fullscreen-btn"
             @click="openFullscreen"
             title="View fullscreen"
           >
             <template #icon>
-              <n-icon>
-                <InfoIcon />
+              <n-icon size="18">
+                <EyeIcon />
               </n-icon>
             </template>
-            Full Screen
           </n-button>
         </div>
 
         <!-- Technical Data Tabs -->
         <div class="technical-data">
           <n-tabs type="segment" animated>
-            <n-tab-pane name="visual" tab="Visual Aspects">
-              <div class="visual-aspects-content">
-                <!-- Visual aspects content will go here -->
-                <div v-if="selectedPhoto?.descriptions?.visual_aspects">
-                  <!-- Summary section -->
-                  <div
-                    v-if="selectedPhoto.descriptions.visual_aspects.summary"
-                    class="visual-aspects-summary"
-                  >
-                    <h6 class="summary-title">Summary</h6>
-                    <div class="summary-content">
-                      <p>
-                        {{ selectedPhoto.descriptions.visual_aspects.summary }}
-                      </p>
+            <n-tab-pane name="exif" tab="EXIF Data">
+              <div class="exif-data-content">
+                <!-- EXIF data content will go here -->
+                <div v-if="selectedPhoto?.descriptions?.EXIF" class="exif-grid">
+                  <div class="exif-category">
+                    <h6 class="category-title">Camera</h6>
+                    <div class="category-tags">
+                      <n-tag type="info" class="exif-tag">
+                        {{ selectedPhoto.descriptions.EXIF.camera }}
+                      </n-tag>
                     </div>
                   </div>
 
-                  <!-- Visual aspects grid -->
+                  <div class="exif-category">
+                    <h6 class="category-title">Date Taken</h6>
+                    <div class="category-tags">
+                      <n-tag type="info" class="exif-tag">
+                        {{
+                          formatDate(selectedPhoto.descriptions.EXIF.dateTaken)
+                        }}
+                      </n-tag>
+                    </div>
+                  </div>
+
+                  <div class="exif-category">
+                    <h6 class="category-title">ISO</h6>
+                    <div class="category-tags">
+                      <n-tag type="info" class="exif-tag">
+                        {{ selectedPhoto.descriptions.EXIF.iso }}
+                      </n-tag>
+                    </div>
+                  </div>
+
+                  <div class="exif-category">
+                    <h6 class="category-title">Aperture</h6>
+                    <div class="category-tags">
+                      <n-tag type="info" class="exif-tag">
+                        f/{{ selectedPhoto.descriptions.EXIF.aperture }}
+                      </n-tag>
+                    </div>
+                  </div>
+
+                  <div class="exif-category">
+                    <h6 class="category-title">Focal Length</h6>
+                    <div class="category-tags">
+                      <n-tag type="info" class="exif-tag">
+                        {{ selectedPhoto.descriptions.EXIF.focalLength }}mm
+                      </n-tag>
+                    </div>
+                  </div>
+
+                  <div class="exif-category">
+                    <h6 class="category-title">Exposure Time</h6>
+                    <div class="category-tags">
+                      <n-tag type="info" class="exif-tag">
+                        {{
+                          formatExposureTime(
+                            selectedPhoto.descriptions.EXIF.exposureTime
+                          )
+                        }}
+                      </n-tag>
+                    </div>
+                  </div>
+
+                  <div class="exif-category">
+                    <h6 class="category-title">Flash</h6>
+                    <div class="category-tags">
+                      <n-tag type="info" class="exif-tag">
+                        {{ selectedPhoto.descriptions.EXIF.flash }}
+                      </n-tag>
+                    </div>
+                  </div>
+
+                  <div class="exif-category">
+                    <h6 class="category-title">White Balance</h6>
+                    <div class="category-tags">
+                      <n-tag type="info" class="exif-tag">
+                        {{ selectedPhoto.descriptions.EXIF.whiteBalance }}
+                      </n-tag>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </n-tab-pane>
+            <n-tab-pane name="visual" tab="Visual Aspects">
+              <div class="visual-aspects-content">
+                <div
+                  v-if="selectedPhoto?.descriptions?.visual_aspects"
+                  class="visual-aspects-container"
+                >
                   <div class="visual-aspects-grid">
                     <div
                       v-for="(values, category) in getFilteredVisualAspects(
                         selectedPhoto.descriptions.visual_aspects
                       )"
                       :key="category"
-                      class="visual-aspect-category"
+                      class="visual-category"
                     >
-                      <h6 class="aspect-category-title">
+                      <h6 class="category-title">
                         {{ formatCategoryName(category) }}
                       </h6>
-                      <div class="aspect-tags">
+                      <div class="category-tags">
                         <n-tag
                           v-for="value in values"
                           :key="value"
                           type="info"
-                          size="small"
-                          class="aspect-tag"
+                          class="visual-tag"
                         >
                           {{ value }}
                         </n-tag>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </n-tab-pane>
-
-            <n-tab-pane name="exif" tab="EXIF Data">
-              <div class="exif-data-content">
-                <!-- EXIF data content will go here -->
-                <div v-if="selectedPhoto?.descriptions?.EXIF" class="exif-grid">
-                  <div class="exif-item">
-                    <span class="exif-label">Camera:</span>
-                    <span class="exif-value">{{
-                      selectedPhoto.descriptions.EXIF.camera
-                    }}</span>
-                  </div>
-                  <div class="exif-item">
-                    <span class="exif-label">Date Taken:</span>
-                    <span class="exif-value">{{
-                      formatDate(selectedPhoto.descriptions.EXIF.dateTaken)
-                    }}</span>
-                  </div>
-                  <div class="exif-item">
-                    <span class="exif-label">ISO:</span>
-                    <span class="exif-value">{{
-                      selectedPhoto.descriptions.EXIF.iso
-                    }}</span>
-                  </div>
-                  <div class="exif-item">
-                    <span class="exif-label">Aperture:</span>
-                    <span class="exif-value"
-                      >f/{{ selectedPhoto.descriptions.EXIF.aperture }}</span
-                    >
-                  </div>
-                  <div class="exif-item">
-                    <span class="exif-label">Focal Length:</span>
-                    <span class="exif-value"
-                      >{{ selectedPhoto.descriptions.EXIF.focalLength }}mm</span
-                    >
-                  </div>
-                  <div class="exif-item">
-                    <span class="exif-label">Exposure Time:</span>
-                    <span class="exif-value">{{
-                      formatExposureTime(
-                        selectedPhoto.descriptions.EXIF.exposureTime
-                      )
-                    }}</span>
-                  </div>
-                  <div class="exif-item">
-                    <span class="exif-label">Flash:</span>
-                    <span class="exif-value">{{
-                      selectedPhoto.descriptions.EXIF.flash
-                    }}</span>
-                  </div>
-                  <div class="exif-item">
-                    <span class="exif-label">White Balance:</span>
-                    <span class="exif-value">{{
-                      selectedPhoto.descriptions.EXIF.whiteBalance
-                    }}</span>
                   </div>
                 </div>
               </div>
@@ -1178,17 +1191,19 @@ if (typeof window !== "undefined") {
   display: flex;
   gap: var(--spacing-lg);
   align-items: flex-start;
-  min-height: 300px;
+  min-height: 320px;
   flex-shrink: 0;
+  margin-bottom: var(--spacing-lg);
 }
 
 .photo-display-small {
   position: relative;
-  width: 400px;
-  height: 300px;
-  background: #f5f5f5;
+  width: 320px;
+  height: 320px;
+  min-width: 320px;
+  min-height: 320px;
+  background: var(--bg-surface-hover);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -1208,49 +1223,146 @@ if (typeof window !== "undefined") {
   position: absolute;
   bottom: var(--spacing-sm);
   right: var(--spacing-sm);
-  opacity: 0.8;
+  opacity: 0.6;
   transition: opacity 0.3s ease;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(4px);
+  color: white !important;
 }
 
 .fullscreen-btn:hover {
   opacity: 1;
+  background-color: rgba(0, 0, 0, 0.7) !important;
 }
 
 .technical-data {
   flex: 1;
-  min-height: 300px;
+  min-height: 320px;
+  max-height: 320px;
+  display: flex;
+  flex-direction: column;
 }
 
 .visual-aspects-content,
 .exif-data-content {
-  padding: var(--spacing-md);
-  min-height: 240px;
+  padding: var(--spacing-sm);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.visual-aspects-content::-webkit-scrollbar,
+.exif-data-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.visual-aspects-content::-webkit-scrollbar-track,
+.exif-data-content::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+  border-radius: 3px;
+}
+
+.visual-aspects-content::-webkit-scrollbar-thumb,
+.exif-data-content::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.visual-aspects-content::-webkit-scrollbar-thumb:hover,
+.exif-data-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+.visual-aspects-container {
+  flex: 1;
+}
+
+.visual-aspects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--bg-surface);
+}
+
+.visual-category {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.category-title {
+  margin: 0;
+  font-size: calc(var(--font-size-xs) - 1px);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: capitalize;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: calc(var(--spacing-xs) / 2);
+}
+
+.category-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing-xs) / 2);
+}
+
+.visual-tag {
+  font-size: 10px;
+  /* padding: 1px 4px !important; */
+  /* line-height: 1.2 !important; */
+  height: 20px !important;
+  border-radius: 3px !important;
 }
 
 .exif-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--bg-surface);
+}
+
+.exif-category {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.exif-tag {
+  font-size: 11px;
+  height: 22px !important;
+  border-radius: 4px !important;
+  font-family: var(--font-mono);
+  font-weight: 500;
 }
 
 .exif-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: calc(var(--spacing-xs) / 2) var(--spacing-xs);
   background: var(--bg-surface);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
+  border: 1px solid var(--border-color);
+  min-height: 24px;
 }
 
 .exif-label {
   font-weight: var(--font-weight-medium);
   color: var(--text-secondary);
+  font-size: calc(var(--font-size-xs) - 1px);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .exif-value {
   color: var(--text-primary);
   font-family: var(--font-mono);
+  font-size: calc(var(--font-size-xs));
+  font-weight: 500;
 }
 
 .photo-display {
@@ -1419,73 +1531,6 @@ if (typeof window !== "undefined") {
 
 .review-paragraph:last-child {
   margin-bottom: 0 !important;
-}
-
-.visual-aspects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--bg-surface);
-  border-radius: var(--radius-md);
-  border-left: 4px solid var(--primary-color);
-}
-
-.visual-aspect-category {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.aspect-category-title {
-  margin: 0;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
-  text-transform: capitalize;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: var(--spacing-xs);
-}
-
-.aspect-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-}
-
-.aspect-tag {
-  font-size: var(--font-size-xs);
-}
-
-.visual-aspects-section {
-  padding: var(--spacing-md);
-}
-
-.visual-aspects-summary {
-  margin-bottom: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--bg-surface);
-  border-radius: var(--radius-md);
-  border-left: 4px solid var(--primary-color);
-}
-
-.summary-title {
-  margin: 0 0 var(--spacing-sm) 0;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.summary-content {
-  margin: 0;
-}
-
-.summary-content p {
-  margin: 0;
-  line-height: 1.6;
-  color: var(--text-primary);
 }
 
 .overall-rating-container {
@@ -1853,6 +1898,38 @@ if (typeof window !== "undefined") {
   transform: translateY(-1px);
 }
 
+/* Tablet/Medium screens */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .photo-display-small {
+    width: 320px;
+    height: 320px;
+    min-width: 320px;
+    min-height: 320px;
+  }
+
+  .technical-data {
+    min-height: 320px;
+    max-height: 320px;
+  }
+
+  .visual-aspects-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs);
+  }
+
+  .category-title {
+    font-size: calc(var(--font-size-xs) - 2px);
+    padding-bottom: calc(var(--spacing-xs) / 3);
+  }
+
+  .visual-tag {
+    font-size: calc(var(--font-size-xs) - 2px);
+    padding: 0px 3px !important;
+    height: 14px !important;
+  }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .dialog-header {
@@ -1873,15 +1950,126 @@ if (typeof window !== "undefined") {
   .top-section {
     flex-direction: column;
     gap: var(--spacing-md);
+    min-height: auto;
   }
 
   .photo-display-small {
     width: 100%;
-    height: 250px;
+    height: 280px;
+    min-width: auto;
+    min-height: 280px;
   }
 
   .technical-data {
-    min-height: auto;
+    min-height: 300px;
+    max-height: none;
+  }
+
+  /* Fix tabs overlapping on mobile */
+  .technical-data :deep(.n-tabs) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .technical-data :deep(.n-tabs-nav) {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    margin-bottom: var(--spacing-sm);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .technical-data :deep(.n-tabs-nav)::-webkit-scrollbar {
+    display: none;
+  }
+
+  .technical-data :deep(.n-tabs-tab) {
+    flex-shrink: 0;
+    min-width: 120px;
+    text-align: center;
+    font-size: var(--font-size-sm);
+    border-radius: var(--radius-sm);
+    margin-right: var(--spacing-xs);
+  }
+
+  .technical-data :deep(.n-tabs-content) {
+    flex: 1;
+    width: 100%;
+  }
+
+  .visual-aspects-content,
+  .exif-data-content {
+    height: auto;
+    overflow: visible;
+  }
+
+  .visual-aspects-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs);
+  }
+
+  .visual-category {
+    min-width: 0; /* Allow text to wrap */
+  }
+
+  .category-title {
+    font-size: calc(var(--font-size-xs) - 1px);
+    padding-bottom: calc(var(--spacing-xs) / 3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .category-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+
+  .visual-tag {
+    font-size: calc(var(--font-size-xs) - 3px);
+    padding: 0px 2px !important;
+    height: 12px !important;
+  }
+
+  .exif-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs);
+  }
+
+  .exif-tag {
+    font-size: calc(var(--font-size-xs) - 2px);
+    height: 18px !important;
+  }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+  .technical-data :deep(.n-tabs-tab) {
+    min-width: 100px;
+    font-size: calc(var(--font-size-sm) - 1px);
+  }
+
+  .visual-aspects-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xs);
+  }
+
+  .exif-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .technical-data {
+    min-height: 250px;
+  }
+
+  .photo-display-small {
+    height: 240px;
+    min-height: 240px;
   }
 
   .metadata-grid {
@@ -1895,7 +2083,30 @@ if (typeof window !== "undefined") {
   }
 
   .exif-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-xs);
+  }
+
+  .exif-item {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing-xs) / 2);
+    padding: var(--spacing-xs);
+    background: var(--bg-surface);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+  }
+
+  .exif-label {
+    font-size: calc(var(--font-size-xs) - 1px);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-secondary);
+  }
+
+  .exif-value {
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    word-break: break-word;
   }
 
   .add-tag-section {
@@ -2021,14 +2232,15 @@ if (typeof window !== "undefined") {
   .fullscreen-container {
     padding: 20px;
   }
-  
+
   .close-fullscreen-btn {
     top: 15px;
     right: 15px;
     width: 40px;
     height: 40px;
   }
-}@media (max-height: 600px) {
+}
+@media (max-height: 600px) {
   .fullscreen-container {
     padding: 20px;
   }
