@@ -89,7 +89,7 @@
           <n-tooltip
             placement="bottom"
             trigger="hover"
-            v-if="!props.collectionId && displayMoveToTool"
+            v-if="displayMoveToTool"
           >
             <template #trigger>
               <n-button

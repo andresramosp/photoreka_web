@@ -40,7 +40,7 @@
                 <span class="hero-accent">Curation Lab</span>
               </h1>
               <span class="hero-subtitle"
-                >Street | Documentary | Artistic</span
+                >Street | Documentary | Conceptual | Artistic | Landscape</span
               >
               <p class="hero-description">
                 Start making sense of your photographic body of work with our
