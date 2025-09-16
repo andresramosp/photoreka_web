@@ -70,9 +70,8 @@
           <h2>5. Image Processing with AI</h2>
           <ul>
             <li>
-              Images are processed exclusively to provide platform
-              functionalities: analysis, semantic and visual searches, and
-              visual connections between images.
+              The images are only analyzed to extract narrative and contextual
+              tags, as well as other visual and technichal aspects.
             </li>
             <li>
               Images are only analyzed; they are not edited, transformed, or
@@ -81,12 +80,12 @@
             <li>
               Processing uses proprietary open-source AI models and third-party
               AI models (including Google services) under paid/private plans
-              that do not store or use images to train their models.
+              that don't use images to train their models.
             </li>
             <li>
               Images may be temporarily transmitted to these providers solely
               for the requested functionality and under confidentiality
-              agreements.
+              agreements, and they are not stored in this process.
             </li>
             <li>
               <strong>Consent Regarding AI Processing:</strong> By using
