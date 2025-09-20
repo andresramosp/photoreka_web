@@ -273,6 +273,10 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+
+defineOptions({
+  name: "CollectionsView",
+});
 import {
   NButton,
   NIcon,

@@ -41,7 +41,7 @@
               <n-layout-content class="main-content">
                 <router-view v-slot="{ Component, route }">
                   <KeepAlive :include="getKeepAliveComponents()">
-                    <component :is="Component" :key="route.fullPath" />
+                    <component :is="Component" />
                   </KeepAlive>
                 </router-view>
               </n-layout-content>
@@ -62,7 +62,7 @@
               <div class="main-content mobile-main-content">
                 <router-view v-slot="{ Component, route }">
                   <KeepAlive :include="getKeepAliveComponents()">
-                    <component :is="Component" :key="route.fullPath" />
+                    <component :is="Component" />
                   </KeepAlive>
                 </router-view>
               </div>
@@ -126,9 +126,22 @@ const userStore = useUserStore();
 
 // KeepAlive functionality
 const getKeepAliveComponents = () => {
-  return ["ProjectBuilderView"]; // Add more component names here as needed
-};
+  // Lista explícita de componentes que deben mantenerse alive
+  // Esto es más confiable que intentar extraer nombres dinámicamente
+  const keepAliveComponents = [
+    "CanvasView",
+    "SearchView",
+    "CollectionsView",
+    "PhotoHubView",
+    "ProjectBuilderView",
+    "FramerView",
+    "GridMakerView",
+  ];
 
+  // Debug: log components being kept alive
+  console.log("KeepAlive components:", keepAliveComponents);
+  return keepAliveComponents;
+};
 const themeOverrides = {
   common: {
     primaryColor: "#2563eb",

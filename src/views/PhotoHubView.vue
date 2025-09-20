@@ -148,6 +148,10 @@
 
 <script setup>
 import { ref, onMounted, watch, computed, KeepAlive } from "vue";
+
+defineOptions({
+  name: "PhotoHubView",
+});
 import LightboxPhotos from "@/components/photo-hub/LightboxPhotos.vue";
 import ProcessingPhotos from "@/components/photo-hub/ProcessingPhotos.vue";
 import WorkspacePhotos from "@/components/photo-hub/WorkspacePhotos.vue";

@@ -40,6 +40,10 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+
+defineOptions({
+  name: "AuthView",
+});
 import AuthLayout from "../components/AuthLayout.vue";
 import LoginForm from "../components/LoginForm.vue";
 import RegisterForm from "../components/RegisterForm.vue";

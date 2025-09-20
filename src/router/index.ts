@@ -16,11 +16,10 @@ import PlanView from "../views/PlanView.vue";
 import AuthView from "../views/AuthView.vue";
 import ProfileSelectionView from "../views/ProfileSelectionView.vue";
 import StoragePlanSelectionView from "../views/StoragePlanSelectionView.vue";
-import GridMaker from "@/views/GridMaker.vue";
-import VisualLabView from "@/views/VisualLabView.vue";
-import LandingView from "@/views/LandingView.vue";
-import TermsView from "@/views/TermsView.vue";
-import MaintenanceView from "@/views/MaintenanceView.vue";
+import GridMaker from "../views/GridMakerView.vue";
+import LandingView from "../views/LandingView.vue";
+import TermsView from "../views/TermsView.vue";
+import MaintenanceView from "../views/MaintenanceView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -145,7 +144,6 @@ const router = createRouter({
       component: ProjectBuilderView,
       meta: {
         requiresAuth: true,
-        keepAlive: true,
       },
     },
     {
@@ -173,14 +171,7 @@ const router = createRouter({
         requiresAuth: true,
       },
     },
-    {
-      path: "/visual-lab",
-      name: "visual-lab",
-      component: VisualLabView,
-      meta: {
-        requiresAuth: true,
-      },
-    },
+
     {
       path: "/grid-maker",
       name: "grid-maker",

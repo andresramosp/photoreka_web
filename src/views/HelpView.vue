@@ -16,6 +16,10 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  name: "HelpView",
+});
+
 // Help logic here
 </script>
 

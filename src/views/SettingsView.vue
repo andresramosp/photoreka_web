@@ -67,6 +67,10 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 
+defineOptions({
+  name: "SettingsView",
+});
+
 const router = useRouter();
 
 const goToPlan = () => {

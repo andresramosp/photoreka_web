@@ -363,6 +363,10 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { usePhotosStore } from "@/stores/photos.js";
+
+defineOptions({
+  name: "PortfolioReportView",
+});
 import { visualAspectsOptions } from "@/stores/searchStore.js";
 import { useMessage } from "naive-ui";
 

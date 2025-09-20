@@ -277,6 +277,10 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
+
+defineOptions({
+  name: "DashboardView",
+});
 import { usePhotosStore } from "@/stores/photos.js";
 import { useCollectionsStore } from "@/stores/collections.js";
 import { api } from "@/utils/axios.js"; // Needed for photo insight API call

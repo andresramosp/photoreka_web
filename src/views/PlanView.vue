@@ -537,6 +537,10 @@
 import { ref, computed, h } from "vue";
 import { useMessage } from "naive-ui";
 
+defineOptions({
+  name: "PlanView",
+});
+
 // Icons (using simple SVG components)
 const CheckIcon = {
   render: () =>

@@ -897,7 +897,7 @@
 
 <script setup>
 // Nombre del componente
-defineOptions({ name: "SearchPage" });
+defineOptions({ name: "SearchView" });
 
 // Imports básicos
 import {

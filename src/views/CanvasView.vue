@@ -678,6 +678,7 @@ import {
   watch,
   watchEffect,
   nextTick,
+  defineOptions,
 } from "vue";
 import { useRoute } from "vue-router";
 import {
@@ -708,6 +709,11 @@ import { usePhotoDownload } from "@/composables/usePhotoDownload.js";
 import { useCanvasPersistence } from "@/composables/useCanvasPersistence.js";
 import { usePhotoToolSelection } from "@/composables/usePhotoToolSelection.js";
 import AppLogo from "@/components/AppLogo.vue";
+
+// Define component name for KeepAlive
+defineOptions({
+  name: "CanvasView",
+});
 
 const canvasStore = useCanvasStore();
 const photosStore = usePhotosStore();

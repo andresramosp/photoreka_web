@@ -349,6 +349,10 @@ import {
   ChevronForwardOutline,
 } from "@vicons/ionicons5";
 
+defineOptions({
+  name: "GridMakerView",
+});
+
 // Grid configuration
 const maxRows = 8;
 const maxCols = 8;
@@ -469,8 +473,6 @@ const createGrid = () => {
 
   // Reset deleted photos when creating new grid
   deletedPhotoIds.value = [];
-
-  message.success(`Created ${selectedRows.value}×${selectedCols.value} grid`);
 };
 
 const resetGrid = () => {
@@ -682,10 +684,6 @@ const fillGaps = async () => {
     return;
   }
 
-  message.info(
-    `Starting intelligent gap filling from ${photoCells.length} seed photos using ${processingMode.value} mode...`
-  );
-
   if (processingMode.value === "sequential") {
     await fillGapsSequential(photoCells);
   } else {
@@ -796,10 +794,6 @@ const fillGapsSequential = async (photoCells: any[]) => {
       "Reached maximum number of passes, some cells may remain empty"
     );
   }
-
-  message.success(
-    `Successfully filled ${processedCount} gaps in ${passNumber} passes with sequential processing!`
-  );
 };
 
 // Concurrent processing with validation (original implementation)
@@ -931,10 +925,6 @@ const fillGapsConcurrent = async (photoCells: any[]) => {
       "Reached maximum number of passes, some cells may remain empty"
     );
   }
-
-  message.success(
-    `Successfully filled ${processedCount} gaps in ${passNumber} passes with concurrent processing!`
-  );
 };
 
 const exportGrid = () => {

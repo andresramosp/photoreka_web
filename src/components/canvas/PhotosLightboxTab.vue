@@ -69,7 +69,7 @@
 
     <!-- Compact Upload Section -->
     <div v-else class="compact-upload-section">
-      If you add photos from the Lightbox, the Canvas will be restricted to
+      If you upload photos directly here, the Canvas will be limited to only
       General and Chromatic expansion types.
       <div class="compact-upload-buttons">
         <n-button
