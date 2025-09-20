@@ -49,7 +49,7 @@
               y: photo.config.y,
               draggable: true,
               zIndex: photo.config.zIndex,
-              opacity: photo.config.opacity ?? 1,
+              opacity: photo.imageBroken ? 0.6 : photo.config.opacity ?? 1,
               _isPhoto: true,
             }"
             @dragstart="handleDragStart(photo, $event)"
@@ -87,6 +87,7 @@
 
               <!-- Imagen -->
               <v-image
+                v-if="!photo.imageBroken && photo.image"
                 :config="{
                   x: 0,
                   y: 0,
@@ -99,6 +100,23 @@
                   shadowBlur: photo.isNew ? 15 : 0,
                   shadowOffset: photo.isNew ? { x: 0, y: 0 } : undefined,
                   shadowOpacity: photo.isNew ? 0.6 : 0,
+                }"
+              />
+
+              <!-- Placeholder para imágenes rotas -->
+              <v-rect
+                v-else-if="photo.imageBroken"
+                :config="{
+                  x: 0,
+                  y: 0,
+                  width: photo.config.width,
+                  height: photo.config.height,
+                  fill: 'rgba(64, 64, 64, 0.2)',
+                  stroke: photo.selected
+                    ? getPhotoStrokeColor(photo)
+                    : 'rgba(128, 128, 128, 0.4)',
+                  strokeWidth: photo.selected ? 7 : 2,
+                  dash: [8, 4],
                 }"
               />
 
@@ -150,6 +168,7 @@
               > -->
                 <TagPillsCanvas
                   v-if="
+                    !photo.imageBroken &&
                     toolbarState.expansion.type === 'tags' &&
                     expansionMode == 'canvas' &&
                     photo.hovered
@@ -164,6 +183,7 @@
                     toolbarState.photoOptions.spreadMode === 'circular'
                   "
                   v-if="
+                    !photo.imageBroken &&
                     isExpansionEnabled &&
                     expansionMode == 'canvas' &&
                     !photo.inTrash &&
@@ -178,6 +198,7 @@
                 />
                 <PhotoCenterButton
                   v-else-if="
+                    !photo.imageBroken &&
                     isExpansionEnabled &&
                     expansionMode !== 'canvas' &&
                     expansionMode !== null &&
@@ -190,6 +211,17 @@
                   font-size="30"
                   @click="handleAddPhotoFromPhoto"
                   :sizeFactor="1.3"
+                />
+
+                <!-- Botón de eliminar para fotos rotas -->
+                <PhotoCenterButton
+                  v-if="photo.imageBroken && photo.hovered"
+                  :photo="photo"
+                  :fill="'rgba(255, 0, 0, 0.8)'"
+                  icon="×"
+                  font-size="24"
+                  @click="handleDeleteBrokenPhoto"
+                  :sizeFactor="1.0"
                 />
               </template>
             </v-group>
@@ -664,6 +696,7 @@ import {
   ExpandOutline,
   FolderOutline,
   HandLeftOutline,
+  ImageOutline,
   RefreshOutline,
   ReloadOutline,
   TrashOutline,
@@ -914,6 +947,32 @@ async function handleAddPlaygroundPhotos(photosData) {
   await canvasStore.addPhotos(photosData, false, true);
 }
 
+// Handle deletion of broken photos (permanent deletion, not trash)
+function handleDeleteBrokenPhoto(event) {
+  const { photo } = event;
+  event.cancelBubble = true;
+
+  // Permanently remove the broken photo from canvas
+  const photoIndex = photos.value.findIndex((p) => p.id === photo.id);
+  if (photoIndex !== -1) {
+    // Clean up any image references
+    if (photo.image) {
+      photo.image.onload = null;
+      photo.image.onerror = null;
+      photo.image = null;
+    }
+
+    // Remove from photos array permanently
+    photos.value.splice(photoIndex, 1);
+
+    // Force stage re-render
+    const stage = stageRef.value?.getStage();
+    if (stage) {
+      stage.batchDraw();
+    }
+  }
+}
+
 // State for preventing duplicate expansion calls
 const isExpanding = ref(false);
 
@@ -1004,6 +1063,10 @@ const handleAddPhotosToCanvas = async (event) => {
 };
 
 const getPhotoStrokeColor = (photo) => {
+  if (photo.imageBroken)
+    return photo.selected
+      ? "rgba(255, 165, 0, 0.8)"
+      : "rgba(128, 128, 128, 0.4)";
   if (photo.inTrash) return "rgba(250, 11, 11, 0.5)";
   if (photo.selected) return secondaryColor;
   if (photo.isNew) return "#22d3ee";
@@ -1034,6 +1097,13 @@ const handleClearCanvas = () => {
     if (photo.thumbnailUrl && photo.thumbnailUrl.startsWith("blob:")) {
       URL.revokeObjectURL(photo.thumbnailUrl);
     }
+    // Clean up image references to prevent memory leaks
+    if (photo.image) {
+      photo.image.onload = null;
+      photo.image.onerror = null;
+      photo.image = null;
+    }
+    photo.imageBroken = false;
   });
 
   // Limpiar fotos y descartados
@@ -1459,10 +1529,61 @@ watch(
   () => photos.value.map((p) => p.src),
   () => {
     photos.value.forEach((photo) => {
-      if (!photo.image) {
+      if (!photo.image || photo.image.src !== photo.src) {
+        // Clear previous image if src changed
+        if (photo.image && photo.image.src !== photo.src) {
+          photo.image.onload = null;
+          photo.image.onerror = null;
+          photo.image = null;
+          photo.imageBroken = false;
+        }
+
         const img = new Image();
+
+        // Handle image load errors to prevent broken state
+        img.onerror = () => {
+          console.warn(`Failed to load image: ${photo.src}`);
+          // Set a flag to indicate this image is broken
+          photo.imageBroken = true;
+          // Clear the image reference to prevent drawing attempts
+          photo.image = null;
+          // Force a re-render
+          const stage = stageRef.value?.getStage();
+          if (stage) {
+            stage.batchDraw();
+          }
+        };
+
+        img.onload = () => {
+          // Reset broken flag when image loads successfully
+          photo.imageBroken = false;
+          // Ensure the photo object still references this image
+          if (photo.image === img) {
+            // Force a re-render by updating the stage
+            const stage = stageRef.value?.getStage();
+            if (stage) {
+              stage.batchDraw();
+            }
+          }
+        };
+
         img.src = photo.src;
         photo.image = img;
+      } else if (photo.image && !photo.imageBroken) {
+        // Check if existing image is still valid by testing if it's complete and not broken
+        // This handles cases where the image was deleted from the server after being loaded
+        if (photo.image.complete && photo.image.naturalWidth === 0) {
+          console.warn(`Image became invalid: ${photo.src}`);
+          photo.imageBroken = true;
+          photo.image.onload = null;
+          photo.image.onerror = null;
+          photo.image = null;
+          // Force a re-render
+          const stage = stageRef.value?.getStage();
+          if (stage) {
+            stage.batchDraw();
+          }
+        }
       }
     });
   },
@@ -1472,6 +1593,34 @@ watch(
 watch(basicMode, (val) => {
   if (val) basicModeDismissed.value = false;
 });
+
+// Periodic check for broken images that were previously valid
+let imageValidationInterval = null;
+const checkImageValidity = () => {
+  photos.value.forEach((photo) => {
+    if (photo.image && !photo.imageBroken) {
+      // Test if the image is still accessible by trying to draw it to a temporary canvas
+      try {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = 1;
+        canvas.height = 1;
+        ctx.drawImage(photo.image, 0, 0, 1, 1);
+      } catch (error) {
+        console.warn(`Image validation failed for: ${photo.src}`, error);
+        photo.imageBroken = true;
+        photo.image.onload = null;
+        photo.image.onerror = null;
+        photo.image = null;
+        // Force a re-render
+        const stage = stageRef.value?.getStage();
+        if (stage) {
+          stage.batchDraw();
+        }
+      }
+    }
+  });
+};
 
 // Keep interactionMode and toolbarState.mouseMode in sync
 watch(
@@ -1556,6 +1705,9 @@ onMounted(async () => {
   if (isPlayground.value) {
     showPhotosDialog.value = true;
   }
+
+  // Start periodic image validation check (every 5 seconds)
+  imageValidationInterval = setInterval(checkImageValidity, 5000);
 });
 
 onUnmounted(() => {
@@ -1567,7 +1719,19 @@ onUnmounted(() => {
     if (photo.thumbnailUrl && photo.thumbnailUrl.startsWith("blob:")) {
       URL.revokeObjectURL(photo.thumbnailUrl);
     }
+    // Clean up image references
+    if (photo.image) {
+      photo.image.onload = null;
+      photo.image.onerror = null;
+      photo.image = null;
+    }
   });
+
+  // Clear image validation interval
+  if (imageValidationInterval) {
+    clearInterval(imageValidationInterval);
+    imageValidationInterval = null;
+  }
 
   window.removeEventListener("resize", handleResize);
   document.removeEventListener("click", handleClickOutside);
