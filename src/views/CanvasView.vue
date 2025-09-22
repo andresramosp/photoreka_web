@@ -1708,6 +1708,11 @@ onMounted(async () => {
 
   // Start periodic image validation check (every 5 seconds)
   imageValidationInterval = setInterval(checkImageValidity, 5000);
+
+  // Auto-save canvas every 10 seconds
+  const autoSaveInterval = setInterval(() => {
+    handleSaveCanvas();
+  }, 10000);
 });
 
 onUnmounted(() => {
