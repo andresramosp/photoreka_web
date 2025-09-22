@@ -56,26 +56,26 @@ export function useCanvasPhoto(stageRef, photos, photoRefs, stageConfig) {
     // Mark that this photo is being dragged to prevent selection on click
     photo._wasDragged = true;
 
-    // SOLUCIÓN: Reorganizar el orden de las fotos ANTES de que comience el drag
-    // Esto asegura que la foto arrastrada esté al final del array (encima de todas)
-    reorganizePhotosOrder(photo.id);
+    // Limpiar dragGroupStart antes de inicializar nuevas posiciones
+    Object.keys(dragGroupStart).forEach((k) => delete dragGroupStart[k]);
 
-    // Esperar un frame para que se complete el re-render antes de iniciar el drag
-    setTimeout(() => {
-      // Lógica normal de arrastre
-      Object.keys(dragGroupStart).forEach((k) => delete dragGroupStart[k]);
-      if (photo.selected) {
-        photos.value.forEach((p) => {
-          if (p.selected) {
-            dragGroupStart[p.id] = { x: p.config.x, y: p.config.y };
-            // Mark all selected photos as being dragged
-            p._wasDragged = true;
-          }
-        });
-      } else {
-        dragGroupStart[photo.id] = { x: photo.config.x, y: photo.config.y };
-      }
-    }, 0);
+    // Inicializar dragGroupStart INMEDIATAMENTE con las posiciones actuales
+    // ANTES de reorganizar para evitar race conditions
+    if (photo.selected) {
+      photos.value.forEach((p) => {
+        if (p.selected) {
+          dragGroupStart[p.id] = { x: p.config.x, y: p.config.y };
+          // Mark all selected photos as being dragged
+          p._wasDragged = true;
+        }
+      });
+    } else {
+      dragGroupStart[photo.id] = { x: photo.config.x, y: photo.config.y };
+    }
+
+    // SOLUCIÓN: Reorganizar el orden de las fotos DESPUÉS de inicializar dragGroupStart
+    // Esto preserva el z-index logic pero evita problemas de timing
+    reorganizePhotosOrder(photo.id);
   };
 
   const handleDragMove = (photo, e) => {
@@ -160,7 +160,13 @@ export function useCanvasPhoto(stageRef, photos, photoRefs, stageConfig) {
     photo.config.x = newPos.x;
     photo.config.y = newPos.y;
 
-    if (enableSnap) {
+    // Deshabilitar auto-align si hay múltiples fotos seleccionadas para evitar
+    // que una foto del grupo se desincronice del resto
+    const isGroupDrag =
+      photo.selected && photos.value.filter((p) => p.selected).length > 1;
+    const shouldSnap = enableSnap && !isGroupDrag;
+
+    if (shouldSnap) {
       const MAX_DIST = 300; // distancia máxima para snap
       const others = photos.value.filter((p) => p.id !== photo.id);
       if (others.length) {

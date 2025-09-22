@@ -977,21 +977,22 @@ function handleDeleteBrokenPhoto(event) {
 const isExpanding = ref(false);
 
 function handleAddPhotoFromPhoto(event) {
+  // IMPORTANTE: Cancelar la propagación del evento INMEDIATAMENTE
+  // para evitar que se seleccione la foto al hacer clic en los botones de expansión
+  event.cancelBubble = true;
+
   // Check if expansion is enabled first
   if (!toolbarState.value.expansion.enabled) {
-    event.cancelBubble = true;
     return;
   }
 
   // Prevent duplicate calls during expansion
   if (isExpanding.value) {
-    event.cancelBubble = true;
     return;
   }
 
   if (isPlayground.value) {
     // In playground mode, show upgrade modal instead of expanding
-    event.cancelBubble = true;
     showPlaygroundUpgradeModal.value = true;
     return;
   }
@@ -999,7 +1000,6 @@ function handleAddPhotoFromPhoto(event) {
   if (expansionMode.value == "canvas") {
     handleAddPhotosToCanvas(event);
   } else {
-    event.cancelBubble = true;
     selectedPhotoForToolbar.value = event.photo;
     showRelatedPhotos.value = true;
   }

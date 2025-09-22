@@ -54,14 +54,17 @@ const emit = defineEmits(["click"]);
 // Flag to prevent duplicate events from touch and synthetic mouse events
 let touchHandled = false;
 
-const handleClick = (position) => {
+const handleClick = (e) => {
+  // IMPORTANTE: Cancelar la propagación del evento para evitar que se seleccione la foto
+  e.cancelBubble = true;
+
   // Skip if this is a synthetic mouse event after touch
   if (touchHandled) {
     touchHandled = false;
     return;
   }
 
-  emit("click", { photo: props.photo, position });
+  emit("click", { photo: props.photo, position: "center" });
 };
 
 const handleTouchStart = (e) => {
