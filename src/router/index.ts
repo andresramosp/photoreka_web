@@ -20,6 +20,7 @@ import GridMaker from "../views/GridMakerView.vue";
 import LandingView from "../views/LandingView.vue";
 import TermsView from "../views/TermsView.vue";
 import MaintenanceView from "../views/MaintenanceView.vue";
+import ThreeDView from "../views/3DView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -134,6 +135,14 @@ const router = createRouter({
       path: "/photo-hub",
       name: "photo-hub",
       component: PhotoHubView,
+      meta: {
+        requiresAuth: true,
+      },
+    },
+    {
+      path: "/3dview",
+      name: "3d-view",
+      component: ThreeDView,
       meta: {
         requiresAuth: true,
       },
