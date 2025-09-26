@@ -3,7 +3,7 @@
     <!-- Empty State (when no photos) -->
     <div v-if="processedPhotos.length == 0" class="empty-state-section">
       <div class="photo-hub-header">
-        <n-icon :color="`var(--warning-color)`" size="18">
+        <n-icon size="18">
           <BookInformation20Regular />
         </n-icon>
         <h3 class="photo-hub-title">
@@ -14,7 +14,7 @@
       <div class="empty-state-container">
         <div class="empty-state-content">
           <div class="empty-state-icon">
-            <n-icon size="48" color="#8b5cf6">
+            <n-icon size="48">
               <BookInformation20Regular />
             </n-icon>
           </div>
@@ -49,7 +49,7 @@
       <div class="catalog-photos">
         <!-- Catalog Title -->
         <div class="photo-hub-header">
-          <n-icon :color="`var(--warning-color)`" size="18">
+          <n-icon size="18">
             <BookInformation20Regular />
           </n-icon>
           <h3 class="photo-hub-title">

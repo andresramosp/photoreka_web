@@ -4,7 +4,7 @@
       <!-- Processing Jobs Table -->
 
       <div class="photo-hub-header">
-        <n-icon :color="`var(--warning-color)`" size="18">
+        <n-icon size="18">
           <BookInformation20Regular />
         </n-icon>
         <h3 class="photo-hub-title">

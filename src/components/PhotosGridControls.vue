@@ -7,6 +7,7 @@
           <n-icon
             size="16"
             class="filters-toggle-icon"
+            :color="`var(--primary-color)`"
             :class="{ expanded: isFiltersPanelExpanded }"
           >
             <Camera20Regular />
@@ -63,6 +64,7 @@
         <div class="sorting-header-left">
           <n-icon
             size="16"
+            :color="`var(--warning-color)`"
             class="sorting-toggle-icon"
             :class="{ expanded: isSortingPanelExpanded }"
           >
