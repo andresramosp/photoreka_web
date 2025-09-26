@@ -686,24 +686,33 @@
             </template>
             <div class="tab-panel-content">
               <div class="tags-section">
-                <div class="existing-tags" v-if="photoTags.length > 0">
-                  <div class="tags-list">
-                    <n-tag
-                      v-for="tag in photoTags.filter(
-                        (tag) => tag.group !== 'misc'
-                      )"
-                      :key="tag.id || tag.name"
-                      closable
-                      type="info"
-                      :bordered="false"
-                      @close="removeTag(tag)"
-                      class="photo-tag"
-                    >
-                      {{ tag.name || tag }}
-                    </n-tag>
+                <div v-if="getGroupedTags().length > 0" class="grouped-tags">
+                  <div
+                    v-for="group in getGroupedTags()"
+                    :key="group.groupName"
+                    class="tag-group-item"
+                  >
+                    <h5 class="tag-group-label">
+                      {{ formatGroupName(group.groupName) }}
+                    </h5>
+                    <div class="tag-group-content">
+                      <div class="tags-list">
+                        <n-tag
+                          v-for="tag in group.tags"
+                          :key="tag.id || tag.name"
+                          closable
+                          type="info"
+                          :bordered="false"
+                          @close="removeTag(tag)"
+                          class="photo-tag"
+                        >
+                          {{ tag.name || tag }}
+                        </n-tag>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div class="add-tag-section">
+                <!-- <div class="add-tag-section">
                   <n-input-group>
                     <n-input
                       v-model:value="newTagName"
@@ -720,7 +729,7 @@
                       Add
                     </n-button>
                   </n-input-group>
-                </div>
+                </div> -->
               </div>
             </div>
           </n-tab-pane>
@@ -1091,6 +1100,42 @@ const formatCategoryName = (category) => {
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+};
+
+// Group tags by their group property, excluding 'misc' group
+const getGroupedTags = () => {
+  if (!photoTags.value || photoTags.value.length === 0) {
+    return [];
+  }
+
+  // Filter out misc group and group by 'group' property
+  const filteredTags = photoTags.value.filter((tag) => tag.group !== "misc");
+
+  // Group tags by their group property
+  const grouped = filteredTags.reduce((acc, tag) => {
+    const groupName = tag.category || "general";
+    if (!acc[groupName]) {
+      acc[groupName] = [];
+    }
+    acc[groupName].push(tag);
+    return acc;
+  }, {});
+
+  // Convert to array format similar to descriptions
+  return Object.entries(grouped).map(([groupName, tags]) => ({
+    groupName,
+    tags,
+  }));
+};
+
+const formatGroupName = (groupName) => {
+  // Convert snake_case or camelCase to Title Case
+  return groupName
+    .replace(/([A-Z])/g, " $1") // Handle camelCase
+    .split(/[_\s]+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
+    .trim();
 };
 
 const splitArtisticReview = (text) => {
@@ -1836,6 +1881,34 @@ if (typeof window !== "undefined") {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+}
+
+.grouped-tags {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.tag-group-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.tag-group-label {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tag-group-content {
+  padding: var(--spacing-lg);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--primary-color);
 }
 
 .tags-list {
