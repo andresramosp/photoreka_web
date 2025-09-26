@@ -30,13 +30,12 @@
       </template>
 
       <!-- Grid -->
-      <primitive :object="gridHelper" />
+      <primitive :object="gridHelper" :key="gridKey" />
     </TresCanvas>
 
     <!-- UI Overlay -->
-    <div class="ui-overlay">
-      <div class="info-panel">
-        <h3>Vista 3D Artística</h3>
+    <div class="ui-overlay" @click.stop @mousedown.stop>
+      <div class="info-panel" @click.stop @mousedown.stop @wheel.stop>
         <p v-if="isInitializing">Preparando...</p>
         <p v-else-if="isLoadingTextures">
           Cargando texturas... {{ loadedCount }}/{{ totalPhotos }}
@@ -45,7 +44,95 @@
         <p v-else>
           Fotos cargadas: {{ photoPositions.length }}/{{ photos.length }}
         </p>
-        <div class="axes-info">
+        <!-- Axis Configuration Controls -->
+        <div class="axis-config">
+          <h4>Configuración de Ejes:</h4>
+          <div class="axis-control">
+            <label for="x-axis">Eje X (izq./der.):</label>
+            <select
+              id="x-axis"
+              v-model="artisticAxesConfig.x"
+              @change="onAxisChange"
+              @click.stop
+              @mousedown.stop
+              class="axis-select"
+            >
+              <option
+                v-for="metric in availableMetrics"
+                :key="metric.value"
+                :value="metric.value"
+              >
+                {{ metric.label }}
+              </option>
+            </select>
+          </div>
+          <div class="axis-control">
+            <label for="y-axis">Eje Y (arr./ab.):</label>
+            <select
+              id="y-axis"
+              v-model="artisticAxesConfig.y"
+              @change="onAxisChange"
+              @click.stop
+              @mousedown.stop
+              class="axis-select"
+            >
+              <option
+                v-for="metric in availableMetrics"
+                :key="metric.value"
+                :value="metric.value"
+              >
+                {{ metric.label }}
+              </option>
+            </select>
+          </div>
+          <div class="axis-control">
+            <label for="z-axis">Eje Z (atrás/adel.):</label>
+            <select
+              id="z-axis"
+              v-model="artisticAxesConfig.z"
+              @change="onAxisChange"
+              @click.stop
+              @mousedown.stop
+              class="axis-select"
+            >
+              <option
+                v-for="metric in availableMetrics"
+                :key="metric.value"
+                :value="metric.value"
+              >
+                {{ metric.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Space Scale Control -->
+        <div class="space-control">
+          <h4>Espaciado de Fotos:</h4>
+          <div class="scale-control">
+            <label for="space-scale"
+              >Factor de Escala: {{ spaceScale.toFixed(1) }}x</label
+            >
+            <input
+              id="space-scale"
+              type="range"
+              min="0.5"
+              max="3.0"
+              step="0.1"
+              v-model.number="spaceScale"
+              @input="onScaleChange"
+              @click.stop
+              @mousedown.stop
+              class="scale-slider"
+            />
+            <div class="scale-labels">
+              <span>Más juntas</span>
+              <span>Más separadas</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- <div class="axes-info">
           <h4>Distribución Artística (Rangos Dinámicos):</h4>
           <ul>
             <li>
@@ -70,7 +157,7 @@
               </span>
             </li>
           </ul>
-        </div>
+        </div> -->
         <p>Navegación estilo videojuego:</p>
         <ul>
           <li><strong>WASD</strong>: Moverse</li>
@@ -79,7 +166,7 @@
           <li><strong>Q/Espacio</strong>: Subir</li>
           <li><strong>E/Shift</strong>: Bajar/Correr</li>
         </ul>
-        <div class="controls-status" v-if="fpControls && fpControls.mouseState">
+        <!-- <div class="controls-status" v-if="fpControls && fpControls.mouseState">
           <p
             class="status-indicator"
             :class="{ active: fpControls.mouseState.value?.isPointerLocked }"
@@ -91,7 +178,7 @@
                 : "Click para activar controles"
             }}
           </p>
-        </div>
+        </div> -->
 
         <!-- Billboarding Toggle -->
         <div class="billboard-toggle">
@@ -100,6 +187,8 @@
               type="checkbox"
               v-model="useBillboarding"
               @change="onBillboardingToggle"
+              @click.stop
+              @mousedown.stop
             />
             <span class="checkbox-custom"></span>
             Fotos siempre encarando al usuario
@@ -171,13 +260,25 @@ const canvasRef = ref();
 const cameraRef = ref();
 
 // Billboarding control
-const useBillboarding = ref(false);
+const useBillboarding = ref(true);
 
 // First Person Controls
 const fpControls = ref(null);
 let animationId = null;
 
-// Configuración de ejes artísticos
+// Available artistic metrics options
+const availableMetrics = [
+  { value: "storytelling", label: "Storytelling" },
+  { value: "visual_games", label: "Visual Games" },
+  { value: "humor", label: "Humor" },
+  { value: "composition", label: "Composition" },
+  { value: "aesthetic_quality", label: "Aesthetic Quality" },
+  { value: "candidness", label: "Candidness" },
+  { value: "message", label: "Message" },
+  { value: "originality", label: "Originality" },
+];
+
+// Configuración de ejes artísticos (ahora configurable)
 const artisticAxesConfig = ref({
   x: "storytelling", // Eje X: Capacidad narrativa
   y: "visual_games", // Eje Y: Juegos visuales
@@ -191,6 +292,48 @@ const artisticAxesConfig = ref({
   },
 });
 
+// Control de escala para espaciado de fotos
+const spaceScale = ref(1.0); // Factor multiplicador para el espaciado
+
+// Grid key for reactivity
+const gridKey = ref(0);
+
+// Functions to handle configuration changes
+const onAxisChange = async () => {
+  if (photoPositions.value.length > 0) {
+    await recalculatePositions();
+  }
+};
+
+const onScaleChange = async () => {
+  updateGridSize(); // Update grid to match new scale
+  if (photoPositions.value.length > 0) {
+    await recalculatePositions();
+  }
+};
+
+// Function to recalculate positions without reloading materials
+const recalculatePositions = async () => {
+  if (!scoreRanges.value || photoPositions.value.length === 0) return;
+
+  const updatedPositions = photoPositions.value.map((photo) => {
+    const position = calculateArtisticPosition(photo, scoreRanges.value);
+    return {
+      ...photo,
+      position,
+    };
+  });
+
+  // Apply separation again for new positions
+  const separatedPositions = separateOverlappingPositions(updatedPositions);
+  photoPositions.value = separatedPositions;
+
+  // Update billboard rotations if enabled
+  if (useBillboarding.value) {
+    updateBillboardRotations();
+  }
+};
+
 // Canvas configuration
 const gl = ref({
   clearColor: "#1a1a1a",
@@ -198,7 +341,7 @@ const gl = ref({
 });
 
 // Three.js objects - Improved lighting setup
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Increased ambient light
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.2); // Increased ambient light
 
 // Multiple directional lights for even illumination
 const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.6);
@@ -213,13 +356,26 @@ directionalLight3.position.set(0, -10, 5);
 // Create lights group for easier management
 const lightsGroup = new THREE.Group();
 lightsGroup.add(ambientLight);
-lightsGroup.add(directionalLight1);
-lightsGroup.add(directionalLight2);
-lightsGroup.add(directionalLight3);
+// lightsGroup.add(directionalLight1);
+// lightsGroup.add(directionalLight2);
+// lightsGroup.add(directionalLight3);
 
 const planeGeometry = new THREE.PlaneGeometry(4, 3);
-const gridHelper = new THREE.GridHelper(120, 24); // Aumentado el tamaño para el nuevo espacio
+let gridHelper = new THREE.GridHelper(120, 24); // Aumentado el tamaño para el nuevo espacio
 gridHelper.position.y = -50; // Ajustado para el nuevo rango
+
+// Function to update grid size based on scale
+const updateGridSize = () => {
+  const effectiveScale = artisticAxesConfig.value.scale * spaceScale.value;
+  const gridSize = Math.max(120, effectiveScale * 3); // Minimum grid size of 120
+  gridHelper.geometry.dispose(); // Clean up old geometry
+  gridHelper = new THREE.GridHelper(
+    gridSize,
+    Math.max(24, Math.floor(gridSize / 5))
+  );
+  gridHelper.position.y = -effectiveScale - 5; // Adjust grid position
+  gridKey.value++; // Force reactivity update
+};
 
 // Texture loader
 const textureLoader = new THREE.TextureLoader();
@@ -400,12 +556,15 @@ const calculateArtisticPosition = (photo, scoreRanges) => {
   const yScore = artisticScores[config.y];
   const zScore = artisticScores[config.z];
 
+  // Apply space scale to the base scale
+  const effectiveScale = config.scale * spaceScale.value;
+
   // Map real score ranges to full available space (-scale to +scale)
   const x =
     xScore !== undefined
       ? ((xScore - scoreRanges.x.min) / scoreRanges.x.range - 0.5) *
           2 *
-          config.scale +
+          effectiveScale +
         config.offset.x
       : config.offset.x;
 
@@ -413,7 +572,7 @@ const calculateArtisticPosition = (photo, scoreRanges) => {
     yScore !== undefined
       ? ((yScore - scoreRanges.y.min) / scoreRanges.y.range - 0.5) *
           2 *
-          config.scale +
+          effectiveScale +
         config.offset.y
       : config.offset.y;
 
@@ -421,7 +580,7 @@ const calculateArtisticPosition = (photo, scoreRanges) => {
     zScore !== undefined
       ? ((zScore - scoreRanges.z.min) / scoreRanges.z.range - 0.5) *
           2 *
-          config.scale +
+          effectiveScale +
         config.offset.z
       : config.offset.z;
 
@@ -685,7 +844,9 @@ onUnmounted(() => {
   border-radius: 8px;
   backdrop-filter: blur(10px);
   pointer-events: auto;
-  max-width: 250px;
+  max-width: 300px;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .info-panel h3 {
@@ -709,6 +870,145 @@ onUnmounted(() => {
 
 .info-panel li {
   margin: 2px 0;
+}
+
+/* Axis Configuration Controls */
+.axis-config {
+  margin: 15px 0;
+  padding: 12px;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 6px;
+  background: rgba(74, 222, 128, 0.05);
+}
+
+.axis-config h4 {
+  margin: 0 0 10px 0;
+  font-size: 0.9em;
+  color: #4ade80;
+  font-weight: 600;
+}
+
+.axis-control {
+  margin-bottom: 8px;
+}
+
+.axis-control:last-child {
+  margin-bottom: 0;
+}
+
+.axis-control label {
+  display: block;
+  font-size: 0.8em;
+  color: #e5e5e5;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.axis-select {
+  width: 100%;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 4px;
+  color: #e5e5e5;
+  font-size: 0.8em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.axis-select:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(74, 222, 128, 0.5);
+}
+
+.axis-select:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #4ade80;
+  box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.2);
+}
+
+.axis-select option {
+  background: #1a1a1a;
+  color: #e5e5e5;
+  padding: 4px;
+}
+
+/* Space Scale Control */
+.space-control {
+  margin: 15px 0;
+  padding: 12px;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 6px;
+  background: rgba(74, 222, 128, 0.05);
+}
+
+.space-control h4 {
+  margin: 0 0 10px 0;
+  font-size: 0.9em;
+  color: #4ade80;
+  font-weight: 600;
+}
+
+.scale-control label {
+  display: block;
+  font-size: 0.8em;
+  color: #e5e5e5;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.scale-slider {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  outline: none;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+
+.scale-slider:hover {
+  opacity: 1;
+}
+
+.scale-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #4ade80;
+  cursor: pointer;
+  border: 2px solid #1a1a1a;
+  transition: all 0.3s ease;
+}
+
+.scale-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+}
+
+.scale-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #4ade80;
+  cursor: pointer;
+  border: 2px solid #1a1a1a;
+  transition: all 0.3s ease;
+}
+
+.scale-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 0.75em;
+  color: #ccc;
+}
+
+.scale-labels span {
+  font-style: italic;
 }
 
 .axes-info {
