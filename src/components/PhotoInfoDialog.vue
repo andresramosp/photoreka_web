@@ -606,74 +606,6 @@
               </div>
             </div>
           </n-tab-pane>
-          <!-- <n-tab-pane name="insights" display-directive="show:lazy">
-            <template #tab>
-              <div class="tab-content">
-                <n-icon size="18">
-                  <SparklesIcon />
-                </n-icon>
-                <span>Insights</span>
-              </div>
-            </template>
-            <div class="tab-panel-content">
-              <div class="descriptions-section">
-                <div class="custom-description-section">
-                  <div
-                    v-if="!photoInsight && !isGeneratingInsight"
-                    class="generate-section"
-                  >
-                    <n-button
-                      type="primary"
-                      size="medium"
-                      @click="getInsight"
-                      block
-                    >
-                      <template #icon>
-                        <n-icon>
-                          <SparklesIcon />
-                        </n-icon>
-                      </template>
-                      Get a insight
-                    </n-button>
-                  </div>
-                  <div
-                    v-else-if="isGeneratingInsight"
-                    class="generating-section"
-                  >
-                    <n-spin size="medium" />
-                    <p class="generating-text">Reviewing the image...</p>
-                  </div>
-                  <div v-else class="description-display">
-                    <div class="description-content">
-                      <p>{{ photoInsight }}</p>
-                    </div>
-                    <div
-                      style="
-                        display: flex;
-                        justify-content: center;
-                        width: 100%;
-                      "
-                    >
-                      <n-button
-                        size="small"
-                        @click="showNextInsight"
-                        :loading="isGeneratingInsight"
-                        class="regenerate-btn"
-                        v-if="hasMoreInsights"
-                      >
-                        <template #icon>
-                          <n-icon>
-                            <RefreshIcon />
-                          </n-icon>
-                        </template>
-                        Load more insights
-                      </n-button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </n-tab-pane> -->
 
           <n-tab-pane name="tags" display-directive="show:lazy">
             <template #tab>
@@ -734,7 +666,11 @@
             </div>
           </n-tab-pane>
 
-          <n-tab-pane name="descriptions" display-directive="show:lazy">
+          <n-tab-pane
+            v-if="false"
+            name="descriptions"
+            display-directive="show:lazy"
+          >
             <template #tab>
               <div class="tab-content">
                 <n-icon size="18">
@@ -789,7 +725,72 @@
             </div>
           </n-tab-pane>
 
-          <!-- <n-tab-pane name="notes" display-directive="show:lazy">
+          <n-tab-pane name="insights" display-directive="show:lazy">
+            <template #tab>
+              <div class="tab-content">
+                <n-icon size="18">
+                  <SparklesIcon />
+                </n-icon>
+                <span>Insights</span>
+              </div>
+            </template>
+            <div class="tab-panel-content">
+              <div class="descriptions-section">
+                <div class="custom-description-section">
+                  <div
+                    v-if="allPhotoInsights.length === 0 && !isGeneratingInsight"
+                    class="generate-section-centered"
+                  >
+                    <n-button
+                      type="primary"
+                      size="medium"
+                      @click="getInsight"
+                      class="generate-insight-btn"
+                    >
+                      <template #icon>
+                        <n-icon>
+                          <SparklesIcon />
+                        </n-icon>
+                      </template>
+                      Get a insight
+                    </n-button>
+                  </div>
+                  <div
+                    v-else-if="isGeneratingInsight"
+                    class="generating-section"
+                  >
+                    <n-spin size="medium" />
+                    <p class="generating-text">Reviewing the image...</p>
+                  </div>
+                  <div
+                    v-else-if="allPhotoInsights.length > 0"
+                    class="ai-descriptions"
+                  >
+                    <div class="description-item">
+                      <h5 class="description-label">Did you know</h5>
+                      <div class="description-content">
+                        <p>{{ allPhotoInsights[0] }}</p>
+                      </div>
+                    </div>
+                    <div class="description-item" v-if="allPhotoInsights[1]">
+                      <h5 class="description-label">Technical aspect</h5>
+                      <div class="description-content">
+                        <p>{{ allPhotoInsights[1] }}</p>
+                      </div>
+                    </div>
+                    <div class="description-item" v-if="allPhotoInsights[2]">
+                      <h5 class="description-label">Commentary</h5>
+                      <div class="description-content">
+                        <p>{{ allPhotoInsights[2] }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </n-tab-pane>
+
+          <n-tab-pane name="notes" display-directive="show:lazy">
             <template #tab>
               <div class="tab-content">
                 <n-icon size="18">
@@ -804,7 +805,7 @@
                   v-model:value="photoNotes"
                   type="textarea"
                   placeholder="Add your personal notes about this photo..."
-                  :autosize="{ minRows: 3, maxRows: 8 }"
+                  :autosize="{ minRows: 8, maxRows: 8 }"
                   @blur="saveNotes"
                 />
                 <div class="notes-actions">
@@ -819,7 +820,7 @@
                 </div>
               </div>
             </div>
-          </n-tab-pane> -->
+          </n-tab-pane>
         </n-tabs>
       </div>
     </div>
@@ -977,6 +978,24 @@ watch(
       // Initialize description and notes if they exist
       photoInsight.value = newPhoto.description || "";
       photoNotes.value = newPhoto.notes || "";
+
+      // Reset insights data when photo changes
+      allPhotoInsights.value = [];
+      currentInsightIndex.value = 0;
+      isGeneratingInsight.value = false;
+
+      // Auto-generate insights for the new photo
+      nextTick(() => {
+        setTimeout(() => {
+          if (
+            props.selectedPhoto?.id &&
+            allPhotoInsights.value.length === 0 &&
+            !isGeneratingInsight.value
+          ) {
+            getInsight();
+          }
+        }, 100); // Small delay to ensure all reactive updates are complete
+      });
 
       // Add mock metadata if missing
       if (!newPhoto.created_at) {
@@ -1416,7 +1435,7 @@ const saveNotes = async () => {
     // Here you would typically save to backend
     // await saveNotesToPhoto(props.selectedPhoto.id, photoNotes.value)
 
-    message.success("Notes saved successfully");
+    message.success("Functionality coming soon!");
   } catch (error) {
     message.error("Failed to save notes");
     console.error("Save notes failed:", error);
@@ -1976,14 +1995,30 @@ if (typeof window !== "undefined") {
   border: 2px dashed var(--border-color);
 }
 
+.generate-section-centered {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-xl);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border: 2px dashed var(--border-color);
+}
+
+.generate-insight-btn {
+  max-width: 200px;
+}
+
 .generating-section {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-md);
   padding: var(--spacing-xl);
   background: var(--bg-surface);
   border-radius: var(--radius-md);
+  min-height: 200px;
 }
 
 .generating-text {
