@@ -1,12 +1,18 @@
 <template>
   <div class="photos-3d-container" ref="containerRef">
-    <!-- Simple Canvas Implementation -->
-    <TresCanvas v-bind="gl">
-      <TresPerspectiveCamera :position="[0, 0, 50]" />
+    <!-- First Person 3D Canvas -->
+    <TresCanvas v-bind="gl" ref="canvasRef">
+      <TresPerspectiveCamera
+        ref="cameraRef"
+        :position="[0, 0, 50]"
+        :fov="75"
+        :aspect="1"
+        :near="0.1"
+        :far="2000"
+      />
 
       <!-- Basic scene setup -->
-      <primitive :object="ambientLight" />
-      <primitive :object="directionalLight" />
+      <primitive :object="lightsGroup" />
 
       <!-- Photo planes - solo mostrar cuando están cargadas -->
       <template
@@ -14,7 +20,10 @@
         v-for="(photo, index) in photoPositions"
         :key="photo.id"
       >
-        <TresMesh :position="photo.position" :rotation="photo.rotation">
+        <TresMesh
+          :position="photo.position"
+          :rotation="useBillboarding ? photo.billboardRotation : photo.rotation"
+        >
           <primitive :object="planeGeometry" />
           <primitive :object="photo.material" v-if="photo.material" />
         </TresMesh>
@@ -22,15 +31,12 @@
 
       <!-- Grid -->
       <primitive :object="gridHelper" />
-
-      <!-- Controls -->
-      <OrbitControls :zoom-speed="2" />
     </TresCanvas>
 
     <!-- UI Overlay -->
     <div class="ui-overlay">
       <div class="info-panel">
-        <h3>Vista 3D de Fotos</h3>
+        <h3>Vista 3D Artística</h3>
         <p v-if="isInitializing">Preparando...</p>
         <p v-else-if="isLoadingTextures">
           Cargando texturas... {{ loadedCount }}/{{ totalPhotos }}
@@ -39,12 +45,88 @@
         <p v-else>
           Fotos cargadas: {{ photoPositions.length }}/{{ photos.length }}
         </p>
-        <p>Navegación con ratón:</p>
+        <div class="axes-info">
+          <h4>Distribución Artística (Rangos Dinámicos):</h4>
+          <ul>
+            <li>
+              <strong>Eje X</strong> (izq./der.): {{ artisticAxesConfig.x }}
+              <span v-if="scoreRanges" class="range-info">
+                ({{ scoreRanges.x.min.toFixed(1) }} -
+                {{ scoreRanges.x.max.toFixed(1) }})
+              </span>
+            </li>
+            <li>
+              <strong>Eje Y</strong> (arr./ab.): {{ artisticAxesConfig.y }}
+              <span v-if="scoreRanges" class="range-info">
+                ({{ scoreRanges.y.min.toFixed(1) }} -
+                {{ scoreRanges.y.max.toFixed(1) }})
+              </span>
+            </li>
+            <li>
+              <strong>Eje Z</strong> (atrás/adel.): {{ artisticAxesConfig.z }}
+              <span v-if="scoreRanges" class="range-info">
+                ({{ scoreRanges.z.min.toFixed(1) }} -
+                {{ scoreRanges.z.max.toFixed(1) }})
+              </span>
+            </li>
+          </ul>
+        </div>
+        <p>Navegación estilo videojuego:</p>
         <ul>
-          <li>Arrastrar: Rotar</li>
-          <li>Rueda: Zoom</li>
-          <li>Click derecho: Mover</li>
+          <li><strong>WASD</strong>: Moverse</li>
+          <li><strong>Ratón</strong>: Mirar (click para activar)</li>
+          <li><strong>Rueda</strong>: Avanzar/Retroceder</li>
+          <li><strong>Q/Espacio</strong>: Subir</li>
+          <li><strong>E/Shift</strong>: Bajar/Correr</li>
         </ul>
+        <div class="controls-status" v-if="fpControls && fpControls.mouseState">
+          <p
+            class="status-indicator"
+            :class="{ active: fpControls.mouseState.value?.isPointerLocked }"
+          >
+            <span class="indicator-dot"></span>
+            {{
+              fpControls.mouseState.value?.isPointerLocked
+                ? "Controles activos"
+                : "Click para activar controles"
+            }}
+          </p>
+        </div>
+
+        <!-- Billboarding Toggle -->
+        <div class="billboard-toggle">
+          <label class="toggle-label">
+            <input
+              type="checkbox"
+              v-model="useBillboarding"
+              @change="onBillboardingToggle"
+            />
+            <span class="checkbox-custom"></span>
+            Fotos siempre encarando al usuario
+          </label>
+          <p class="toggle-description">
+            {{
+              useBillboarding
+                ? "Las fotos rotan para encararte"
+                : "Rotación basada en scores artísticos"
+            }}
+          </p>
+        </div>
+
+        <!-- Lighting Info -->
+        <!-- <div class="lighting-info">
+          <h4>Iluminación Mejorada:</h4>
+          <ul>
+            <li><strong>Luz ambiente</strong> aumentada (0.8)</li>
+            <li>
+              <strong>3 luces direccionales</strong> desde múltiples ángulos
+            </li>
+            <li><strong>Material básico</strong> para consistencia visual</li>
+          </ul>
+          <p class="lighting-note">
+            Las fotos siempre se ven bien iluminadas desde cualquier ángulo
+          </p>
+        </div> -->
       </div>
     </div>
 
@@ -75,16 +157,39 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { TresCanvas } from "@tresjs/core";
-import { OrbitControls } from "@tresjs/cientos";
 import { usePhotosStore } from "@/stores/photos.js";
 import { loadTextureWithLimit } from "@/utils/rateLimiter.js";
+import { useFirstPersonControls } from "@/composables/useFirstPersonControls.js";
 import * as THREE from "three";
 
 // Store
 const photosStore = usePhotosStore();
 const containerRef = ref();
+const canvasRef = ref();
+const cameraRef = ref();
+
+// Billboarding control
+const useBillboarding = ref(false);
+
+// First Person Controls
+const fpControls = ref(null);
+let animationId = null;
+
+// Configuración de ejes artísticos
+const artisticAxesConfig = ref({
+  x: "storytelling", // Eje X: Capacidad narrativa
+  y: "visual_games", // Eje Y: Juegos visuales
+  z: "humor", // Eje Z: Composición
+  scale: 45, // Factor de escala aumentado para mejor uso del espacio
+  offset: {
+    // Offset para centrar el espacio
+    x: 0,
+    y: -5, // Ajustado para mejor centrado vertical
+    z: 0,
+  },
+});
 
 // Canvas configuration
 const gl = ref({
@@ -92,14 +197,29 @@ const gl = ref({
   antialias: true,
 });
 
-// Three.js objects
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-directionalLight.position.set(10, 10, 10);
+// Three.js objects - Improved lighting setup
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Increased ambient light
+
+// Multiple directional lights for even illumination
+const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.6);
+directionalLight1.position.set(10, 10, 10);
+
+const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+directionalLight2.position.set(-10, 10, -10);
+
+const directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.3);
+directionalLight3.position.set(0, -10, 5);
+
+// Create lights group for easier management
+const lightsGroup = new THREE.Group();
+lightsGroup.add(ambientLight);
+lightsGroup.add(directionalLight1);
+lightsGroup.add(directionalLight2);
+lightsGroup.add(directionalLight3);
 
 const planeGeometry = new THREE.PlaneGeometry(4, 3);
-const gridHelper = new THREE.GridHelper(100, 20);
-gridHelper.position.y = -25;
+const gridHelper = new THREE.GridHelper(120, 24); // Aumentado el tamaño para el nuevo espacio
+gridHelper.position.y = -50; // Ajustado para el nuevo rango
 
 // Texture loader
 const textureLoader = new THREE.TextureLoader();
@@ -110,7 +230,7 @@ const createPhotoMaterial = async (photo) => {
 
   if (!imageUrl) {
     // Fallback material if no image URL
-    return new THREE.MeshLambertMaterial({
+    return new THREE.MeshBasicMaterial({
       color: 0x666666,
       side: THREE.DoubleSide,
     });
@@ -120,18 +240,262 @@ const createPhotoMaterial = async (photo) => {
     // Use rate limited texture loading
     const texture = await loadTextureWithLimit(textureLoader, imageUrl);
 
-    return new THREE.MeshLambertMaterial({
+    // Use MeshBasicMaterial for consistent appearance without lighting effects
+    // This ensures photos always look bright and consistent
+    return new THREE.MeshBasicMaterial({
       map: texture,
       side: THREE.DoubleSide,
+      transparent: false,
+      opacity: 1.0,
     });
   } catch (error) {
     console.error("Error loading texture for photo:", photo.id, error);
     // Return fallback material on error
-    return new THREE.MeshLambertMaterial({
+    return new THREE.MeshBasicMaterial({
       color: 0x666666,
       side: THREE.DoubleSide,
     });
   }
+};
+
+// Function to calculate min/max ranges from actual photo scores
+const calculateScoreRanges = (photos) => {
+  const config = artisticAxesConfig.value;
+  let xMin = Infinity,
+    xMax = -Infinity;
+  let yMin = Infinity,
+    yMax = -Infinity;
+  let zMin = Infinity,
+    zMax = -Infinity;
+
+  photos.forEach((photo) => {
+    const artisticScores = photo.descriptions?.artistic_scores;
+    if (artisticScores) {
+      const xScore = artisticScores[config.x];
+      const yScore = artisticScores[config.y];
+      const zScore = artisticScores[config.z];
+
+      if (xScore !== undefined) {
+        xMin = Math.min(xMin, xScore);
+        xMax = Math.max(xMax, xScore);
+      }
+      if (yScore !== undefined) {
+        yMin = Math.min(yMin, yScore);
+        yMax = Math.max(yMax, yScore);
+      }
+      if (zScore !== undefined) {
+        zMin = Math.min(zMin, zScore);
+        zMax = Math.max(zMax, zScore);
+      }
+    }
+  });
+
+  // Fallback to theoretical range if no valid scores found
+  if (xMin === Infinity) {
+    xMin = 1;
+    xMax = 10;
+  }
+  if (yMin === Infinity) {
+    yMin = 1;
+    yMax = 10;
+  }
+  if (zMin === Infinity) {
+    zMin = 1;
+    zMax = 10;
+  }
+
+  // Ensure minimum range to avoid division by zero
+  const minRange = 0.1;
+  if (xMax - xMin < minRange) {
+    const center = (xMin + xMax) / 2;
+    xMin = center - minRange / 2;
+    xMax = center + minRange / 2;
+  }
+  if (yMax - yMin < minRange) {
+    const center = (yMin + yMax) / 2;
+    yMin = center - minRange / 2;
+    yMax = center + minRange / 2;
+  }
+  if (zMax - zMin < minRange) {
+    const center = (zMin + zMax) / 2;
+    zMin = center - minRange / 2;
+    zMax = center + minRange / 2;
+  }
+
+  return {
+    x: { min: xMin, max: xMax, range: xMax - xMin },
+    y: { min: yMin, max: yMax, range: yMax - yMin },
+    z: { min: zMin, max: zMax, range: zMax - zMin },
+  };
+};
+
+// Function to separate photos with identical or very close positions
+const separateOverlappingPositions = (photoPositions, minDistance = 0.8) => {
+  const result = [...photoPositions];
+  const positionMap = new Map();
+
+  // Group photos by similar positions (using a grid approach for better clustering)
+  result.forEach((photo, index) => {
+    const gridSize = 1.0; // Tamaño de la cuadrícula para detectar solapamiento
+    const posKey = `${Math.round(photo.position[0] / gridSize)}_${Math.round(
+      photo.position[1] / gridSize
+    )}_${Math.round(photo.position[2] / gridSize)}`;
+
+    if (!positionMap.has(posKey)) {
+      positionMap.set(posKey, []);
+    }
+    positionMap.get(posKey).push({ photo, index });
+  });
+
+  // Separate overlapping photos using circular arrangement
+  positionMap.forEach((photos) => {
+    if (photos.length > 1) {
+      console.log(`Found ${photos.length} overlapping photos, separating...`);
+
+      photos.forEach(({ photo, index }, groupIndex) => {
+        if (groupIndex > 0) {
+          // Calculate circular arrangement to separate photos
+          const angle = (groupIndex * 2 * Math.PI) / photos.length;
+          const radius = minDistance + Math.floor(groupIndex / 6) * 0.3; // Spiral outward for many photos
+
+          // Add deterministic but varied offsets
+          const offsetX = Math.cos(angle) * radius;
+          const offsetY = Math.sin(angle) * radius * 0.7; // Less vertical separation
+          const offsetZ = Math.sin(angle * 2) * (minDistance * 0.5); // Small Z variation
+
+          result[index].position = [
+            photo.position[0] + offsetX,
+            photo.position[1] + offsetY,
+            photo.position[2] + offsetZ,
+          ];
+
+          // Also add slight rotation variation to make separation more obvious
+          const rotationVariation = groupIndex * 0.1;
+          result[index].rotation = [
+            photo.rotation[0] + rotationVariation,
+            photo.rotation[1] + rotationVariation * 0.5,
+            photo.rotation[2] + rotationVariation * 0.3,
+          ];
+        }
+      });
+    }
+  });
+
+  return result;
+};
+
+// Function to calculate artistic position based on scores with dynamic mapping
+const calculateArtisticPosition = (photo, scoreRanges) => {
+  const artisticScores = photo.descriptions?.artistic_scores;
+  const config = artisticAxesConfig.value;
+
+  if (!artisticScores || !scoreRanges) {
+    console.warn("Photo missing artistic_scores or scoreRanges:", photo.id);
+    // Fallback to center position if no artistic scores
+    return [config.offset.x, config.offset.y, config.offset.z];
+  }
+
+  // Get scores for each axis
+  const xScore = artisticScores[config.x];
+  const yScore = artisticScores[config.y];
+  const zScore = artisticScores[config.z];
+
+  // Map real score ranges to full available space (-scale to +scale)
+  const x =
+    xScore !== undefined
+      ? ((xScore - scoreRanges.x.min) / scoreRanges.x.range - 0.5) *
+          2 *
+          config.scale +
+        config.offset.x
+      : config.offset.x;
+
+  const y =
+    yScore !== undefined
+      ? ((yScore - scoreRanges.y.min) / scoreRanges.y.range - 0.5) *
+          2 *
+          config.scale +
+        config.offset.y
+      : config.offset.y;
+
+  const z =
+    zScore !== undefined
+      ? ((zScore - scoreRanges.z.min) / scoreRanges.z.range - 0.5) *
+          2 *
+          config.scale +
+        config.offset.z
+      : config.offset.z;
+
+  return [x, y, z];
+};
+
+// Function to calculate billboard rotation (face camera)
+const calculateBillboardRotation = (photoPosition, cameraPosition) => {
+  // Calculate direction from photo to camera
+  const direction = new THREE.Vector3(
+    cameraPosition.x - photoPosition[0],
+    cameraPosition.y - photoPosition[1],
+    cameraPosition.z - photoPosition[2]
+  );
+
+  // Normalize the direction vector
+  direction.normalize();
+
+  // Calculate rotation to face the camera
+  // We want the photo to face the camera, so we look from photo towards camera
+  const lookAt = new THREE.Matrix4().lookAt(
+    new THREE.Vector3(...photoPosition),
+    new THREE.Vector3(cameraPosition.x, cameraPosition.y, cameraPosition.z),
+    new THREE.Vector3(0, 1, 0) // Up vector
+  );
+
+  // Extract rotation from the matrix
+  const rotation = new THREE.Euler().setFromRotationMatrix(lookAt);
+
+  // Return rotation as array [x, y, z]
+  return [rotation.x, rotation.y, rotation.z];
+};
+
+// Function to update billboard rotations for all photos
+const updateBillboardRotations = () => {
+  if (
+    !useBillboarding.value ||
+    !cameraRef.value ||
+    photoPositions.value.length === 0
+  ) {
+    return;
+  }
+
+  const camera = cameraRef.value;
+  const cameraPosition = camera.position;
+
+  // Update billboard rotation for each photo
+  photoPositions.value.forEach((photo) => {
+    photo.billboardRotation = calculateBillboardRotation(
+      photo.position,
+      cameraPosition
+    );
+  });
+};
+
+// Function to calculate subtle rotation based on artistic scores
+const calculateArtisticRotation = (photo) => {
+  const artisticScores = photo.descriptions?.artistic_scores;
+
+  if (!artisticScores) {
+    return [0, 0, 0];
+  }
+
+  // Use some artistic scores to create subtle, meaningful rotations
+  const humor = artisticScores.humor || 5.5;
+  const strangeness = artisticScores.strangeness || 5.5;
+  const candidness = artisticScores.candidness || 5.5;
+
+  // Convert from 1-10 range to small rotation values (-0.2 to 0.2 radians)
+  const rotX = ((humor - 5.5) / 4.5) * 0.2;
+  const rotY = ((strangeness - 5.5) / 4.5) * 0.2;
+  const rotZ = ((candidness - 5.5) / 4.5) * 0.1;
+
+  return [rotX, rotY, rotZ];
 };
 
 // Get photos from store
@@ -146,6 +510,7 @@ const photos = computed(() => {
 
 // Generate positions for photos
 const photoPositions = ref([]);
+const scoreRanges = ref(null); // Store score ranges for UI display
 const isLoadingTextures = ref(false);
 const loadedCount = ref(0);
 const totalPhotos = ref(0);
@@ -168,39 +533,35 @@ const loadPhotoMaterials = async () => {
   loadedCount.value = 0;
   totalPhotos.value = photosValue.length; // Fijar el total al inicio
 
-  // Crear todas las posiciones primero
+  // Calculate dynamic score ranges from actual photo data
+  const calculatedRanges = calculateScoreRanges(photosValue);
+  scoreRanges.value = calculatedRanges; // Store for UI display
+
+  console.log("Dynamic score ranges calculated:", calculatedRanges);
+
+  // Crear todas las posiciones basadas en scores artísticos usando rangos dinámicos
   const photoData = photosValue.map((photo, index) => {
-    const seed = photo.id * 9301 + 49297;
-    const random1 = (seed % 233280) / 233280;
-    const random2 = ((seed * 2) % 233280) / 233280;
-    const random3 = ((seed * 3) % 233280) / 233280;
-
-    const radius = 20 + random1 * 30;
-    const theta = random2 * Math.PI * 2;
-    const phi = (random3 * 0.8 + 0.1) * Math.PI;
-
-    const x = radius * Math.sin(phi) * Math.cos(theta);
-    const y = radius * Math.cos(phi) - 10;
-    const z = radius * Math.sin(phi) * Math.sin(theta);
-
-    const rotationX = (random1 - 0.5) * 0.4;
-    const rotationY = (random2 - 0.5) * 0.4;
-    const rotationZ = (random3 - 0.5) * 0.2;
+    const position = calculateArtisticPosition(photo, calculatedRanges);
+    const rotation = calculateArtisticRotation(photo);
 
     return {
       ...photo,
-      position: [x, y, z],
-      rotation: [rotationX, rotationY, rotationZ],
+      position,
+      rotation,
     };
   });
 
+  // Separar fotos que están en posiciones muy cercanas para evitar flickering
+  const separatedPhotoData = separateOverlappingPositions(photoData);
+
   // Cargar materiales uno por uno para progreso coherente
   const positions = [];
-  for (const photoInfo of photoData) {
+  for (const photoInfo of separatedPhotoData) {
     const material = await createPhotoMaterial(photoInfo);
     positions.push({
       ...photoInfo,
       material,
+      billboardRotation: [0, 0, 0], // Initialize billboard rotation
     });
 
     // Actualizar progreso después de cada textura cargada
@@ -209,12 +570,65 @@ const loadPhotoMaterials = async () => {
 
   photoPositions.value = positions;
   isLoadingTextures.value = false;
+
+  // Initialize billboard rotations if enabled
+  if (useBillboarding.value) {
+    updateBillboardRotations();
+  }
+};
+
+// Handler for billboarding toggle
+const onBillboardingToggle = () => {
+  if (useBillboarding.value) {
+    // When enabling billboarding, calculate initial rotations
+    updateBillboardRotations();
+  }
+};
+
+// Función de animación para actualizar controles FPS
+const animate = () => {
+  if (fpControls.value) {
+    fpControls.value.update();
+  }
+
+  // Update billboard rotations if enabled
+  if (useBillboarding.value) {
+    updateBillboardRotations();
+  }
+
+  animationId = requestAnimationFrame(animate);
+};
+
+// Inicializar controles FPS
+const initFirstPersonControls = () => {
+  if (!cameraRef.value || !containerRef.value) {
+    console.error("Camera or container not available for FPS controls");
+    return;
+  }
+
+  const camera = cameraRef.value;
+  const domElement = containerRef.value;
+
+  fpControls.value = useFirstPersonControls(camera, domElement);
+  fpControls.value.setup();
+
+  // Configuración inicial
+  fpControls.value.setMoveSpeed(1.2);
+  fpControls.value.setMouseSensitivity(0.002);
+
+  // Iniciar loop de animación
+  animate();
 };
 
 // Lifecycle
 onMounted(async () => {
   try {
     await photosStore.getOrFetch(false);
+
+    // Inicializar controles FPS después de que el canvas esté listo
+    setTimeout(() => {
+      initFirstPersonControls();
+    }, 100);
 
     // Solo cargar materiales si hay fotos
     if (photos.value.length > 0) {
@@ -229,6 +643,18 @@ onMounted(async () => {
     isInitializing.value = false;
   }
 });
+
+onUnmounted(() => {
+  // Limpiar controles FPS
+  if (fpControls.value) {
+    fpControls.value.cleanup();
+  }
+
+  // Cancelar animación
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+  }
+});
 </script>
 
 <style scoped>
@@ -237,6 +663,11 @@ onMounted(async () => {
   height: 100vh;
   position: relative;
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  cursor: crosshair;
+}
+
+.photos-3d-container:fullscreen {
+  cursor: none;
 }
 
 .ui-overlay {
@@ -278,6 +709,159 @@ onMounted(async () => {
 
 .info-panel li {
   margin: 2px 0;
+}
+
+.axes-info {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 4px;
+  background: rgba(74, 222, 128, 0.05);
+}
+
+.axes-info h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.9em;
+  color: #4ade80;
+}
+
+.axes-info ul {
+  margin: 0;
+  font-size: 0.8em;
+}
+
+.axes-info li {
+  margin: 3px 0;
+  color: #e5e5e5;
+}
+
+.range-info {
+  font-size: 0.85em;
+  color: #4ade80;
+  font-weight: 500;
+  margin-left: 5px;
+}
+
+.controls-status {
+  margin: 15px 0 0 0;
+  padding: 8px;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 4px;
+  background: rgba(74, 222, 128, 0.05);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+.indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  margin-right: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.status-indicator.active .indicator-dot {
+  background: #4ade80;
+}
+
+.status-indicator.active {
+  color: #4ade80;
+}
+
+/* Billboarding Toggle */
+.billboard-toggle {
+  margin: 15px 0 0 0;
+  padding: 10px;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 4px;
+  background: rgba(74, 222, 128, 0.05);
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 0.85em;
+  font-weight: 500;
+  color: #e5e5e5;
+  margin: 0;
+  user-select: none;
+}
+
+.toggle-label input[type="checkbox"] {
+  display: none;
+}
+
+.checkbox-custom {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #4ade80;
+  border-radius: 3px;
+  margin-right: 8px;
+  display: inline-block;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.toggle-label input[type="checkbox"]:checked + .checkbox-custom {
+  background: #4ade80;
+}
+
+.toggle-label input[type="checkbox"]:checked + .checkbox-custom::after {
+  content: "✓";
+  position: absolute;
+  top: -2px;
+  left: 1px;
+  color: #1a1a1a;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.toggle-description {
+  margin: 5px 0 0 24px;
+  font-size: 0.75em;
+  color: #4ade80;
+  font-style: italic;
+}
+
+/* Lighting Info */
+.lighting-info {
+  margin: 15px 0 0 0;
+  padding: 10px;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 4px;
+  background: rgba(74, 222, 128, 0.05);
+}
+
+.lighting-info h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.9em;
+  color: #4ade80;
+}
+
+.lighting-info ul {
+  margin: 0 0 8px 0;
+  padding-left: 16px;
+  font-size: 0.8em;
+}
+
+.lighting-info li {
+  margin: 3px 0;
+  color: #e5e5e5;
+}
+
+.lighting-note {
+  margin: 0;
+  font-size: 0.75em;
+  color: #4ade80;
+  font-style: italic;
 }
 
 /* Loading Screen */

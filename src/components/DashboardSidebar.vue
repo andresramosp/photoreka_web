@@ -356,18 +356,18 @@ const secondSectionOptions = computed(() => {
         : {},
       icon: createIconWithIndicator(SearchIcon, "#60b6d4"), // Info color for search functionality
     },
-    {
-      label: createMenuLabel("Vista 3D"),
-      key: "3d-view",
-      disabled: isBlocked,
-      comingSoon: false,
-      props: isBlocked
-        ? {
-            title: "Add photos to your catalog",
-          }
-        : {},
-      icon: createIconWithIndicator(CubeIcon, "#8b5cf6", false, false), // Purple color for 3D view
-    },
+    // {
+    //   label: createMenuLabel("Vista 3D"),
+    //   key: "3d-view",
+    //   disabled: isBlocked,
+    //   comingSoon: false,
+    //   props: isBlocked
+    //     ? {
+    //         title: "Add photos to your catalog",
+    //       }
+    //     : {},
+    //   icon: createIconWithIndicator(CubeIcon, "#8b5cf6", false, false), // Purple color for 3D view
+    // },
     {
       label: createMenuLabel("Canvas"),
       key: "canvas",
