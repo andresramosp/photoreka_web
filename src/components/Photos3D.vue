@@ -14,10 +14,10 @@
       <!-- Basic scene setup -->
       <primitive :object="lightsGroup" />
 
-      <!-- Photo planes - solo mostrar cuando están cargadas -->
+      <!-- Photo planes - solo mostrar cuando están cargadas Y son visibles -->
       <template
         v-if="!isLoadingTextures && !isInitializing"
-        v-for="(photo, index) in photoPositions"
+        v-for="(photo, index) in visiblePhotos"
         :key="photo.id"
       >
         <TresMesh
@@ -43,6 +43,13 @@
         <p v-else-if="photos.length === 0">No hay fotos disponibles</p>
         <p v-else>
           Fotos cargadas: {{ photoPositions.length }}/{{ photos.length }}
+          <br />
+          <span
+            v-if="visiblePhotos.length < photoPositions.length"
+            style="color: #4ade80; font-size: 0.8em"
+          >
+            Visibles: {{ visiblePhotos.length }} (Frustum Culling activo)
+          </span>
         </p>
         <!-- Axis Configuration Controls -->
         <div class="axis-config">
@@ -738,7 +745,7 @@ const updateBillboardRotations = () => {
   if (
     !useBillboarding.value ||
     !cameraRef.value ||
-    photoPositions.value.length === 0
+    visiblePhotos.value.length === 0
   ) {
     return;
   }
@@ -746,8 +753,8 @@ const updateBillboardRotations = () => {
   const camera = cameraRef.value;
   const cameraPosition = camera.position;
 
-  // Update billboard rotation for each photo
-  photoPositions.value.forEach((photo) => {
+  // Solo actualizar billboards para fotos visibles (optimización)
+  visiblePhotos.value.forEach((photo) => {
     photo.billboardRotation = calculateBillboardRotation(
       photo.position,
       cameraPosition
@@ -769,7 +776,7 @@ const updatePhotoOpacity = () => {
   // Check if distance opacity is enabled
   if (!useDistanceOpacity.value) {
     // Reset all photos to full opacity if disabled
-    photoPositions.value.forEach((photo) => {
+    visiblePhotos.value.forEach((photo) => {
       if (photo.material) {
         photo.material.opacity = 1.0;
       }
@@ -784,7 +791,7 @@ const updatePhotoOpacity = () => {
   }
   opacityUpdateCounter = 0;
 
-  if (!cameraRef.value || photoPositions.value.length === 0) {
+  if (!cameraRef.value || visiblePhotos.value.length === 0) {
     return;
   }
 
@@ -793,7 +800,8 @@ const updatePhotoOpacity = () => {
 
   let updatedCount = 0;
 
-  photoPositions.value.forEach((photo) => {
+  // Solo procesar fotos visibles para mejor rendimiento
+  visiblePhotos.value.forEach((photo) => {
     if (!photo.material) return;
 
     // Calculate distance between camera and photo
@@ -829,7 +837,7 @@ const updatePhotoOpacity = () => {
   // Debug log (remove after testing)
   if (updatedCount > 0) {
     console.log(
-      `Updated opacity for ${updatedCount} photos, camera at:`,
+      `Updated opacity for ${updatedCount} photos (visible: ${visiblePhotos.value.length}), camera at:`,
       cameraPosition
     );
   }
@@ -865,6 +873,46 @@ const photos = computed(() => {
       photo.status === "uploaded"
   );
 });
+
+// Frustum culling - solo renderizar fotos visibles
+const visiblePhotos = ref([]);
+const lastCameraPosition = ref({ x: 0, y: 0, z: 50 });
+const lastCameraRotation = ref({ x: 0, y: 0, z: 0 });
+
+// Función para actualizar fotos visibles usando Frustum Culling
+const updateVisiblePhotos = () => {
+  if (!cameraRef.value || photoPositions.value.length === 0) {
+    visiblePhotos.value = [];
+    return;
+  }
+
+  const camera = cameraRef.value;
+  const frustum = new THREE.Frustum();
+  const matrix = new THREE.Matrix4().multiplyMatrices(
+    camera.projectionMatrix,
+    camera.matrixWorldInverse
+  );
+  frustum.setFromProjectionMatrix(matrix);
+
+  // Filtrar fotos que intersectan con el frustum
+  const visible = photoPositions.value.filter((photo) => {
+    // Crear esfera alrededor de cada foto para test de intersección
+    const photoSphere = new THREE.Sphere(
+      new THREE.Vector3(...photo.position),
+      3.0 // Radio ligeramente mayor que el tamaño de la foto para margen
+    );
+    return frustum.intersectsSphere(photoSphere);
+  });
+
+  visiblePhotos.value = visible;
+
+  // Debug info
+  if (visible.length !== photoPositions.value.length) {
+    console.log(
+      `Frustum Culling: ${visible.length}/${photoPositions.value.length} fotos visibles`
+    );
+  }
+};
 
 // Generate positions for photos
 const photoPositions = ref([]);
@@ -934,6 +982,11 @@ const loadPhotoMaterials = async () => {
   photoPositions.value = positions;
   isLoadingTextures.value = false;
 
+  // Realizar frustum culling inicial
+  setTimeout(() => {
+    updateVisiblePhotos();
+  }, 100);
+
   // Initialize billboard rotations if enabled
   if (useBillboarding.value) {
     updateBillboardRotations();
@@ -957,19 +1010,42 @@ const animate = () => {
   // Update current position tracking
   if (cameraRef.value) {
     const camera = cameraRef.value;
-    currentPosition.value = {
+    const newPosition = {
       x: camera.position.x,
       y: camera.position.y,
       z: camera.position.z,
     };
+
+    // Solo actualizar frustum culling si la cámara se movió significativamente
+    const positionChanged =
+      Math.abs(newPosition.x - lastCameraPosition.value.x) > 2 ||
+      Math.abs(newPosition.y - lastCameraPosition.value.y) > 2 ||
+      Math.abs(newPosition.z - lastCameraPosition.value.z) > 2;
+
+    const rotationChanged =
+      Math.abs(camera.rotation.x - lastCameraRotation.value.x) > 0.1 ||
+      Math.abs(camera.rotation.y - lastCameraRotation.value.y) > 0.1 ||
+      Math.abs(camera.rotation.z - lastCameraRotation.value.z) > 0.1;
+
+    if (positionChanged || rotationChanged) {
+      updateVisiblePhotos();
+      lastCameraPosition.value = newPosition;
+      lastCameraRotation.value = {
+        x: camera.rotation.x,
+        y: camera.rotation.y,
+        z: camera.rotation.z,
+      };
+    }
+
+    currentPosition.value = newPosition;
   }
 
-  // Update billboard rotations if enabled
+  // Update billboard rotations if enabled (solo para fotos visibles)
   if (useBillboarding.value) {
     updateBillboardRotations();
   }
 
-  // Update photo opacity based on distance to camera
+  // Update photo opacity based on distance to camera (solo para fotos visibles)
   updatePhotoOpacity();
 
   animationId = requestAnimationFrame(animate);
