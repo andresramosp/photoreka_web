@@ -202,6 +202,61 @@
           </p>
         </div>
 
+        <!-- Distance Opacity Toggle -->
+        <div class="billboard-toggle">
+          <label class="toggle-label">
+            <input
+              type="checkbox"
+              v-model="useDistanceOpacity"
+              @click.stop
+              @mousedown.stop
+            />
+            <span class="checkbox-custom"></span>
+            Transparencia por distancia
+          </label>
+          <p class="toggle-description">
+            {{
+              useDistanceOpacity
+                ? "Fotos lejanas más transparentes"
+                : "Todas las fotos opacas"
+            }}
+          </p>
+        </div>
+
+        <!-- Current Position Indicator -->
+        <div class="position-indicator">
+          <h4>Tu Posición Actual:</h4>
+          <div class="position-values">
+            <div class="position-axis">
+              <span class="axis-label"
+                >{{ currentCriteriaValues.x.criteria }}:</span
+              >
+              <span class="axis-value">{{
+                currentCriteriaValues.x.value
+              }}</span>
+            </div>
+            <div class="position-axis">
+              <span class="axis-label"
+                >{{ currentCriteriaValues.y.criteria }}:</span
+              >
+              <span class="axis-value">{{
+                currentCriteriaValues.y.value
+              }}</span>
+            </div>
+            <div class="position-axis">
+              <span class="axis-label"
+                >{{ currentCriteriaValues.z.criteria }}:</span
+              >
+              <span class="axis-value">{{
+                currentCriteriaValues.z.value
+              }}</span>
+            </div>
+          </div>
+          <p class="position-description">
+            Estos valores reflejan el tipo de fotos en tu área actual
+          </p>
+        </div>
+
         <!-- Lighting Info -->
         <!-- <div class="lighting-info">
           <h4>Iluminación Mejorada:</h4>
@@ -262,6 +317,9 @@ const cameraRef = ref();
 // Billboarding control
 const useBillboarding = ref(true);
 
+// Distance-based opacity control
+const useDistanceOpacity = ref(true);
+
 // First Person Controls
 const fpControls = ref(null);
 let animationId = null;
@@ -294,6 +352,14 @@ const artisticAxesConfig = ref({
 
 // Control de escala para espaciado de fotos
 const spaceScale = ref(1.0); // Factor multiplicador para el espaciado
+
+// Current camera position tracking
+const currentPosition = ref({ x: 0, y: 0, z: 50 });
+
+// Computed property to get current criteria values
+const currentCriteriaValues = computed(() => {
+  return convertPositionToCriteria(currentPosition.value);
+});
 
 // Grid key for reactivity
 const gridKey = ref(0);
@@ -396,12 +462,17 @@ const createPhotoMaterial = async (photo) => {
     // Use rate limited texture loading
     const texture = await loadTextureWithLimit(textureLoader, imageUrl);
 
+    // Fix texture flipping for billboard effect
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.repeat.x = -1; // Flip horizontally to counteract mirroring
+
     // Use MeshBasicMaterial for consistent appearance without lighting effects
     // This ensures photos always look bright and consistent
+    // Enable transparency for distance-based opacity effect
     return new THREE.MeshBasicMaterial({
       map: texture,
       side: THREE.DoubleSide,
-      transparent: false,
+      transparent: true,
       opacity: 1.0,
     });
   } catch (error) {
@@ -540,6 +611,61 @@ const separateOverlappingPositions = (photoPositions, minDistance = 0.8) => {
   return result;
 };
 
+// Function to convert camera coordinates to artistic criteria values
+const convertPositionToCriteria = (position) => {
+  if (!scoreRanges.value) {
+    return {
+      x: {
+        criteria: getCriteriaLabel(artisticAxesConfig.value.x),
+        value: "N/A",
+      },
+      y: {
+        criteria: getCriteriaLabel(artisticAxesConfig.value.y),
+        value: "N/A",
+      },
+      z: {
+        criteria: getCriteriaLabel(artisticAxesConfig.value.z),
+        value: "N/A",
+      },
+    };
+  }
+
+  const config = artisticAxesConfig.value;
+  const effectiveScale = config.scale * spaceScale.value;
+
+  // Reverse the mapping from calculateArtisticPosition
+  // Convert from world coordinate back to normalized score (0-1), then to actual score
+  const normalizedX =
+    (position.x - config.offset.x) / (2 * effectiveScale) + 0.5;
+  const normalizedY =
+    (position.y - config.offset.y) / (2 * effectiveScale) + 0.5;
+  const normalizedZ =
+    (position.z - config.offset.z) / (2 * effectiveScale) + 0.5;
+
+  // Clamp to 0-1 range and convert to actual score values
+  const xValue =
+    Math.max(0, Math.min(1, normalizedX)) * scoreRanges.value.x.range +
+    scoreRanges.value.x.min;
+  const yValue =
+    Math.max(0, Math.min(1, normalizedY)) * scoreRanges.value.y.range +
+    scoreRanges.value.y.min;
+  const zValue =
+    Math.max(0, Math.min(1, normalizedZ)) * scoreRanges.value.z.range +
+    scoreRanges.value.z.min;
+
+  return {
+    x: { criteria: getCriteriaLabel(config.x), value: xValue.toFixed(1) },
+    y: { criteria: getCriteriaLabel(config.y), value: yValue.toFixed(1) },
+    z: { criteria: getCriteriaLabel(config.z), value: zValue.toFixed(1) },
+  };
+};
+
+// Helper function to get readable label for criteria
+const getCriteriaLabel = (criteriaValue) => {
+  const metric = availableMetrics.find((m) => m.value === criteriaValue);
+  return metric ? metric.label : criteriaValue;
+};
+
 // Function to calculate artistic position based on scores with dynamic mapping
 const calculateArtisticPosition = (photo, scoreRanges) => {
   const artisticScores = photo.descriptions?.artistic_scores;
@@ -589,29 +715,22 @@ const calculateArtisticPosition = (photo, scoreRanges) => {
 
 // Function to calculate billboard rotation (face camera)
 const calculateBillboardRotation = (photoPosition, cameraPosition) => {
-  // Calculate direction from photo to camera
-  const direction = new THREE.Vector3(
-    cameraPosition.x - photoPosition[0],
-    cameraPosition.y - photoPosition[1],
-    cameraPosition.z - photoPosition[2]
+  // Create a temporary object to calculate the correct rotation
+  const tempObject = new THREE.Object3D();
+  tempObject.position.set(...photoPosition);
+
+  // Instead of looking at camera and then rotating,
+  // make it look away from camera (so the front face points toward camera)
+  const awayFromCamera = new THREE.Vector3(
+    photoPosition[0] - (cameraPosition.x - photoPosition[0]), // Point opposite to camera
+    photoPosition[1] - (cameraPosition.y - photoPosition[1]),
+    photoPosition[2] - (cameraPosition.z - photoPosition[2])
   );
 
-  // Normalize the direction vector
-  direction.normalize();
-
-  // Calculate rotation to face the camera
-  // We want the photo to face the camera, so we look from photo towards camera
-  const lookAt = new THREE.Matrix4().lookAt(
-    new THREE.Vector3(...photoPosition),
-    new THREE.Vector3(cameraPosition.x, cameraPosition.y, cameraPosition.z),
-    new THREE.Vector3(0, 1, 0) // Up vector
-  );
-
-  // Extract rotation from the matrix
-  const rotation = new THREE.Euler().setFromRotationMatrix(lookAt);
+  tempObject.lookAt(awayFromCamera);
 
   // Return rotation as array [x, y, z]
-  return [rotation.x, rotation.y, rotation.z];
+  return [tempObject.rotation.x, tempObject.rotation.y, tempObject.rotation.z];
 };
 
 // Function to update billboard rotations for all photos
@@ -634,6 +753,86 @@ const updateBillboardRotations = () => {
       cameraPosition
     );
   });
+};
+
+// Distance-based opacity configuration
+const MIN_DISTANCE = 20; // Distance where photo is fully opaque (opacity = 1.0)
+const MAX_DISTANCE = 80; // Distance where photo reaches minimum opacity
+const MIN_OPACITY = 0.2; // Minimum opacity for distant photos
+
+// Performance optimization: only update opacity every few frames
+let opacityUpdateCounter = 0;
+const OPACITY_UPDATE_FREQUENCY = 3; // Update every 3 frames
+
+// Function to update photo opacity based on distance to camera
+const updatePhotoOpacity = () => {
+  // Check if distance opacity is enabled
+  if (!useDistanceOpacity.value) {
+    // Reset all photos to full opacity if disabled
+    photoPositions.value.forEach((photo) => {
+      if (photo.material) {
+        photo.material.opacity = 1.0;
+      }
+    });
+    return;
+  }
+
+  // Performance optimization: don't update every frame
+  opacityUpdateCounter++;
+  if (opacityUpdateCounter < OPACITY_UPDATE_FREQUENCY) {
+    return;
+  }
+  opacityUpdateCounter = 0;
+
+  if (!cameraRef.value || photoPositions.value.length === 0) {
+    return;
+  }
+
+  const camera = cameraRef.value;
+  const cameraPosition = camera.position;
+
+  let updatedCount = 0;
+
+  photoPositions.value.forEach((photo) => {
+    if (!photo.material) return;
+
+    // Calculate distance between camera and photo
+    const photoPos = new THREE.Vector3(...photo.position);
+    const cameraPos = new THREE.Vector3(
+      cameraPosition.x,
+      cameraPosition.y,
+      cameraPosition.z
+    );
+    const distance = cameraPos.distanceTo(photoPos);
+
+    // Calculate opacity based on distance
+    let opacity = 1.0;
+    if (distance > MIN_DISTANCE) {
+      // Use smooth interpolation between min and max distance
+      const normalizedDistance = Math.min(
+        (distance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE),
+        1.0
+      );
+      // Apply a smooth curve for more natural transition
+      const easedDistance = normalizedDistance * normalizedDistance;
+      opacity = 1.0 - easedDistance * (1.0 - MIN_OPACITY);
+    }
+
+    // Only update if opacity changed significantly
+    const currentOpacity = photo.material.opacity;
+    if (Math.abs(currentOpacity - opacity) > 0.05) {
+      photo.material.opacity = opacity;
+      updatedCount++;
+    }
+  });
+
+  // Debug log (remove after testing)
+  if (updatedCount > 0) {
+    console.log(
+      `Updated opacity for ${updatedCount} photos, camera at:`,
+      cameraPosition
+    );
+  }
 };
 
 // Function to calculate subtle rotation based on artistic scores
@@ -713,19 +912,24 @@ const loadPhotoMaterials = async () => {
   // Separar fotos que están en posiciones muy cercanas para evitar flickering
   const separatedPhotoData = separateOverlappingPositions(photoData);
 
-  // Cargar materiales uno por uno para progreso coherente
+  // Iniciar carga de todas las texturas en paralelo (respetando el rate limit)
   const positions = [];
-  for (const photoInfo of separatedPhotoData) {
+  const materialPromises = separatedPhotoData.map(async (photoInfo, index) => {
     const material = await createPhotoMaterial(photoInfo);
-    positions.push({
+
+    // Actualizar progreso de forma thread-safe
+    loadedCount.value++;
+
+    return {
       ...photoInfo,
       material,
       billboardRotation: [0, 0, 0], // Initialize billboard rotation
-    });
+    };
+  });
 
-    // Actualizar progreso después de cada textura cargada
-    loadedCount.value = positions.length;
-  }
+  // Esperar a que todas las texturas se carguen
+  const loadedPositions = await Promise.all(materialPromises);
+  positions.push(...loadedPositions);
 
   photoPositions.value = positions;
   isLoadingTextures.value = false;
@@ -750,10 +954,23 @@ const animate = () => {
     fpControls.value.update();
   }
 
+  // Update current position tracking
+  if (cameraRef.value) {
+    const camera = cameraRef.value;
+    currentPosition.value = {
+      x: camera.position.x,
+      y: camera.position.y,
+      z: camera.position.z,
+    };
+  }
+
   // Update billboard rotations if enabled
   if (useBillboarding.value) {
     updateBillboardRotations();
   }
+
+  // Update photo opacity based on distance to camera
+  updatePhotoOpacity();
 
   animationId = requestAnimationFrame(animate);
 };
@@ -1128,6 +1345,58 @@ onUnmounted(() => {
   margin: 5px 0 0 24px;
   font-size: 0.75em;
   color: #4ade80;
+  font-style: italic;
+}
+
+/* Position Indicator */
+.position-indicator {
+  margin: 15px 0;
+  padding: 12px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 6px;
+  background: rgba(139, 92, 246, 0.05);
+}
+
+.position-indicator h4 {
+  margin: 0 0 10px 0;
+  font-size: 0.9em;
+  color: #8b5cf6;
+  font-weight: 600;
+}
+
+.position-values {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.position-axis {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 4px;
+}
+
+.axis-label {
+  font-size: 0.8em;
+  color: #e5e5e5;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.axis-value {
+  font-size: 0.8em;
+  color: #8b5cf6;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.position-description {
+  margin: 8px 0 0 0;
+  font-size: 0.75em;
+  color: #8b5cf6;
   font-style: italic;
 }
 
