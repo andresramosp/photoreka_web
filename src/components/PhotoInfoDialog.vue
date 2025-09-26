@@ -1477,7 +1477,9 @@ if (typeof window !== "undefined") {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  max-height: calc(90vh - 32px); /* Account for compact card header */
+  max-height: calc(
+    90vh - 80px
+  ); /* Account for compact card header and padding */
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -1649,33 +1651,7 @@ if (typeof window !== "undefined") {
   height: 100%;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-}
-
-.visual-aspects-content::-webkit-scrollbar,
-.exif-data-content::-webkit-scrollbar,
-.photo-info-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.visual-aspects-content::-webkit-scrollbar-track,
-.exif-data-content::-webkit-scrollbar-track,
-.photo-info-content::-webkit-scrollbar-track {
-  background: var(--bg-surface);
-  border-radius: 3px;
-}
-
-.visual-aspects-content::-webkit-scrollbar-thumb,
-.exif-data-content::-webkit-scrollbar-thumb,
-.photo-info-content::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 3px;
-}
-
-.visual-aspects-content::-webkit-scrollbar-thumb:hover,
-.exif-data-content::-webkit-scrollbar-thumb:hover,
-.photo-info-content::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  overflow: visible;
 }
 
 .visual-aspects-container {
@@ -1848,26 +1824,7 @@ if (typeof window !== "undefined") {
 
 .tab-panel-content {
   height: 100%;
-  max-height: 500px;
-  overflow-y: auto;
-}
-
-.tab-panel-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.tab-panel-content::-webkit-scrollbar-track {
-  background: var(--bg-surface);
-  border-radius: 3px;
-}
-
-.tab-panel-content::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 3px;
-}
-
-.tab-panel-content::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
+  overflow: visible;
 }
 
 .metadata-grid {
@@ -2223,6 +2180,26 @@ if (typeof window !== "undefined") {
   background: var(--bg-surface);
   border-radius: var(--radius-md);
   border-left: 4px solid var(--primary-color);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.artistic-scores-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.artistic-scores-grid::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+  border-radius: 3px;
+}
+
+.artistic-scores-grid::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.artistic-scores-grid::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
 }
 
 .score-item {
