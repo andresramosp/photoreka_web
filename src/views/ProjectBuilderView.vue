@@ -458,6 +458,7 @@ const iterationsRecord = ref({});
 const currentIteration = ref(1);
 const maxPageAttempts = ref(false);
 const newlyArrivedPhotos = ref(new Set());
+const lastCursor = ref(null); // ID of last photo for cursor-based pagination
 
 // Computed properties
 const hasSearchQuery = computed(() => searchQuery.value.trim().length > 0);
@@ -532,6 +533,18 @@ const registerSocketListeners = () => {
 
       iterationsRecord.value[iterNum].photos.push(...newPhotos);
     });
+
+    // Update cursor with the ID of the last photo received
+    if (data.results) {
+      const allIterations = Object.values(data.results);
+      const lastIteration = allIterations[allIterations.length - 1];
+      if (lastIteration && lastIteration.length > 0) {
+        const lastPhoto = lastIteration[lastIteration.length - 1];
+        if (lastPhoto && lastPhoto.photo && lastPhoto.photo.id) {
+          lastCursor.value = lastPhoto.photo.id;
+        }
+      }
+    }
 
     // Update candidate photos with all results up to current iteration
     updateCandidatePhotos();
@@ -698,6 +711,7 @@ const searchPhotosApi = async (isInitial = false) => {
     currentIteration.value = 1;
     hasMoreResults.value = true;
     newlyArrivedPhotos.value.clear(); // Clear newly arrived photos set
+    lastCursor.value = null; // Reset cursor for new search
     console.log("Performing curation search:", searchQuery.value);
   } else {
     isLoadingMore.value = true;
@@ -712,6 +726,7 @@ const searchPhotosApi = async (isInitial = false) => {
         searchMode: "curation",
         minMatchScore: minMatchScore.value,
         minResults: minResults.value,
+        cursor: lastCursor.value, // Add cursor for pagination
       },
     };
     await api.post("/api/search/semantic/stream", payload);
@@ -745,6 +760,7 @@ const clearSearch = () => {
   hasMoreResults.value = true;
   iterationFinished.value = false;
   newlyArrivedPhotos.value.clear(); // Clear newly arrived photos set
+  lastCursor.value = null; // Reset cursor for new search
 
   maxPageAttempts.value = false;
   minResults.value = 1; // Reset to default
@@ -843,6 +859,11 @@ const showPhotoInfo = (photo) => {
 };
 
 const onRatingChange = (rating) => {
+  // Reset cursor when filter changes to avoid pagination issues
+  if (minMatchScore.value !== rating && candidatePhotos.value.length > 0) {
+    lastCursor.value = null;
+  }
+
   minMatchScore.value = rating;
   console.log("Min rating filter set to:", minMatchScore.value);
 
@@ -856,6 +877,11 @@ const onRatingChange = (rating) => {
 };
 
 const onResultsChange = (results) => {
+  // Reset cursor when filter changes to avoid pagination issues
+  if (minResults.value !== results && candidatePhotos.value.length > 0) {
+    lastCursor.value = null;
+  }
+
   minResults.value = results;
   console.log("Min results filter set to:", minResults.value);
 };

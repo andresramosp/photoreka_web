@@ -161,6 +161,7 @@ export const useSearchStore = defineStore("search", () => {
       hasMoreIterations: false,
       maxPageAttempts: false,
       hasSearched: false,
+      lastCursor: null, // ID of last photo for cursor-based pagination
     },
     tags: {
       includedTags: [],
@@ -171,6 +172,7 @@ export const useSearchStore = defineStore("search", () => {
       hasMoreIterations: false,
       maxPageAttempts: false,
       hasSearched: false,
+      lastCursor: null, // ID of last photo for cursor-based pagination
     },
     topological: {
       left: "",
@@ -182,6 +184,7 @@ export const useSearchStore = defineStore("search", () => {
       hasMoreIterations: false,
       maxPageAttempts: false,
       hasSearched: false,
+      lastCursor: null, // ID of last photo for cursor-based pagination
     },
   });
 
@@ -367,17 +370,27 @@ export const useSearchStore = defineStore("search", () => {
     state.iterationsRecord = {};
     state.hasMoreIterations = false;
     state.maxPageAttempts = false;
+    state.lastCursor = null; // Reset cursor for new search
   }
 
   function updateSearchResults(data) {
     const state = currentSearchState.value;
 
     // Actualizar iterationsRecord con los nuevos resultados
+    let allNewPhotos = [];
     Object.entries(data.results).forEach(([iter, items]) => {
+      const photos = items.map((i) => i.photo);
       state.iterationsRecord[iter] = {
-        photos: items.map((i) => i.photo),
+        photos: photos,
       };
+      allNewPhotos.push(...photos);
     });
+
+    // Update cursor to the ID of the last photo received
+    if (allNewPhotos.length > 0) {
+      state.lastCursor = allNewPhotos[allNewPhotos.length - 1].id;
+    }
+
     state.hasMoreIterations = data.hasMore;
     state.iteration = data.iteration + 1;
     state.hasSearched = true;

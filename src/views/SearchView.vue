@@ -1210,6 +1210,8 @@ const collectionsOptions = computed(() => {
 });
 
 function setGridColumns(n) {
+  // NO resetear cursor - el usuario quiere seguir viendo los mismos resultados
+  // solo con diferente layout de columnas
   gridColumns.value = n;
 }
 
@@ -1337,6 +1339,7 @@ async function searchPhotos() {
       collections: selectedCollections.value,
       visualAspects: searchStore.selectedVisualAspects,
       artisticScores: searchStore.selectedArtisticScores,
+      cursor: currentState.lastCursor, // Add cursor for pagination
     };
 
     let payload;

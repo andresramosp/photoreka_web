@@ -45,13 +45,13 @@ const scoreScale = {
     },
     {
       value: 9,
-      label: "Excellent",
+      label: "Outstanding",
       color: "score-excellent",
       bgColor: "#6366f1",
     },
     {
       value: 10,
-      label: "Outstanding",
+      label: "Masterpiece",
       color: "score-outstanding",
       bgColor: "#7c3aed",
     },
