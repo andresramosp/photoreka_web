@@ -65,7 +65,7 @@
             <span>Download selected photos</span>
           </n-tooltip>
           <n-tooltip
-            v-if="!props.collectionId && displayAddToCollection"
+            v-if="displayAddToCollection"
             placement="bottom"
             trigger="hover"
           >
