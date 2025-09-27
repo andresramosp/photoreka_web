@@ -503,9 +503,12 @@
 
                     <!-- Genre Presets -->
                     <div class="genre-presets-container">
-                      <!-- <div class="genre-header">
+                      <div class="genre-header">
                         <h6 class="genre-title">Photography Genre Presets</h6>
-                      </div> -->
+                        <!-- <p class="genre-subtitle">
+                          Quick configurations for different photography styles
+                        </p> -->
+                      </div>
                       <div class="genre-buttons">
                         <n-tooltip
                           trigger="hover"
