@@ -1,7 +1,7 @@
 import pLimit from "p-limit";
 
 // Rate limiting específico para texturas Three.js para evitar 429s de Cloudflare
-const textureLimit = pLimit(50); // Max 3 texturas concurrentes
+const textureLimit = pLimit(10); // Max 3 texturas concurrentes
 
 /**
  * Carga una textura Three.js con rate limiting

@@ -1,7 +1,35 @@
 <template>
   <div class="photos-3d-container" ref="containerRef">
-    <!-- First Person 3D Canvas -->
-    <TresCanvas v-bind="gl" ref="canvasRef">
+    <!-- Loading Screen -->
+    <div v-if="isLoading" class="loading-screen">
+      <div class="loading-content">
+        <div class="spinner"></div>
+        <h2>Cargando visualización 3D</h2>
+        <p>{{ loadingProgress }}% completado</p>
+        <div class="progress-bar">
+          <div
+            class="progress-fill"
+            :style="{ width: loadingProgress + '%' }"
+          ></div>
+        </div>
+        <p class="progress-text">
+          Cargadas {{ totalLoadedPhotos }} fotos (página {{ loadedPages }}{{ pagination ? ` de ${pagination.totalPages}` : '' }})
+        </p>
+        <p class="chunk-info">Chunk: {{ getCurrentChunkLabel() }}</p>
+      </div>
+    </div>
+
+    <!-- Error Screen -->
+    <div v-else-if="error" class="error-screen">
+      <div class="error-content">
+        <h2>Error al cargar la visualización 3D</h2>
+        <p>{{ error }}</p>
+        <button @click="retryLoad" class="retry-btn">Reintentar</button>
+      </div>
+    </div>
+
+    <!-- 3D Canvas -->
+    <TresCanvas v-else-if="photos3D.length > 0" v-bind="gl" ref="canvasRef">
       <TresPerspectiveCamera
         ref="cameraRef"
         :position="[0, 0, 50]"
@@ -11,181 +39,58 @@
         :far="2000"
       />
 
-      <!-- Basic scene setup -->
+      <!-- Lighting -->
       <primitive :object="lightsGroup" />
 
-      <!-- Photo planes - solo mostrar cuando están cargadas Y son visibles -->
+      <!-- Photo planes - renderizar solo fotos visibles -->
       <template
-        v-if="!isLoadingTextures && !isInitializing"
         v-for="(photo, index) in visiblePhotos"
         :key="photo.id"
       >
         <TresMesh
           :position="photo.position"
-          :rotation="useBillboarding ? photo.billboardRotation : photo.rotation"
+          :rotation="useBillboarding ? photo.billboardRotation : [0, 0, 0]"
         >
           <primitive :object="planeGeometry" />
           <primitive :object="photo.material" v-if="photo.material" />
         </TresMesh>
       </template>
 
-      <!-- Grid -->
-      <primitive :object="gridHelper" :key="gridKey" />
+      <!-- Grid helper -->
+      <primitive :object="gridHelper" />
     </TresCanvas>
 
     <!-- UI Overlay -->
     <div class="ui-overlay" @click.stop @mousedown.stop>
       <div class="info-panel" @click.stop @mousedown.stop @wheel.stop>
-        <p v-if="isInitializing">Preparando...</p>
-        <p v-else-if="isLoadingTextures">
-          Cargando texturas... {{ loadedCount }}/{{ totalPhotos }}
-        </p>
-        <p v-else-if="photos.length === 0">No hay fotos disponibles</p>
-        <p v-else>
-          Fotos cargadas: {{ photoPositions.length }}/{{ photos.length }}
-          <br />
-          <span
-            v-if="visiblePhotos.length < photoPositions.length"
-            style="color: #4ade80; font-size: 0.8em"
+        <h3>Visualización 3D</h3>
+        
+        <!-- Chunk selector -->
+        <div class="chunk-selector">
+          <h4>Tipo de embedding:</h4>
+          <select 
+            v-model="currentChunk" 
+            @change="onChunkChange"
+            class="chunk-select"
           >
-            Visibles: {{ visiblePhotos.length }} (Frustum Culling activo)
-          </span>
-        </p>
-        <!-- Axis Configuration Controls -->
-        <div class="axis-config">
-          <h4>Configuración de Ejes:</h4>
-          <div class="axis-control">
-            <label for="x-axis">Eje X (izq./der.):</label>
-            <select
-              id="x-axis"
-              v-model="artisticAxesConfig.x"
-              @change="onAxisChange"
-              @click.stop
-              @mousedown.stop
-              class="axis-select"
+            <option 
+              v-for="option in chunkOptions" 
+              :key="option.value" 
+              :value="option.value"
             >
-              <option
-                v-for="metric in availableMetrics"
-                :key="metric.value"
-                :value="metric.value"
-              >
-                {{ metric.label }}
-              </option>
-            </select>
-          </div>
-          <div class="axis-control">
-            <label for="y-axis">Eje Y (arr./ab.):</label>
-            <select
-              id="y-axis"
-              v-model="artisticAxesConfig.y"
-              @change="onAxisChange"
-              @click.stop
-              @mousedown.stop
-              class="axis-select"
-            >
-              <option
-                v-for="metric in availableMetrics"
-                :key="metric.value"
-                :value="metric.value"
-              >
-                {{ metric.label }}
-              </option>
-            </select>
-          </div>
-          <div class="axis-control">
-            <label for="z-axis">Eje Z (atrás/adel.):</label>
-            <select
-              id="z-axis"
-              v-model="artisticAxesConfig.z"
-              @change="onAxisChange"
-              @click.stop
-              @mousedown.stop
-              class="axis-select"
-            >
-              <option
-                v-for="metric in availableMetrics"
-                :key="metric.value"
-                :value="metric.value"
-              >
-                {{ metric.label }}
-              </option>
-            </select>
-          </div>
+              {{ option.label }}
+            </option>
+          </select>
         </div>
 
-        <!-- Space Scale Control -->
-        <div class="space-control">
-          <h4>Espaciado de Fotos:</h4>
-          <div class="scale-control">
-            <label for="space-scale"
-              >Factor de Escala: {{ spaceScale.toFixed(1) }}x</label
-            >
-            <input
-              id="space-scale"
-              type="range"
-              min="0.5"
-              max="3.0"
-              step="0.1"
-              v-model.number="spaceScale"
-              @input="onScaleChange"
-              @click.stop
-              @mousedown.stop
-              class="scale-slider"
-            />
-            <div class="scale-labels">
-              <span>Más juntas</span>
-              <span>Más separadas</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- <div class="axes-info">
-          <h4>Distribución Artística (Rangos Dinámicos):</h4>
-          <ul>
-            <li>
-              <strong>Eje X</strong> (izq./der.): {{ artisticAxesConfig.x }}
-              <span v-if="scoreRanges" class="range-info">
-                ({{ scoreRanges.x.min.toFixed(1) }} -
-                {{ scoreRanges.x.max.toFixed(1) }})
-              </span>
-            </li>
-            <li>
-              <strong>Eje Y</strong> (arr./ab.): {{ artisticAxesConfig.y }}
-              <span v-if="scoreRanges" class="range-info">
-                ({{ scoreRanges.y.min.toFixed(1) }} -
-                {{ scoreRanges.y.max.toFixed(1) }})
-              </span>
-            </li>
-            <li>
-              <strong>Eje Z</strong> (atrás/adel.): {{ artisticAxesConfig.z }}
-              <span v-if="scoreRanges" class="range-info">
-                ({{ scoreRanges.z.min.toFixed(1) }} -
-                {{ scoreRanges.z.max.toFixed(1) }})
-              </span>
-            </li>
-          </ul>
-        </div> -->
-        <p>Navegación estilo videojuego:</p>
-        <ul>
-          <li><strong>WASD</strong>: Moverse</li>
-          <li><strong>Ratón</strong>: Mirar (click para activar)</li>
-          <li><strong>Rueda</strong>: Avanzar/Retroceder</li>
-          <li><strong>Q/Espacio</strong>: Subir</li>
-          <li><strong>E/Shift</strong>: Bajar/Correr</li>
-        </ul>
-        <!-- <div class="controls-status" v-if="fpControls && fpControls.mouseState">
-          <p
-            class="status-indicator"
-            :class="{ active: fpControls.mouseState.value?.isPointerLocked }"
-          >
-            <span class="indicator-dot"></span>
-            {{
-              fpControls.mouseState.value?.isPointerLocked
-                ? "Controles activos"
-                : "Click para activar controles"
-            }}
+        <!-- Stats -->
+        <div class="stats-info">
+          <p>Fotos cargadas: {{ photos3D.length }}</p>
+          <p>Fotos visibles: {{ visiblePhotos.length }}</p>
+          <p v-if="pagination">
+            Total disponible: {{ pagination.total }}
           </p>
-        </div> -->
+        </div>
 
         <!-- Billboarding Toggle -->
         <div class="billboard-toggle">
@@ -194,18 +99,12 @@
               type="checkbox"
               v-model="useBillboarding"
               @change="onBillboardingToggle"
-              @click.stop
-              @mousedown.stop
             />
             <span class="checkbox-custom"></span>
-            Fotos siempre encarando al usuario
+            Billboarding (mirar cámara)
           </label>
           <p class="toggle-description">
-            {{
-              useBillboarding
-                ? "Las fotos rotan para encararte"
-                : "Rotación basada en scores artísticos"
-            }}
+            Las fotos siempre miran hacia la cámara
           </p>
         </div>
 
@@ -215,197 +114,88 @@
             <input
               type="checkbox"
               v-model="useDistanceOpacity"
-              @click.stop
-              @mousedown.stop
             />
             <span class="checkbox-custom"></span>
-            Transparencia por distancia
+            Opacidad por distancia
           </label>
           <p class="toggle-description">
-            {{
-              useDistanceOpacity
-                ? "Fotos lejanas más transparentes"
-                : "Todas las fotos opacas"
-            }}
+            Las fotos lejanas se ven más transparentes
           </p>
         </div>
 
-        <!-- Current Position Indicator -->
+        <!-- Current Position -->
         <div class="position-indicator">
-          <h4>Tu Posición Actual:</h4>
+          <h4>Posición actual:</h4>
           <div class="position-values">
             <div class="position-axis">
-              <span class="axis-label"
-                >{{ currentCriteriaValues.x.criteria }}:</span
-              >
-              <span class="axis-value">{{
-                currentCriteriaValues.x.value
-              }}</span>
+              <span class="axis-label">X:</span>
+              <span class="axis-value">{{ currentPosition.x.toFixed(1) }}</span>
             </div>
             <div class="position-axis">
-              <span class="axis-label"
-                >{{ currentCriteriaValues.y.criteria }}:</span
-              >
-              <span class="axis-value">{{
-                currentCriteriaValues.y.value
-              }}</span>
+              <span class="axis-label">Y:</span>
+              <span class="axis-value">{{ currentPosition.y.toFixed(1) }}</span>
             </div>
             <div class="position-axis">
-              <span class="axis-label"
-                >{{ currentCriteriaValues.z.criteria }}:</span
-              >
-              <span class="axis-value">{{
-                currentCriteriaValues.z.value
-              }}</span>
+              <span class="axis-label">Z:</span>
+              <span class="axis-value">{{ currentPosition.z.toFixed(1) }}</span>
             </div>
           </div>
-          <p class="position-description">
-            Estos valores reflejan el tipo de fotos en tu área actual
-          </p>
         </div>
 
-        <!-- Lighting Info -->
-        <!-- <div class="lighting-info">
-          <h4>Iluminación Mejorada:</h4>
+        <!-- Controls Help -->
+        <div class="controls-info">
+          <h4>Controles:</h4>
           <ul>
-            <li><strong>Luz ambiente</strong> aumentada (0.8)</li>
-            <li>
-              <strong>3 luces direccionales</strong> desde múltiples ángulos
-            </li>
-            <li><strong>Material básico</strong> para consistencia visual</li>
+            <li><strong>WASD:</strong> Movimiento</li>
+            <li><strong>Mouse:</strong> Vista</li>
+            <li><strong>Shift:</strong> Correr</li>
+            <li><strong>Espacio:</strong> Subir</li>
+            <li><strong>C:</strong> Bajar</li>
           </ul>
-          <p class="lighting-note">
-            Las fotos siempre se ven bien iluminadas desde cualquier ángulo
-          </p>
-        </div> -->
-      </div>
-    </div>
-
-    <!-- Loading Screen -->
-    <div v-if="isLoadingTextures || isInitializing" class="loading-screen">
-      <div class="loading-content">
-        <div class="spinner"></div>
-        <h2 v-if="isInitializing">Preparando Vista 3D</h2>
-        <h2 v-else>Cargando Vista 3D</h2>
-        <p v-if="isInitializing">Obteniendo fotos...</p>
-        <template v-else>
-          <p>Preparando {{ totalPhotos }} fotos...</p>
-          <div class="progress-bar">
-            <div
-              class="progress-fill"
-              :style="{ width: progressPercentage + '%' }"
-            ></div>
-          </div>
-          <p class="progress-text">
-            {{ loadedCount }}/{{ totalPhotos }} ({{
-              Math.round(progressPercentage)
-            }}%) <br />
-          </p>
-        </template>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { TresCanvas } from "@tresjs/core";
-import { usePhotosStore } from "@/stores/photos.js";
+import { use3DPhotos } from "@/composables/use3DPhotos.js";
 import { loadTextureWithLimit } from "@/utils/rateLimiter.js";
 import { useFirstPersonControls } from "@/composables/useFirstPersonControls.js";
 import * as THREE from "three";
 
-// Store
-const photosStore = usePhotosStore();
+// Composable para manejo de fotos 3D
+const {
+  photos3D,
+  isLoading,
+  currentChunk,
+  pagination,
+  error,
+  loadedPages,
+  totalLoadedPhotos,
+  chunkOptions,
+  loadingProgress,
+  isLoadingComplete,
+  loadAllPhotos,
+  changeChunk,
+  reset
+} = use3DPhotos();
+
+// Referencias del DOM y Three.js
 const containerRef = ref();
 const canvasRef = ref();
 const cameraRef = ref();
 
-// Billboarding control
+// Estado del componente
 const useBillboarding = ref(true);
-
-// Distance-based opacity control
 const useDistanceOpacity = ref(true);
+const currentPosition = ref({ x: 0, y: 0, z: 50 });
 
 // First Person Controls
 const fpControls = ref(null);
 let animationId = null;
-
-// Available artistic metrics options
-const availableMetrics = [
-  { value: "storytelling", label: "Storytelling" },
-  { value: "visual_games", label: "Visual Games" },
-  { value: "humor", label: "Humor" },
-  { value: "composition", label: "Composition" },
-  { value: "aesthetic_quality", label: "Aesthetic Quality" },
-  { value: "candidness", label: "Candidness" },
-  { value: "message", label: "Message" },
-  { value: "originality", label: "Originality" },
-];
-
-// Configuración de ejes artísticos (ahora configurable)
-const artisticAxesConfig = ref({
-  x: "storytelling", // Eje X: Capacidad narrativa
-  y: "visual_games", // Eje Y: Juegos visuales
-  z: "humor", // Eje Z: Composición
-  scale: 45, // Factor de escala aumentado para mejor uso del espacio
-  offset: {
-    // Offset para centrar el espacio
-    x: 0,
-    y: -5, // Ajustado para mejor centrado vertical
-    z: 0,
-  },
-});
-
-// Control de escala para espaciado de fotos
-const spaceScale = ref(1.0); // Factor multiplicador para el espaciado
-
-// Current camera position tracking
-const currentPosition = ref({ x: 0, y: 0, z: 50 });
-
-// Computed property to get current criteria values
-const currentCriteriaValues = computed(() => {
-  return convertPositionToCriteria(currentPosition.value);
-});
-
-// Grid key for reactivity
-const gridKey = ref(0);
-
-// Functions to handle configuration changes
-const onAxisChange = async () => {
-  if (photoPositions.value.length > 0) {
-    await recalculatePositions();
-  }
-};
-
-const onScaleChange = async () => {
-  updateGridSize(); // Update grid to match new scale
-  if (photoPositions.value.length > 0) {
-    await recalculatePositions();
-  }
-};
-
-// Function to recalculate positions without reloading materials
-const recalculatePositions = async () => {
-  if (!scoreRanges.value || photoPositions.value.length === 0) return;
-
-  const updatedPositions = photoPositions.value.map((photo) => {
-    const position = calculateArtisticPosition(photo, scoreRanges.value);
-    return {
-      ...photo,
-      position,
-    };
-  });
-
-  // Apply separation again for new positions
-  const separatedPositions = separateOverlappingPositions(updatedPositions);
-  photoPositions.value = separatedPositions;
-
-  // Update billboard rotations if enabled
-  if (useBillboarding.value) {
-    updateBillboardRotations();
-  }
-};
 
 // Canvas configuration
 const gl = ref({
@@ -414,474 +204,87 @@ const gl = ref({
 });
 
 // Three.js objects - Improved lighting setup
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.2); // Increased ambient light
-
-// Multiple directional lights for even illumination
-const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.6);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.7);
 directionalLight1.position.set(10, 10, 10);
 
-const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
-directionalLight2.position.set(-10, 10, -10);
-
-const directionalLight3 = new THREE.DirectionalLight(0xffffff, 0.3);
-directionalLight3.position.set(0, -10, 5);
-
-// Create lights group for easier management
+// Create lights group
 const lightsGroup = new THREE.Group();
 lightsGroup.add(ambientLight);
-// lightsGroup.add(directionalLight1);
-// lightsGroup.add(directionalLight2);
-// lightsGroup.add(directionalLight3);
+lightsGroup.add(directionalLight1);
 
+// Geometry for photo planes
 const planeGeometry = new THREE.PlaneGeometry(4, 3);
-let gridHelper = new THREE.GridHelper(120, 24); // Aumentado el tamaño para el nuevo espacio
-gridHelper.position.y = -50; // Ajustado para el nuevo rango
 
-// Function to update grid size based on scale
-const updateGridSize = () => {
-  const effectiveScale = artisticAxesConfig.value.scale * spaceScale.value;
-  const gridSize = Math.max(120, effectiveScale * 3); // Minimum grid size of 120
-  gridHelper.geometry.dispose(); // Clean up old geometry
-  gridHelper = new THREE.GridHelper(
-    gridSize,
-    Math.max(24, Math.floor(gridSize / 5))
-  );
-  gridHelper.position.y = -effectiveScale - 5; // Adjust grid position
-  gridKey.value++; // Force reactivity update
-};
+// Grid helper
+const gridHelper = new THREE.GridHelper(200, 40);
+gridHelper.position.y = -50;
 
 // Texture loader
 const textureLoader = new THREE.TextureLoader();
 
-// Function to create material for a photo
+// Fotos con materiales cargados
+const photosWithMaterials = ref([]);
+
+// Frustum culling - solo renderizar fotos visibles
+const visiblePhotos = ref([]);
+
+// Función para obtener el label del chunk actual
+const getCurrentChunkLabel = () => {
+  const option = chunkOptions.find(opt => opt.value === currentChunk.value);
+  return option ? option.label : currentChunk.value;
+};
+
+// Función para crear material de una foto
 const createPhotoMaterial = async (photo) => {
   const imageUrl = photo.thumbnailUrl || photo.url || photo.originalUrl;
 
   if (!imageUrl) {
-    // Fallback material if no image URL
-    return new THREE.MeshBasicMaterial({
-      color: 0x666666,
-      side: THREE.DoubleSide,
-    });
+    console.warn('No image URL found for photo:', photo.id);
+    return new THREE.MeshBasicMaterial({ color: 0x333333 });
   }
 
   try {
-    // Use rate limited texture loading
     const texture = await loadTextureWithLimit(textureLoader, imageUrl);
-
-    // Fix texture flipping for billboard effect
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.repeat.x = -1; // Flip horizontally to counteract mirroring
-
-    // Use MeshBasicMaterial for consistent appearance without lighting effects
-    // This ensures photos always look bright and consistent
-    // Enable transparency for distance-based opacity effect
-    return new THREE.MeshBasicMaterial({
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return new THREE.MeshBasicMaterial({ 
       map: texture,
-      side: THREE.DoubleSide,
       transparent: true,
-      opacity: 1.0,
+      side: THREE.DoubleSide
     });
   } catch (error) {
-    console.error("Error loading texture for photo:", photo.id, error);
-    // Return fallback material on error
-    return new THREE.MeshBasicMaterial({
-      color: 0x666666,
-      side: THREE.DoubleSide,
-    });
+    console.error('Error loading texture for photo:', photo.id, error);
+    return new THREE.MeshBasicMaterial({ color: 0x666666 });
   }
 };
 
-// Function to calculate min/max ranges from actual photo scores
-const calculateScoreRanges = (photos) => {
-  const config = artisticAxesConfig.value;
-  let xMin = Infinity,
-    xMax = -Infinity;
-  let yMin = Infinity,
-    yMax = -Infinity;
-  let zMin = Infinity,
-    zMax = -Infinity;
-
-  photos.forEach((photo) => {
-    const artisticScores = photo.descriptions?.artistic_scores;
-    if (artisticScores) {
-      const xScore = artisticScores[config.x];
-      const yScore = artisticScores[config.y];
-      const zScore = artisticScores[config.z];
-
-      if (xScore !== undefined) {
-        xMin = Math.min(xMin, xScore);
-        xMax = Math.max(xMax, xScore);
-      }
-      if (yScore !== undefined) {
-        yMin = Math.min(yMin, yScore);
-        yMax = Math.max(yMax, yScore);
-      }
-      if (zScore !== undefined) {
-        zMin = Math.min(zMin, zScore);
-        zMax = Math.max(zMax, zScore);
-      }
-    }
-  });
-
-  // Fallback to theoretical range if no valid scores found
-  if (xMin === Infinity) {
-    xMin = 1;
-    xMax = 10;
-  }
-  if (yMin === Infinity) {
-    yMin = 1;
-    yMax = 10;
-  }
-  if (zMin === Infinity) {
-    zMin = 1;
-    zMax = 10;
-  }
-
-  // Ensure minimum range to avoid division by zero
-  const minRange = 0.1;
-  if (xMax - xMin < minRange) {
-    const center = (xMin + xMax) / 2;
-    xMin = center - minRange / 2;
-    xMax = center + minRange / 2;
-  }
-  if (yMax - yMin < minRange) {
-    const center = (yMin + yMax) / 2;
-    yMin = center - minRange / 2;
-    yMax = center + minRange / 2;
-  }
-  if (zMax - zMin < minRange) {
-    const center = (zMin + zMax) / 2;
-    zMin = center - minRange / 2;
-    zMax = center + minRange / 2;
-  }
-
-  return {
-    x: { min: xMin, max: xMax, range: xMax - xMin },
-    y: { min: yMin, max: yMax, range: yMax - yMin },
-    z: { min: zMin, max: zMax, range: zMax - zMin },
-  };
-};
-
-// Function to separate photos with identical or very close positions
-const separateOverlappingPositions = (photoPositions, minDistance = 0.8) => {
-  const result = [...photoPositions];
-  const positionMap = new Map();
-
-  // Group photos by similar positions (using a grid approach for better clustering)
-  result.forEach((photo, index) => {
-    const gridSize = 1.0; // Tamaño de la cuadrícula para detectar solapamiento
-    const posKey = `${Math.round(photo.position[0] / gridSize)}_${Math.round(
-      photo.position[1] / gridSize
-    )}_${Math.round(photo.position[2] / gridSize)}`;
-
-    if (!positionMap.has(posKey)) {
-      positionMap.set(posKey, []);
-    }
-    positionMap.get(posKey).push({ photo, index });
-  });
-
-  // Separate overlapping photos using circular arrangement
-  positionMap.forEach((photos) => {
-    if (photos.length > 1) {
-      console.log(`Found ${photos.length} overlapping photos, separating...`);
-
-      photos.forEach(({ photo, index }, groupIndex) => {
-        if (groupIndex > 0) {
-          // Calculate circular arrangement to separate photos
-          const angle = (groupIndex * 2 * Math.PI) / photos.length;
-          const radius = minDistance + Math.floor(groupIndex / 6) * 0.3; // Spiral outward for many photos
-
-          // Add deterministic but varied offsets
-          const offsetX = Math.cos(angle) * radius;
-          const offsetY = Math.sin(angle) * radius * 0.7; // Less vertical separation
-          const offsetZ = Math.sin(angle * 2) * (minDistance * 0.5); // Small Z variation
-
-          result[index].position = [
-            photo.position[0] + offsetX,
-            photo.position[1] + offsetY,
-            photo.position[2] + offsetZ,
-          ];
-
-          // Also add slight rotation variation to make separation more obvious
-          const rotationVariation = groupIndex * 0.1;
-          result[index].rotation = [
-            photo.rotation[0] + rotationVariation,
-            photo.rotation[1] + rotationVariation * 0.5,
-            photo.rotation[2] + rotationVariation * 0.3,
-          ];
-        }
-      });
-    }
-  });
-
-  return result;
-};
-
-// Function to convert camera coordinates to artistic criteria values
-const convertPositionToCriteria = (position) => {
-  if (!scoreRanges.value) {
+// Función para cargar materiales de las fotos
+const loadPhotoMaterials = async (newPhotos) => {
+  const materialPromises = newPhotos.map(async (photo) => {
+    const material = await createPhotoMaterial(photo);
     return {
-      x: {
-        criteria: getCriteriaLabel(artisticAxesConfig.value.x),
-        value: "N/A",
-      },
-      y: {
-        criteria: getCriteriaLabel(artisticAxesConfig.value.y),
-        value: "N/A",
-      },
-      z: {
-        criteria: getCriteriaLabel(artisticAxesConfig.value.z),
-        value: "N/A",
-      },
+      ...photo,
+      material,
+      position: photo.position || [0, 0, 0],
+      billboardRotation: [0, 0, 0]
     };
-  }
-
-  const config = artisticAxesConfig.value;
-  const effectiveScale = config.scale * spaceScale.value;
-
-  // Reverse the mapping from calculateArtisticPosition
-  // Convert from world coordinate back to normalized score (0-1), then to actual score
-  const normalizedX =
-    (position.x - config.offset.x) / (2 * effectiveScale) + 0.5;
-  const normalizedY =
-    (position.y - config.offset.y) / (2 * effectiveScale) + 0.5;
-  const normalizedZ =
-    (position.z - config.offset.z) / (2 * effectiveScale) + 0.5;
-
-  // Clamp to 0-1 range and convert to actual score values
-  const xValue =
-    Math.max(0, Math.min(1, normalizedX)) * scoreRanges.value.x.range +
-    scoreRanges.value.x.min;
-  const yValue =
-    Math.max(0, Math.min(1, normalizedY)) * scoreRanges.value.y.range +
-    scoreRanges.value.y.min;
-  const zValue =
-    Math.max(0, Math.min(1, normalizedZ)) * scoreRanges.value.z.range +
-    scoreRanges.value.z.min;
-
-  return {
-    x: { criteria: getCriteriaLabel(config.x), value: xValue.toFixed(1) },
-    y: { criteria: getCriteriaLabel(config.y), value: yValue.toFixed(1) },
-    z: { criteria: getCriteriaLabel(config.z), value: zValue.toFixed(1) },
-  };
-};
-
-// Helper function to get readable label for criteria
-const getCriteriaLabel = (criteriaValue) => {
-  const metric = availableMetrics.find((m) => m.value === criteriaValue);
-  return metric ? metric.label : criteriaValue;
-};
-
-// Function to calculate artistic position based on scores with dynamic mapping
-const calculateArtisticPosition = (photo, scoreRanges) => {
-  const artisticScores = photo.descriptions?.artistic_scores;
-  const config = artisticAxesConfig.value;
-
-  if (!artisticScores || !scoreRanges) {
-    console.warn("Photo missing artistic_scores or scoreRanges:", photo.id);
-    // Fallback to center position if no artistic scores
-    return [config.offset.x, config.offset.y, config.offset.z];
-  }
-
-  // Get scores for each axis
-  const xScore = artisticScores[config.x];
-  const yScore = artisticScores[config.y];
-  const zScore = artisticScores[config.z];
-
-  // Apply space scale to the base scale
-  const effectiveScale = config.scale * spaceScale.value;
-
-  // Map real score ranges to full available space (-scale to +scale)
-  const x =
-    xScore !== undefined
-      ? ((xScore - scoreRanges.x.min) / scoreRanges.x.range - 0.5) *
-          2 *
-          effectiveScale +
-        config.offset.x
-      : config.offset.x;
-
-  const y =
-    yScore !== undefined
-      ? ((yScore - scoreRanges.y.min) / scoreRanges.y.range - 0.5) *
-          2 *
-          effectiveScale +
-        config.offset.y
-      : config.offset.y;
-
-  const z =
-    zScore !== undefined
-      ? ((zScore - scoreRanges.z.min) / scoreRanges.z.range - 0.5) *
-          2 *
-          effectiveScale +
-        config.offset.z
-      : config.offset.z;
-
-  return [x, y, z];
-};
-
-// Function to calculate billboard rotation (face camera)
-const calculateBillboardRotation = (photoPosition, cameraPosition) => {
-  // Create a temporary object to calculate the correct rotation
-  const tempObject = new THREE.Object3D();
-  tempObject.position.set(...photoPosition);
-
-  // Instead of looking at camera and then rotating,
-  // make it look away from camera (so the front face points toward camera)
-  const awayFromCamera = new THREE.Vector3(
-    photoPosition[0] - (cameraPosition.x - photoPosition[0]), // Point opposite to camera
-    photoPosition[1] - (cameraPosition.y - photoPosition[1]),
-    photoPosition[2] - (cameraPosition.z - photoPosition[2])
-  );
-
-  tempObject.lookAt(awayFromCamera);
-
-  // Return rotation as array [x, y, z]
-  return [tempObject.rotation.x, tempObject.rotation.y, tempObject.rotation.z];
-};
-
-// Function to update billboard rotations for all photos
-const updateBillboardRotations = () => {
-  if (
-    !useBillboarding.value ||
-    !cameraRef.value ||
-    visiblePhotos.value.length === 0
-  ) {
-    return;
-  }
-
-  const camera = cameraRef.value;
-  const cameraPosition = camera.position;
-
-  // Solo actualizar billboards para fotos visibles (optimización)
-  visiblePhotos.value.forEach((photo) => {
-    photo.billboardRotation = calculateBillboardRotation(
-      photo.position,
-      cameraPosition
-    );
-  });
-};
-
-// Distance-based opacity configuration
-const MIN_DISTANCE = 20; // Distance where photo is fully opaque (opacity = 1.0)
-const MAX_DISTANCE = 80; // Distance where photo reaches minimum opacity
-const MIN_OPACITY = 0.2; // Minimum opacity for distant photos
-
-// Performance optimization: only update opacity every few frames
-let opacityUpdateCounter = 0;
-const OPACITY_UPDATE_FREQUENCY = 3; // Update every 3 frames
-
-// Function to update photo opacity based on distance to camera
-const updatePhotoOpacity = () => {
-  // Check if distance opacity is enabled
-  if (!useDistanceOpacity.value) {
-    // Reset all photos to full opacity if disabled
-    visiblePhotos.value.forEach((photo) => {
-      if (photo.material) {
-        photo.material.opacity = 1.0;
-      }
-    });
-    return;
-  }
-
-  // Performance optimization: don't update every frame
-  opacityUpdateCounter++;
-  if (opacityUpdateCounter < OPACITY_UPDATE_FREQUENCY) {
-    return;
-  }
-  opacityUpdateCounter = 0;
-
-  if (!cameraRef.value || visiblePhotos.value.length === 0) {
-    return;
-  }
-
-  const camera = cameraRef.value;
-  const cameraPosition = camera.position;
-
-  let updatedCount = 0;
-
-  // Solo procesar fotos visibles para mejor rendimiento
-  visiblePhotos.value.forEach((photo) => {
-    if (!photo.material) return;
-
-    // Calculate distance between camera and photo
-    const photoPos = new THREE.Vector3(...photo.position);
-    const cameraPos = new THREE.Vector3(
-      cameraPosition.x,
-      cameraPosition.y,
-      cameraPosition.z
-    );
-    const distance = cameraPos.distanceTo(photoPos);
-
-    // Calculate opacity based on distance
-    let opacity = 1.0;
-    if (distance > MIN_DISTANCE) {
-      // Use smooth interpolation between min and max distance
-      const normalizedDistance = Math.min(
-        (distance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE),
-        1.0
-      );
-      // Apply a smooth curve for more natural transition
-      const easedDistance = normalizedDistance * normalizedDistance;
-      opacity = 1.0 - easedDistance * (1.0 - MIN_OPACITY);
-    }
-
-    // Only update if opacity changed significantly
-    const currentOpacity = photo.material.opacity;
-    if (Math.abs(currentOpacity - opacity) > 0.05) {
-      photo.material.opacity = opacity;
-      updatedCount++;
-    }
   });
 
-  // Debug log (remove after testing)
-  if (updatedCount > 0) {
-    console.log(
-      `Updated opacity for ${updatedCount} photos (visible: ${visiblePhotos.value.length}), camera at:`,
-      cameraPosition
-    );
+  const photosWithMats = await Promise.all(materialPromises);
+  photosWithMaterials.value = [...photosWithMaterials.value, ...photosWithMats];
+  
+  // Actualizar fotos visibles
+  updateVisiblePhotos();
+  
+  // Inicializar rotaciones billboard si está habilitado
+  if (useBillboarding.value) {
+    updateBillboardRotations();
   }
 };
-
-// Function to calculate subtle rotation based on artistic scores
-const calculateArtisticRotation = (photo) => {
-  const artisticScores = photo.descriptions?.artistic_scores;
-
-  if (!artisticScores) {
-    return [0, 0, 0];
-  }
-
-  // Use some artistic scores to create subtle, meaningful rotations
-  const humor = artisticScores.humor || 5.5;
-  const strangeness = artisticScores.strangeness || 5.5;
-  const candidness = artisticScores.candidness || 5.5;
-
-  // Convert from 1-10 range to small rotation values (-0.2 to 0.2 radians)
-  const rotX = ((humor - 5.5) / 4.5) * 0.2;
-  const rotY = ((strangeness - 5.5) / 4.5) * 0.2;
-  const rotZ = ((candidness - 5.5) / 4.5) * 0.1;
-
-  return [rotX, rotY, rotZ];
-};
-
-// Get photos from store
-const photos = computed(() => {
-  return photosStore.allPhotos.filter(
-    (photo) =>
-      photo.status === "processed" ||
-      photo.status === "preprocessed" ||
-      photo.status === "uploaded"
-  );
-});
-
-// Frustum culling - solo renderizar fotos visibles
-const visiblePhotos = ref([]);
-const lastCameraPosition = ref({ x: 0, y: 0, z: 50 });
-const lastCameraRotation = ref({ x: 0, y: 0, z: 0 });
 
 // Función para actualizar fotos visibles usando Frustum Culling
 const updateVisiblePhotos = () => {
-  if (!cameraRef.value || photoPositions.value.length === 0) {
+  if (!cameraRef.value || photosWithMaterials.value.length === 0) {
     visiblePhotos.value = [];
     return;
   }
@@ -895,157 +298,141 @@ const updateVisiblePhotos = () => {
   frustum.setFromProjectionMatrix(matrix);
 
   // Filtrar fotos que intersectan con el frustum
-  const visible = photoPositions.value.filter((photo) => {
-    // Crear esfera alrededor de cada foto para test de intersección
+  const visible = photosWithMaterials.value.filter((photo) => {
     const photoSphere = new THREE.Sphere(
       new THREE.Vector3(...photo.position),
-      3.0 // Radio ligeramente mayor que el tamaño de la foto para margen
+      2 // Radio de la esfera de la foto
     );
     return frustum.intersectsSphere(photoSphere);
   });
 
   visiblePhotos.value = visible;
-
-  // Debug info
-  if (visible.length !== photoPositions.value.length) {
-    console.log(
-      `Frustum Culling: ${visible.length}/${photoPositions.value.length} fotos visibles`
-    );
-  }
 };
 
-// Generate positions for photos
-const photoPositions = ref([]);
-const scoreRanges = ref(null); // Store score ranges for UI display
-const isLoadingTextures = ref(false);
-const loadedCount = ref(0);
-const totalPhotos = ref(0);
-const isInitializing = ref(true); // Estado inicial para evitar mensaje fugaz
+// Función para calcular rotación billboard (mirar cámara)
+const calculateBillboardRotation = (photoPosition, cameraPosition) => {
+  const tempObject = new THREE.Object3D();
+  tempObject.position.set(...photoPosition);
 
-// Progress percentage
-const progressPercentage = computed(() => {
-  if (totalPhotos.value === 0) return 0;
-  const percentage = (loadedCount.value / totalPhotos.value) * 100;
-  console.log(
-    `Progress: ${loadedCount.value}/${totalPhotos.value} = ${percentage}%`
+  // Hacer que mire hacia la cámara
+  const directionToCamera = new THREE.Vector3(
+    cameraPosition.x - photoPosition[0],
+    cameraPosition.y - photoPosition[1],
+    cameraPosition.z - photoPosition[2]
   );
-  return percentage;
-});
 
-// Function to load all photo materials with rate limiting
-const loadPhotoMaterials = async () => {
-  const photosValue = photos.value;
-  isLoadingTextures.value = true;
-  loadedCount.value = 0;
-  totalPhotos.value = photosValue.length; // Fijar el total al inicio
+  tempObject.lookAt(
+    tempObject.position.x + directionToCamera.x,
+    tempObject.position.y + directionToCamera.y,
+    tempObject.position.z + directionToCamera.z
+  );
 
-  // Calculate dynamic score ranges from actual photo data
-  const calculatedRanges = calculateScoreRanges(photosValue);
-  scoreRanges.value = calculatedRanges; // Store for UI display
-
-  console.log("Dynamic score ranges calculated:", calculatedRanges);
-
-  // Crear todas las posiciones basadas en scores artísticos usando rangos dinámicos
-  const photoData = photosValue.map((photo, index) => {
-    const position = calculateArtisticPosition(photo, calculatedRanges);
-    const rotation = calculateArtisticRotation(photo);
-
-    return {
-      ...photo,
-      position,
-      rotation,
-    };
-  });
-
-  // Separar fotos que están en posiciones muy cercanas para evitar flickering
-  const separatedPhotoData = separateOverlappingPositions(photoData);
-
-  // Iniciar carga de todas las texturas en paralelo (respetando el rate limit)
-  const positions = [];
-  const materialPromises = separatedPhotoData.map(async (photoInfo, index) => {
-    const material = await createPhotoMaterial(photoInfo);
-
-    // Actualizar progreso de forma thread-safe
-    loadedCount.value++;
-
-    return {
-      ...photoInfo,
-      material,
-      billboardRotation: [0, 0, 0], // Initialize billboard rotation
-    };
-  });
-
-  // Esperar a que todas las texturas se carguen
-  const loadedPositions = await Promise.all(materialPromises);
-  positions.push(...loadedPositions);
-
-  photoPositions.value = positions;
-  isLoadingTextures.value = false;
-
-  // Realizar frustum culling inicial
-  setTimeout(() => {
-    updateVisiblePhotos();
-  }, 100);
-
-  // Initialize billboard rotations if enabled
-  if (useBillboarding.value) {
-    updateBillboardRotations();
-  }
+  return [tempObject.rotation.x, tempObject.rotation.y, tempObject.rotation.z];
 };
 
-// Handler for billboarding toggle
+// Función para actualizar rotaciones billboard
+const updateBillboardRotations = () => {
+  if (!cameraRef.value || visiblePhotos.value.length === 0) return;
+
+  const camera = cameraRef.value;
+  const cameraPosition = camera.position;
+
+  visiblePhotos.value.forEach((photo) => {
+    photo.billboardRotation = calculateBillboardRotation(
+      photo.position,
+      cameraPosition
+    );
+  });
+};
+
+// Distance-based opacity configuration
+const MIN_DISTANCE = 20;
+const MAX_DISTANCE = 80;
+const MIN_OPACITY = 0.2;
+
+// Función para actualizar opacidad basada en distancia
+const updatePhotoOpacity = () => {
+  if (!useDistanceOpacity.value || !cameraRef.value || visiblePhotos.value.length === 0) {
+    // Si no está habilitado, asegurar que todas las fotos tengan opacidad 1
+    visiblePhotos.value.forEach((photo) => {
+      if (photo.material && photo.material.opacity !== 1) {
+        photo.material.opacity = 1;
+      }
+    });
+    return;
+  }
+
+  const camera = cameraRef.value;
+  const cameraPosition = camera.position;
+
+  visiblePhotos.value.forEach((photo) => {
+    const distance = Math.sqrt(
+      Math.pow(cameraPosition.x - photo.position[0], 2) +
+      Math.pow(cameraPosition.y - photo.position[1], 2) +
+      Math.pow(cameraPosition.z - photo.position[2], 2)
+    );
+
+    let opacity = 1;
+    if (distance > MIN_DISTANCE) {
+      const fadeRange = MAX_DISTANCE - MIN_DISTANCE;
+      const fadeProgress = Math.min((distance - MIN_DISTANCE) / fadeRange, 1);
+      opacity = Math.max(MIN_OPACITY, 1 - fadeProgress);
+    }
+
+    if (photo.material) {
+      photo.material.opacity = opacity;
+    }
+  });
+};
+
+// Handler para cambio de billboarding
 const onBillboardingToggle = () => {
   if (useBillboarding.value) {
-    // When enabling billboarding, calculate initial rotations
     updateBillboardRotations();
   }
 };
 
-// Función de animación para actualizar controles FPS
+// Handler para cambio de chunk
+const onChunkChange = async () => {
+  // Limpiar fotos actuales
+  photosWithMaterials.value = [];
+  visiblePhotos.value = [];
+  
+  // Cargar nuevo chunk
+  await changeChunk(currentChunk.value);
+};
+
+// Función de retry
+const retryLoad = async () => {
+  reset();
+  await loadAllPhotos(currentChunk.value);
+};
+
+// Función de animación
 const animate = () => {
   if (fpControls.value) {
     fpControls.value.update();
   }
 
-  // Update current position tracking
+  // Actualizar posición actual
   if (cameraRef.value) {
-    const camera = cameraRef.value;
-    const newPosition = {
-      x: camera.position.x,
-      y: camera.position.y,
-      z: camera.position.z,
+    const pos = cameraRef.value.position;
+    currentPosition.value = {
+      x: pos.x,
+      y: pos.y,
+      z: pos.z
     };
-
-    // Solo actualizar frustum culling si la cámara se movió significativamente
-    const positionChanged =
-      Math.abs(newPosition.x - lastCameraPosition.value.x) > 2 ||
-      Math.abs(newPosition.y - lastCameraPosition.value.y) > 2 ||
-      Math.abs(newPosition.z - lastCameraPosition.value.z) > 2;
-
-    const rotationChanged =
-      Math.abs(camera.rotation.x - lastCameraRotation.value.x) > 0.1 ||
-      Math.abs(camera.rotation.y - lastCameraRotation.value.y) > 0.1 ||
-      Math.abs(camera.rotation.z - lastCameraRotation.value.z) > 0.1;
-
-    if (positionChanged || rotationChanged) {
-      updateVisiblePhotos();
-      lastCameraPosition.value = newPosition;
-      lastCameraRotation.value = {
-        x: camera.rotation.x,
-        y: camera.rotation.y,
-        z: camera.rotation.z,
-      };
-    }
-
-    currentPosition.value = newPosition;
   }
 
-  // Update billboard rotations if enabled (solo para fotos visibles)
+  // Actualizar frustum culling
+  updateVisiblePhotos();
+
+  // Actualizar rotaciones billboard si está habilitado
   if (useBillboarding.value) {
     updateBillboardRotations();
   }
 
-  // Update photo opacity based on distance to camera (solo para fotos visibles)
+  // Actualizar opacidad por distancia
   updatePhotoOpacity();
 
   animationId = requestAnimationFrame(animate);
@@ -1054,7 +441,7 @@ const animate = () => {
 // Inicializar controles FPS
 const initFirstPersonControls = () => {
   if (!cameraRef.value || !containerRef.value) {
-    console.error("Camera or container not available for FPS controls");
+    console.warn('Camera or container not available for FPS controls');
     return;
   }
 
@@ -1072,40 +459,49 @@ const initFirstPersonControls = () => {
   animate();
 };
 
+// Watcher para cargar materiales cuando lleguen nuevas fotos
+watch(photos3D, async (newPhotos, oldPhotos) => {
+  if (newPhotos.length > (oldPhotos || []).length) {
+    const newPhotosOnly = newPhotos.slice((oldPhotos || []).length);
+    await loadPhotoMaterials(newPhotosOnly);
+  }
+}, { immediate: false });
+
 // Lifecycle
 onMounted(async () => {
   try {
-    await photosStore.getOrFetch(false);
-
-    // Inicializar controles FPS después de que el canvas esté listo
+    // Cargar fotos iniciales
+    await loadAllPhotos(currentChunk.value);
+    
+    // Inicializar controles después de un pequeño delay
     setTimeout(() => {
       initFirstPersonControls();
     }, 100);
-
-    // Solo cargar materiales si hay fotos
-    if (photos.value.length > 0) {
-      isInitializing.value = false;
-      await loadPhotoMaterials();
-    } else {
-      // Si no hay fotos, terminar la inicialización
-      isInitializing.value = false;
-    }
   } catch (error) {
-    console.error("Error initializing 3D view:", error);
-    isInitializing.value = false;
+    console.error('Error initializing 3D photos:', error);
   }
 });
 
 onUnmounted(() => {
   // Limpiar controles FPS
   if (fpControls.value) {
-    fpControls.value.cleanup();
+    fpControls.value.dispose();
   }
 
   // Cancelar animación
   if (animationId) {
     cancelAnimationFrame(animationId);
   }
+
+  // Limpiar materiales
+  photosWithMaterials.value.forEach(photo => {
+    if (photo.material) {
+      if (photo.material.map) {
+        photo.material.map.dispose();
+      }
+      photo.material.dispose();
+    }
+  });
 });
 </script>
 
@@ -1143,7 +539,7 @@ onUnmounted(() => {
 }
 
 .info-panel h3 {
-  margin: 0 0 10px 0;
+  margin: 0 0 15px 0;
   font-size: 1.2em;
   color: #4ade80;
 }
@@ -1165,8 +561,8 @@ onUnmounted(() => {
   margin: 2px 0;
 }
 
-/* Axis Configuration Controls */
-.axis-config {
+/* Chunk Selector */
+.chunk-selector {
   margin: 15px 0;
   padding: 12px;
   border: 1px solid rgba(74, 222, 128, 0.3);
@@ -1174,203 +570,55 @@ onUnmounted(() => {
   background: rgba(74, 222, 128, 0.05);
 }
 
-.axis-config h4 {
+.chunk-selector h4 {
   margin: 0 0 10px 0;
   font-size: 0.9em;
   color: #4ade80;
   font-weight: 600;
 }
 
-.axis-control {
-  margin-bottom: 8px;
-}
-
-.axis-control:last-child {
-  margin-bottom: 0;
-}
-
-.axis-control label {
-  display: block;
-  font-size: 0.8em;
-  color: #e5e5e5;
-  margin-bottom: 4px;
-  font-weight: 500;
-}
-
-.axis-select {
+.chunk-select {
   width: 100%;
-  padding: 6px 8px;
+  padding: 8px 12px;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(74, 222, 128, 0.3);
   border-radius: 4px;
   color: #e5e5e5;
-  font-size: 0.8em;
+  font-size: 0.9em;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.axis-select:hover {
+.chunk-select:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(74, 222, 128, 0.5);
 }
 
-.axis-select:focus {
+.chunk-select:focus {
   outline: none;
   background: rgba(255, 255, 255, 0.2);
   border-color: #4ade80;
   box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.2);
 }
 
-.axis-select option {
+.chunk-select option {
   background: #1a1a1a;
   color: #e5e5e5;
-  padding: 4px;
+  padding: 8px;
 }
 
-/* Space Scale Control */
-.space-control {
+/* Stats Info */
+.stats-info {
   margin: 15px 0;
-  padding: 12px;
-  border: 1px solid rgba(74, 222, 128, 0.3);
-  border-radius: 6px;
-  background: rgba(74, 222, 128, 0.05);
-}
-
-.space-control h4 {
-  margin: 0 0 10px 0;
-  font-size: 0.9em;
-  color: #4ade80;
-  font-weight: 600;
-}
-
-.scale-control label {
-  display: block;
-  font-size: 0.8em;
-  color: #e5e5e5;
-  margin-bottom: 8px;
-  font-weight: 500;
-}
-
-.scale-slider {
-  width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-  outline: none;
-  opacity: 0.8;
-  transition: opacity 0.3s ease;
-  cursor: pointer;
-}
-
-.scale-slider:hover {
-  opacity: 1;
-}
-
-.scale-slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #4ade80;
-  cursor: pointer;
-  border: 2px solid #1a1a1a;
-  transition: all 0.3s ease;
-}
-
-.scale-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-  box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
-}
-
-.scale-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #4ade80;
-  cursor: pointer;
-  border: 2px solid #1a1a1a;
-  transition: all 0.3s ease;
-}
-
-.scale-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 4px;
-  font-size: 0.75em;
-  color: #ccc;
-}
-
-.scale-labels span {
-  font-style: italic;
-}
-
-.axes-info {
-  margin: 10px 0;
   padding: 10px;
   border: 1px solid rgba(74, 222, 128, 0.3);
   border-radius: 4px;
   background: rgba(74, 222, 128, 0.05);
 }
 
-.axes-info h4 {
-  margin: 0 0 8px 0;
-  font-size: 0.9em;
-  color: #4ade80;
-}
-
-.axes-info ul {
-  margin: 0;
-  font-size: 0.8em;
-}
-
-.axes-info li {
-  margin: 3px 0;
-  color: #e5e5e5;
-}
-
-.range-info {
-  font-size: 0.85em;
-  color: #4ade80;
-  font-weight: 500;
-  margin-left: 5px;
-}
-
-.controls-status {
-  margin: 15px 0 0 0;
-  padding: 8px;
-  border: 1px solid rgba(74, 222, 128, 0.3);
-  border-radius: 4px;
-  background: rgba(74, 222, 128, 0.05);
-}
-
-.status-indicator {
-  display: flex;
-  align-items: center;
-  margin: 0;
-  font-size: 0.85em;
-  font-weight: 500;
-}
-
-.indicator-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ef4444;
-  margin-right: 8px;
-  transition: background-color 0.3s ease;
-}
-
-.status-indicator.active .indicator-dot {
-  background: #4ade80;
-}
-
-.status-indicator.active {
-  color: #4ade80;
-}
-
 /* Billboarding Toggle */
 .billboard-toggle {
-  margin: 15px 0 0 0;
+  margin: 15px 0;
   padding: 10px;
   border: 1px solid rgba(74, 222, 128, 0.3);
   border-radius: 4px;
@@ -1381,11 +629,9 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   cursor: pointer;
-  font-size: 0.85em;
-  font-weight: 500;
+  font-size: 0.9em;
   color: #e5e5e5;
-  margin: 0;
-  user-select: none;
+  margin-bottom: 5px;
 }
 
 .toggle-label input[type="checkbox"] {
@@ -1395,10 +641,9 @@ onUnmounted(() => {
 .checkbox-custom {
   width: 16px;
   height: 16px;
-  border: 2px solid #4ade80;
+  border: 2px solid rgba(74, 222, 128, 0.5);
   border-radius: 3px;
   margin-right: 8px;
-  display: inline-block;
   position: relative;
   transition: all 0.3s ease;
 }
@@ -1408,7 +653,7 @@ onUnmounted(() => {
 }
 
 .toggle-label input[type="checkbox"]:checked + .checkbox-custom::after {
-  content: "✓";
+  content: '✓';
   position: absolute;
   top: -2px;
   left: 1px;
@@ -1418,95 +663,71 @@ onUnmounted(() => {
 }
 
 .toggle-description {
-  margin: 5px 0 0 24px;
-  font-size: 0.75em;
-  color: #4ade80;
-  font-style: italic;
+  font-size: 0.8em;
+  color: #ccc;
+  margin: 0;
 }
 
 /* Position Indicator */
 .position-indicator {
   margin: 15px 0;
-  padding: 12px;
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 6px;
-  background: rgba(139, 92, 246, 0.05);
-}
-
-.position-indicator h4 {
-  margin: 0 0 10px 0;
-  font-size: 0.9em;
-  color: #8b5cf6;
-  font-weight: 600;
-}
-
-.position-values {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.position-axis {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4px 8px;
-  background: rgba(139, 92, 246, 0.1);
-  border-radius: 4px;
-}
-
-.axis-label {
-  font-size: 0.8em;
-  color: #e5e5e5;
-  font-weight: 500;
-  text-transform: capitalize;
-}
-
-.axis-value {
-  font-size: 0.8em;
-  color: #8b5cf6;
-  font-weight: 600;
-  font-family: monospace;
-}
-
-.position-description {
-  margin: 8px 0 0 0;
-  font-size: 0.75em;
-  color: #8b5cf6;
-  font-style: italic;
-}
-
-/* Lighting Info */
-.lighting-info {
-  margin: 15px 0 0 0;
   padding: 10px;
   border: 1px solid rgba(74, 222, 128, 0.3);
   border-radius: 4px;
   background: rgba(74, 222, 128, 0.05);
 }
 
-.lighting-info h4 {
+.position-indicator h4 {
   margin: 0 0 8px 0;
   font-size: 0.9em;
   color: #4ade80;
 }
 
-.lighting-info ul {
-  margin: 0 0 8px 0;
-  padding-left: 16px;
+.position-values {
+  display: flex;
+  gap: 15px;
+}
+
+.position-axis {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   font-size: 0.8em;
 }
 
-.lighting-info li {
-  margin: 3px 0;
-  color: #e5e5e5;
+.axis-label {
+  color: #ccc;
+  font-weight: 500;
 }
 
-.lighting-note {
-  margin: 0;
-  font-size: 0.75em;
+.axis-value {
   color: #4ade80;
-  font-style: italic;
+  font-weight: bold;
+}
+
+/* Controls Info */
+.controls-info {
+  margin: 15px 0;
+  padding: 10px;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 4px;
+  background: rgba(74, 222, 128, 0.05);
+}
+
+.controls-info h4 {
+  margin: 0 0 8px 0;
+  font-size: 0.9em;
+  color: #4ade80;
+}
+
+.controls-info ul {
+  margin: 0;
+  font-size: 0.8em;
+}
+
+.controls-info li {
+  margin: 3px 0;
+  color: #e5e5e5;
 }
 
 /* Loading Screen */
@@ -1514,13 +735,12 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(26, 26, 26, 0.95);
-  backdrop-filter: blur(10px);
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
 }
 
@@ -1528,17 +748,17 @@ onUnmounted(() => {
   text-align: center;
   color: white;
   max-width: 400px;
-  padding: 40px;
+  padding: 20px;
 }
 
 .spinner {
-  width: 60px;
-  height: 60px;
-  border: 4px solid rgba(255, 255, 255, 0.1);
+  width: 40px;
+  height: 40px;
+  border: 4px solid #333;
   border-top: 4px solid #4ade80;
   border-radius: 50%;
-  margin: 0 auto 30px;
   animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
 }
 
 @keyframes spin {
@@ -1554,33 +774,89 @@ onUnmounted(() => {
   margin: 0 0 15px 0;
   font-size: 1.5em;
   color: #4ade80;
-  font-weight: 600;
 }
 
 .loading-content p {
-  margin: 0 0 25px 0;
+  margin: 10px 0;
   color: #e5e5e5;
-  font-size: 1em;
 }
 
 .progress-bar {
   width: 100%;
-  height: 8px;
+  height: 6px;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  border-radius: 3px;
+  margin: 15px 0;
   overflow: hidden;
-  margin-bottom: 15px;
 }
 
 .progress-fill {
   height: 100%;
-  background: #4ade80;
-  transition: none;
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+  transition: width 0.3s ease;
 }
 
 .progress-text {
   font-size: 0.9em;
   color: #ccc;
-  margin: 0;
+}
+
+.chunk-info {
+  font-size: 0.8em;
+  color: #4ade80;
+  font-style: italic;
+}
+
+/* Error Screen */
+.error-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.error-content {
+  text-align: center;
+  color: white;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.error-content h2 {
+  margin: 0 0 15px 0;
+  font-size: 1.5em;
+  color: #ef4444;
+}
+
+.error-content p {
+  margin: 0 0 20px 0;
+  color: #e5e5e5;
+  line-height: 1.5;
+}
+
+.retry-btn {
+  background: #4ade80;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retry-btn:hover {
+  background: #22c55e;
+  transform: translateY(-1px);
+}
+
+.retry-btn:active {
+  transform: translateY(0);
 }
 </style>
