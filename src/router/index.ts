@@ -35,6 +35,11 @@ const router = createRouter({
       component: LandingView,
       meta: {
         requiresGuest: false, // Accessible to both guests and authenticated users
+        title: "Photoreka - Photo Management and Curation Platform",
+        description:
+          "Transform your photos with AI-powered enhancement tools. Create stunning canvases, photo frames, and artistic compositions with Photoreka's free tools.",
+        keywords:
+          "photo enhancement, AI photo tools, canvas maker, photo frames, image editor, photo culling, photo organizer",
       },
     },
 
@@ -54,6 +59,10 @@ const router = createRouter({
       meta: {
         requiresGuest: false, // Accessible to both guests and authenticated users
         layout: false, // Use standalone layout like landing page
+        title: "Terms of Service - Photoreka",
+        description:
+          "Read Photoreka's terms of service and user agreement for our AI photo enhancement platform.",
+        keywords: "terms of service, privacy policy, user agreement, Photoreka",
       },
     },
 
@@ -105,6 +114,11 @@ const router = createRouter({
       meta: {
         requiresGuest: false, // Accessible without authentication
         playground: true,
+        title: "Free Canvas Playground - Photoreka",
+        description:
+          "Try our free photo canvas maker without registration. Create artistic compositions and enhance your photos with AI-powered tools.",
+        keywords:
+          "free canvas maker, photo playground, no registration photo editor, AI photo enhancement",
       },
     },
     {
@@ -170,6 +184,11 @@ const router = createRouter({
       meta: {
         requiresGuest: false, // Accessible without authentication
         playground: true,
+        title: "Free Photo Framer - Photoreka",
+        description:
+          "Create beautiful photo frames for free without registration. Design custom frames and borders for your photos with our easy-to-use framer tool.",
+        keywords:
+          "free photo frames, photo framer, custom photo borders, no registration photo tool",
       },
     },
     {
@@ -258,13 +277,71 @@ router.beforeEach((to, from, next) => {
 
 // Track page views after navigation
 router.afterEach((to) => {
+  // Update document title
+  const pageTitle = (to.meta?.title as string) || "Photoreka";
+  document.title = pageTitle;
+
+  // Update meta description
+  const description =
+    (to.meta?.description as string) ||
+    "Transform your photos with AI-powered enhancement tools. Create stunning canvases, photo frames, and artistic compositions with Photoreka.";
+  updateMetaTag("name", "description", description);
+
+  // Update meta keywords
+  const keywords =
+    (to.meta?.keywords as string) ||
+    "photo enhancement, AI photo tools, canvas maker, photo frames, image editor";
+  updateMetaTag("name", "keywords", keywords);
+
+  // Update Open Graph tags
+  updateMetaTag("property", "og:title", pageTitle);
+  updateMetaTag("property", "og:description", description);
+  updateMetaTag("property", "og:url", `https://photoreka.com${to.fullPath}`);
+
+  // Update Twitter tags
+  updateMetaTag("property", "twitter:title", pageTitle);
+  updateMetaTag("property", "twitter:description", description);
+  updateMetaTag(
+    "property",
+    "twitter:url",
+    `https://photoreka.com${to.fullPath}`
+  );
+
+  // Update canonical URL
+  updateCanonicalUrl(`https://photoreka.com${to.fullPath}`);
+
   // Track page view with GA4
-  const pageTitle =
-    (to.meta?.title as string) ||
-    document.title ||
-    to.name?.toString() ||
-    "Unknown Page";
   trackPageView(to.fullPath, pageTitle);
 });
+
+// Helper function to update meta tags
+function updateMetaTag(attribute: string, value: string, content: string) {
+  let element = document.querySelector(
+    `meta[${attribute}="${value}"]`
+  ) as HTMLMetaElement;
+  if (element) {
+    element.content = content;
+  } else {
+    element = document.createElement("meta");
+    element.setAttribute(attribute, value);
+    element.content = content;
+    document.getElementsByTagName("head")[0].appendChild(element);
+  }
+}
+
+// Helper function to update canonical URL
+function updateCanonicalUrl(url: string) {
+  let canonical = document.querySelector(
+    'link[rel="canonical"]'
+  ) as HTMLLinkElement;
+  if (canonical) {
+    canonical.href = url;
+  } else {
+    canonical = document.createElement("link");
+    canonical.rel = "canonical";
+    canonical.href = url;
+    document.getElementsByTagName("head")[0].appendChild(canonical);
+  }
+}
 
 export default router;
