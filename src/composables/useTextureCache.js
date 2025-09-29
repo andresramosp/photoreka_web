@@ -8,8 +8,8 @@ const STORE_NAME = "textures";
 
 export function useTextureCache(options = {}) {
   const {
-    maxCacheSize = 500,
-    expiryDays = 7,
+    maxCacheSize = 5000, // Aumentado de 500 a 2000
+    expiryDays = 30, // Aumentado de 7 a 30 días
     compressionQuality = 0.8,
   } = options;
 
@@ -50,16 +50,22 @@ export function useTextureCache(options = {}) {
 
         // Migración de v1 (Blob) a v2 (ImageData)
         if (oldVersion < 2) {
-          console.log(
-            "Migrando caché de texturas a nuevo formato (ImageData)..."
+          console.warn(
+            "⚠️ MIGRACIÓN: Limpiando caché v1 → v2. Esto causará re-descarga inicial de texturas."
           );
           const transaction = event.target.transaction;
           const store = transaction.objectStore(STORE_NAME);
 
+          // Contar elementos antes de limpiar
+          const countRequest = store.count();
+          countRequest.onsuccess = () => {
+            console.log(`📊 Elementos en caché v1: ${countRequest.result}`);
+          };
+
           // Limpiar datos antiguos para evitar problemas de compatibilidad
           store.clear();
           console.log(
-            "Caché limpiado para migración. Las texturas se re-cachearán automáticamente."
+            "🗑️ Caché v1 limpiado. Las texturas se re-cachearán automáticamente."
           );
         }
       };
@@ -387,8 +393,8 @@ export function useTextureCache(options = {}) {
     });
   };
 
-  // Evictar textura más antigua
-  const evictOldestTexture = async () => {
+  // Evictar texturas más antiguas (elimina 10% del caché cuando se supera el límite)
+  const evictOldestTextures = async () => {
     if (!textureDB) return;
 
     try {
@@ -396,17 +402,29 @@ export function useTextureCache(options = {}) {
       const store = transaction.objectStore(STORE_NAME);
       const index = store.index("timestamp");
 
+      // Eliminar 10% de las texturas más antiguas para evitar evicción constante
+      const toDelete = Math.max(1, Math.floor(maxCacheSize * 0.1));
+      let deletedCount = 0;
+
       const request = index.openCursor();
       request.onsuccess = (event) => {
         const cursor = event.target.result;
-        if (cursor) {
+        if (cursor && deletedCount < toDelete) {
           cursor.delete();
+          deletedCount++;
           cacheStats.value.evictions++;
-          updateCacheSize();
+          cursor.continue();
+        } else {
+          if (deletedCount > 0) {
+            console.log(
+              `🗑️ Evictadas ${deletedCount} texturas del caché (límite alcanzado)`
+            );
+            updateCacheSize();
+          }
         }
       };
     } catch (error) {
-      console.warn("Error evicting oldest texture:", error);
+      console.warn("Error evicting oldest textures:", error);
     }
   };
 
@@ -417,14 +435,20 @@ export function useTextureCache(options = {}) {
     try {
       // Verificar si necesitamos hacer espacio
       if (cacheStats.value.dbSize >= maxCacheSize) {
-        await evictOldestTexture();
+        console.log(
+          `📊 Caché lleno (${cacheStats.value.dbSize}/${maxCacheSize}), evictando texturas antiguas...`
+        );
+        await evictOldestTextures();
       }
 
       // Convertir blob a ImageData para almacenamiento síncrono
       const img = new Image();
       await new Promise((resolve, reject) => {
         img.onload = resolve;
-        img.onerror = reject;
+        img.onerror = (e) => {
+          console.error(`❌ Error loading image for caching: ${url}`, e);
+          reject(e);
+        };
         img.src = URL.createObjectURL(imageBlob);
       });
 
@@ -442,10 +466,18 @@ export function useTextureCache(options = {}) {
         timestamp: Date.now(),
       };
 
-      store.put(textureData);
-      updateCacheSize();
+      const putRequest = store.put(textureData);
+      putRequest.onsuccess = () => {
+        console.log(
+          `✅ Textura guardada en caché: ${url} (${img.width}x${img.height})`
+        );
+        updateCacheSize();
+      };
+      putRequest.onerror = (e) => {
+        console.error(`❌ Error guardando textura en caché: ${url}`, e);
+      };
     } catch (error) {
-      console.warn("Error setting cached texture:", error);
+      console.error(`❌ Error setting cached texture: ${url}`, error);
     }
   };
 
@@ -533,10 +565,18 @@ export function useTextureCache(options = {}) {
         const request = store.getAll();
         request.onsuccess = () => {
           const entries = request.result;
-          const totalSize = entries.reduce(
-            (sum, entry) => sum + entry.imageBlob.size,
-            0
-          );
+
+          // Calcular tamaño estimado basado en ImageData
+          const totalSize = entries.reduce((sum, entry) => {
+            if (entry.imageData && entry.width && entry.height) {
+              // ImageData: 4 bytes por píxel (RGBA)
+              return sum + entry.width * entry.height * 4;
+            } else if (entry.imageBlob) {
+              // Formato legacy
+              return sum + entry.imageBlob.size;
+            }
+            return sum;
+          }, 0);
 
           resolve({
             count: entries.length,
@@ -550,6 +590,11 @@ export function useTextureCache(options = {}) {
               entries.length > 0
                 ? Math.max(...entries.map((e) => e.timestamp))
                 : null,
+            // Info adicional de formato
+            formatBreakdown: {
+              imageData: entries.filter((e) => e.imageData).length,
+              legacy: entries.filter((e) => e.imageBlob).length,
+            },
           });
         };
       });

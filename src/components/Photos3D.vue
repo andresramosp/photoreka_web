@@ -13,7 +13,7 @@
     <TresCanvas v-else v-bind="gl" ref="canvasRef">
       <TresPerspectiveCamera
         ref="cameraRef"
-        :position="[0, 0, 50]"
+        :position="[0, 0, 100]"
         :fov="75"
         :aspect="1"
         :near="0.1"
@@ -40,96 +40,150 @@
 
     <!-- UI Overlay -->
     <div class="ui-overlay">
-      <div class="control-panel" @mousedown.stop @wheel.stop @contextmenu.stop>
-        <!-- Embedding Type Section -->
-        <div class="control-section">
-          <h4 class="section-title">Embedding Type</h4>
-          <div class="control-item">
-            <n-select
-              :disabled="showDiscreteLoader"
-              v-model:value="selectedChunk"
-              @update:value="onChunkChange"
-              :options="chunkOptions"
-              class="embedding-select"
-              placeholder="Select embedding type"
-              @click.stop
-            />
-          </div>
+      <!-- Config Panel Container -->
+      <div class="config-panel-container" @click.stop>
+        <!-- Panel Header with Toggle -->
+        <div
+          class="panel-header"
+          @click="
+            showConfigPanel = !showConfigPanel;
+            $event.stopPropagation();
+          "
+        >
+          <span class="panel-title">Settings</span>
+          <n-icon
+            class="panel-toggle-icon"
+            :class="{ 'panel-open': showConfigPanel }"
+          >
+            <svg viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
+              />
+            </svg>
+          </n-icon>
         </div>
 
-        <!-- Display Options Section -->
-        <div class="control-section">
-          <h4 class="section-title">Display Options</h4>
-
-          <div class="control-item">
-            <span class="control-label">Billboarding (Face Camera)</span>
-            <n-switch
-              v-model:value="useBillboarding"
-              @update:value="onBillboardingToggle"
-              size="small"
-              @click.stop
-            />
-          </div>
-
-          <div class="control-item">
-            <span class="control-label">Distance Opacity</span>
-            <n-switch
-              v-model:value="useDistanceOpacity"
-              size="small"
-              @click.stop
-            />
-          </div>
-        </div>
-
-        <!-- Radial Scaling Section -->
-        <div class="control-section">
-          <h4 class="section-title">Radial Scaling</h4>
-          <div class="control-item">
-            <div class="slider-container">
-              <div class="slider-header">
-                <span class="control-label"
-                  >Distance: {{ inflateFactor.toFixed(1) }}x</span
-                >
-              </div>
-              <n-slider
-                v-model:value="inflateFactor"
-                @update:value="onInflateFactorChange"
-                :min="1"
-                :max="3.0"
-                :step="0.1"
-                :marks="{ 1: '1.0x', 2: '2.0x', 3: '3.0x' }"
-                class="radial-slider"
+        <!-- Config Panel Content -->
+        <div v-if="showConfigPanel" class="control-panel" @click.stop>
+          <!-- Embedding Type Section -->
+          <div class="control-section">
+            <h4 class="section-title">Embedding Type</h4>
+            <div class="control-item">
+              <n-select
+                :disabled="showDiscreteLoader"
+                v-model:value="selectedChunk"
+                @update:value="onChunkChange"
+                :options="chunkOptions"
+                class="embedding-select"
+                placeholder="Select embedding type"
                 @click.stop
               />
             </div>
           </div>
-        </div>
 
-        <!-- Controls Info -->
-        <div class="control-section">
-          <h4 class="section-title">
-            Controls
-            <n-tooltip
-              trigger="hover"
-              placement="top"
-              :keep-alive-on-hover="false"
-            >
-              <template #trigger>
-                <n-icon size="16" class="info-icon">
-                  <InfoCircleOutlined />
-                </n-icon>
-              </template>
-              <div class="controls-tooltip">
-                <div class="control-tip"><strong>WASD:</strong> Movement</div>
-                <div class="control-tip">
-                  <strong>Mouse:</strong> Look around
+          <!-- Visual Aspects Filter Section -->
+          <div class="control-section">
+            <h4 class="section-title">Visual Aspects</h4>
+            <div class="control-item">
+              <n-tree-select
+                v-model:value="selectedVisualAspects"
+                multiple
+                clearable
+                placeholder="Any aspect"
+                :options="treeSelectOptions"
+                :max-tag-count="2"
+                class="aspects-select"
+                :disabled="showDiscreteLoader"
+                size="small"
+                check-strategy="child"
+                :show-path="false"
+                expand-on-click
+                @update:value="onVisualAspectsChange"
+                @click.stop
+              >
+                <template #empty>
+                  <div style="padding: 8px; color: #888; font-size: 12px">
+                    No visual aspects found
+                  </div>
+                </template>
+              </n-tree-select>
+            </div>
+          </div>
+
+          <!-- Display Options Section -->
+          <div class="control-section">
+            <h4 class="section-title">Display Options</h4>
+
+            <div class="control-item">
+              <span class="control-label">Billboarding (Face Camera)</span>
+              <n-switch
+                v-model:value="useBillboarding"
+                @update:value="onBillboardingToggle"
+                size="small"
+                @click.stop
+              />
+            </div>
+
+            <div class="control-item">
+              <span class="control-label">Distance Opacity</span>
+              <n-switch
+                v-model:value="useDistanceOpacity"
+                size="small"
+                @click.stop
+              />
+            </div>
+          </div>
+
+          <!-- Radial Scaling Section -->
+          <div class="control-section">
+            <h4 class="section-title">Radial Scaling</h4>
+            <div class="control-item">
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span class="control-label"
+                    >Distance: {{ inflateFactor.toFixed(1) }}x</span
+                  >
                 </div>
-                <div class="control-tip"><strong>Shift:</strong> Run</div>
-                <div class="control-tip"><strong>Space:</strong> Move up</div>
-                <div class="control-tip"><strong>C:</strong> Move down</div>
+                <n-slider
+                  v-model:value="inflateFactor"
+                  @update:value="onInflateFactorChange"
+                  :min="1"
+                  :max="3.0"
+                  :step="0.1"
+                  :marks="{ 1: '1.0x', 2: '2.0x', 3: '3.0x' }"
+                  class="radial-slider"
+                  @click.stop
+                />
               </div>
-            </n-tooltip>
-          </h4>
+            </div>
+          </div>
+
+          <!-- Controls Info -->
+          <div class="control-section">
+            <h4 class="section-title">
+              Controls
+              <n-tooltip
+                trigger="hover"
+                placement="top"
+                :keep-alive-on-hover="false"
+              >
+                <template #trigger>
+                  <n-icon size="16" class="info-icon">
+                    <InfoCircleOutlined />
+                  </n-icon>
+                </template>
+                <div class="controls-tooltip">
+                  <div class="control-tip"><strong>WASD:</strong> Movement</div>
+                  <div class="control-tip">
+                    <strong>Mouse:</strong> Look around
+                  </div>
+                  <div class="control-tip"><strong>F:</strong> Move up</div>
+                  <div class="control-tip"><strong>V:</strong> Move down</div>
+                </div>
+              </n-tooltip>
+            </h4>
+          </div>
         </div>
       </div>
     </div>
@@ -145,11 +199,20 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { TresCanvas } from "@tresjs/core";
-import { NTooltip, NSwitch, NSelect, NIcon, NSlider } from "naive-ui";
+import {
+  NTooltip,
+  NSwitch,
+  NSelect,
+  NIcon,
+  NSlider,
+  NTreeSelect,
+  NButton,
+} from "naive-ui";
 import { InfoCircleOutlined } from "@vicons/antd";
 import { use3DPhotos } from "@/composables/use3DPhotos.js";
 import { useTextureCache } from "@/composables/useTextureCache.js";
 import { useFirstPersonControls } from "@/composables/useFirstPersonControls.js";
+import { visualAspectsOptions } from "@/stores/searchStore.js";
 import * as THREE from "three";
 
 // Composable para manejo de fotos 3D
@@ -186,7 +249,13 @@ const cameraRef = ref();
 // Estado del componente
 const useBillboarding = ref(true);
 const useDistanceOpacity = ref(true);
-const currentPosition = ref({ x: 0, y: 0, z: 50 });
+const currentPosition = ref({ x: 0, y: 0, z: 80 });
+
+// Panel de configuración ocultable
+const showConfigPanel = ref(false);
+
+// Filtro de aspectos visuales
+const selectedVisualAspects = ref([]);
 
 // Loader discreto
 const showDiscreteLoader = ref(true);
@@ -207,10 +276,14 @@ const selectedChunk = ref(null);
 const fpControls = ref(null);
 let animationId = null;
 
-// Canvas configuration
+// Canvas configuration - Force WebGL2 with GPU acceleration
 const gl = ref({
   clearColor: "#1a1a1a",
   antialias: true,
+  powerPreference: "high-performance", // Prefer discrete GPU
+  forceWebGL: true, // Force WebGL over Canvas 2D
+  preserveDrawingBuffer: false, // Better performance
+  premultipliedAlpha: false, // Better performance
 });
 
 // Three.js objects - Improved lighting setup
@@ -223,8 +296,12 @@ const lightsGroup = new THREE.Group();
 lightsGroup.add(ambientLight);
 lightsGroup.add(directionalLight1);
 
-// Geometry for photo planes
+// Geometry for photo planes - Optimized for GPU
 const planeGeometry = new THREE.PlaneGeometry(4, 3);
+// Set to not update geometry buffers frequently (GPU optimization)
+planeGeometry.attributes.position.setUsage(THREE.StaticDrawUsage);
+planeGeometry.attributes.uv.setUsage(THREE.StaticDrawUsage);
+planeGeometry.attributes.normal.setUsage(THREE.StaticDrawUsage);
 
 // Grid helper
 const gridHelper = new THREE.GridHelper(200, 40);
@@ -276,6 +353,49 @@ const performanceMetrics = {
   opacityTime: [],
 };
 
+// GPU verification and capabilities
+const checkGPUCapabilities = () => {
+  const canvas = document.createElement("canvas");
+  const gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
+
+  if (!gl) {
+    console.error("❌ WebGL not supported - falling back to CPU rendering");
+    return false;
+  }
+
+  const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+  if (debugInfo) {
+    const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+    const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+
+    console.log("🎮 GPU Info:", {
+      vendor,
+      renderer,
+      webglVersion: gl.constructor.name,
+      maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+      maxVertexAttributes: gl.getParameter(gl.MAX_VERTEX_ATTRIBS),
+      maxFragmentUniforms: gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS),
+    });
+
+    // Check if using software rendering (usually indicates CPU fallback)
+    const isSoftwareRenderer =
+      renderer.toLowerCase().includes("software") ||
+      renderer.toLowerCase().includes("microsoft") ||
+      renderer.toLowerCase().includes("llvmpipe");
+
+    if (isSoftwareRenderer) {
+      console.warn("⚠️ Software rendering detected - GPU may not be available");
+      return false;
+    }
+
+    console.log("✅ Hardware-accelerated GPU rendering active");
+    return true;
+  }
+
+  console.log("✅ WebGL available (GPU info not accessible)");
+  return true;
+};
+
 // Placeholder material (se clona por foto para poder variar opacidad individual)
 const placeholderCanvas = document.createElement("canvas");
 placeholderCanvas.width = 8;
@@ -294,6 +414,10 @@ const createPlaceholderMaterial = () =>
     transparent: true,
     opacity: 0.85,
     side: THREE.DoubleSide,
+    // GPU optimizations
+    alphaTest: 0.01, // Discard nearly transparent pixels early in GPU
+    depthWrite: false, // Better for transparent objects
+    depthTest: true,
   });
 
 // Frustum culling - solo renderizar fotos visibles
@@ -409,6 +533,98 @@ const checkAllTexturesLoaded = () => {
 const getCurrentChunkLabel = () => {
   const option = chunkOptions.find((opt) => opt.value === currentChunk.value);
   return option ? option.label : currentChunk.value;
+};
+
+// Computed para las opciones del tree select de aspectos visuales
+const treeSelectOptions = computed(() => {
+  return visualAspectsOptions.map((group) => ({
+    label: group.label,
+    key: group.key,
+    disabled: false,
+    checkable: false,
+    children: group.children.map((child) => ({
+      label: child.label,
+      key: child.value,
+      disabled: false,
+      checkable: true,
+    })),
+  }));
+});
+
+// Create a mapping from visual aspect values to their categories
+const createVisualAspectCategoryMap = () => {
+  const categoryMap = new Map();
+
+  visualAspectsOptions.forEach((group) => {
+    group.children.forEach((child) => {
+      categoryMap.set(child.value, group.key);
+    });
+  });
+
+  return categoryMap;
+};
+
+const visualAspectCategoryMap = createVisualAspectCategoryMap();
+
+// Aplicar filtro de aspectos visuales (solo marca visibilidad, no elimina fotos)
+const applyVisualAspectsFilter = () => {
+  console.log("🔍 Aplicando filtro de aspectos visuales:", {
+    selectedAspects: selectedVisualAspects.value,
+    totalPhotos: photosWithMaterials.value.length,
+  });
+
+  photosWithMaterials.value.forEach((photo) => {
+    if (selectedVisualAspects.value.length === 0) {
+      // Sin filtro: mostrar todas las fotos
+      photo.isVisible = true;
+    } else {
+      // Con filtro: verificar si la foto tiene al menos uno de los aspectos seleccionados
+      if (!photo.descriptions?.visual_aspects) {
+        photo.isVisible = false;
+      } else {
+        photo.isVisible = selectedVisualAspects.value.some((selectedAspect) => {
+          // Get the category for this aspect (e.g., "cold" -> "temperature")
+          const category = visualAspectCategoryMap.get(selectedAspect);
+
+          if (!category) {
+            console.warn(`⚠️ Category not found for aspect: ${selectedAspect}`);
+            return false;
+          }
+
+          // Check if the photo has this category and if it includes the selected aspect
+          const photoAspects = photo.descriptions.visual_aspects[category];
+          if (!photoAspects || !Array.isArray(photoAspects)) {
+            return false;
+          }
+
+          return photoAspects.includes(selectedAspect);
+        });
+      }
+    }
+  });
+
+  const visibleCount = photosWithMaterials.value.filter(
+    (p) => p.isVisible
+  ).length;
+  console.log(
+    `📊 Filtro aplicado: ${visibleCount}/${photosWithMaterials.value.length} fotos visibles`
+  );
+};
+
+// Computed para fotos filtradas (solo las marcadas como visibles)
+const filteredPhotos = computed(() => {
+  return photosWithMaterials.value.filter((photo) => photo.isVisible !== false);
+});
+
+// Handler para cambio en filtro de aspectos visuales
+const onVisualAspectsChange = () => {
+  console.log(
+    "🔄 onVisualAspectsChange triggered:",
+    selectedVisualAspects.value
+  );
+  applyVisualAspectsFilter();
+  updateVisiblePhotos();
+  if (useBillboarding.value) updateBillboardRotations();
 };
 
 // Función de easing para animaciones suaves
@@ -560,11 +776,24 @@ const loadRealTextureForPhoto = async (photoObj, isCached = false) => {
       return;
     }
 
-    // Crear material con la textura
+    // Crear material con la textura - GPU optimized
+    // Optimize texture for GPU
+    texture.generateMipmaps = true;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.wrapS = THREE.ClampToEdgeWrap;
+    texture.wrapT = THREE.ClampToEdgeWrap;
+    texture.format = THREE.RGBAFormat;
+    // texture.flipY = true; // Default value for images - keeps photos right-side up
+
     const newMat = new THREE.MeshBasicMaterial({
       map: texture,
       transparent: true,
       side: THREE.DoubleSide,
+      // GPU optimizations
+      alphaTest: 0.01,
+      depthWrite: false,
+      depthTest: true,
     });
 
     // Reemplazar material placeholder
@@ -669,6 +898,7 @@ const registerNewPhotos = async (newPhotos) => {
     billboardRotation: [0, 0, 0],
     __textureLoaded: false,
     __loading: false,
+    isVisible: true, // Inicializar como visible
   }));
 
   // Guardar posiciones originales si aún no las tenemos
@@ -711,6 +941,9 @@ const registerNewPhotos = async (newPhotos) => {
     checkAllTexturesLoaded();
   }
 
+  // Aplicar filtro de aspectos visuales a las fotos nuevas
+  applyVisualAspectsFilter();
+
   // Actualizar fotos visibles para procesar las que necesitan descarga
   updateVisiblePhotos();
   if (useBillboarding.value) updateBillboardRotations();
@@ -747,6 +980,7 @@ const updatePhotosPositions = async (newPhotos) => {
         material: existing.photo.material, // Preservar material cargado
         __textureLoaded: existing.photo.__textureLoaded,
         __loading: existing.photo.__loading,
+        isVisible: existing.photo.isVisible || true, // Preservar visibilidad
         transitionStartPosition: [...existing.photo.position], // Para animación
       };
       updatedPhotos.push(updatedPhoto);
@@ -759,6 +993,7 @@ const updatePhotosPositions = async (newPhotos) => {
         billboardRotation: [0, 0, 0],
         __textureLoaded: false,
         __loading: false,
+        isVisible: true, // Inicializar como visible
         transitionStartPosition: [0, 0, 0], // Empezar desde el centro
       };
       updatedPhotos.push(newPhotoObj);
@@ -825,6 +1060,9 @@ const updatePhotosPositions = async (newPhotos) => {
     console.log("🎯 Solo fotos existentes, verificando estado del loader...");
     checkAllTexturesLoaded();
   }
+
+  // Aplicar filtro de aspectos visuales después de la actualización
+  applyVisualAspectsFilter();
 
   // Actualizar fotos visibles
   updateVisiblePhotos();
@@ -933,7 +1171,7 @@ const getCachedDistance = (photoId, photoPosition, cameraPosition) => {
   return distance;
 };
 
-// Performance logging function
+// Performance logging function with GPU monitoring
 const logPerformanceMetrics = () => {
   if (performanceMetrics.frameTime.length === 0) return;
 
@@ -943,12 +1181,19 @@ const logPerformanceMetrics = () => {
   const maxFrameTime = Math.max(...performanceMetrics.frameTime);
   const fps = 1000 / avgFrameTime;
 
-  let logMessage = `[Photos3D Performance]`;
+  let logMessage = `[Photos3D Performance - GPU Accelerated]`;
   logMessage += `\n  Average frame time: ${avgFrameTime.toFixed(2)}ms`;
   logMessage += `\n  Max frame time: ${maxFrameTime.toFixed(2)}ms`;
   logMessage += `\n  FPS: ${fps.toFixed(1)}`;
   logMessage += `\n  Visible photos: ${visiblePhotos.value.length}`;
   logMessage += `\n  Total photos: ${photosWithMaterials.value.length}`;
+
+  // GPU performance indicators
+  if (fps < 30) {
+    logMessage += `\n  ⚠️ LOW FPS: Consider reducing photo count or quality`;
+  } else if (fps > 55) {
+    logMessage += `\n  ✅ GOOD FPS: GPU performing well`;
+  }
 
   if (performanceMetrics.updateVisibleTime.length > 0) {
     const avgVisible =
@@ -971,6 +1216,8 @@ const logPerformanceMetrics = () => {
     logMessage += `\n  Opacity updates: ${avgOpacity.toFixed(2)}ms`;
   }
 
+  console.log(logMessage);
+
   // Clear metrics arrays to prevent memory buildup
   performanceMetrics.frameTime = [];
   performanceMetrics.updateVisibleTime = [];
@@ -980,7 +1227,7 @@ const logPerformanceMetrics = () => {
 
 // Función para actualizar fotos visibles usando Frustum Culling
 const updateVisiblePhotos = () => {
-  if (!cameraRef.value || photosWithMaterials.value.length === 0) {
+  if (!cameraRef.value || filteredPhotos.value.length === 0) {
     visiblePhotos.value = [];
     return;
   }
@@ -994,8 +1241,8 @@ const updateVisiblePhotos = () => {
   );
   reusableFrustum.setFromProjectionMatrix(reusableMatrix);
 
-  // Filtrar fotos que intersectan con el frustum
-  const visible = photosWithMaterials.value.filter((photo) => {
+  // Filtrar fotos que intersectan con el frustum (usar fotos filtradas)
+  const visible = filteredPhotos.value.filter((photo) => {
     reusableVector3.set(...photo.position);
     reusableSphere.set(reusableVector3, 2); // Radio de la esfera de la foto
     return reusableFrustum.intersectsSphere(reusableSphere);
@@ -1305,8 +1552,10 @@ const initFirstPersonControls = () => {
   fpControls.value = useFirstPersonControls(camera, domElement);
   fpControls.value.setup();
 
-  // Configuración inicial
-  fpControls.value.setMoveSpeed(1.2);
+  // Configuración simple: velocidad inicial + aceleración constante
+  fpControls.value.setMoveSpeed(1.2); // Velocidad máxima
+  fpControls.value.setInitialSpeed(0.0001); // Velocidad inicial baja pero perceptible
+  fpControls.value.setAccelerationRate(1.2); // Aceleración constante
   fpControls.value.setMouseSensitivity(0.002);
 
   // Iniciar loop de animación
@@ -1335,6 +1584,15 @@ watch(
           "📸 Primera carga: registrando todas las fotos del chunk:",
           newPhotos.length
         );
+        // Limpiar filtros solo si es un chunk completamente diferente
+        if (
+          oldPhotos &&
+          oldPhotos.length > 0 &&
+          newPhotos.length > 0 &&
+          newPhotos[0].id !== oldPhotos[0].id
+        ) {
+          selectedVisualAspects.value = [];
+        }
         await registerNewPhotos(newPhotos);
       }
       // Si ya tenemos fotos con materiales (cambio de chunk u optimización)
@@ -1387,6 +1645,21 @@ watch(isLoading, (newIsLoading, oldIsLoading) => {
   }
 });
 
+// Watcher para aspectos visuales seleccionados
+watch(
+  selectedVisualAspects,
+  () => {
+    console.log(
+      "🔄 selectedVisualAspects watcher triggered:",
+      selectedVisualAspects.value
+    );
+    applyVisualAspectsFilter();
+    updateVisiblePhotos();
+    if (useBillboarding.value) updateBillboardRotations();
+  },
+  { deep: true }
+);
+
 // Watcher para sincronizar currentChunk del composable con el selector local
 watch(
   currentChunk,
@@ -1401,6 +1674,14 @@ watch(
 // Lifecycle
 onMounted(async () => {
   try {
+    // Verificar capacidades GPU primero
+    const gpuAvailable = checkGPUCapabilities();
+    if (!gpuAvailable) {
+      console.warn(
+        "⚠️ GPU acceleration may not be available - performance could be limited"
+      );
+    }
+
     // Mostrar loader discreto al iniciar
     showDiscreteLoader.value = true;
 
@@ -1427,6 +1708,7 @@ onMounted(async () => {
     showDiscreteLoader.value = false;
   }
 });
+
 onUnmounted(() => {
   // Ocultar loader discreto
   showDiscreteLoader.value = false;
@@ -1491,12 +1773,12 @@ onUnmounted(() => {
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
   box-shadow: var(--shadow-lg);
-  pointer-events: auto;
   min-width: 280px;
   max-width: 320px;
   max-height: 85vh;
   overflow-y: auto;
   animation: slideDown 0.2s ease-out;
+  margin-top: var(--spacing-xs);
 }
 
 .control-section {
@@ -1534,8 +1816,56 @@ onUnmounted(() => {
   font-weight: var(--font-weight-medium, 500);
 }
 
+/* Config Panel Container */
+.config-panel-container {
+  pointer-events: auto;
+  position: relative;
+}
+
+.panel-header {
+  background: var(--bg-container, rgba(26, 26, 31, 0.95));
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  min-width: 200px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.panel-header:hover {
+  background: var(--bg-container-hover, rgba(35, 35, 40, 0.95));
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.panel-title {
+  color: var(--text-primary, #ffffff);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.panel-toggle-icon {
+  transition: transform 0.2s ease;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+}
+
+.panel-toggle-icon.panel-open {
+  transform: rotate(180deg);
+}
+
 /* Embedding Select */
 .embedding-select {
+  width: 100%;
+}
+
+/* Aspects Select */
+.aspects-select {
   width: 100%;
 }
 

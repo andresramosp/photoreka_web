@@ -22,6 +22,7 @@ export function use3DPhotos() {
     try {
       const response = await api.post("/api/3d/photos", {
         chunkName,
+        includeVisualAspects: true, // Solicitar información de aspectos visuales
       });
 
       return response.data.photos || [];

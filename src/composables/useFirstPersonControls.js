@@ -20,18 +20,32 @@ export function useFirstPersonControls(camera, domElement) {
     pitch: 0, // rotación vertical
   });
 
-  // Configuración de movimiento
-  const moveSpeed = ref(0.8); // velocidad constante
-  const fastMoveSpeed = ref(2.0); // velocidad rápida con Shift
+  // Configuración de movimiento simple: velocidad inicial + aceleración
+  const moveSpeed = ref(1.2); // velocidad máxima
+  const initialSpeed = ref(0.01); // velocidad inicial baja
+  const accelerationRate = ref(4.0); // aceleración constante
 
   // Vectores de dirección
   const direction = new THREE.Vector3();
   const sideways = new THREE.Vector3();
   const upward = new THREE.Vector3(0, 1, 0);
 
-  // Para suavizar el movimiento
+  // Para suavizar el movimiento con aceleración
   const velocity = new THREE.Vector3();
   const damping = 0.1;
+
+  // Sistema de aceleración progresiva
+  const currentSpeeds = ref({
+    forward: 0,
+    backward: 0,
+    left: 0,
+    right: 0,
+    up: 0,
+    down: 0,
+  });
+
+  // Tiempo para tracking de aceleración
+  let lastUpdateTime = performance.now();
 
   // Eventos de teclado
   const onKeyDown = (event) => {
@@ -52,14 +66,10 @@ export function useFirstPersonControls(camera, domElement) {
       case "ArrowRight":
         keys.value.right = true;
         break;
-      case "KeyQ":
-      case "Space":
+      case "KeyF":
         keys.value.up = true;
-        event.preventDefault(); // Evitar scroll con Space
         break;
-      case "KeyE":
-      case "ShiftLeft":
-      case "ShiftRight":
+      case "KeyV":
         keys.value.down = true;
         break;
     }
@@ -83,13 +93,10 @@ export function useFirstPersonControls(camera, domElement) {
       case "ArrowRight":
         keys.value.right = false;
         break;
-      case "KeyQ":
-      case "Space":
+      case "KeyF":
         keys.value.up = false;
         break;
-      case "KeyE":
-      case "ShiftLeft":
-      case "ShiftRight":
+      case "KeyV":
         keys.value.down = false;
         break;
     }
@@ -148,35 +155,65 @@ export function useFirstPersonControls(camera, domElement) {
     }
   };
 
-  // Función de actualización del frame
+  // Función de actualización del frame con aceleración progresiva
   const update = (deltaTime = 0.016) => {
     // Calcular vectores de dirección basados en la orientación actual de la cámara
     camera.getWorldDirection(direction);
     sideways.crossVectors(direction, upward).normalize();
 
+    // Calcular deltaTime real si no se proporciona
+    const currentTime = performance.now();
+    const actualDeltaTime = (currentTime - lastUpdateTime) / 1000; // Convertir a segundos
+    lastUpdateTime = currentTime;
+
+    // Usar el deltaTime proporcionado o el calculado
+    const dt = deltaTime > 0.1 ? actualDeltaTime : deltaTime;
+
     // Resetear velocidad
     velocity.set(0, 0, 0);
 
-    // Determinar velocidad actual (rápida con Shift)
-    const currentSpeed = keys.value.down
-      ? fastMoveSpeed.value
-      : moveSpeed.value;
+    // Sistema simple: velocidad inicial + aceleración constante
+    const maxSpeed = moveSpeed.value;
 
-    // Calcular movimiento basado en las teclas presionadas
-    if (keys.value.forward) {
-      velocity.addScaledVector(direction, currentSpeed);
+    // Actualizar velocidades para cada dirección con fórmula limpia
+    const directions = ["forward", "backward", "left", "right", "up", "down"];
+
+    directions.forEach((dir) => {
+      if (keys.value[dir]) {
+        // Si no se está moviendo, empezar con velocidad inicial baja
+        if (currentSpeeds.value[dir] === 0) {
+          currentSpeeds.value[dir] = initialSpeed.value;
+        } else {
+          // Acelerar linealmente hasta velocidad máxima
+          currentSpeeds.value[dir] = Math.min(
+            maxSpeed,
+            currentSpeeds.value[dir] + accelerationRate.value * dt
+          );
+        }
+      } else {
+        // Resetear velocidad al soltar tecla
+        currentSpeeds.value[dir] = 0;
+      }
+    });
+
+    // Aplicar movimiento basado en las velocidades actuales
+    if (keys.value.forward && currentSpeeds.value.forward > 0) {
+      velocity.addScaledVector(direction, currentSpeeds.value.forward);
     }
-    if (keys.value.backward) {
-      velocity.addScaledVector(direction, -currentSpeed);
+    if (keys.value.backward && currentSpeeds.value.backward > 0) {
+      velocity.addScaledVector(direction, -currentSpeeds.value.backward);
     }
-    if (keys.value.left) {
-      velocity.addScaledVector(sideways, -currentSpeed);
+    if (keys.value.left && currentSpeeds.value.left > 0) {
+      velocity.addScaledVector(sideways, -currentSpeeds.value.left);
     }
-    if (keys.value.right) {
-      velocity.addScaledVector(sideways, currentSpeed);
+    if (keys.value.right && currentSpeeds.value.right > 0) {
+      velocity.addScaledVector(sideways, currentSpeeds.value.right);
     }
-    if (keys.value.up) {
-      velocity.addScaledVector(upward, currentSpeed);
+    if (keys.value.up && currentSpeeds.value.up > 0) {
+      velocity.addScaledVector(upward, currentSpeeds.value.up);
+    }
+    if (keys.value.down && currentSpeeds.value.down > 0) {
+      velocity.addScaledVector(upward, -currentSpeeds.value.down);
     }
 
     // Aplicar movimiento a la cámara
@@ -229,6 +266,14 @@ export function useFirstPersonControls(camera, domElement) {
     mouseState.value.sensitivity = sensitivity;
   };
 
+  const setInitialSpeed = (speed) => {
+    initialSpeed.value = speed;
+  };
+
+  const setAccelerationRate = (rate) => {
+    accelerationRate.value = rate;
+  };
+
   const setCameraPosition = (x, y, z) => {
     camera.position.set(x, y, z);
   };
@@ -240,11 +285,21 @@ export function useFirstPersonControls(camera, domElement) {
     camera.rotation.x = pitch;
   };
 
+  // Método para resetear velocidades (útil cuando se pausa/reanuda)
+  const resetSpeeds = () => {
+    Object.keys(currentSpeeds.value).forEach((key) => {
+      currentSpeeds.value[key] = 0;
+    });
+  };
+
   return {
     // Estado reactivo
     keys,
     mouseState,
     moveSpeed,
+    initialSpeed,
+    accelerationRate,
+    currentSpeeds,
 
     // Métodos
     setup,
@@ -252,8 +307,11 @@ export function useFirstPersonControls(camera, domElement) {
     update,
     setMoveSpeed,
     setMouseSensitivity,
+    setInitialSpeed,
+    setAccelerationRate,
     setCameraPosition,
     setCameraRotation,
+    resetSpeeds,
     requestPointerLock,
   };
 }
