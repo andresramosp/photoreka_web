@@ -190,8 +190,20 @@
 
     <!-- Discrete Loading Indicator -->
     <div v-if="showDiscreteLoader" class="discrete-loader">
-      <div class="loader-spinner"></div>
-      <span class="loader-text">Loading textures</span>
+      <div class="loader-header">
+        <div class="loader-spinner"></div>
+        <span class="loader-title-small">{{ loaderTitle }}</span>
+      </div>
+      <div class="loader-progress-container">
+        <div class="progress-bar-small">
+          <div
+            class="progress-fill-small"
+            :style="{ width: `${loadingProgress}%` }"
+          ></div>
+        </div>
+        <span class="progress-percentage">{{ loadingProgress }}%</span>
+      </div>
+      <span class="loader-subtitle-small">{{ loaderSubtitle }}</span>
     </div>
   </div>
 </template>
@@ -221,13 +233,8 @@ const {
   photos3D,
   isLoading,
   currentChunk,
-  pagination,
   error,
-  loadedPages,
-  totalLoadedPhotos,
   chunkOptions,
-  loadingProgress,
-  isLoadingComplete,
   loadAllPhotos,
   changeChunk,
   reset,
@@ -263,8 +270,14 @@ const showConfigPanel = ref(false);
 // Filtro de aspectos visuales
 const selectedVisualAspects = ref([]);
 
-// Loader discreto
+// Loader discreto con progreso
 const showDiscreteLoader = ref(true);
+const loaderTitle = ref("Loading Photos");
+const loaderSubtitle = ref("Preparing your photo collection...");
+const totalPhotosToLoad = ref(0);
+const loadedPhotosCount = ref(0);
+const loadingProgress = ref(0);
+const hasCachedPhotos = ref(false);
 
 // Escaleo radial
 const inflateFactor = ref(2.5);
@@ -467,22 +480,50 @@ const cleanTextureQueue = () => {
   return cleanedCount;
 };
 
+// Función para actualizar el progreso de carga
+const updateLoadingProgress = () => {
+  if (totalPhotosToLoad.value === 0) {
+    loadedPhotosCount.value = 0;
+    loadingProgress.value = 0;
+    return;
+  }
+
+  const loadedPhotos = photosWithMaterials.value.filter(
+    (photo) => photo.__textureLoaded
+  );
+  loadedPhotosCount.value = loadedPhotos.length;
+
+  const progress = Math.round(
+    (loadedPhotosCount.value / totalPhotosToLoad.value) * 100
+  );
+  loadingProgress.value = Math.min(progress, 100);
+
+  console.log("📊 Progreso de carga:", {
+    loaded: loadedPhotosCount.value,
+    total: totalPhotosToLoad.value,
+    progress: loadingProgress.value + "%",
+  });
+};
+
 // Función para verificar si todas las texturas están cargadas
 const checkAllTexturesLoaded = () => {
   // Primero limpiar la cola de elementos obsoletos
   cleanTextureQueue();
 
+  // Actualizar progreso
+  updateLoadingProgress();
+
   console.log("🔍 checkAllTexturesLoaded - Estado actual:", {
     photosCount: photosWithMaterials.value.length,
     isLoading: isLoading.value,
-    showDiscreteLoader: showDiscreteLoader.value,
     queueLength: textureQueue.value.length,
+    progress: loadingProgress.value + "%",
   });
 
   // Si no hay fotos y ya no está cargando, ocultar loader
   if (photosWithMaterials.value.length === 0 && !isLoading.value) {
     console.log("📭 No hay fotos y no está cargando - ocultando loader");
-    showDiscreteLoader.value = false;
+    hideLoaderAndEnableNavigation();
     return;
   }
 
@@ -524,7 +565,7 @@ const checkAllTexturesLoaded = () => {
     console.log(
       "🎯 ¡Todas las condiciones cumplidas! - Ocultando loader discreto"
     );
-    showDiscreteLoader.value = false;
+    hideLoader();
   } else {
     console.log(
       "⏸️ Aún no se cumplen todas las condiciones para ocultar el loader. Razones:",
@@ -763,6 +804,90 @@ const updateTransitionPositions = (currentTime) => {
   }
 };
 
+// Función para detectar si tenemos fotos en cache
+const checkIfPhotosAreCached = async (photos) => {
+  if (!photos || photos.length === 0) {
+    console.log("🔍 checkIfPhotosAreCached: No hay fotos para verificar");
+    return false;
+  }
+
+  let cachedCount = 0;
+  const photosToCheck = photos.slice(0, 10); // Comprobar las primeras 10 fotos
+
+  console.log("🔍 Verificando cache para", photosToCheck.length, "fotos...");
+
+  for (const photo of photosToCheck) {
+    const imageUrl = photo.thumbnailUrl || photo.url || photo.originalUrl;
+    if (imageUrl) {
+      try {
+        // Usar getCachedTextureSync en lugar de isTextureCached que podría no existir
+        const cachedTexture = getCachedTextureSync(imageUrl);
+        if (cachedTexture) {
+          cachedCount++;
+          console.log("✅ Cache hit:", imageUrl.substring(0, 50) + "...");
+        } else {
+          console.log("❌ Cache miss:", imageUrl.substring(0, 50) + "...");
+        }
+      } catch (e) {
+        console.warn("⚠️ Error verificando cache para:", imageUrl, e);
+      }
+    }
+  }
+
+  // Si más del 70% están cacheadas, consideramos que hay cache
+  const cacheRatio = cachedCount / photosToCheck.length;
+  const hasCache = cacheRatio > 0.7;
+
+  console.log("📊 Resultado detección cache:", {
+    photosChecked: photosToCheck.length,
+    cachedCount,
+    cacheRatio: (cacheRatio * 100).toFixed(1) + "%",
+    threshold: "70%",
+    hasCache,
+  });
+
+  return hasCache;
+};
+
+// Función para configurar el loader según el estado de cache
+const setupLoaderForPhotos = async (photos) => {
+  console.log("🚀 setupLoaderForPhotos iniciado para", photos.length, "fotos");
+
+  totalPhotosToLoad.value = photos.length;
+  loadedPhotosCount.value = 0;
+  loadingProgress.value = 0;
+
+  console.log("🔍 Verificando estado de cache...");
+  hasCachedPhotos.value = await checkIfPhotosAreCached(photos);
+
+  console.log(
+    "📝 Configurando loader basado en resultado:",
+    hasCachedPhotos.value
+  );
+
+  loaderTitle.value = "Loading Photos";
+  loaderSubtitle.value = "Preparing your photo collection...";
+
+  console.log("📋 Loader configurado:", {
+    totalPhotos: totalPhotosToLoad.value,
+    hasCachedPhotos: hasCachedPhotos.value,
+    title: loaderTitle.value,
+    subtitle: loaderSubtitle.value,
+  });
+};
+
+// Función para ocultar loader (mantener navegación siempre activa)
+const hideLoader = () => {
+  showDiscreteLoader.value = false;
+  console.log("✅ Loader ocultado - Carga completada");
+};
+
+// Función para mostrar loader (sin bloquear navegación)
+const showLoader = () => {
+  showDiscreteLoader.value = true;
+  console.log("⏳ Mostrando loader discreto");
+};
+
 // Carga diferida de textura real usando el composable de caché
 const loadRealTextureForPhoto = async (photoObj, isCached = false) => {
   if (photoObj.__textureLoaded || photoObj.__loading) return;
@@ -823,6 +948,8 @@ const loadRealTextureForPhoto = async (photoObj, isCached = false) => {
   } catch (e) {
     console.warn("Fallo carga textura (mantengo placeholder):", imageUrl, e);
     photoObj.__textureLoaded = true;
+    // Actualizar progreso incluso en caso de error
+    updateLoadingProgress();
   } finally {
     photoObj.__loading = false;
     // Verificar nuevamente al finalizar
@@ -860,17 +987,61 @@ const loadCachedTexturesBatch = async (photos) => {
         hits++;
       }
     });
-    if (hits) checkAllTexturesLoaded();
+    if (hits) {
+      updateLoadingProgress();
+      checkAllTexturesLoaded();
+    }
   } catch (e) {
     console.warn("Error en loadCachedTexturesBatch:", e);
   }
   return hits;
 };
 
+// Nueva función para encolar TODAS las fotos no cacheadas (sin filtro de frustum)
+const enqueueAllNonCachedPhotos = (photos) => {
+  if (!photos || photos.length === 0) return 0;
+
+  let enqueuedCount = 0;
+  const cameraPos = cameraRef.value?.position || { x: 0, y: 0, z: 0 };
+
+  photos.forEach((photo) => {
+    if (
+      !photo.__textureLoaded &&
+      !photo.__loading &&
+      !queuedIds.has(photo.id) &&
+      !scheduledDownloads.has(photo.id)
+    ) {
+      // Pre-calcular prioridad por distancia al cuadrado (sin sqrt)
+      const dx = photo.position[0] - cameraPos.x;
+      const dy = photo.position[1] - cameraPos.y;
+      const dz = photo.position[2] - cameraPos.z;
+      photo.__priority = dx * dx + dy * dy + dz * dz;
+      textureQueue.value.push(photo.id);
+      queuedIds.add(photo.id);
+      enqueuedCount++;
+    }
+  });
+
+  // Ordenar cola por prioridad si agregamos elementos
+  if (enqueuedCount > 0 && textureQueue.value.length > 1) {
+    textureQueue.value.sort((aId, bId) => {
+      const a = photosWithMaterials.value.find((p) => p.id === aId);
+      const b = photosWithMaterials.value.find((p) => p.id === bId);
+      return (a?.__priority || 0) - (b?.__priority || 0);
+    });
+  }
+
+  console.log(`📋 Encoladas ${enqueuedCount} fotos no cacheadas para carga`);
+  return enqueuedCount;
+};
+
 // Integración nueva: Inicializar foto con placeholder y encolar su ID
 const registerNewPhotos = async (newPhotos) => {
-  console.log("🔄 Registrando fotos nuevas, mostrando loader discreto");
-  showDiscreteLoader.value = true;
+  console.log("🔄 Registrando fotos nuevas, configurando loader discreto");
+
+  // Configurar el loader según el estado de cache
+  await setupLoaderForPhotos(newPhotos);
+  showLoader();
 
   const prepared = newPhotos.map((p) => ({
     ...p,
@@ -907,25 +1078,49 @@ const registerNewPhotos = async (newPhotos) => {
     `� Cache hits: ${cachedHits} | Descarga necesaria: ${photosNeedingDownload.length}`
   );
 
-  // Si no hay fotos que necesiten descarga de red, verificar si podemos ocultar el loader
-  if (photosNeedingDownload.length === 0) {
-    console.log(
-      "🎯 Todas las texturas están cacheadas, verificando si ocultar loader..."
-    );
-    checkAllTexturesLoaded();
-  }
-
   // Aplicar filtro de aspectos visuales a las fotos nuevas
   applyVisualAspectsFilter();
 
-  // Actualizar fotos visibles para procesar las que necesitan descarga
-  updateVisiblePhotos();
+  // ⚡ ESTRATEGIA DIFERENTE: Agregar fotos cacheadas inmediatamente a visiblePhotos
+  const cachedPhotos = prepared.filter((p) => p.__textureLoaded);
+  const nonCachedPhotos = prepared.filter((p) => !p.__textureLoaded);
+
+  console.log(`💾 Fotos cacheadas (inmediatas): ${cachedPhotos.length}`);
+  console.log(`⏳ Fotos no cacheadas (progresivas): ${nonCachedPhotos.length}`);
+
+  // Agregar las cacheadas inmediatamente a visibles
+  if (cachedPhotos.length > 0) {
+    // Filtrar las cacheadas que pasan el filtro de aspectos visuales
+    const cachedVisible = cachedPhotos.filter(
+      (photo) => photo.isVisible !== false
+    );
+    visiblePhotos.value = [...(visiblePhotos.value || []), ...cachedVisible];
+    console.log(
+      `✨ ${cachedVisible.length} fotos cacheadas agregadas inmediatamente a visiblePhotos`
+    );
+  }
+
+  // Si hay fotos no cacheadas, encolar TODAS para carga (no solo las visibles)
+  if (nonCachedPhotos.length > 0) {
+    enqueueAllNonCachedPhotos(nonCachedPhotos);
+  }
+
   if (useBillboarding.value) updateBillboardRotations();
+
+  // Verificar si podemos ocultar el loader
+  if (photosNeedingDownload.length === 0) {
+    console.log("🎯 Todas las texturas están cacheadas - ocultando loader");
+    checkAllTexturesLoaded();
+  }
 };
 
 // ✨ Nueva función optimizada para cambios de chunk que reutiliza texturas
 const updatePhotosPositions = async (newPhotos) => {
   console.log("🔄 Actualizando posiciones de fotos existentes con animación");
+
+  // Configurar el loader para las nuevas fotos
+  await setupLoaderForPhotos(newPhotos);
+  showLoader();
 
   // Crear un mapa de fotos por ID para matching rápido
   const existingPhotosMap = new Map();
@@ -1019,25 +1214,57 @@ const updatePhotosPositions = async (newPhotos) => {
       `� Cache hits nuevas: ${cachedHits} | Net: ${photosNeedingDownload.length}`
     );
 
-    // Si no hay fotos que necesiten descarga de red, verificar si podemos ocultar el loader
+    // Aplicar filtros a todas las fotos
+    applyVisualAspectsFilter();
+
+    // ⚡ Separar fotos cacheadas (existentes + nuevas cacheadas) vs no cacheadas
+    const allCachedPhotos = photosNeedingTextures.filter(
+      (p) => p.__textureLoaded
+    );
+    const allNonCachedPhotos = photosNeedingTextures.filter(
+      (p) => !p.__textureLoaded
+    );
+
+    console.log(
+      `💾 Fotos cacheadas en updatePhotosPositions: ${allCachedPhotos.length}`
+    );
+    console.log(
+      `⏳ Fotos no cacheadas en updatePhotosPositions: ${allNonCachedPhotos.length}`
+    );
+
+    // Agregar todas las fotos ya cargadas (existentes + cacheadas) a visibles inmediatamente
+    const allLoadedPhotos = updatedPhotos.filter(
+      (p) => p.__textureLoaded && p.isVisible !== false
+    );
+    visiblePhotos.value = allLoadedPhotos;
+    console.log(
+      `✨ ${allLoadedPhotos.length} fotos cargadas mostradas inmediatamente en updatePhotosPositions`
+    );
+
+    // Si hay fotos no cacheadas, encolar TODAS para carga (no solo las visibles)
+    if (allNonCachedPhotos.length > 0) {
+      enqueueAllNonCachedPhotos(allNonCachedPhotos);
+    }
+
+    if (useBillboarding.value) updateBillboardRotations();
+
     if (photosNeedingDownload.length === 0) {
       console.log(
-        "🎯 Todas las texturas nuevas están cacheadas, verificando si ocultar loader..."
+        "🎯 Todas las texturas en updatePhotosPositions están cacheadas - ocultando loader"
       );
       checkAllTexturesLoaded();
     }
   } else {
-    // Solo hay fotos existentes, verificar si podemos ocultar el loader
-    console.log("🎯 Solo fotos existentes, verificando estado del loader...");
+    // Solo hay fotos existentes - todas ya están cargadas
+    console.log("🎯 Solo fotos existentes - todas mostradas inmediatamente");
+    applyVisualAspectsFilter();
+    const allExistingLoaded = updatedPhotos.filter(
+      (p) => p.__textureLoaded && p.isVisible !== false
+    );
+    visiblePhotos.value = allExistingLoaded;
+    if (useBillboarding.value) updateBillboardRotations();
     checkAllTexturesLoaded();
   }
-
-  // Aplicar filtro de aspectos visuales después de la actualización
-  applyVisualAspectsFilter();
-
-  // Actualizar fotos visibles
-  updateVisiblePhotos();
-  if (useBillboarding.value) updateBillboardRotations();
 };
 
 // Función para calcular posiciones escaladas sin modificar el estado
@@ -1213,17 +1440,34 @@ const updateVisiblePhotos = () => {
   reusableFrustum.setFromProjectionMatrix(reusableMatrix);
 
   // Filtrar fotos que intersectan con el frustum (usar fotos filtradas)
-  const visible = filteredPhotos.value.filter((photo) => {
+  const newVisibleFromFrustum = filteredPhotos.value.filter((photo) => {
     reusableVector3.set(...photo.position);
     reusableSphere.set(reusableVector3, 2); // Radio de la esfera de la foto
     return reusableFrustum.intersectsSphere(reusableSphere);
   });
 
-  visiblePhotos.value = visible;
+  // ⚡ CLAVE: No sobrescribir, sino mantener fotos cacheadas + agregar nuevas del frustum
+  const existingCachedIds = new Set(
+    visiblePhotos.value.filter((p) => p.__textureLoaded).map((p) => p.id)
+  );
+  const newPhotosToAdd = newVisibleFromFrustum.filter(
+    (photo) => !existingCachedIds.has(photo.id)
+  );
+
+  // Mantener las cacheadas + agregar las nuevas del frustum
+  const existingCached = visiblePhotos.value.filter((p) => p.__textureLoaded);
+  visiblePhotos.value = [...existingCached, ...newPhotosToAdd];
+
+  // Solo loggear cuando hay cambios significativos
+  if (newPhotosToAdd.length > 0) {
+    console.log(
+      `🔄 updateVisiblePhotos: Manteniendo ${existingCached.length} cacheadas, agregando ${newPhotosToAdd.length} del frustum`
+    );
+  }
 
   // Encolar para carga real SOLO las que están visibles, no cargadas, y necesitan descarga de red
   const cameraPos = camera.position;
-  visible.forEach((photo) => {
+  newVisibleFromFrustum.forEach((photo) => {
     if (
       !photo.__textureLoaded &&
       !photo.__loading &&
@@ -1347,8 +1591,11 @@ const onChunkChange = async (newValue) => {
     hasExistingPhotos: photosWithMaterials.value.length > 0,
   });
 
-  // Mostrar loader discreto
-  showDiscreteLoader.value = true;
+  // 🚨 MOSTRAR LOADER INMEDIATAMENTE antes de la llamada a la API
+  loaderTitle.value = "Loading Photos";
+  loaderSubtitle.value = "Fetching new coordinates...";
+  loadingProgress.value = 0;
+  showLoader();
 
   // Si no hay fotos existentes, hacer limpieza completa
   if (photosWithMaterials.value.length === 0) {
@@ -1379,6 +1626,7 @@ const onChunkChange = async (newValue) => {
 // Función de retry
 const retryLoad = async () => {
   reset();
+  showLoader();
   await loadAllPhotos(currentChunk.value);
 };
 
@@ -1604,7 +1852,7 @@ watch(
   { immediate: false }
 );
 
-// Watcher: mostrar loader discreto cuando esté cargando
+// Watcher: controlar el loader central cuando esté cargando
 watch(isLoading, (newIsLoading, oldIsLoading) => {
   console.log("🔄 isLoading watcher:", {
     oldIsLoading,
@@ -1613,8 +1861,8 @@ watch(isLoading, (newIsLoading, oldIsLoading) => {
   });
 
   if (newIsLoading) {
-    console.log("⏳ Mostrando loader discreto - isLoading = true");
-    showDiscreteLoader.value = true;
+    console.log("⏳ Proceso de carga iniciado");
+    // No mostrar el loader aquí, se maneja en registerNewPhotos/updatePhotosPositions
   } else {
     console.log(
       "✅ isLoading = false, verificando si todas las texturas están listas"
@@ -1661,8 +1909,7 @@ onMounted(async () => {
       );
     }
 
-    // Mostrar loader discreto al iniciar
-    showDiscreteLoader.value = true;
+    // El loader central se configurará en loadAllPhotos
 
     // Inicializar sistema de caché de texturas
     await textureCache.initialize();
@@ -1961,31 +2208,47 @@ onUnmounted(() => {
   bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  background: var(--bg-container);
-  color: var(--primary-color);
-  padding: var(--spacing-lg) var(--spacing-xl);
-  border-radius: 25px;
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--border-color);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium, 500);
-  z-index: 9999;
+  background: var(--bg-container, rgba(26, 26, 31, 0.95));
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-lg, 12px);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
   box-shadow: var(--shadow-lg);
+  padding: var(--spacing-lg, 16px) var(--spacing-xl, 24px);
+  z-index: 1000;
+  min-width: 280px;
+  animation: loaderSlideUp 0.3s ease-out;
+}
+
+@keyframes loaderSlideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.loader-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md, 12px);
+  margin-bottom: var(--spacing-md, 12px);
 }
 
 .loader-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--border-color);
-  border-top: 2px solid var(--primary-color);
-  border-radius: var(--radius-round);
-  animation: discreteSpun 1s linear infinite;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-color, rgba(255, 255, 255, 0.2));
+  border-top: 2px solid var(--primary-color, #3b82f6);
+  border-radius: 50%;
+  animation: discreteSpinner 1s linear infinite;
 }
 
-@keyframes discreteSpun {
+@keyframes discreteSpinner {
   0% {
     transform: rotate(0deg);
   }
@@ -1994,9 +2257,63 @@ onUnmounted(() => {
   }
 }
 
-.loader-text {
-  color: var(--primary-color);
-  font-size: var(--font-size-sm);
+.loader-title-small {
+  color: var(--text-primary, #ffffff);
+  font-size: var(--font-size-base, 16px);
+  font-weight: var(--font-weight-semibold, 600);
+  margin: 0;
+}
+
+.loader-progress-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm, 8px);
+  margin-bottom: var(--spacing-sm, 8px);
+}
+
+.progress-bar-small {
+  flex: 1;
+  height: 6px;
+  background: var(--border-color, rgba(255, 255, 255, 0.1));
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill-small {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--primary-color, #3b82f6),
+    var(--primary-color-hover, #2563eb)
+  );
+  border-radius: 3px;
+  transition: width 0.3s ease;
+  animation: progressPulse 2s infinite;
+}
+
+@keyframes progressPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.progress-percentage {
+  color: var(--primary-color, #3b82f6);
+  font-size: var(--font-size-sm, 14px);
+  font-weight: var(--font-weight-semibold, 600);
+  min-width: 35px;
+  text-align: right;
+}
+
+.loader-subtitle-small {
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+  font-size: var(--font-size-xs, 12px);
   font-weight: var(--font-weight-medium, 500);
+  text-align: center;
+  display: block;
 }
 </style>

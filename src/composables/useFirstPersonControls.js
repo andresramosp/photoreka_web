@@ -47,8 +47,13 @@ export function useFirstPersonControls(camera, domElement) {
   // Tiempo para tracking de aceleración
   let lastUpdateTime = performance.now();
 
+  // Estado de habilitación de controles
+  const enabled = ref(true);
+
   // Eventos de teclado
   const onKeyDown = (event) => {
+    if (!enabled.value) return; // Bloquear si está deshabilitado
+
     switch (event.code) {
       case "KeyW":
       case "ArrowUp":
@@ -76,6 +81,12 @@ export function useFirstPersonControls(camera, domElement) {
   };
 
   const onKeyUp = (event) => {
+    if (!enabled.value) {
+      // Forzar todas las teclas a false si está deshabilitado
+      Object.keys(keys.value).forEach((key) => (keys.value[key] = false));
+      return;
+    }
+
     switch (event.code) {
       case "KeyW":
       case "ArrowUp":
@@ -104,7 +115,7 @@ export function useFirstPersonControls(camera, domElement) {
 
   // Eventos del mouse para rotación libre
   const onMouseMove = (event) => {
-    if (!mouseState.value.isPointerLocked) return;
+    if (!mouseState.value.isPointerLocked || !enabled.value) return;
 
     const movementX = event.movementX || 0;
     const movementY = event.movementY || 0;
@@ -150,6 +161,10 @@ export function useFirstPersonControls(camera, domElement) {
 
   // Solicitar Pointer Lock al hacer click
   const requestPointerLock = () => {
+    if (!enabled.value) {
+      console.log("⚠️ Controles deshabilitados - pointer lock bloqueado");
+      return;
+    }
     if (domElement.requestPointerLock) {
       domElement.requestPointerLock();
     }
@@ -292,6 +307,20 @@ export function useFirstPersonControls(camera, domElement) {
     });
   };
 
+  // Métodos para habilitar/deshabilitar controles
+  const enable = () => {
+    enabled.value = true;
+    console.log("🚀 Controles FPS habilitados");
+  };
+
+  const disable = () => {
+    enabled.value = false;
+    // Resetear todas las teclas y velocidades
+    Object.keys(keys.value).forEach((key) => (keys.value[key] = false));
+    resetSpeeds();
+    console.log("🔒 Controles FPS deshabilitados");
+  };
+
   return {
     // Estado reactivo
     keys,
@@ -300,6 +329,7 @@ export function useFirstPersonControls(camera, domElement) {
     initialSpeed,
     accelerationRate,
     currentSpeeds,
+    enabled,
 
     // Métodos
     setup,
@@ -313,5 +343,7 @@ export function useFirstPersonControls(camera, domElement) {
     setCameraRotation,
     resetSpeeds,
     requestPointerLock,
+    enable,
+    disable,
   };
 }
