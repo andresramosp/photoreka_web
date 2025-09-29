@@ -238,8 +238,13 @@ const textureCache = useTextureCache({
   expiryDays: 7,
 });
 
-// Desestructurar funciones del caché
-const { loadTexture, isTextureCached, getCachedTextureSync } = textureCache;
+// Desestructurar funciones del caché (añadimos loadMultipleCachedTextures para batch)
+const {
+  loadTexture,
+  isTextureCached,
+  getCachedTextureSync,
+  loadMultipleCachedTextures,
+} = textureCache;
 
 // Referencias del DOM y Three.js
 const containerRef = ref();
@@ -316,12 +321,12 @@ try {
 // Fotos con materiales cargados
 const photosWithMaterials = ref([]);
 
-// Cola de texturas pendientes (IDs)
+// Cola de texturas pendientes (IDs) y control dinámico de batch
 const textureQueue = ref([]);
-// Set para evitar duplicar en cola
 const queuedIds = new Set();
-// Número máximo de texturas a iniciar por frame de animación (aparte del p-limit interno)
-const BATCH_PER_FRAME = 2;
+let dynamicBatch = 4; // tamaño inicial
+const MIN_BATCH = 2;
+const MAX_BATCH = 10;
 
 // Performance optimization: throttling variables
 let frameCounter = 0;
@@ -817,73 +822,41 @@ const loadRealTextureForPhoto = async (photoObj, isCached = false) => {
   }
 };
 
-// ✨ Nueva función para cargar inmediatamente texturas cacheadas SÍNCRONAMENTE
-const loadCachedTexturesImmediately = async (photos) => {
-  console.log(
-    `🔄 Verificando texturas cacheadas para ${photos.length} fotos...`
-  );
-
-  // Verificar cuáles están disponibles en caché
-  const cacheCheckPromises = photos.map(async (photo) => {
-    const imageUrl = photo.thumbnailUrl || photo.url || photo.originalUrl;
-    if (!imageUrl) return { photo, isCached: false };
-
-    const isCached = await isTextureCached(imageUrl);
-    return { photo, isCached };
+// ✨ Nueva función batch para cargar texturas cacheadas en un solo paso (Quick Win 1)
+const loadCachedTexturesBatch = async (photos) => {
+  if (!photos || photos.length === 0) return 0;
+  const urlMap = new Map(); // id -> url
+  photos.forEach((p) => {
+    if (p.__textureLoaded) return;
+    const url = p.thumbnailUrl || p.url || p.originalUrl;
+    if (url) urlMap.set(p.id, url);
   });
-
-  const cacheResults = await Promise.all(cacheCheckPromises);
-  const cachedPhotos = cacheResults.filter((result) => result.isCached);
-
-  if (cachedPhotos.length === 0) {
-    console.log("📭 No hay texturas en caché para cargar");
-    return cacheResults.map((result) => result.isCached);
-  }
-
-  console.log(
-    `⚡ Cargando ${cachedPhotos.length} texturas desde caché SÍNCRONAMENTE...`
-  );
-
-  // ✨ Cargar todas las texturas cacheadas síncronamente en un solo batch
-  const syncLoadPromises = cachedPhotos.map(async ({ photo }) => {
-    const imageUrl = photo.thumbnailUrl || photo.url || photo.originalUrl;
-    try {
-      const texture = await getCachedTextureSync(imageUrl);
-      if (texture) {
-        // Aplicar textura inmediatamente
-        const newMat = new THREE.MeshBasicMaterial({
-          map: texture,
-          transparent: true,
-          side: THREE.DoubleSide,
-        });
-
-        if (photo.material) {
-          photo.material.dispose?.();
+  const urls = [...urlMap.values()];
+  if (!urls.length) return 0;
+  let hits = 0;
+  try {
+    const texturesMap = await loadMultipleCachedTextures(urls);
+    photos.forEach((p) => {
+      if (p.__textureLoaded) return;
+      const url = urlMap.get(p.id);
+      const tex = texturesMap.get(url);
+      if (tex) {
+        // Reutilizar material placeholder si existe
+        if (!p.material) {
+          p.material = createPlaceholderMaterial();
         }
-        photo.material = newMat;
-        photo.__textureLoaded = true;
-        return true;
+        p.material.map = tex;
+        p.material.needsUpdate = true;
+        p.__textureLoaded = true;
+        p.__loading = false;
+        hits++;
       }
-    } catch (e) {
-      console.warn("Error cargando textura cacheada:", imageUrl, e);
-    }
-    return false;
-  });
-
-  // Ejecutar todas las cargas síncronas en paralelo
-  const syncResults = await Promise.all(syncLoadPromises);
-  const successCount = syncResults.filter(Boolean).length;
-
-  console.log(
-    `✅ Cargadas instantáneamente ${successCount}/${cachedPhotos.length} texturas desde caché`
-  );
-
-  // Verificar si todas las texturas están cargadas después de la carga desde caché
-  if (successCount > 0) {
-    checkAllTexturesLoaded();
+    });
+    if (hits) checkAllTexturesLoaded();
+  } catch (e) {
+    console.warn("Error en loadCachedTexturesBatch:", e);
   }
-
-  return cacheResults.map((result) => result.isCached);
+  return hits;
 };
 
 // Integración nueva: Inicializar foto con placeholder y encolar su ID
@@ -919,18 +892,11 @@ const registerNewPhotos = async (newPhotos) => {
     applyRadialScaling();
   }
 
-  // ✨ NOVEDAD: Cargar inmediatamente todas las texturas cacheadas disponibles
+  // ✨ Batch: cargar todas las texturas cacheadas en un solo acceso
+  const cachedHits = await loadCachedTexturesBatch(prepared);
+  const photosNeedingDownload = prepared.filter((p) => !p.__textureLoaded);
   console.log(
-    `🔄 Verificando texturas cacheadas para ${prepared.length} fotos...`
-  );
-  const cacheResults = await loadCachedTexturesImmediately(prepared);
-
-  // Solo encolar para descarga de red las fotos que NO están en caché
-  const photosNeedingDownload = prepared.filter(
-    (photo, index) => !cacheResults[index]
-  );
-  console.log(
-    `📥 ${photosNeedingDownload.length} fotos requerirán descarga de red`
+    `� Cache hits: ${cachedHits} | Descarga necesaria: ${photosNeedingDownload.length}`
   );
 
   // Si no hay fotos que necesiten descarga de red, verificar si podemos ocultar el loader
@@ -1037,15 +1003,12 @@ const updatePhotosPositions = async (newPhotos) => {
     console.log(
       `🖼️ Cargando texturas para ${photosNeedingTextures.length} fotos nuevas...`
     );
-    const cacheResults = await loadCachedTexturesImmediately(
-      photosNeedingTextures
-    );
-
+    const cachedHits = await loadCachedTexturesBatch(photosNeedingTextures);
     const photosNeedingDownload = photosNeedingTextures.filter(
-      (photo, index) => !cacheResults[index]
+      (p) => !p.__textureLoaded
     );
     console.log(
-      `📥 ${photosNeedingDownload.length} fotos nuevas requerirán descarga de red`
+      `� Cache hits nuevas: ${cachedHits} | Net: ${photosNeedingDownload.length}`
     );
 
     // Si no hay fotos que necesiten descarga de red, verificar si podemos ocultar el loader
@@ -1402,6 +1365,13 @@ const animate = () => {
   const frameStart = performance.now();
   frameCounter++;
 
+  // Calcular frame time y ajustar batch dinámico (Quick Win 2)
+  if (!animate._last) animate._last = frameStart;
+  const frameTime = frameStart - animate._last;
+  animate._last = frameStart;
+  if (frameTime < 14 && dynamicBatch < MAX_BATCH) dynamicBatch++;
+  else if (frameTime > 26 && dynamicBatch > MIN_BATCH) dynamicBatch--;
+
   if (fpControls.value) {
     fpControls.value.update();
   }
@@ -1458,12 +1428,13 @@ const animate = () => {
     performanceMetrics.opacityTime.push(opacityEnd - opacityStart);
   }
 
-  // Procesar cola de texturas (limitado por frame) - esto se mantiene en cada frame
+  // Procesar cola de texturas (batch dinámico)
   processTextureQueue();
 
   const frameEnd = performance.now();
-  const frameTime = frameEnd - frameStart;
-  performanceMetrics.frameTime.push(frameTime);
+  // Renombrado para evitar redeclaración (ya existe frameTime arriba para batch dinámico)
+  const frameDuration = frameEnd - frameStart;
+  performanceMetrics.frameTime.push(frameDuration);
 
   // Log performance metrics periodically
   if (frameEnd - lastPerformanceLog > PERFORMANCE_LOG_INTERVAL) {
@@ -1481,14 +1452,10 @@ const processTextureQueue = () => {
   let processed = 0;
   let cleanedFromQueue = 0;
 
-  // Crear copia de la cola para iteración segura
   const queueCopy = [...textureQueue.value];
-
-  for (let i = 0; i < queueCopy.length && processed < BATCH_PER_FRAME; i++) {
+  for (let i = 0; i < queueCopy.length && processed < dynamicBatch; i++) {
     const id = queueCopy[i];
     const photoObj = photosWithMaterials.value.find((p) => p.id === id);
-
-    // Si no encontramos la foto, limpiar de la cola
     if (!photoObj) {
       const idx = textureQueue.value.indexOf(id);
       if (idx !== -1) {
@@ -1498,43 +1465,27 @@ const processTextureQueue = () => {
       }
       continue;
     }
-
-    // Si la textura ya está cargada, limpiar de la cola
     if (photoObj.__textureLoaded) {
       const idx = textureQueue.value.indexOf(id);
       if (idx !== -1) {
         textureQueue.value.splice(idx, 1);
         queuedIds.delete(id);
         cleanedFromQueue++;
-        console.log(`🧹 Limpiando de cola foto ya cargada: ${id}`);
       }
       continue;
     }
-
-    // Si ya está cargando, saltar
-    if (photoObj.__loading) {
-      continue;
-    }
-
-    // Procesar carga de textura
+    if (photoObj.__loading) continue;
     processed++;
     loadRealTextureForPhoto(photoObj, false).finally(() => {
-      // Al terminar (éxito o fallo) retirar de la cola
       const idx = textureQueue.value.indexOf(id);
       if (idx !== -1) {
         textureQueue.value.splice(idx, 1);
         queuedIds.delete(id);
       }
-      // Verificar si todas las texturas están cargadas después de procesar
       checkAllTexturesLoaded();
     });
   }
-
-  // Si limpiamos elementos de la cola, verificar el estado del loader
   if (cleanedFromQueue > 0) {
-    console.log(
-      `🧹 Limpiados ${cleanedFromQueue} elementos de la cola de texturas`
-    );
     checkAllTexturesLoaded();
   }
 };
