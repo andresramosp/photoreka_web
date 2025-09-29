@@ -214,6 +214,7 @@ import { useTextureCache } from "@/composables/useTextureCache.js";
 import { useFirstPersonControls } from "@/composables/useFirstPersonControls.js";
 import { visualAspectsOptions } from "@/stores/searchStore.js";
 import * as THREE from "three";
+import pLimit from "p-limit";
 
 // Composable para manejo de fotos 3D
 const {
@@ -324,9 +325,16 @@ const photosWithMaterials = ref([]);
 // Cola de texturas pendientes (IDs) y control dinámico de batch
 const textureQueue = ref([]);
 const queuedIds = new Set();
+const scheduledDownloads = new Set(); // evita doble scheduling mientras p-limit gestiona
 let dynamicBatch = 4; // tamaño inicial
 const MIN_BATCH = 2;
 const MAX_BATCH = 10;
+// Límite de concurrencia de descargas simultáneas (gestionado por p-limit)
+const MAX_CONCURRENT_DOWNLOADS = 20;
+// Modo: pre-scheduling de toda la cola (true) o incremental por frame (false)
+const FULL_QUEUE_SCHEDULING = true;
+// Limitador de concurrencia usando p-limit
+const limitTexture = pLimit(MAX_CONCURRENT_DOWNLOADS);
 
 // Performance optimization: throttling variables
 let frameCounter = 0;
@@ -1214,17 +1222,31 @@ const updateVisiblePhotos = () => {
   visiblePhotos.value = visible;
 
   // Encolar para carga real SOLO las que están visibles, no cargadas, y necesitan descarga de red
+  const cameraPos = camera.position;
   visible.forEach((photo) => {
     if (
       !photo.__textureLoaded &&
       !photo.__loading &&
-      !queuedIds.has(photo.id)
+      !queuedIds.has(photo.id) &&
+      !scheduledDownloads.has(photo.id)
     ) {
-      // Solo encolar para descarga de red - las cacheadas ya se cargaron inmediatamente
+      // Pre-calcular prioridad por distancia al cuadrado (sin sqrt)
+      const dx = photo.position[0] - cameraPos.x;
+      const dy = photo.position[1] - cameraPos.y;
+      const dz = photo.position[2] - cameraPos.z;
+      photo.__priority = dx * dx + dy * dy + dz * dz;
       textureQueue.value.push(photo.id);
       queuedIds.add(photo.id);
     }
   });
+  // Ordenar cola global una vez tras inserciones (small optimization)
+  if (textureQueue.value.length > 1) {
+    textureQueue.value.sort((aId, bId) => {
+      const a = photosWithMaterials.value.find((p) => p.id === aId);
+      const b = photosWithMaterials.value.find((p) => p.id === bId);
+      return (a?.__priority || 0) - (b?.__priority || 0);
+    });
+  }
 };
 
 // Función para calcular rotación billboard (mirar cámara) - optimizada
@@ -1445,48 +1467,54 @@ const animate = () => {
   animationId = requestAnimationFrame(animate);
 };
 
-// Procesar cola: toma hasta BATCH_PER_FRAME ids visibles y solicita textura real
+// Procesador de cola usando p-limit: enqueuea tareas (opcionalmente toda la cola) respetando prioridad ya calculada
 const processTextureQueue = () => {
   if (textureQueue.value.length === 0) return;
 
-  let processed = 0;
-  let cleanedFromQueue = 0;
-
-  const queueCopy = [...textureQueue.value];
-  for (let i = 0; i < queueCopy.length && processed < dynamicBatch; i++) {
-    const id = queueCopy[i];
-    const photoObj = photosWithMaterials.value.find((p) => p.id === id);
-    if (!photoObj) {
-      const idx = textureQueue.value.indexOf(id);
-      if (idx !== -1) {
-        textureQueue.value.splice(idx, 1);
-        queuedIds.delete(id);
-        cleanedFromQueue++;
-      }
+  // Limpieza ligera de elementos inválidos / ya cargados al frente
+  while (textureQueue.value.length) {
+    const idFront = textureQueue.value[0];
+    const objFront = photosWithMaterials.value.find((p) => p.id === idFront);
+    if (!objFront || objFront.__textureLoaded) {
+      textureQueue.value.shift();
+      queuedIds.delete(idFront);
       continue;
     }
-    if (photoObj.__textureLoaded) {
-      const idx = textureQueue.value.indexOf(id);
-      if (idx !== -1) {
-        textureQueue.value.splice(idx, 1);
-        queuedIds.delete(id);
-        cleanedFromQueue++;
-      }
-      continue;
-    }
-    if (photoObj.__loading) continue;
-    processed++;
-    loadRealTextureForPhoto(photoObj, false).finally(() => {
-      const idx = textureQueue.value.indexOf(id);
-      if (idx !== -1) {
-        textureQueue.value.splice(idx, 1);
-        queuedIds.delete(id);
-      }
-      checkAllTexturesLoaded();
-    });
+    break;
   }
-  if (cleanedFromQueue > 0) {
-    checkAllTexturesLoaded();
+
+  if (textureQueue.value.length === 0) return;
+
+  const toSchedule = FULL_QUEUE_SCHEDULING
+    ? textureQueue.value.length
+    : Math.min(dynamicBatch, textureQueue.value.length);
+
+  // Nota: p-limit mantiene su propia cola; aquí simplemente pre-programamos en orden de prioridad.
+  for (let i = 0; i < toSchedule; i++) {
+    const id = textureQueue.value.shift();
+    queuedIds.delete(id);
+    const photoObj = photosWithMaterials.value.find((p) => p.id === id);
+    if (
+      !photoObj ||
+      photoObj.__textureLoaded ||
+      photoObj.__loading ||
+      scheduledDownloads.has(id)
+    )
+      continue;
+    scheduledDownloads.add(id);
+    limitTexture(() => loadRealTextureForPhoto(photoObj, false))
+      .catch(() => {})
+      .finally(() => {
+        scheduledDownloads.delete(id);
+        // Cuando terminen todas las tareas pendientes y la cola esté vacía, verificar loader
+        if (textureQueue.value.length === 0) {
+          // microtask para esperar a que otras finalizaciones entren
+          queueMicrotask(() => checkAllTexturesLoaded());
+        } else if (!FULL_QUEUE_SCHEDULING) {
+          // En modo incremental, intenta seguir drenando sin esperar al próximo frame
+          queueMicrotask(() => processTextureQueue());
+        }
+      });
   }
 };
 

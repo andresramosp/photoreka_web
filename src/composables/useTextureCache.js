@@ -481,56 +481,61 @@ export function useTextureCache(options = {}) {
     }
   };
 
+  // 🚀 Nuevo helper: guardar textura usando una Image ya decodificada (evita doble decode)
+  const setCachedTextureFromImage = async (url, img) => {
+    if (!textureDB) await initDB();
+    try {
+      if (cacheStats.value.dbSize >= maxCacheSize) {
+        await evictOldestTextures();
+      }
+      const imageData = imageToImageData(img);
+      const transaction = textureDB.transaction([STORE_NAME], "readwrite");
+      transaction.objectStore(STORE_NAME).put({
+        url,
+        imageData,
+        width: img.width,
+        height: img.height,
+        timestamp: Date.now(),
+      });
+      updateCacheSize();
+    } catch (e) {
+      console.warn("Error setCachedTextureFromImage:", url, e);
+    }
+  };
+
   // Cargar textura con caché (función principal)
   const loadTexture = async (url) => {
     // Intentar obtener de caché primero
     console.log("🔍 loadTexture: Intentando obtener de caché:", url);
     let texture = await getCachedTexture(url);
+    if (texture) return texture;
 
-    if (!texture) {
-      console.log("❌ loadTexture: No encontrado en caché, descargando:", url);
-      // Si no está en caché, descargar
-      try {
-        const response = await fetch(url, {
-          mode: "cors",
-          credentials: "omit",
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const imageBlob = await response.blob();
-        const img = new Image();
-
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-          img.src = URL.createObjectURL(imageBlob);
-        });
-
-        // Crear textura Three.js
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-
-        texture = new THREE.CanvasTexture(canvas);
-        texture.colorSpace = THREE.SRGBColorSpace;
-
-        // Guardar en caché
-        await setCachedTexture(url, imageBlob);
-
-        // Limpiar URL temporal
-        URL.revokeObjectURL(img.src);
-      } catch (error) {
-        console.warn("Error loading texture:", url, error);
-        throw error;
-      }
+    console.log("❌ loadTexture: No encontrado en caché, descargando:", url);
+    try {
+      const response = await fetch(url, { mode: "cors", credentials: "omit" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const blob = await response.blob();
+      const img = new Image();
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = URL.createObjectURL(blob);
+      });
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      // Guardar usando la misma Image (sin doble decode)
+      setCachedTextureFromImage(url, img);
+      URL.revokeObjectURL(img.src);
+      return texture;
+    } catch (error) {
+      console.warn("Error loading texture:", url, error);
+      throw error;
     }
-
-    return texture;
   };
 
   // Limpiar caché completo (función de mantenimiento)
@@ -621,6 +626,7 @@ export function useTextureCache(options = {}) {
 
     // Funciones principales
     loadTexture,
+    setCachedTextureFromImage, // export helper por si se usa externamente
     initialize,
 
     // Funciones de verificación y acceso
