@@ -31,6 +31,7 @@ const hiddenRoutes = [
   "settings",
   "help",
   "plan",
+  "3d-view",
 ];
 
 // Calcular si el botón debe mostrarse

@@ -154,7 +154,7 @@ const router = createRouter({
       },
     },
     {
-      path: "/3dview",
+      path: "/3d-view",
       name: "3d-view",
       component: ThreeDView,
       meta: {

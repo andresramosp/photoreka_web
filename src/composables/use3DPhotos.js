@@ -6,7 +6,7 @@ export function use3DPhotos() {
   // Estado reactivo
   const photos3D = ref([]);
   const isLoading = ref(false);
-  const currentChunk = ref("story"); // Chunk seleccionado
+  const currentChunk = ref("general"); // Chunk seleccionado
   const pagination = ref(null);
   const error = ref(null);
   const loadedPages = ref(0);
@@ -17,7 +17,7 @@ export function use3DPhotos() {
     { value: "story", label: "Historia (Story)" },
     { value: "context", label: "Contexto (Context)" },
     { value: "visual_accents", label: "Acentos Visuales (Visual Accents)" },
-    { value: null, label: "General" },
+    { value: "general", label: "General" },
   ];
 
   // Estado de carga
@@ -30,8 +30,13 @@ export function use3DPhotos() {
     return pagination.value && loadedPages.value >= pagination.value.totalPages;
   });
 
+  // Parámetros de paginación (ajustados para reducir bursts de thumbnails)
+  const PAGE_SIZE = 5000; // antes 5000
+  const MIN_DELAY_MS = 200; // pausa mínima entre páginas
+  const MAX_DELAY_MS = 400; // pausa máxima entre páginas
+
   // Función para cargar una página específica
-  const loadPhotosPage = async (chunkName, page = 1, limit = 50) => {
+  const loadPhotosPage = async (chunkName, page = 1, limit = PAGE_SIZE) => {
     try {
       const response = await api.post("/api/3d/photos", {
         chunkName,
@@ -51,6 +56,11 @@ export function use3DPhotos() {
 
   // Función para cargar todas las fotos progresivamente
   const loadAllPhotos = async (chunkName) => {
+    console.log("🚀 loadAllPhotos iniciado para chunk:", chunkName);
+
+    // Actualizar currentChunk al principio
+    currentChunk.value = chunkName;
+
     isLoading.value = true;
     error.value = null;
     photos3D.value = [];
@@ -64,10 +74,10 @@ export function use3DPhotos() {
 
       while (hasMorePages) {
         console.log(
-          `Cargando página ${currentPage} de chunk "${chunkName}"...`
+          `📡 Cargando página ${currentPage} de chunk "${chunkName}"...`
         );
 
-        const result = await loadPhotosPage(chunkName, currentPage, 250);
+        const result = await loadPhotosPage(chunkName, currentPage, PAGE_SIZE);
 
         // Actualizar paginación con info de la primera respuesta
         if (!pagination.value) {
@@ -81,6 +91,7 @@ export function use3DPhotos() {
           position: photo.coordinates || [0, 0, 0],
         }));
 
+        console.log(`📸 Añadiendo ${newPhotos.length} fotos a photos3D`);
         photos3D.value = [...photos3D.value, ...newPhotos];
         loadedPages.value = currentPage;
         totalLoadedPhotos.value += newPhotos.length;
@@ -89,9 +100,12 @@ export function use3DPhotos() {
         hasMorePages = currentPage < result.pagination.totalPages;
         currentPage++;
 
-        // Pequeña pausa entre requests para no sobrecargar
+        // Pausa aleatoria para desincronizar y evitar picos (solo si hay más páginas)
         if (hasMorePages) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          const delay = Math.round(
+            MIN_DELAY_MS + Math.random() * (MAX_DELAY_MS - MIN_DELAY_MS)
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
 
@@ -108,10 +122,24 @@ export function use3DPhotos() {
 
   // Función para cambiar de chunk
   const changeChunk = async (newChunk) => {
-    if (newChunk === currentChunk.value) return;
+    console.log("🔄 changeChunk called:", {
+      newChunk,
+      currentChunk: currentChunk.value,
+      willSkip: newChunk === currentChunk.value,
+    });
 
-    currentChunk.value = newChunk;
+    // Solo saltar si realmente es el mismo valor Y ya tenemos fotos cargadas
+    if (newChunk === currentChunk.value && photos3D.value.length > 0) {
+      console.log(
+        "⏸️ Saltando cambio de chunk - mismo valor y datos ya cargados"
+      );
+      return;
+    }
+
+    console.log("🚀 Ejecutando loadAllPhotos para chunk:", newChunk);
+    // No actualizar currentChunk.value aquí - déjalo que lo maneje loadAllPhotos
     await loadAllPhotos(newChunk);
+    console.log("✅ loadAllPhotos completado para chunk:", newChunk);
   };
 
   // Función para reiniciar
