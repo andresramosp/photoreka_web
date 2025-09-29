@@ -46,6 +46,7 @@
           <h4 class="section-title">Embedding Type</h4>
           <div class="control-item">
             <n-select
+              :disabled="showDiscreteLoader"
               v-model:value="selectedChunk"
               @update:value="onChunkChange"
               :options="chunkOptions"
@@ -298,20 +299,70 @@ const createPlaceholderMaterial = () =>
 // Frustum culling - solo renderizar fotos visibles
 const visiblePhotos = ref([]);
 
+// Función para limpiar la cola de texturas de fotos ya cargadas
+const cleanTextureQueue = () => {
+  const initialQueueLength = textureQueue.value.length;
+  if (initialQueueLength === 0) return 0;
+
+  // Filtrar solo las fotos que realmente necesitan carga
+  const validIds = textureQueue.value.filter((id) => {
+    const photo = photosWithMaterials.value.find((p) => p.id === id);
+    return photo && !photo.__textureLoaded && !photo.__loading;
+  });
+
+  // Limpiar IDs que ya no son válidos del Set
+  textureQueue.value.forEach((id) => {
+    const photo = photosWithMaterials.value.find((p) => p.id === id);
+    if (!photo || photo.__textureLoaded) {
+      queuedIds.delete(id);
+    }
+  });
+
+  textureQueue.value = validIds;
+  const cleanedCount = initialQueueLength - validIds.length;
+
+  if (cleanedCount > 0) {
+    console.log(
+      `🧼 cleanTextureQueue: Limpiados ${cleanedCount} elementos obsoletos de la cola`
+    );
+  }
+
+  return cleanedCount;
+};
+
 // Función para verificar si todas las texturas están cargadas
 const checkAllTexturesLoaded = () => {
+  // Primero limpiar la cola de elementos obsoletos
+  cleanTextureQueue();
+
+  console.log("🔍 checkAllTexturesLoaded - Estado actual:", {
+    photosCount: photosWithMaterials.value.length,
+    isLoading: isLoading.value,
+    showDiscreteLoader: showDiscreteLoader.value,
+    queueLength: textureQueue.value.length,
+  });
+
   // Si no hay fotos y ya no está cargando, ocultar loader
   if (photosWithMaterials.value.length === 0 && !isLoading.value) {
+    console.log("📭 No hay fotos y no está cargando - ocultando loader");
     showDiscreteLoader.value = false;
     return;
   }
 
   // Si no hay fotos pero aún está cargando, mantener loader
   if (photosWithMaterials.value.length === 0 && isLoading.value) {
+    console.log("⏳ No hay fotos pero aún está cargando - manteniendo loader");
     return;
   }
 
-  // Si todas las fotos tienen texturas cargadas, ocultar loader
+  // Verificar estado de cada foto
+  const loadedPhotos = photosWithMaterials.value.filter(
+    (photo) => photo.__textureLoaded
+  );
+  const loadingPhotos = photosWithMaterials.value.filter(
+    (photo) => photo.__loading
+  );
+
   const allLoaded = photosWithMaterials.value.every(
     (photo) => photo.__textureLoaded
   );
@@ -320,19 +371,37 @@ const checkAllTexturesLoaded = () => {
   );
   const noQueuePending = textureQueue.value.length === 0;
 
+  console.log("📊 Estado detallado de texturas:", {
+    totalPhotos: photosWithMaterials.value.length,
+    loadedPhotos: loadedPhotos.length,
+    loadingPhotos: loadingPhotos.length,
+    allLoaded,
+    nothingLoading,
+    noQueuePending,
+    isLoading: isLoading.value,
+    queueLength: textureQueue.value.length,
+  });
+
   // Solo ocultar cuando todo esté realmente terminado
   if (allLoaded && nothingLoading && noQueuePending && !isLoading.value) {
+    console.log(
+      "🎯 ¡Todas las condiciones cumplidas! - Ocultando loader discreto"
+    );
     showDiscreteLoader.value = false;
-    console.log("🎯 Ocultando loader discreto - todas las texturas cargadas");
   } else {
-    console.log("⏳ Manteniendo loader discreto", {
-      allLoaded,
-      nothingLoading,
-      noQueuePending,
-      isLoading: isLoading.value,
-      photosCount: photosWithMaterials.value.length,
-      queueLength: textureQueue.value.length,
-    });
+    console.log(
+      "⏸️ Aún no se cumplen todas las condiciones para ocultar el loader. Razones:",
+      {
+        allLoaded: !allLoaded ? "❌ No todas las fotos están cargadas" : "✅",
+        nothingLoading: !nothingLoading ? "❌ Hay fotos aún cargando" : "✅",
+        noQueuePending: !noQueuePending
+          ? `❌ Cola pendiente: ${textureQueue.value.length} elementos`
+          : "✅",
+        isNotLoading: isLoading.value
+          ? "❌ Aún está en proceso de carga"
+          : "✅",
+      }
+    );
   }
 };
 
@@ -347,12 +416,44 @@ const easeInOutCubic = (t) => {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 };
 
+// Variable para almacenar las posiciones target de la animación actual
+let animationTargetPositions = [];
+
 // Función para animar la transición entre posiciones
 const animatePositionTransition = (fromPositions, toPositions) => {
+  console.log("🎬 animatePositionTransition called:", {
+    fromLength: fromPositions.length,
+    toLength: toPositions.length,
+    isTransitioningBefore: isTransitioning.value,
+  });
+
   if (fromPositions.length !== toPositions.length) {
-    console.warn("⚠️ Número diferente de posiciones en la transición");
+    console.warn("⚠️ Número diferente de posiciones en la transición:", {
+      from: fromPositions.length,
+      to: toPositions.length,
+    });
+
+    // 🔧 SOLUCIÓN: Ajustar arrays para que tengan la misma longitud
+    const minLength = Math.min(fromPositions.length, toPositions.length);
+    const adjustedFromPositions = fromPositions.slice(0, minLength);
+    const adjustedToPositions = toPositions.slice(0, minLength);
+
+    console.log(`🔧 Ajustando arrays a longitud ${minLength}`);
+
+    // Llamar recursivamente con arrays ajustados
+    return animatePositionTransition(
+      adjustedFromPositions,
+      adjustedToPositions
+    );
+  }
+
+  if (fromPositions.length === 0) {
+    console.warn("⚠️ No hay posiciones para animar");
     return;
   }
+
+  // Guardar posiciones target para la animación
+  animationTargetPositions = [...toPositions]; // Hacer copia profunda
 
   isTransitioning.value = true;
   animationStartTime.value = performance.now();
@@ -360,21 +461,41 @@ const animatePositionTransition = (fromPositions, toPositions) => {
   console.log(
     `🎬 Iniciando animación de transición de ${fromPositions.length} fotos`
   );
+  console.log("🎯 Posiciones origen:", fromPositions.slice(0, 3));
+  console.log("🎯 Posiciones target:", toPositions.slice(0, 3));
+  console.log("🔄 isTransitioning:", isTransitioning.value);
 };
 
 // Función para actualizar las posiciones durante la animación
 const updateTransitionPositions = (currentTime) => {
-  if (!isTransitioning.value) return;
+  if (!isTransitioning.value || animationTargetPositions.length === 0) {
+    // Log solo una vez para evitar spam
+    if (isTransitioning.value && animationTargetPositions.length === 0) {
+      console.log(
+        "⚠️ updateTransitionPositions: animationTargetPositions está vacío"
+      );
+    }
+    return;
+  }
 
   const elapsed = currentTime - animationStartTime.value;
   const progress = Math.min(elapsed / TRANSITION_DURATION, 1);
   const easedProgress = easeInOutCubic(progress);
 
-  // Interpolar posiciones para cada foto
-  photosWithMaterials.value.forEach((photo, index) => {
-    if (index >= originalPositions.value.length) return;
+  // Log cada 30 frames aproximadamente
+  if (Math.floor(elapsed / 50) !== Math.floor((elapsed - 16) / 50)) {
+    console.log(`🎭 Animando... Progreso: ${(progress * 100).toFixed(1)}%`);
+  }
 
-    const targetPos = originalPositions.value[index];
+  // Interpolar posiciones para cada foto (usar la longitud mínima por seguridad)
+  const maxIndex = Math.min(
+    photosWithMaterials.value.length,
+    animationTargetPositions.length
+  );
+
+  for (let index = 0; index < maxIndex; index++) {
+    const photo = photosWithMaterials.value[index];
+    const targetPos = animationTargetPositions[index];
     const startPos = photo.transitionStartPosition || photo.position;
 
     // Interpolar cada componente
@@ -383,22 +504,33 @@ const updateTransitionPositions = (currentTime) => {
       startPos[1] + (targetPos[1] - startPos[1]) * easedProgress,
       startPos[2] + (targetPos[2] - startPos[2]) * easedProgress,
     ];
-  });
+  }
 
   // Finalizar animación
   if (progress >= 1) {
     isTransitioning.value = false;
     console.log("✅ Transición de posiciones completada");
 
+    // Asegurar posiciones finales exactas
+    const maxFinalIndex = Math.min(
+      photosWithMaterials.value.length,
+      animationTargetPositions.length
+    );
+    for (let index = 0; index < maxFinalIndex; index++) {
+      photosWithMaterials.value[index].position = [
+        ...animationTargetPositions[index],
+      ];
+    }
+
     // Limpiar propiedades temporales
     photosWithMaterials.value.forEach((photo) => {
       delete photo.transitionStartPosition;
     });
 
-    // Aplicar escaleo si es necesario
-    if (inflateFactor.value !== 1.0) {
-      applyRadialScaling();
-    }
+    // Limpiar referencias
+    animationTargetPositions = [];
+
+    console.log("🎯 Posiciones finales aplicadas correctamente");
   }
 };
 
@@ -517,6 +649,11 @@ const loadCachedTexturesImmediately = async (photos) => {
     `✅ Cargadas instantáneamente ${successCount}/${cachedPhotos.length} texturas desde caché`
   );
 
+  // Verificar si todas las texturas están cargadas después de la carga desde caché
+  if (successCount > 0) {
+    checkAllTexturesLoaded();
+  }
+
   return cacheResults.map((result) => result.isCached);
 };
 
@@ -566,6 +703,14 @@ const registerNewPhotos = async (newPhotos) => {
     `📥 ${photosNeedingDownload.length} fotos requerirán descarga de red`
   );
 
+  // Si no hay fotos que necesiten descarga de red, verificar si podemos ocultar el loader
+  if (photosNeedingDownload.length === 0) {
+    console.log(
+      "🎯 Todas las texturas están cacheadas, verificando si ocultar loader..."
+    );
+    checkAllTexturesLoaded();
+  }
+
   // Actualizar fotos visibles para procesar las que necesitan descarga
   updateVisiblePhotos();
   if (useBillboarding.value) updateBillboardRotations();
@@ -581,12 +726,12 @@ const updatePhotosPositions = async (newPhotos) => {
     existingPhotosMap.set(photo.id, { photo, index });
   });
 
-  // Guardar posiciones actuales para animación
+  // Guardar posiciones actuales (infladas) para animación
   const oldPositions = photosWithMaterials.value.map((photo) => [
     ...photo.position,
   ]);
 
-  // Array para las nuevas posiciones originales
+  // Array para las nuevas posiciones originales y finales
   const newOriginalPositions = [];
   const updatedPhotos = [];
 
@@ -614,6 +759,7 @@ const updatePhotosPositions = async (newPhotos) => {
         billboardRotation: [0, 0, 0],
         __textureLoaded: false,
         __loading: false,
+        transitionStartPosition: [0, 0, 0], // Empezar desde el centro
       };
       updatedPhotos.push(newPhotoObj);
     }
@@ -626,8 +772,26 @@ const updatePhotosPositions = async (newPhotos) => {
   photosWithMaterials.value = updatedPhotos;
   originalPositions.value = newOriginalPositions;
 
-  // Iniciar animación de transición
-  animatePositionTransition(oldPositions, newOriginalPositions);
+  // 🔧 ASEGURAR SINCRONIZACIÓN: Si hay diferencias de longitud, ajustar oldPositions
+  const effectiveOldPositions = oldPositions.slice(0, updatedPhotos.length);
+
+  // 🎯 CALCULAR POSICIONES FINALES CON ESCALEO APLICADO
+  const finalPositions = calculateScaledPositions(
+    newOriginalPositions,
+    inflateFactor.value
+  );
+
+  console.log("🔍 Debug animación:", {
+    oldPositionsLength: effectiveOldPositions.length,
+    finalPositionsLength: finalPositions.length,
+    photosWithMaterialsLength: photosWithMaterials.value.length,
+    inflateFactor: inflateFactor.value,
+    sampleOldPos: effectiveOldPositions.slice(0, 2),
+    sampleFinalPos: finalPositions.slice(0, 2),
+  });
+
+  // Iniciar animación de transición con las posiciones finales correctas
+  animatePositionTransition(effectiveOldPositions, finalPositions);
 
   // Cargar texturas para fotos nuevas que no las tengan
   const photosNeedingTextures = updatedPhotos.filter(
@@ -648,18 +812,64 @@ const updatePhotosPositions = async (newPhotos) => {
     console.log(
       `📥 ${photosNeedingDownload.length} fotos nuevas requerirán descarga de red`
     );
+
+    // Si no hay fotos que necesiten descarga de red, verificar si podemos ocultar el loader
+    if (photosNeedingDownload.length === 0) {
+      console.log(
+        "🎯 Todas las texturas nuevas están cacheadas, verificando si ocultar loader..."
+      );
+      checkAllTexturesLoaded();
+    }
   } else {
-    // Solo hay fotos existentes, ocultar loader inmediatamente tras la animación
-    setTimeout(() => {
-      if (!isTransitioning.value) {
-        showDiscreteLoader.value = false;
-      }
-    }, TRANSITION_DURATION + 100);
+    // Solo hay fotos existentes, verificar si podemos ocultar el loader
+    console.log("🎯 Solo fotos existentes, verificando estado del loader...");
+    checkAllTexturesLoaded();
   }
 
   // Actualizar fotos visibles
   updateVisiblePhotos();
   if (useBillboarding.value) updateBillboardRotations();
+};
+
+// Función para calcular posiciones escaladas sin modificar el estado
+const calculateScaledPositions = (positions, scaleFactor) => {
+  console.log("📏 calculateScaledPositions:", {
+    inputLength: positions.length,
+    scaleFactor,
+    samplePositions: positions.slice(0, 2),
+  });
+
+  if (positions.length === 0) {
+    console.warn("⚠️ calculateScaledPositions: array de posiciones vacío");
+    return [];
+  }
+
+  // Calcular centroide de las posiciones
+  const centroid = [
+    positions.reduce((sum, pos) => sum + pos[0], 0) / positions.length,
+    positions.reduce((sum, pos) => sum + pos[1], 0) / positions.length,
+    positions.reduce((sum, pos) => sum + pos[2], 0) / positions.length,
+  ];
+
+  console.log("📐 Centroide calculado:", centroid);
+
+  // Aplicar escaleo radial y devolver nuevas posiciones
+  const scaledPositions = positions.map((originalPos) => {
+    const vector = [
+      originalPos[0] - centroid[0],
+      originalPos[1] - centroid[1],
+      originalPos[2] - centroid[2],
+    ];
+
+    return [
+      centroid[0] + vector[0] * scaleFactor,
+      centroid[1] + vector[1] * scaleFactor,
+      centroid[2] + vector[2] * scaleFactor,
+    ];
+  });
+
+  console.log("📏 Posiciones escaladas (sample):", scaledPositions.slice(0, 2));
+  return scaledPositions;
 };
 
 // Función para aplicar escaleo radial
@@ -670,32 +880,15 @@ const applyRadialScaling = () => {
   )
     return;
 
-  // Calcular centroide de las posiciones originales
-  const centroid = [
-    originalPositions.value.reduce((sum, pos) => sum + pos[0], 0) /
-      originalPositions.value.length,
-    originalPositions.value.reduce((sum, pos) => sum + pos[1], 0) /
-      originalPositions.value.length,
-    originalPositions.value.reduce((sum, pos) => sum + pos[2], 0) /
-      originalPositions.value.length,
-  ];
+  // Usar la función de cálculo y aplicar al estado
+  const scaledPositions = calculateScaledPositions(
+    originalPositions.value,
+    inflateFactor.value
+  );
 
-  // Aplicar escaleo radial
   photosWithMaterials.value.forEach((photo, index) => {
-    if (index >= originalPositions.value.length) return;
-
-    const originalPos = originalPositions.value[index];
-    const vector = [
-      originalPos[0] - centroid[0],
-      originalPos[1] - centroid[1],
-      originalPos[2] - centroid[2],
-    ];
-
-    photo.position = [
-      centroid[0] + vector[0] * inflateFactor.value,
-      centroid[1] + vector[1] * inflateFactor.value,
-      centroid[2] + vector[2] * inflateFactor.value,
-    ];
+    if (index >= scaledPositions.length) return;
+    photo.position = scaledPositions[index];
   });
 };
 
@@ -776,13 +969,6 @@ const logPerformanceMetrics = () => {
       performanceMetrics.opacityTime.reduce((a, b) => a + b) /
       performanceMetrics.opacityTime.length;
     logMessage += `\n  Opacity updates: ${avgOpacity.toFixed(2)}ms`;
-  }
-
-  // Only log if frame time is concerning (> 16.67ms for 60fps)
-  if (avgFrameTime > 16.67) {
-    console.warn(logMessage);
-  } else {
-    console.log(logMessage);
   }
 
   // Clear metrics arrays to prevent memory buildup
@@ -929,12 +1115,6 @@ const onChunkChange = async (newValue) => {
     hasExistingPhotos: photosWithMaterials.value.length > 0,
   });
 
-  // Verificar si realmente necesitamos hacer el cambio
-  if (newValue === currentChunk.value && photos3D.value.length > 0) {
-    console.log("⏸️ El chunk ya está cargado, no necesita recarga");
-    return;
-  }
-
   // Mostrar loader discreto
   showDiscreteLoader.value = true;
 
@@ -1050,32 +1230,65 @@ const animate = () => {
 // Procesar cola: toma hasta BATCH_PER_FRAME ids visibles y solicita textura real
 const processTextureQueue = () => {
   if (textureQueue.value.length === 0) return;
+
   let processed = 0;
-  for (
-    let i = 0;
-    i < textureQueue.value.length && processed < BATCH_PER_FRAME;
-    i++
-  ) {
-    const id = textureQueue.value[i];
+  let cleanedFromQueue = 0;
+
+  // Crear copia de la cola para iteración segura
+  const queueCopy = [...textureQueue.value];
+
+  for (let i = 0; i < queueCopy.length && processed < BATCH_PER_FRAME; i++) {
+    const id = queueCopy[i];
     const photoObj = photosWithMaterials.value.find((p) => p.id === id);
-    if (!photoObj) continue;
-    if (!photoObj.__textureLoaded && !photoObj.__loading) {
-      processed++;
-      // Solo llegan aquí fotos que necesitan descarga de red (isCached=false)
-      loadRealTextureForPhoto(photoObj, false).finally(() => {
-        // Al terminar (éxito o fallo) retirar de la cola
-        const idx = textureQueue.value.indexOf(id);
-        if (idx !== -1) textureQueue.value.splice(idx, 1);
-        queuedIds.delete(id);
-        // Verificar si todas las texturas están cargadas después de procesar
-        checkAllTexturesLoaded();
-      });
-    } else {
-      // Ya cargada, limpiar cola
+
+    // Si no encontramos la foto, limpiar de la cola
+    if (!photoObj) {
       const idx = textureQueue.value.indexOf(id);
-      if (idx !== -1) textureQueue.value.splice(idx, 1);
-      queuedIds.delete(id);
+      if (idx !== -1) {
+        textureQueue.value.splice(idx, 1);
+        queuedIds.delete(id);
+        cleanedFromQueue++;
+      }
+      continue;
     }
+
+    // Si la textura ya está cargada, limpiar de la cola
+    if (photoObj.__textureLoaded) {
+      const idx = textureQueue.value.indexOf(id);
+      if (idx !== -1) {
+        textureQueue.value.splice(idx, 1);
+        queuedIds.delete(id);
+        cleanedFromQueue++;
+        console.log(`🧹 Limpiando de cola foto ya cargada: ${id}`);
+      }
+      continue;
+    }
+
+    // Si ya está cargando, saltar
+    if (photoObj.__loading) {
+      continue;
+    }
+
+    // Procesar carga de textura
+    processed++;
+    loadRealTextureForPhoto(photoObj, false).finally(() => {
+      // Al terminar (éxito o fallo) retirar de la cola
+      const idx = textureQueue.value.indexOf(id);
+      if (idx !== -1) {
+        textureQueue.value.splice(idx, 1);
+        queuedIds.delete(id);
+      }
+      // Verificar si todas las texturas están cargadas después de procesar
+      checkAllTexturesLoaded();
+    });
+  }
+
+  // Si limpiamos elementos de la cola, verificar el estado del loader
+  if (cleanedFromQueue > 0) {
+    console.log(
+      `🧹 Limpiados ${cleanedFromQueue} elementos de la cola de texturas`
+    );
+    checkAllTexturesLoaded();
   }
 };
 
@@ -1109,27 +1322,27 @@ watch(
       oldPhotosLength: (oldPhotos || []).length,
       photosWithMaterialsLength: photosWithMaterials.value.length,
       hasExistingMaterials: photosWithMaterials.value.length > 0,
-    });
-
-    // Si hay fotos nuevas desde la última vez que registramos
-    if (
-      newPhotos.length > 0 &&
-      newPhotos.length !== photosWithMaterials.value.length
-    ) {
-      // Si es un cambio de chunk y ya tenemos fotos con materiales (optimización)
-      if (photosWithMaterials.value.length > 0 && newPhotos.length > 0) {
-        console.log(
-          "♻️ Usando optimización: actualizando posiciones con animación"
-        );
-        await updatePhotosPositions(newPhotos);
-      }
+      currentChunk: currentChunk.value,
+      firstThreeNewPhotosIds: newPhotos.slice(0, 3).map((p) => p.id),
+      firstThreeExistingIds: photosWithMaterials.value
+        .slice(0, 3)
+        .map((p) => p.id),
+    }); // Si hay fotos nuevas o cambios en las posiciones
+    if (newPhotos.length > 0) {
       // Si no hay fotos con materiales (primera carga o limpieza completa)
-      else if (photosWithMaterials.value.length === 0 && newPhotos.length > 0) {
+      if (photosWithMaterials.value.length === 0) {
         console.log(
           "📸 Primera carga: registrando todas las fotos del chunk:",
           newPhotos.length
         );
         await registerNewPhotos(newPhotos);
+      }
+      // Si ya tenemos fotos con materiales (cambio de chunk u optimización)
+      else if (photosWithMaterials.value.length > 0) {
+        console.log(
+          "♻️ Usando optimización: actualizando posiciones con animación"
+        );
+        await updatePhotosPositions(newPhotos);
       }
       // Si son fotos adicionales (paginación) - caso menos común
       else if (newPhotos.length > photosWithMaterials.value.length) {
@@ -1140,16 +1353,35 @@ watch(
         );
         await registerNewPhotos(newPhotosOnly);
       }
+    } else {
+      console.log("⚠️ Watcher photos3D: No se ejecutó ninguna acción.", {
+        newPhotosLength: newPhotos.length,
+        photosWithMaterialsLength: photosWithMaterials.value.length,
+        reason:
+          newPhotos.length === 0
+            ? "No hay fotos nuevas"
+            : "Condiciones no cumplidas",
+      });
     }
   },
   { immediate: false }
 );
 
 // Watcher: mostrar loader discreto cuando esté cargando
-watch(isLoading, (newIsLoading) => {
+watch(isLoading, (newIsLoading, oldIsLoading) => {
+  console.log("🔄 isLoading watcher:", {
+    oldIsLoading,
+    newIsLoading,
+    currentPhotosCount: photosWithMaterials.value.length,
+  });
+
   if (newIsLoading) {
+    console.log("⏳ Mostrando loader discreto - isLoading = true");
     showDiscreteLoader.value = true;
   } else {
+    console.log(
+      "✅ isLoading = false, verificando si todas las texturas están listas"
+    );
     // Cuando termine de cargar, verificar si todas las texturas están listas
     checkAllTexturesLoaded();
   }

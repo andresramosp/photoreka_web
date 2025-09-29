@@ -179,10 +179,20 @@ export function useTextureCache(options = {}) {
 
         request.onsuccess = () => {
           const result = request.result;
+          console.log(
+            "🔍 getCachedTexture: Resultado de IndexedDB para",
+            url,
+            result ? "ENCONTRADO" : "NO ENCONTRADO"
+          );
+
           if (
             result &&
             Date.now() - result.timestamp < expiryDays * 24 * 60 * 60 * 1000
           ) {
+            console.log(
+              "✅ getCachedTexture: Textura válida encontrada para",
+              url
+            );
             // Nuevo formato: ImageData (síncrono)
             if (result.imageData && result.width && result.height) {
               try {
@@ -192,6 +202,10 @@ export function useTextureCache(options = {}) {
                   result.height
                 );
                 cacheStats.value.hits++;
+                console.log(
+                  "✅ getCachedTexture: Textura convertida exitosamente para",
+                  url
+                );
                 resolve(texture);
                 return;
               } catch (e) {
@@ -231,6 +245,10 @@ export function useTextureCache(options = {}) {
           } else {
             // Texture expirada o no existe
             if (result) {
+              console.log(
+                "⏰ getCachedTexture: Textura expirada, eliminando:",
+                url
+              );
               // Eliminar entrada expirada
               const deleteTransaction = textureDB.transaction(
                 [STORE_NAME],
@@ -238,6 +256,8 @@ export function useTextureCache(options = {}) {
               );
               const deleteStore = deleteTransaction.objectStore(STORE_NAME);
               deleteStore.delete(url);
+            } else {
+              console.log("❌ getCachedTexture: No existe en caché:", url);
             }
             cacheStats.value.misses++;
             resolve(null);
@@ -432,9 +452,11 @@ export function useTextureCache(options = {}) {
   // Cargar textura con caché (función principal)
   const loadTexture = async (url) => {
     // Intentar obtener de caché primero
+    console.log("🔍 loadTexture: Intentando obtener de caché:", url);
     let texture = await getCachedTexture(url);
 
     if (!texture) {
+      console.log("❌ loadTexture: No encontrado en caché, descargando:", url);
       // Si no está en caché, descargar
       try {
         const response = await fetch(url, {
