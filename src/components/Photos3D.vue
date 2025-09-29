@@ -242,7 +242,7 @@ const {
 
 // Sistema de caché de texturas
 const textureCache = useTextureCache({
-  maxCacheSize: 500,
+  maxCacheSize: 5000,
   expiryDays: 7,
 });
 
@@ -625,6 +625,7 @@ const applyVisualAspectsFilter = () => {
   console.log("🔍 Aplicando filtro de aspectos visuales:", {
     selectedAspects: selectedVisualAspects.value,
     totalPhotos: photosWithMaterials.value.length,
+    hasSelectedAspects: selectedVisualAspects.value.length > 0,
   });
 
   photosWithMaterials.value.forEach((photo) => {
@@ -660,9 +661,28 @@ const applyVisualAspectsFilter = () => {
   const visibleCount = photosWithMaterials.value.filter(
     (p) => p.isVisible
   ).length;
+  const hiddenCount = photosWithMaterials.value.filter(
+    (p) => p.isVisible === false
+  ).length;
+
   console.log(
-    `📊 Filtro aplicado: ${visibleCount}/${photosWithMaterials.value.length} fotos visibles`
+    `📊 Filtro aplicado: ${visibleCount}/${photosWithMaterials.value.length} fotos visibles, ${hiddenCount} ocultas`
   );
+
+  // Debug adicional: mostrar algunas fotos que NO pasaron el filtro
+  if (selectedVisualAspects.value.length > 0 && hiddenCount > 0) {
+    const hiddenExamples = photosWithMaterials.value
+      .filter((p) => p.isVisible === false)
+      .slice(0, 3)
+      .map((p) => ({
+        id: String(p.id).substring(0, 8) + "...",
+        hasVisualAspects: !!p.descriptions?.visual_aspects,
+        aspectKeys: p.descriptions?.visual_aspects
+          ? Object.keys(p.descriptions.visual_aspects)
+          : [],
+      }));
+    console.log("🔍 Ejemplos de fotos ocultas por filtro:", hiddenExamples);
+  }
 };
 
 // Computed para fotos filtradas (solo las marcadas como visibles)
@@ -1447,15 +1467,20 @@ const updateVisiblePhotos = () => {
   });
 
   // ⚡ CLAVE: No sobrescribir, sino mantener fotos cacheadas + agregar nuevas del frustum
+  // PERO RESPETANDO el filtro de aspectos visuales (isVisible)
   const existingCachedIds = new Set(
-    visiblePhotos.value.filter((p) => p.__textureLoaded).map((p) => p.id)
+    visiblePhotos.value
+      .filter((p) => p.__textureLoaded && p.isVisible !== false)
+      .map((p) => p.id)
   );
   const newPhotosToAdd = newVisibleFromFrustum.filter(
     (photo) => !existingCachedIds.has(photo.id)
   );
 
-  // Mantener las cacheadas + agregar las nuevas del frustum
-  const existingCached = visiblePhotos.value.filter((p) => p.__textureLoaded);
+  // Mantener SOLO las cacheadas que TAMBIÉN pasan el filtro de aspectos visuales
+  const existingCached = visiblePhotos.value.filter(
+    (p) => p.__textureLoaded && p.isVisible !== false
+  );
   visiblePhotos.value = [...existingCached, ...newPhotosToAdd];
 
   // Solo loggear cuando hay cambios significativos
@@ -1811,15 +1836,16 @@ watch(
           "📸 Primera carga: registrando todas las fotos del chunk:",
           newPhotos.length
         );
-        // Limpiar filtros solo si es un chunk completamente diferente
-        if (
-          oldPhotos &&
-          oldPhotos.length > 0 &&
-          newPhotos.length > 0 &&
-          newPhotos[0].id !== oldPhotos[0].id
-        ) {
-          selectedVisualAspects.value = [];
-        }
+        // 🚫 REMOVED: Limpiar filtros automáticamente causa que el usuario pierda su selección
+        // La lógica era frágil y resetear el filtro no es buena UX
+        // if (
+        //   oldPhotos &&
+        //   oldPhotos.length > 0 &&
+        //   newPhotos.length > 0 &&
+        //   newPhotos[0].id !== oldPhotos[0].id
+        // ) {
+        //   selectedVisualAspects.value = [];
+        // }
         await registerNewPhotos(newPhotos);
       }
       // Si ya tenemos fotos con materiales (cambio de chunk u optimización)
