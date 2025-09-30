@@ -127,65 +127,82 @@
       </div>
 
       <!-- LOD System Configuration (only show when enabled) -->
-      <!-- <div v-if="useLODSystem" class="control-section">
-            <h4 class="section-title">LOD Distance Thresholds</h4>
+      <div v-if="useLODSystem" class="control-section">
+        <h4 class="section-title">LOD Distance Thresholds</h4>
 
-            <div class="control-item">
-              <div class="slider-container">
-                <div class="slider-header">
-                  <span class="control-label"
-                    >Reduce Quality: {{ LOD_DISTANCES.FULL_TO_REDUCED }}</span
-                  >
-                </div>
-                <n-slider
-                  v-model:value="LOD_DISTANCES.FULL_TO_REDUCED"
-                  :min="30"
-                  :max="100"
-                  :step="5"
-                  class="lod-slider"
-                  @click.stop
-                />
-              </div>
+        <div class="control-item">
+          <div class="slider-container">
+            <div class="slider-header">
+              <span class="control-label"
+                >Ultra HD: {{ LOD_DISTANCES.ULTRA_CLOSE_TO_FULL }}</span
+              >
             </div>
+            <n-slider
+              v-model:value="LOD_DISTANCES.ULTRA_CLOSE_TO_FULL"
+              :min="5"
+              :max="25"
+              :step="1"
+              class="lod-slider"
+              @click.stop
+            />
+          </div>
+        </div>
 
-            <div class="control-item">
-              <div class="slider-container">
-                <div class="slider-header">
-                  <span class="control-label"
-                    >Solid Color:
-                    {{ LOD_DISTANCES.REDUCED_TO_PLACEHOLDER }}</span
-                  >
-                </div>
-                <n-slider
-                  v-model:value="LOD_DISTANCES.REDUCED_TO_PLACEHOLDER"
-                  :min="80"
-                  :max="200"
-                  :step="10"
-                  class="lod-slider"
-                  @click.stop
-                />
-              </div>
+        <div class="control-item">
+          <div class="slider-container">
+            <div class="slider-header">
+              <span class="control-label"
+                >Reduce Quality: {{ LOD_DISTANCES.FULL_TO_REDUCED }}</span
+              >
             </div>
+            <n-slider
+              v-model:value="LOD_DISTANCES.FULL_TO_REDUCED"
+              :min="30"
+              :max="100"
+              :step="5"
+              class="lod-slider"
+              @click.stop
+            />
+          </div>
+        </div>
 
-            <div class="control-item">
-              <div class="slider-container">
-                <div class="slider-header">
-                  <span class="control-label"
-                    >Hide Completely:
-                    {{ LOD_DISTANCES.PLACEHOLDER_TO_HIDDEN }}</span
-                  >
-                </div>
-                <n-slider
-                  v-model:value="LOD_DISTANCES.PLACEHOLDER_TO_HIDDEN"
-                  :min="150"
-                  :max="400"
-                  :step="25"
-                  class="lod-slider"
-                  @click.stop
-                />
-              </div>
+        <div class="control-item">
+          <div class="slider-container">
+            <div class="slider-header">
+              <span class="control-label"
+                >Solid Color: {{ LOD_DISTANCES.REDUCED_TO_PLACEHOLDER }}</span
+              >
             </div>
-          </div> -->
+            <n-slider
+              v-model:value="LOD_DISTANCES.REDUCED_TO_PLACEHOLDER"
+              :min="80"
+              :max="200"
+              :step="10"
+              class="lod-slider"
+              @click.stop
+            />
+          </div>
+        </div>
+
+        <div class="control-item">
+          <div class="slider-container">
+            <div class="slider-header">
+              <span class="control-label"
+                >Hide Completely:
+                {{ LOD_DISTANCES.PLACEHOLDER_TO_HIDDEN }}</span
+              >
+            </div>
+            <n-slider
+              v-model:value="LOD_DISTANCES.PLACEHOLDER_TO_HIDDEN"
+              :min="150"
+              :max="400"
+              :step="25"
+              class="lod-slider"
+              @click.stop
+            />
+          </div>
+        </div>
+      </div>
 
       <!-- Radial Scaling Section -->
       <div class="control-section">
@@ -275,6 +292,11 @@ const DEBUG_3D = false; // pon a true temporalmente si quieres verbosidad
 function dlog(...args) {
   if (DEBUG_3D) console.log(...args);
 }
+
+// ===== Texture Size Configuration =====
+const MAIN_TEXTURE_SIZE = 128; // Main texture resolution (px)
+const ULTRA_TEXTURE_SIZE = 768; // Ultra high-res texture for close viewing (px)
+const REDUCED_TEXTURE_FACTOR = 0.25; // Factor for reduced quality textures
 
 // Composable para manejo de fotos 3D
 const {
@@ -383,7 +405,7 @@ const gridHelper = new THREE.GridHelper(200, 40);
 gridHelper.position.y = -50;
 
 // Helper function to resize textures aggressively for memory optimization
-const resizeTextureToMaxSize = (image, maxSize = 256) => {
+const resizeTextureToMaxSize = (image, maxSize = MAIN_TEXTURE_SIZE) => {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
 
@@ -399,9 +421,9 @@ const resizeTextureToMaxSize = (image, maxSize = 256) => {
   canvas.width = Math.floor(width * scale);
   canvas.height = Math.floor(height * scale);
 
-  // Use lower quality for aggressive compression
+  // Use medium quality for better visual balance
   ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "low";
+  ctx.imageSmoothingQuality = "medium";
 
   ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
   return canvas;
@@ -952,16 +974,17 @@ const loadRealTextureForPhoto = async (photoObj) => {
       textureLoader.load(
         imageUrl,
         (loadedTexture) => {
-          // Resize to maximum 256x256 for aggressive memory optimization
+          // Resize to maximum size for better quality balance
           if (loadedTexture.image) {
             const resizedImage = resizeTextureToMaxSize(
               loadedTexture.image,
-              256
+              MAIN_TEXTURE_SIZE
             );
             const resizedTexture = new THREE.CanvasTexture(resizedImage);
             // Configure with optimizations for small textures
             const isSmall =
-              resizedImage.width <= 256 && resizedImage.height <= 256;
+              resizedImage.width <= MAIN_TEXTURE_SIZE &&
+              resizedImage.height <= MAIN_TEXTURE_SIZE;
             configureTextureSafely(resizedTexture, isSmall);
             resolve(resizedTexture);
           } else {
@@ -1398,14 +1421,16 @@ const updateBillboardRotations = () => {
 
 // Advanced LOD (Level of Detail) System Configuration
 const LOD_LEVELS = {
-  FULL: 0, // Full texture quality
-  REDUCED: 1, // Lower quality texture
-  PLACEHOLDER: 2, // Solid color based on dominant photo color
-  HIDDEN: 3, // Not rendered at all
+  ULTRA_CLOSE: 0, // Ultra high-res texture (768px) when very close
+  FULL: 1, // Full texture quality (384px)
+  REDUCED: 2, // Lower quality texture
+  PLACEHOLDER: 3, // Solid color based on dominant photo color
+  HIDDEN: 4, // Not rendered at all
 };
 
 // LOD distance thresholds (adjustable and reactive)
 const LOD_DISTANCES = ref({
+  ULTRA_CLOSE_TO_FULL: 15, // Switch to high-res textures when very close
   FULL_TO_REDUCED: 30, // Start reducing texture quality
   REDUCED_TO_PLACEHOLDER: 130, // Replace with solid color
   PLACEHOLDER_TO_HIDDEN: 200, // Stop rendering completely
@@ -1505,12 +1530,18 @@ const createReducedTexture = (originalTexture) => {
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "low";
 
-  // Reduce to 6.25% of original size (0.25 factor = 25% linear, 6.25% area)
+  // Reduce to very small size for aggressive memory optimization
   const originalWidth = originalTexture.image.width || 256;
   const originalHeight = originalTexture.image.height || 192;
 
-  canvas.width = Math.max(32, Math.floor(originalWidth * 0.25));
-  canvas.height = Math.max(24, Math.floor(originalHeight * 0.25));
+  canvas.width = Math.max(
+    32,
+    Math.floor(originalWidth * REDUCED_TEXTURE_FACTOR)
+  );
+  canvas.height = Math.max(
+    24,
+    Math.floor(originalHeight * REDUCED_TEXTURE_FACTOR)
+  );
 
   ctx.drawImage(originalTexture.image, 0, 0, canvas.width, canvas.height);
 
@@ -1519,6 +1550,54 @@ const createReducedTexture = (originalTexture) => {
   configureTextureSafely(reducedTexture, true);
 
   return reducedTexture;
+};
+
+// Create ultra high-res texture for very close viewing (768px)
+const createUltraTexture = async (photoObj) => {
+  if (!photoObj || photoObj.__ultraTextureLoaded || photoObj.__ultraLoading)
+    return null;
+
+  photoObj.__ultraLoading = true;
+  const imageUrl =
+    photoObj.originalUrl || photoObj.url || photoObj.thumbnailUrl;
+
+  if (!imageUrl) {
+    photoObj.__ultraLoading = false;
+    return null;
+  }
+
+  try {
+    const texture = await new Promise((resolve, reject) => {
+      textureLoader.load(
+        imageUrl,
+        (loadedTexture) => {
+          if (loadedTexture.image) {
+            const resizedImage = resizeTextureToMaxSize(
+              loadedTexture.image,
+              ULTRA_TEXTURE_SIZE
+            );
+            const ultraTexture = new THREE.CanvasTexture(resizedImage);
+            // Configure with full quality (mipmaps enabled)
+            configureTextureSafely(ultraTexture, false);
+            resolve(ultraTexture);
+          } else {
+            resolve(null);
+          }
+        },
+        undefined,
+        (error) => reject(error)
+      );
+    });
+
+    photoObj.__ultraTextureLoaded = true;
+    photoObj.__ultraLoading = false;
+    return texture;
+  } catch (error) {
+    console.warn("⚠️ Error loading ultra texture:", error);
+    photoObj.__ultraTextureLoaded = true;
+    photoObj.__ultraLoading = false;
+    return null;
+  }
 };
 
 // Determine LOD level based on distance
@@ -1533,9 +1612,11 @@ const getLODLevel = (distance) => {
     return LOD_LEVELS.PLACEHOLDER;
   } else if (distance > distances.FULL_TO_REDUCED) {
     return LOD_LEVELS.REDUCED;
+  } else if (distance > distances.ULTRA_CLOSE_TO_FULL) {
+    return LOD_LEVELS.FULL;
   }
 
-  return LOD_LEVELS.FULL;
+  return LOD_LEVELS.ULTRA_CLOSE;
 };
 
 // Sistema LOD corregido - MANTIENE los materiales originales siempre
@@ -1573,7 +1654,35 @@ const updatePhotoLOD = () => {
 
     // 🔧 SOLUCIÓN: NUNCA crear nuevos materiales, solo cambiar la textura del material existente
     switch (lodLevel) {
+      case LOD_LEVELS.ULTRA_CLOSE:
+        // Cargar textura ultra alta resolución (768px) de forma lazy
+        if (!photo.__ultraTexture && !photo.__ultraTextureLoaded) {
+          createUltraTexture(photo).then((ultraTexture) => {
+            if (ultraTexture && photo.__currentLOD === LOD_LEVELS.ULTRA_CLOSE) {
+              photo.__ultraTexture = ultraTexture;
+              photo.material.map = ultraTexture;
+              photo.material.needsUpdate = true;
+            }
+          });
+        } else if (
+          photo.__ultraTexture &&
+          photo.material.map !== photo.__ultraTexture
+        ) {
+          photo.material.map = photo.__ultraTexture;
+          photo.material.needsUpdate = true;
+        }
+        // Asegurar visibilidad
+        photo.__isLODHidden = false;
+        break;
+
       case LOD_LEVELS.FULL:
+        // Limpiar textura ultra si existía (gestión de memoria)
+        if (photo.__ultraTexture) {
+          photo.__ultraTexture.dispose?.();
+          photo.__ultraTexture = null;
+          photo.__ultraTextureLoaded = false;
+        }
+
         // Restaurar textura original completa
         if (
           photo.__originalTexture &&
@@ -1587,6 +1696,13 @@ const updatePhotoLOD = () => {
         break;
 
       case LOD_LEVELS.REDUCED:
+        // Limpiar textura ultra si existía (gestión de memoria)
+        if (photo.__ultraTexture) {
+          photo.__ultraTexture.dispose?.();
+          photo.__ultraTexture = null;
+          photo.__ultraTextureLoaded = false;
+        }
+
         // Usar textura reducida (crear solo una vez)
         if (!photo.__reducedTexture && photo.__originalTexture) {
           photo.__reducedTexture = createReducedTexture(
