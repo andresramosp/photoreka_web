@@ -127,7 +127,7 @@
       </div>
 
       <!-- LOD System Configuration (only show when enabled) -->
-      <div v-if="useLODSystem" class="control-section">
+      <!-- <div v-if="useLODSystem" class="control-section">
         <h4 class="section-title">LOD Distance Thresholds</h4>
 
         <div class="control-item">
@@ -202,7 +202,7 @@
             />
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- Radial Scaling Section -->
       <div class="control-section">
@@ -484,7 +484,7 @@ let dynamicBatch = 4; // tamaño inicial
 const MIN_BATCH = 2;
 const MAX_BATCH = 10;
 // Límite de concurrencia de descargas simultáneas - Reducido para estabilidad
-const MAX_CONCURRENT_DOWNLOADS = 8;
+const MAX_CONCURRENT_DOWNLOADS = 12;
 // Modo: pre-scheduling de toda la cola (true) o incremental por frame (false)
 const FULL_QUEUE_SCHEDULING = true;
 // Limitador de concurrencia usando p-limit
