@@ -1088,30 +1088,14 @@ const registerNewPhotos = async (newPhotos) => {
   // Aplicar filtro de aspectos visuales a las fotos nuevas
   applyVisualAspectsFilter();
 
-  // ⚡ ESTRATEGIA DIFERENTE: Agregar fotos cacheadas inmediatamente a visiblePhotos
   const cachedPhotos = prepared.filter((p) => p.__textureLoaded);
   const nonCachedPhotos = prepared.filter((p) => !p.__textureLoaded);
+  console.log(`💾 Fotos cacheadas: ${cachedPhotos.length}`);
+  console.log(`⏳ Fotos no cacheadas: ${nonCachedPhotos.length}`);
+  if (nonCachedPhotos.length > 0) enqueueAllNonCachedPhotos(nonCachedPhotos);
 
-  console.log(`💾 Fotos cacheadas (inmediatas): ${cachedPhotos.length}`);
-  console.log(`⏳ Fotos no cacheadas (progresivas): ${nonCachedPhotos.length}`);
-
-  // Agregar las cacheadas inmediatamente a visibles
-  if (cachedPhotos.length > 0) {
-    // Filtrar las cacheadas que pasan el filtro de aspectos visuales
-    const cachedVisible = cachedPhotos.filter(
-      (photo) => photo.isVisible !== false
-    );
-    visiblePhotos.value = [...(visiblePhotos.value || []), ...cachedVisible];
-    console.log(
-      `✨ ${cachedVisible.length} fotos cacheadas agregadas inmediatamente a visiblePhotos`
-    );
-  }
-
-  // Si hay fotos no cacheadas, encolar TODAS para carga (no solo las visibles)
-  if (nonCachedPhotos.length > 0) {
-    enqueueAllNonCachedPhotos(nonCachedPhotos);
-  }
-
+  // Recalcular visibilidad global (frustum + filtros) tras registrar
+  updateVisiblePhotos();
   if (useBillboarding.value) updateBillboardRotations();
 
   // Verificar si podemos ocultar el loader
