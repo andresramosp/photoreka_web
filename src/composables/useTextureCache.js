@@ -1,4 +1,8 @@
 // composables/useTextureCache.js
+// 🔧 CONFIGURACIÓN DE CACHÉ:
+// Para ACTIVAR la caché de IndexedDB: pasa { enableCache: true } en las opciones del composable
+// Para DESACTIVAR completamente: deja enableCache en false (valor por defecto)
+// Cuando está desactivada, todas las texturas se cargan directamente desde red SIN usar IndexedDB
 import { ref } from "vue";
 import * as THREE from "three";
 
@@ -11,7 +15,12 @@ export function useTextureCache(options = {}) {
     maxCacheSize = 5000, // Aumentado de 500 a 2000
     expiryDays = 30, // Aumentado de 7 a 30 días
     compressionQuality = 0.8,
+    enableCache = false, // 🚫 CACHE DESACTIVADA POR DEFECTO - Cambiar a true para activar
   } = options;
+
+  // 🚀 Control de concurrencia para cacheo diferido
+  const cachingQueue = new Set();
+  const MAX_CONCURRENT_CACHE_OPS = 5;
 
   // Estado reactivo
   const cacheStats = ref({
@@ -26,6 +35,10 @@ export function useTextureCache(options = {}) {
 
   // Inicializar IndexedDB
   const initDB = async () => {
+    if (!enableCache) {
+      console.log("🚫 Caché de texturas desactivada");
+      return null;
+    }
     if (textureDB) return textureDB;
 
     return new Promise((resolve, reject) => {
@@ -74,7 +87,7 @@ export function useTextureCache(options = {}) {
 
   // Actualizar contador de tamaño de caché
   const updateCacheSize = async () => {
-    if (!textureDB) return;
+    if (!enableCache || !textureDB) return;
 
     try {
       const transaction = textureDB.transaction([STORE_NAME], "readonly");
@@ -91,7 +104,7 @@ export function useTextureCache(options = {}) {
 
   // Limpiar texturas expiradas
   const cleanExpiredTextures = async () => {
-    if (!textureDB) return;
+    if (!enableCache || !textureDB) return;
 
     try {
       const transaction = textureDB.transaction([STORE_NAME], "readwrite");
@@ -147,7 +160,9 @@ export function useTextureCache(options = {}) {
 
   // Verificar si una textura está disponible en caché (sin cargarla)
   const isTextureCached = async (url) => {
+    if (!enableCache) return false;
     if (!textureDB) await initDB();
+    if (!textureDB) return false;
 
     return new Promise((resolve) => {
       try {
@@ -175,7 +190,9 @@ export function useTextureCache(options = {}) {
 
   // Obtener textura del caché (asíncrona - para compatibilidad)
   const getCachedTexture = async (url) => {
+    if (!enableCache) return null;
     if (!textureDB) await initDB();
+    if (!textureDB) return null;
 
     return new Promise((resolve) => {
       try {
@@ -284,7 +301,9 @@ export function useTextureCache(options = {}) {
 
   // ✨ NUEVA: Obtener textura del caché SÍNCRONAMENTE (solo ImageData)
   const getCachedTextureSync = async (url) => {
+    if (!enableCache) return null;
     if (!textureDB) await initDB();
+    if (!textureDB) return null;
 
     return new Promise((resolve) => {
       try {
@@ -335,8 +354,9 @@ export function useTextureCache(options = {}) {
 
   // 🚀 NUEVA: Cargar múltiples texturas de IndexedDB de una vez
   const loadMultipleCachedTextures = async (urls) => {
+    if (!enableCache) return new Map();
     if (!textureDB) await initDB();
-    if (!urls.length) return new Map();
+    if (!textureDB || !urls.length) return new Map();
 
     return new Promise((resolve) => {
       const results = new Map();
@@ -393,17 +413,18 @@ export function useTextureCache(options = {}) {
     });
   };
 
-  // Evictar texturas más antiguas (elimina 10% del caché cuando se supera el límite)
-  const evictOldestTextures = async () => {
-    if (!textureDB) return;
+  // Evictar texturas más antiguas (acepta parámetro personalizado)
+  const evictOldestTextures = async (customCount = null) => {
+    if (!enableCache || !textureDB) return;
 
     try {
       const transaction = textureDB.transaction([STORE_NAME], "readwrite");
       const store = transaction.objectStore(STORE_NAME);
       const index = store.index("timestamp");
 
-      // Eliminar 10% de las texturas más antiguas para evitar evicción constante
-      const toDelete = Math.max(1, Math.floor(maxCacheSize * 0.1));
+      // Usar valor personalizado o 10% por defecto
+      const toDelete =
+        customCount || Math.max(1, Math.floor(maxCacheSize * 0.1));
       let deletedCount = 0;
 
       const request = index.openCursor();
@@ -430,15 +451,27 @@ export function useTextureCache(options = {}) {
 
   // Guardar textura en caché (nuevo formato ImageData)
   const setCachedTexture = async (url, imageBlob) => {
+    if (!enableCache) return;
     if (!textureDB) await initDB();
+    if (!textureDB) return;
 
     try {
-      // Verificar si necesitamos hacer espacio
-      if (cacheStats.value.dbSize >= maxCacheSize) {
+      // ⚡ Verificar si necesitamos hacer espacio con margen de seguridad
+      if (cacheStats.value.dbSize >= maxCacheSize - 100) {
         console.log(
-          `📊 Caché lleno (${cacheStats.value.dbSize}/${maxCacheSize}), evictando texturas antiguas...`
+          `📊 Caché casi lleno (${cacheStats.value.dbSize}/${maxCacheSize}), evictando texturas antiguas...`
         );
-        await evictOldestTextures();
+        // Evictar 20% para hacer más espacio
+        const toDelete = Math.max(100, Math.floor(maxCacheSize * 0.2));
+        await evictOldestTextures(toDelete);
+
+        // Actualizar el contador después de evictar
+        await new Promise((resolve) => {
+          setTimeout(async () => {
+            await updateCacheSize();
+            resolve();
+          }, 100);
+        });
       }
 
       // Convertir blob a ImageData para almacenamiento síncrono
@@ -483,7 +516,9 @@ export function useTextureCache(options = {}) {
 
   // 🚀 Nuevo helper: guardar textura usando una Image ya decodificada (evita doble decode)
   const setCachedTextureFromImage = async (url, img) => {
+    if (!enableCache) return;
     if (!textureDB) await initDB();
+    if (!textureDB) return;
     try {
       if (cacheStats.value.dbSize >= maxCacheSize) {
         await evictOldestTextures();
@@ -505,12 +540,33 @@ export function useTextureCache(options = {}) {
 
   // 🆕 Nuevo helper: guardar textura desde un ImageBitmap (evita crear <img> intermedio)
   const setCachedTextureFromBitmap = async (url, bitmap) => {
+    if (!enableCache) return false;
     if (!textureDB) await initDB();
+    if (!textureDB) return false;
     try {
-      if (!bitmap) return;
-      if (cacheStats.value.dbSize >= maxCacheSize) {
-        await evictOldestTextures();
+      if (!bitmap) return false;
+
+      // ✅ VERIFICACIÓN CRÍTICA: Comprobar si ya existe antes de procesar
+      const exists = await new Promise((resolve) => {
+        const transaction = textureDB.transaction([STORE_NAME], "readonly");
+        const request = transaction.objectStore(STORE_NAME).get(url);
+        request.onsuccess = () => resolve(!!request.result);
+        request.onerror = () => resolve(false);
+      });
+
+      if (exists) {
+        console.log(`⏭️ Textura ya cacheada, omitiendo: ${url}`);
+        return true;
       }
+
+      // Verificar límite con margen para evitar condiciones de carrera
+      if (cacheStats.value.dbSize >= maxCacheSize - 50) {
+        console.log(
+          `⚠️ Cache casi lleno (${cacheStats.value.dbSize}/${maxCacheSize}), omitiendo cacheo: ${url}`
+        );
+        return false;
+      }
+
       // Convertir ImageBitmap a ImageData usando un canvas temporal
       const canvas = document.createElement("canvas");
       canvas.width = bitmap.width;
@@ -518,22 +574,69 @@ export function useTextureCache(options = {}) {
       const ctx = canvas.getContext("2d");
       ctx.drawImage(bitmap, 0, 0);
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
       const transaction = textureDB.transaction([STORE_NAME], "readwrite");
-      transaction.objectStore(STORE_NAME).put({
-        url,
-        imageData,
-        width: bitmap.width,
-        height: bitmap.height,
-        timestamp: Date.now(),
+      const store = transaction.objectStore(STORE_NAME);
+
+      return new Promise((resolve) => {
+        const putRequest = store.put({
+          url,
+          imageData,
+          width: bitmap.width,
+          height: bitmap.height,
+          timestamp: Date.now(),
+        });
+
+        putRequest.onsuccess = () => {
+          console.log(`✅ Textura bitmap cacheada: ${url}`);
+          updateCacheSize();
+          resolve(true);
+        };
+
+        putRequest.onerror = (e) => {
+          console.warn(`❌ Error cacheando bitmap: ${url}`, e);
+          resolve(false);
+        };
       });
-      updateCacheSize();
     } catch (e) {
       console.warn("Error setCachedTextureFromBitmap:", url, e);
+      return false;
     }
   };
 
   // Cargar textura con caché (función principal)
   const loadTexture = async (url) => {
+    // Si la caché está desactivada, ir directamente a la descarga
+    if (!enableCache) {
+      console.log("🚫 Caché desactivada, descargando directamente:", url);
+      try {
+        const response = await fetch(url, {
+          mode: "cors",
+          credentials: "omit",
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const blob = await response.blob();
+        const img = new Image();
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = URL.createObjectURL(blob);
+        });
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        URL.revokeObjectURL(img.src);
+        return texture;
+      } catch (error) {
+        console.warn("Error loading texture:", url, error);
+        throw error;
+      }
+    }
+
     // Intentar obtener de caché primero
     console.log("🔍 loadTexture: Intentando obtener de caché:", url);
     let texture = await getCachedTexture(url);
@@ -569,7 +672,7 @@ export function useTextureCache(options = {}) {
 
   // Limpiar caché completo (función de mantenimiento)
   const clearCache = async () => {
-    if (!textureDB) return;
+    if (!enableCache || !textureDB) return;
 
     try {
       const transaction = textureDB.transaction([STORE_NAME], "readwrite");
@@ -587,9 +690,36 @@ export function useTextureCache(options = {}) {
     }
   };
 
+  // 🔄 Cacheo diferido con control de concurrencia
+  const deferredCacheFromBitmap = (url, bitmap) => {
+    if (!enableCache) return;
+    if (cachingQueue.has(url)) {
+      console.log(`⏭️ Ya en cola de cacheo: ${url}`);
+      return;
+    }
+
+    if (cachingQueue.size >= MAX_CONCURRENT_CACHE_OPS) {
+      console.log(
+        `⏸️ Cola de cacheo llena (${cachingQueue.size}), omitiendo: ${url}`
+      );
+      return;
+    }
+
+    cachingQueue.add(url);
+    queueMicrotask(async () => {
+      try {
+        await setCachedTextureFromBitmap(url, bitmap);
+      } catch (e) {
+        console.warn(`Error en cacheo diferido: ${url}`, e);
+      } finally {
+        cachingQueue.delete(url);
+      }
+    });
+  };
+
   // Obtener información del caché
   const getCacheInfo = async () => {
-    if (!textureDB) return null;
+    if (!enableCache || !textureDB) return null;
 
     try {
       const transaction = textureDB.transaction([STORE_NAME], "readonly");
@@ -640,6 +770,12 @@ export function useTextureCache(options = {}) {
 
   // Inicializar al usar el composable
   const initialize = async () => {
+    if (!enableCache) {
+      console.log(
+        "🚫 Caché de texturas desactivada - omitiendo inicialización"
+      );
+      return;
+    }
     try {
       await initDB();
       // Limpiar texturas expiradas en background
@@ -657,6 +793,7 @@ export function useTextureCache(options = {}) {
     loadTexture,
     setCachedTextureFromImage, // export helper por si se usa externamente
     setCachedTextureFromBitmap, // nuevo helper para ImageBitmap
+    deferredCacheFromBitmap, // 🔄 Nueva función de cacheo diferido
     initialize,
 
     // Funciones de verificación y acceso
@@ -673,5 +810,6 @@ export function useTextureCache(options = {}) {
     // Configuración
     maxCacheSize,
     expiryDays,
+    enableCache, // 🔧 Exponer flag de configuración
   };
 }
