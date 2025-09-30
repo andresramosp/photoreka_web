@@ -191,7 +191,9 @@
     <!-- Discrete Loading Indicator -->
     <div v-if="showDiscreteLoader" class="discrete-loader">
       <div class="loader-spinner"></div>
-      <span class="loader-text">Loading Photos</span>
+      <span class="loader-text">{{
+        loadingProgress == 0 ? "Fetching Coordinates" : "Loading Photos"
+      }}</span>
       <span v-show="loadingProgress != 0" class="loader-percentage"
         >{{ loadingProgress }}%</span
       >
@@ -355,16 +357,6 @@ let cacheValidPosition = { x: 0, y: 0, z: 0 };
 // Reusable objects for billboard calculations
 const tempObject = new THREE.Object3D();
 const directionToCamera = new THREE.Vector3();
-
-// Performance monitoring
-let lastPerformanceLog = 0;
-const PERFORMANCE_LOG_INTERVAL = 5000; // Log every 5 seconds
-const performanceMetrics = {
-  frameTime: [],
-  updateVisibleTime: [],
-  billboardTime: [],
-  opacityTime: [],
-};
 
 // GPU verification and capabilities
 const checkGPUCapabilities = () => {
@@ -1302,60 +1294,6 @@ const getCachedDistance = (photoId, photoPosition, cameraPosition) => {
   return distance;
 };
 
-// Performance logging function with GPU monitoring
-const logPerformanceMetrics = () => {
-  if (performanceMetrics.frameTime.length === 0) return;
-
-  const avgFrameTime =
-    performanceMetrics.frameTime.reduce((a, b) => a + b) /
-    performanceMetrics.frameTime.length;
-  const maxFrameTime = Math.max(...performanceMetrics.frameTime);
-  const fps = 1000 / avgFrameTime;
-
-  let logMessage = `[Photos3D Performance - GPU Accelerated]`;
-  logMessage += `\n  Average frame time: ${avgFrameTime.toFixed(2)}ms`;
-  logMessage += `\n  Max frame time: ${maxFrameTime.toFixed(2)}ms`;
-  logMessage += `\n  FPS: ${fps.toFixed(1)}`;
-  logMessage += `\n  Visible photos: ${visiblePhotos.value.length}`;
-  logMessage += `\n  Total photos: ${photosWithMaterials.value.length}`;
-
-  // GPU performance indicators
-  if (fps < 30) {
-    logMessage += `\n  ⚠️ LOW FPS: Consider reducing photo count or quality`;
-  } else if (fps > 55) {
-    logMessage += `\n  ✅ GOOD FPS: GPU performing well`;
-  }
-
-  if (performanceMetrics.updateVisibleTime.length > 0) {
-    const avgVisible =
-      performanceMetrics.updateVisibleTime.reduce((a, b) => a + b) /
-      performanceMetrics.updateVisibleTime.length;
-    logMessage += `\n  Frustum culling: ${avgVisible.toFixed(2)}ms`;
-  }
-
-  if (performanceMetrics.billboardTime.length > 0) {
-    const avgBillboard =
-      performanceMetrics.billboardTime.reduce((a, b) => a + b) /
-      performanceMetrics.billboardTime.length;
-    logMessage += `\n  Billboard rotations: ${avgBillboard.toFixed(2)}ms`;
-  }
-
-  if (performanceMetrics.opacityTime.length > 0) {
-    const avgOpacity =
-      performanceMetrics.opacityTime.reduce((a, b) => a + b) /
-      performanceMetrics.opacityTime.length;
-    logMessage += `\n  Opacity updates: ${avgOpacity.toFixed(2)}ms`;
-  }
-
-  console.log(logMessage);
-
-  // Clear metrics arrays to prevent memory buildup
-  performanceMetrics.frameTime = [];
-  performanceMetrics.updateVisibleTime = [];
-  performanceMetrics.billboardTime = [];
-  performanceMetrics.opacityTime = [];
-};
-
 // Función para actualizar fotos visibles usando Frustum Culling
 const updateVisiblePhotos = () => {
   if (!cameraRef.value || filteredPhotos.value.length === 0) {
@@ -1467,8 +1405,8 @@ const updateBillboardRotations = () => {
 };
 
 // Distance-based opacity configuration
-const MIN_DISTANCE = 20;
-const MAX_DISTANCE = 80;
+const MIN_DISTANCE = 40;
+const MAX_DISTANCE = 100;
 const MIN_OPACITY = 0.2;
 
 // Función para actualizar opacidad basada en distancia
@@ -1616,39 +1554,19 @@ const animate = () => {
   // Throttle heavy operations - only execute every THROTTLE_INTERVAL frames
   if (frameCounter % THROTTLE_INTERVAL === 0 || cameraPositionChanged) {
     // Actualizar frustum culling
-    const visibleStart = performance.now();
+
     updateVisiblePhotos();
-    const visibleEnd = performance.now();
-    performanceMetrics.updateVisibleTime.push(visibleEnd - visibleStart);
 
     // Actualizar rotaciones billboard si está habilitado
     if (useBillboarding.value) {
-      const billboardStart = performance.now();
       updateBillboardRotations();
-      const billboardEnd = performance.now();
-      performanceMetrics.billboardTime.push(billboardEnd - billboardStart);
     }
 
-    // Actualizar opacidad por distancia
-    const opacityStart = performance.now();
     updatePhotoOpacity();
-    const opacityEnd = performance.now();
-    performanceMetrics.opacityTime.push(opacityEnd - opacityStart);
   }
 
   // Procesar cola de texturas (batch dinámico)
   processTextureQueue();
-
-  const frameEnd = performance.now();
-  // Renombrado para evitar redeclaración (ya existe frameTime arriba para batch dinámico)
-  const frameDuration = frameEnd - frameStart;
-  performanceMetrics.frameTime.push(frameDuration);
-
-  // Log performance metrics periodically
-  if (frameEnd - lastPerformanceLog > PERFORMANCE_LOG_INTERVAL) {
-    logPerformanceMetrics();
-    lastPerformanceLog = frameEnd;
-  }
 
   animationId = requestAnimationFrame(animate);
 };
@@ -1872,12 +1790,6 @@ onUnmounted(() => {
   if (animationId) {
     cancelAnimationFrame(animationId);
   }
-
-  // Limpiar métricas de performance
-  performanceMetrics.frameTime = [];
-  performanceMetrics.updateVisibleTime = [];
-  performanceMetrics.billboardTime = [];
-  performanceMetrics.opacityTime = [];
 
   // Limpiar caches
   distanceCache.clear();
