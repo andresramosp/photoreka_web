@@ -356,18 +356,18 @@ const secondSectionOptions = computed(() => {
         : {},
       icon: createIconWithIndicator(SearchIcon, "#60b6d4"), // Info color for search functionality
     },
-    // {
-    //   label: createMenuLabel("Vista 3D"),
-    //   key: "3d-view",
-    //   disabled: isBlocked,
-    //   comingSoon: false,
-    //   props: isBlocked
-    //     ? {
-    //         title: "Add photos to your catalog",
-    //       }
-    //     : {},
-    //   icon: createIconWithIndicator(CubeIcon, "#8b5cf6", false, false), // Purple color for 3D view
-    // },
+    {
+      label: createMenuLabel("3D View"),
+      key: "3d-view",
+      disabled: isBlocked,
+      comingSoon: false,
+      props: isBlocked
+        ? {
+            title: "Add photos to your catalog",
+          }
+        : {},
+      icon: createIconWithIndicator(CubeIcon, "#8b5cf6", false, false), // Purple color for 3D view
+    },
     {
       label: createMenuLabel("Canvas"),
       key: "canvas",
@@ -404,18 +404,18 @@ const secondSectionOptions = computed(() => {
       icon: createIconWithIndicator(CurationIcon, "#f59e0b", true), // Warning color for curation + premium
     },
 
-    {
-      label: createMenuLabel("Reports"),
-      key: "portfolio-report",
-      disabled: isBlocked,
-      comingSoon: false,
-      props: isBlocked
-        ? {
-            title: "Add photos to your catalog",
-          }
-        : {},
-      icon: createIconWithIndicator(AnalyticsIcon, "#06b6d4", false, false), // Cyan color for analytics
-    },
+    // {
+    //   label: createMenuLabel("Reports"),
+    //   key: "portfolio-report",
+    //   disabled: isBlocked,
+    //   comingSoon: false,
+    //   props: isBlocked
+    //     ? {
+    //         title: "Add photos to your catalog",
+    //       }
+    //     : {},
+    //   icon: createIconWithIndicator(AnalyticsIcon, "#06b6d4", false, false), // Cyan color for analytics
+    // },
     {
       label: createMenuLabel("Framer"),
       key: "framer",
@@ -428,16 +428,6 @@ const secondSectionOptions = computed(() => {
         : {},
       icon: createIconWithIndicator(FramerIcon, "#dc2626", false, false), // Red color for framer
     },
-    // {
-    //   label: createMenuLabel("Visual Lab", true),
-    //   key: "visual-lab",
-    //   disabled: isBlocked,
-    //   comingSoon: true,
-    //   props: {
-    //     title: "Coming soon",
-    //   },
-    //   icon: createIconWithIndicator(StylerIcon, "#9ca3af", false, true), // Red color for styler
-    // },
   ];
 });
 

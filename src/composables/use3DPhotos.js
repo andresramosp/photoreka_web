@@ -11,10 +11,10 @@ export function use3DPhotos() {
 
   // Opciones de chunks disponibles
   const chunkOptions = [
-    { value: "story", label: "Historia (Story)" },
-    { value: "context", label: "Contexto (Context)" },
-    { value: "visual_accents", label: "Acentos Visuales (Visual Accents)" },
     { value: "general", label: "General" },
+    { value: "story", label: "Narrative" },
+    { value: "context", label: "Context" },
+    { value: "visual_accents", label: "Visual Accents" },
   ];
 
   // Función para cargar todas las fotos de una vez

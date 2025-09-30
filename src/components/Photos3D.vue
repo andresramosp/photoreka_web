@@ -13,7 +13,7 @@
     <TresCanvas v-else v-bind="gl" ref="canvasRef">
       <TresPerspectiveCamera
         ref="cameraRef"
-        :position="[0, 0, 100]"
+        :position="[0, 0, 150]"
         :fov="75"
         :aspect="1"
         :near="0.1"
@@ -23,8 +23,8 @@
       <!-- Lighting -->
       <primitive :object="lightsGroup" />
 
-      <!-- Photo planes - renderizar solo fotos visibles -->
-      <template v-for="(photo, index) in visiblePhotos" :key="photo.id">
+      <!-- Photo planes - renderizar solo fotos visibles y no ocultas por LOD -->
+      <template v-for="(photo, index) in photosToRender" :key="photo.id">
         <TresMesh
           :position="photo.position"
           :rotation="useBillboarding ? photo.billboardRotation : [0, 0, 0]"
@@ -38,161 +38,207 @@
       <primitive :object="gridHelper" />
     </TresCanvas>
 
-    <!-- UI Overlay -->
-    <div class="ui-overlay">
-      <!-- Config Panel Container -->
-      <div class="config-panel-container" @click.stop>
-        <!-- Panel Header with Toggle -->
-        <div
-          class="panel-header"
-          @click="
-            showConfigPanel = !showConfigPanel;
-            $event.stopPropagation();
-          "
-        >
-          <span class="panel-title">Settings</span>
-          <n-icon
-            class="panel-toggle-icon"
-            :class="{ 'panel-open': showConfigPanel }"
+    <!-- Config Panels (Outside UI Overlay to avoid positioning conflicts) -->
+    <!-- Collapsed Panel (Small Corner Button) -->
+    <div
+      v-if="!showConfigPanel"
+      class="collapsed-panel"
+      @click="showConfigPanel = true"
+      @click.stop
+    >
+      <n-icon class="settings-icon">
+        <SettingOutlined />
+      </n-icon>
+    </div>
+
+    <!-- Expanded Panel Content -->
+    <div v-if="showConfigPanel" class="control-panel" @click.stop>
+      <!-- Close Button (Top Right Corner) -->
+      <button class="close-panel-btn-corner" @click="showConfigPanel = false">
+        <n-icon>
+          <CloseOutlined />
+        </n-icon>
+      </button>
+
+      <!-- Embedding Type Section -->
+      <div class="control-section">
+        <h4 class="section-title">Clustering Type</h4>
+        <div class="control-item">
+          <n-select
+            :disabled="showDiscreteLoader"
+            v-model:value="selectedChunk"
+            @update:value="onChunkChange"
+            :options="chunkOptions"
+            size="small"
+            class="embedding-select"
+            placeholder="Select embedding type"
+            @click.stop
+          />
+        </div>
+        <h4 class="section-title">Visual Aspects</h4>
+        <div class="control-item">
+          <n-tree-select
+            v-model:value="selectedVisualAspects"
+            multiple
+            clearable
+            placeholder="Any aspect"
+            :options="treeSelectOptions"
+            :max-tag-count="2"
+            class="aspects-select"
+            :disabled="showDiscreteLoader"
+            size="small"
+            check-strategy="child"
+            :show-path="false"
+            expand-on-click
+            @update:value="onVisualAspectsChange"
+            @click.stop
           >
-            <svg viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"
-              />
-            </svg>
-          </n-icon>
+            <template #empty>
+              <div style="padding: 8px; color: #888; font-size: 12px">
+                No visual aspects found
+              </div>
+            </template>
+          </n-tree-select>
+        </div>
+      </div>
+
+      <!-- Display Options Section -->
+      <div class="control-section">
+        <h4 class="section-title">Display Options</h4>
+
+        <div class="control-item">
+          <span class="control-label">Billboarding (Face Camera)</span>
+          <n-switch
+            v-model:value="useBillboarding"
+            @update:value="onBillboardingToggle"
+            size="small"
+            @click.stop
+          />
         </div>
 
-        <!-- Config Panel Content -->
-        <div v-if="showConfigPanel" class="control-panel" @click.stop>
-          <!-- Embedding Type Section -->
-          <div class="control-section">
-            <h4 class="section-title">Embedding Type</h4>
-            <div class="control-item">
-              <n-select
-                :disabled="showDiscreteLoader"
-                v-model:value="selectedChunk"
-                @update:value="onChunkChange"
-                :options="chunkOptions"
-                class="embedding-select"
-                placeholder="Select embedding type"
-                @click.stop
-              />
-            </div>
-          </div>
+        <div class="control-item">
+          <span class="control-label">Distance Transparency</span>
+          <n-switch
+            v-model:value="useDistanceOpacity"
+            size="small"
+            @click.stop
+          />
+        </div>
+      </div>
 
-          <!-- Visual Aspects Filter Section -->
-          <div class="control-section">
-            <h4 class="section-title">Visual Aspects</h4>
-            <div class="control-item">
-              <n-tree-select
-                v-model:value="selectedVisualAspects"
-                multiple
-                clearable
-                placeholder="Any aspect"
-                :options="treeSelectOptions"
-                :max-tag-count="2"
-                class="aspects-select"
-                :disabled="showDiscreteLoader"
-                size="small"
-                check-strategy="child"
-                :show-path="false"
-                expand-on-click
-                @update:value="onVisualAspectsChange"
-                @click.stop
-              >
-                <template #empty>
-                  <div style="padding: 8px; color: #888; font-size: 12px">
-                    No visual aspects found
-                  </div>
-                </template>
-              </n-tree-select>
-            </div>
-          </div>
+      <!-- LOD System Configuration (only show when enabled) -->
+      <!-- <div v-if="useLODSystem" class="control-section">
+            <h4 class="section-title">LOD Distance Thresholds</h4>
 
-          <!-- Display Options Section -->
-          <div class="control-section">
-            <h4 class="section-title">Display Options</h4>
-
-            <div class="control-item">
-              <span class="control-label">Billboarding (Face Camera)</span>
-              <n-switch
-                v-model:value="useBillboarding"
-                @update:value="onBillboardingToggle"
-                size="small"
-                @click.stop
-              />
-            </div>
-
-            <div class="control-item">
-              <span class="control-label">Distance Opacity</span>
-              <n-switch
-                v-model:value="useDistanceOpacity"
-                size="small"
-                @click.stop
-              />
-            </div>
-          </div>
-
-          <!-- Radial Scaling Section -->
-          <div class="control-section">
-            <h4 class="section-title">Radial Scaling</h4>
             <div class="control-item">
               <div class="slider-container">
                 <div class="slider-header">
                   <span class="control-label"
-                    >Distance: {{ inflateFactor.toFixed(1) }}x</span
+                    >Reduce Quality: {{ LOD_DISTANCES.FULL_TO_REDUCED }}</span
                   >
                 </div>
                 <n-slider
-                  v-model:value="inflateFactor"
-                  @update:value="onInflateFactorChange"
-                  :min="1"
-                  :max="3.0"
-                  :step="0.1"
-                  :marks="{ 1: '1.0x', 2: '2.0x', 3: '3.0x' }"
-                  class="radial-slider"
+                  v-model:value="LOD_DISTANCES.FULL_TO_REDUCED"
+                  :min="30"
+                  :max="100"
+                  :step="5"
+                  class="lod-slider"
                   @click.stop
                 />
               </div>
             </div>
-          </div>
 
-          <!-- Controls Info -->
-          <div class="control-section">
-            <h4 class="section-title">
-              Controls
-              <n-tooltip
-                trigger="hover"
-                placement="top"
-                :keep-alive-on-hover="false"
-              >
-                <template #trigger>
-                  <n-icon size="16" class="info-icon">
-                    <InfoCircleOutlined />
-                  </n-icon>
-                </template>
-                <div class="controls-tooltip">
-                  <div class="control-tip"><strong>WASD:</strong> Movement</div>
-                  <div class="control-tip">
-                    <strong>Mouse:</strong> Look around
-                  </div>
-                  <div class="control-tip"><strong>F:</strong> Move up</div>
-                  <div class="control-tip"><strong>V:</strong> Move down</div>
+            <div class="control-item">
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span class="control-label"
+                    >Solid Color:
+                    {{ LOD_DISTANCES.REDUCED_TO_PLACEHOLDER }}</span
+                  >
                 </div>
-              </n-tooltip>
-            </h4>
+                <n-slider
+                  v-model:value="LOD_DISTANCES.REDUCED_TO_PLACEHOLDER"
+                  :min="80"
+                  :max="200"
+                  :step="10"
+                  class="lod-slider"
+                  @click.stop
+                />
+              </div>
+            </div>
+
+            <div class="control-item">
+              <div class="slider-container">
+                <div class="slider-header">
+                  <span class="control-label"
+                    >Hide Completely:
+                    {{ LOD_DISTANCES.PLACEHOLDER_TO_HIDDEN }}</span
+                  >
+                </div>
+                <n-slider
+                  v-model:value="LOD_DISTANCES.PLACEHOLDER_TO_HIDDEN"
+                  :min="150"
+                  :max="400"
+                  :step="25"
+                  class="lod-slider"
+                  @click.stop
+                />
+              </div>
+            </div>
+          </div> -->
+
+      <!-- Radial Scaling Section -->
+      <div class="control-section">
+        <h4 class="section-title">Radial Scaling</h4>
+        <div class="control-item">
+          <div class="slider-container">
+            <n-slider
+              v-model:value="inflateFactor"
+              @update:value="onInflateFactorChange"
+              :min="1"
+              :max="3.0"
+              :step="0.1"
+              :marks="{ 1: '1.0x', 2: '2.0x', 3: '3.0x' }"
+              class="radial-slider"
+              @click.stop
+            />
           </div>
         </div>
       </div>
+
+      <!-- Navigation Controls -->
+      <div class="control-section">
+        <h4 class="section-title">Navigation Controls</h4>
+        <div class="controls-info">
+          <div class="control-tip">
+            <strong>Click on stage:</strong> Activate camera controls
+          </div>
+          <div class="control-tip">
+            <strong>Escape:</strong> Return to normal mouse
+          </div>
+          <div class="control-tip">
+            <strong>WASD:</strong> Navigate forward/back/left/right
+          </div>
+
+          <div class="control-tip">
+            <strong>Wheel:</strong> Accelerate movement speed
+          </div>
+          <div class="control-tip"><strong>F:</strong> Move up</div>
+          <div class="control-tip"><strong>V:</strong> Move down</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UI Overlay (for other future UI elements) -->
+    <div class="ui-overlay">
+      <!-- Reserved for other UI elements -->
     </div>
 
     <!-- Discrete Loading Indicator -->
     <div v-if="showDiscreteLoader" class="discrete-loader">
       <div class="loader-spinner"></div>
       <span class="loader-text">{{
-        loadingProgress == 0 ? "Fetching Coordinates" : "Loading Photos"
+        loadingProgress == 0 ? "Building Stage" : "Loading Photos"
       }}</span>
       <span v-show="loadingProgress != 0" class="loader-percentage"
         >{{ loadingProgress }}%</span
@@ -213,7 +259,11 @@ import {
   NTreeSelect,
   NButton,
 } from "naive-ui";
-import { InfoCircleOutlined } from "@vicons/antd";
+import {
+  InfoCircleOutlined,
+  CloseOutlined,
+  SettingOutlined,
+} from "@vicons/antd";
 import { use3DPhotos } from "@/composables/use3DPhotos.js";
 import { useTextureCache } from "@/composables/useTextureCache.js";
 import { useFirstPersonControls } from "@/composables/useFirstPersonControls.js";
@@ -406,9 +456,9 @@ const placeholderCanvas = document.createElement("canvas");
 placeholderCanvas.width = 8;
 placeholderCanvas.height = 8;
 const phCtx = placeholderCanvas.getContext("2d");
-phCtx.fillStyle = "#222";
+phCtx.fillStyle = "#1e40af"; // Azul primario del theme
 phCtx.fillRect(0, 0, 8, 8);
-phCtx.fillStyle = "#444";
+phCtx.fillStyle = "#3b82f6"; // Azul más claro para contraste
 phCtx.fillRect(0, 0, 4, 8);
 const placeholderTexture = new THREE.CanvasTexture(placeholderCanvas);
 placeholderTexture.colorSpace = THREE.SRGBColorSpace;
@@ -502,7 +552,6 @@ const checkAllTexturesLoaded = () => {
   // Si no hay fotos y ya no está cargando, ocultar loader
   if (photosWithMaterials.value.length === 0 && !isLoading.value) {
     console.log("📭 No hay fotos y no está cargando - ocultando loader");
-    hideLoaderAndEnableNavigation();
     return;
   }
 
@@ -612,27 +661,39 @@ const applyVisualAspectsFilter = () => {
       // Sin filtro: mostrar todas las fotos
       photo.isVisible = true;
     } else {
-      // Con filtro: verificar si la foto tiene al menos uno de los aspectos seleccionados
+      // Con filtro: aplicar lógica OR dentro de categorías y AND entre categorías
       if (!photo.descriptions?.visual_aspects) {
         photo.isVisible = false;
       } else {
-        photo.isVisible = selectedVisualAspects.value.some((selectedAspect) => {
-          // Get the category for this aspect (e.g., "cold" -> "temperature")
+        // Agrupar aspectos seleccionados por categoría
+        const selectedByCategory = new Map();
+        selectedVisualAspects.value.forEach((selectedAspect) => {
           const category = visualAspectCategoryMap.get(selectedAspect);
-
-          if (!category) {
-            console.warn(`⚠️ Category not found for aspect: ${selectedAspect}`);
-            return false;
+          if (category) {
+            if (!selectedByCategory.has(category)) {
+              selectedByCategory.set(category, []);
+            }
+            selectedByCategory.get(category).push(selectedAspect);
           }
-
-          // Check if the photo has this category and if it includes the selected aspect
-          const photoAspects = photo.descriptions.visual_aspects[category];
-          if (!photoAspects || !Array.isArray(photoAspects)) {
-            return false;
-          }
-
-          return photoAspects.includes(selectedAspect);
         });
+
+        // Para que la foto sea visible, debe cumplir TODAS las categorías seleccionadas (AND)
+        // Pero dentro de cada categoría, solo necesita cumplir UNA opción (OR)
+        photo.isVisible = Array.from(selectedByCategory.entries()).every(
+          ([category, aspectsInCategory]) => {
+            const photoAspects = photo.descriptions.visual_aspects[category];
+            if (!photoAspects || !Array.isArray(photoAspects)) {
+              return false;
+            }
+
+            // OR: debe tener al menos uno de los aspectos de esta categoría
+            const hasAnyAspectInCategory = aspectsInCategory.some((aspect) =>
+              photoAspects.includes(aspect)
+            );
+
+            return hasAnyAspectInCategory;
+          }
+        );
       }
     }
   });
@@ -643,6 +704,30 @@ const applyVisualAspectsFilter = () => {
   const hiddenCount = photosWithMaterials.value.filter(
     (p) => p.isVisible === false
   ).length;
+
+  // Log resumen de la lógica aplicada
+  if (selectedVisualAspects.value.length > 0) {
+    const selectedByCategory = new Map();
+    selectedVisualAspects.value.forEach((selectedAspect) => {
+      const category = visualAspectCategoryMap.get(selectedAspect);
+      if (category) {
+        if (!selectedByCategory.has(category)) {
+          selectedByCategory.set(category, []);
+        }
+        selectedByCategory.get(category).push(selectedAspect);
+      }
+    });
+
+    console.log(
+      "📋 Lógica de filtrado aplicada (OR dentro de categoría, AND entre categorías):",
+      {
+        categoríasAfectadas: selectedByCategory.size,
+        filtrosPorCategoría: Object.fromEntries(selectedByCategory),
+        totalVisibles: visibleCount,
+        totalOcultas: hiddenCount,
+      }
+    );
+  }
 
   console.log(
     `📊 Filtro aplicado: ${visibleCount}/${photosWithMaterials.value.length} fotos visibles, ${hiddenCount} ocultas`
@@ -667,6 +752,11 @@ const applyVisualAspectsFilter = () => {
 // Computed para fotos filtradas (solo las marcadas como visibles)
 const filteredPhotos = computed(() => {
   return photosWithMaterials.value.filter((photo) => photo.isVisible !== false);
+});
+
+// 🔧 Computed para fotos que realmente se deben renderizar (filtrar las ocultas por LOD)
+const photosToRender = computed(() => {
+  return visiblePhotos.value.filter((photo) => !photo.__isLODHidden);
 });
 
 // Handler para cambio en filtro de aspectos visuales
@@ -933,6 +1023,9 @@ const loadRealTextureForPhoto = async (photoObj, isCached = false) => {
       depthTest: true,
     });
 
+    // 🎨 IMPORTANTE: Almacenar referencia a la textura original para el sistema LOD
+    photoObj.__originalTexture = texture;
+
     // Reemplazar material placeholder
     if (photoObj.material) {
       photoObj.material.dispose?.();
@@ -975,6 +1068,9 @@ const loadCachedTexturesBatch = async (photos) => {
       const url = urlMap.get(p.id);
       const tex = texturesMap.get(url);
       if (tex) {
+        // 🎨 IMPORTANTE: Almacenar referencia a la textura original para el sistema LOD
+        p.__originalTexture = tex;
+
         // Reutilizar material placeholder si existe
         if (!p.material) {
           p.material = createPlaceholderMaterial();
@@ -1328,11 +1424,23 @@ const updateVisiblePhotos = () => {
     (photo) => !existingCachedIds.has(photo.id)
   );
 
-  // Mantener SOLO las cacheadas que TAMBIÉN pasan el filtro de aspectos visuales
+  // 🔧 CORREGIDO: Separar filtros - primero frustum, luego LOD se aplica en renderizado
+  // NO filtrar por __isLODHidden aquí, solo por aspectos visuales y cache
   const existingCached = visiblePhotos.value.filter(
     (p) => p.__textureLoaded && p.isVisible !== false
   );
+
+  // Las nuevas fotos del frustum siempre se añaden (LOD se decide después)
   visiblePhotos.value = [...existingCached, ...newPhotosToAdd];
+
+  // 🔧 CRÍTICO: Restaurar visibilidad de fotos que vuelven al frustum
+  visiblePhotos.value.forEach((photo) => {
+    // Si una foto está en el frustum, nunca debe estar permanentemente oculta
+    if (photo.__isLODHidden) {
+      photo.__isLODHidden = false;
+      photo.__currentLOD = undefined; // Forzar recálculo en próximo frame
+    }
+  });
 
   // Solo loggear cuando hay cambios significativos
   if (newPhotosToAdd.length > 0) {
@@ -1404,12 +1512,290 @@ const updateBillboardRotations = () => {
   });
 };
 
-// Distance-based opacity configuration
-const MIN_DISTANCE = 40;
+// Advanced LOD (Level of Detail) System Configuration
+const LOD_LEVELS = {
+  FULL: 0, // Full texture quality
+  REDUCED: 1, // Lower quality texture
+  PLACEHOLDER: 2, // Solid color based on dominant photo color
+  HIDDEN: 3, // Not rendered at all
+};
+
+// LOD distance thresholds (adjustable and reactive)
+const LOD_DISTANCES = ref({
+  FULL_TO_REDUCED: 30, // Start reducing texture quality
+  REDUCED_TO_PLACEHOLDER: 130, // Replace with solid color
+  PLACEHOLDER_TO_HIDDEN: 200, // Stop rendering completely
+});
+
+// Enable/disable LOD system
+const useLODSystem = ref(true);
+
+// 🔧 Función de depuración para diagnosticar problemas LOD
+const debugLODState = () => {
+  if (!useLODSystem.value) return;
+
+  const stats = {
+    total: visiblePhotos.value.length,
+    full: 0,
+    reduced: 0,
+    placeholder: 0,
+    hidden: 0,
+    withoutTexture: 0,
+  };
+
+  visiblePhotos.value.forEach((photo) => {
+    if (!photo.__originalTexture) {
+      stats.withoutTexture++;
+      return;
+    }
+
+    const lod = photo.__currentLOD || LOD_LEVELS.FULL;
+    switch (lod) {
+      case LOD_LEVELS.FULL:
+        stats.full++;
+        break;
+      case LOD_LEVELS.REDUCED:
+        stats.reduced++;
+        break;
+      case LOD_LEVELS.PLACEHOLDER:
+        stats.placeholder++;
+        break;
+      case LOD_LEVELS.HIDDEN:
+        stats.hidden++;
+        break;
+    }
+  });
+
+  console.log("🔍 LOD Debug Stats:", stats);
+  return stats;
+};
+
+// Cache for dominant colors and reduced textures
+const dominantColorCache = new Map();
+const reducedTextureCache = new Map();
+const placeholderMaterialCache = new Map();
+
+// 🔧 ELIMINADA: función problemática que creaba materiales nuevos
+
+// Extract dominant color from image (fast approximation)
+const extractDominantColor = (imageElement) => {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  // Use small canvas for performance
+  canvas.width = 32;
+  canvas.height = 24;
+
+  ctx.drawImage(imageElement, 0, 0, 32, 24);
+
+  const imageData = ctx.getImageData(0, 0, 32, 24);
+  const data = imageData.data;
+
+  let r = 0,
+    g = 0,
+    b = 0;
+  const pixelCount = data.length / 4;
+
+  // Average color calculation (fast)
+  for (let i = 0; i < data.length; i += 4) {
+    r += data[i];
+    g += data[i + 1];
+    b += data[i + 2];
+  }
+
+  r = Math.floor(r / pixelCount);
+  g = Math.floor(g / pixelCount);
+  b = Math.floor(b / pixelCount);
+
+  return (r << 16) | (g << 8) | b; // Return as hex color
+};
+
+// Create reduced quality texture (lower resolution)
+const createReducedTexture = (originalTexture) => {
+  if (!originalTexture || !originalTexture.image) return null;
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  // Reduce to 25% of original size for performance
+  const originalWidth = originalTexture.image.width || 512;
+  const originalHeight = originalTexture.image.height || 384;
+
+  canvas.width = Math.max(64, Math.floor(originalWidth * 0.5));
+  canvas.height = Math.max(48, Math.floor(originalHeight * 0.5));
+
+  ctx.drawImage(originalTexture.image, 0, 0, canvas.width, canvas.height);
+
+  const reducedTexture = new THREE.CanvasTexture(canvas);
+  reducedTexture.colorSpace = THREE.SRGBColorSpace;
+  reducedTexture.generateMipmaps = true;
+  reducedTexture.minFilter = THREE.LinearMipmapLinearFilter;
+  reducedTexture.magFilter = THREE.LinearFilter;
+  reducedTexture.wrapS = THREE.ClampToEdgeWrap;
+  reducedTexture.wrapT = THREE.ClampToEdgeWrap;
+
+  return reducedTexture;
+};
+
+// Determine LOD level based on distance
+const getLODLevel = (distance) => {
+  if (!useLODSystem.value) return LOD_LEVELS.FULL;
+
+  const distances = LOD_DISTANCES.value;
+
+  if (distance > distances.PLACEHOLDER_TO_HIDDEN) {
+    return LOD_LEVELS.HIDDEN;
+  } else if (distance > distances.REDUCED_TO_PLACEHOLDER) {
+    return LOD_LEVELS.PLACEHOLDER;
+  } else if (distance > distances.FULL_TO_REDUCED) {
+    return LOD_LEVELS.REDUCED;
+  }
+
+  return LOD_LEVELS.FULL;
+};
+
+// Sistema LOD corregido - MANTIENE los materiales originales siempre
+const updatePhotoLOD = () => {
+  if (
+    !useLODSystem.value ||
+    !cameraRef.value ||
+    visiblePhotos.value.length === 0
+  ) {
+    return;
+  }
+
+  const camera = cameraRef.value;
+  const cameraPosition = camera.position;
+
+  visiblePhotos.value.forEach((photo) => {
+    if (!photo.material) return;
+
+    // Use cached distance calculation
+    const distance = getCachedDistance(
+      photo.id,
+      photo.position,
+      cameraPosition
+    );
+
+    const lodLevel = getLODLevel(distance);
+    const currentLOD = photo.__currentLOD || LOD_LEVELS.FULL;
+
+    // Only update if LOD level changed
+    if (lodLevel === currentLOD) {
+      return;
+    }
+
+    photo.__currentLOD = lodLevel;
+
+    // 🔧 SOLUCIÓN: NUNCA crear nuevos materiales, solo cambiar la textura del material existente
+    switch (lodLevel) {
+      case LOD_LEVELS.FULL:
+        // Restaurar textura original completa
+        if (
+          photo.__originalTexture &&
+          photo.material.map !== photo.__originalTexture
+        ) {
+          photo.material.map = photo.__originalTexture;
+          photo.material.needsUpdate = true;
+        }
+        // Asegurar visibilidad
+        photo.__isLODHidden = false;
+        break;
+
+      case LOD_LEVELS.REDUCED:
+        // Usar textura reducida (crear solo una vez)
+        if (!photo.__reducedTexture && photo.__originalTexture) {
+          photo.__reducedTexture = createReducedTexture(
+            photo.__originalTexture
+          );
+        }
+
+        if (
+          photo.__reducedTexture &&
+          photo.material.map !== photo.__reducedTexture
+        ) {
+          photo.material.map = photo.__reducedTexture;
+          photo.material.needsUpdate = true;
+        }
+        // Asegurar visibilidad
+        photo.__isLODHidden = false;
+        break;
+
+      case LOD_LEVELS.PLACEHOLDER:
+        // Crear textura de color sólido (crear solo una vez)
+        if (!photo.__placeholderTexture) {
+          if (!photo.__dominantColor && photo.__originalTexture?.image) {
+            photo.__dominantColor = extractDominantColor(
+              photo.__originalTexture.image
+            );
+          }
+
+          if (photo.__dominantColor) {
+            // Crear una pequeña textura con el color predominante
+            const canvas = document.createElement("canvas");
+            canvas.width = 4;
+            canvas.height = 4;
+            const ctx = canvas.getContext("2d");
+            const color = photo.__dominantColor;
+            const r = (color >> 16) & 255;
+            const g = (color >> 8) & 255;
+            const b = color & 255;
+            ctx.fillStyle = `rgb(${r},${g},${b})`;
+            ctx.fillRect(0, 0, 4, 4);
+
+            photo.__placeholderTexture = new THREE.CanvasTexture(canvas);
+            photo.__placeholderTexture.colorSpace = THREE.SRGBColorSpace;
+          }
+        }
+
+        // Solo cambiar la textura, NO el material
+        if (
+          photo.__placeholderTexture &&
+          photo.material.map !== photo.__placeholderTexture
+        ) {
+          photo.material.map = photo.__placeholderTexture;
+          photo.material.needsUpdate = true;
+        }
+        // Asegurar visibilidad
+        photo.__isLODHidden = false;
+        break;
+
+      case LOD_LEVELS.HIDDEN:
+        // Marcar como oculta (se filtra en updateVisiblePhotos)
+        photo.__isLODHidden = true;
+        break;
+    }
+
+    // 🔧 CRÍTICO: Si salimos del estado HIDDEN, SIEMPRE restaurar visibilidad
+    if (lodLevel !== LOD_LEVELS.HIDDEN) {
+      photo.__isLODHidden = false;
+    }
+  });
+};
+
+// Helper function to preload dominant colors for visible photos
+const preloadDominantColors = async () => {
+  if (!useLODSystem.value) return;
+
+  const photosNeedingColors = visiblePhotos.value.filter(
+    (photo) => photo.__originalTexture?.image && !photo.__dominantColor
+  );
+
+  photosNeedingColors.forEach((photo) => {
+    if (photo.__originalTexture?.image) {
+      photo.__dominantColor = extractDominantColor(
+        photo.__originalTexture.image
+      );
+    }
+  });
+};
+
+// Mantener configuración original de opacidad por distancia
+const MIN_DISTANCE = 60;
 const MAX_DISTANCE = 100;
 const MIN_OPACITY = 0.2;
 
-// Función para actualizar opacidad basada en distancia
+// Función ORIGINAL de opacidad por distancia (MANTENER INTACTA)
 const updatePhotoOpacity = () => {
   if (
     !useDistanceOpacity.value ||
@@ -1554,7 +1940,6 @@ const animate = () => {
   // Throttle heavy operations - only execute every THROTTLE_INTERVAL frames
   if (frameCounter % THROTTLE_INTERVAL === 0 || cameraPositionChanged) {
     // Actualizar frustum culling
-
     updateVisiblePhotos();
 
     // Actualizar rotaciones billboard si está habilitado
@@ -1562,7 +1947,15 @@ const animate = () => {
       updateBillboardRotations();
     }
 
+    // IMPORTANTE: Llamar PRIMERO al sistema LOD, luego a opacidad
+    // El LOD maneja la calidad de texturas, la opacidad maneja la visibilidad
+    updatePhotoLOD();
     updatePhotoOpacity();
+
+    // 🔧 Debug cada 10 segundos aprox (60fps * 3 frames * 200 = ~600 frames)
+    if (frameCounter % 600 === 0) {
+      debugLODState();
+    }
   }
 
   // Procesar cola de texturas (batch dinámico)
@@ -1635,11 +2028,22 @@ const initFirstPersonControls = () => {
   fpControls.value = useFirstPersonControls(camera, domElement);
   fpControls.value.setup();
 
-  // Configuración simple: velocidad inicial + aceleración constante
-  fpControls.value.setMoveSpeed(1.2); // Velocidad máxima
-  fpControls.value.setInitialSpeed(0.0001); // Velocidad inicial baja pero perceptible
-  fpControls.value.setAccelerationRate(1.2); // Aceleración constante
-  fpControls.value.setMouseSensitivity(0.002);
+  fpControls.value.setSpeedProfile({
+    initial: 0.01, // control fino inicial
+    max: 45, // velocidad tope (ajustable)
+    accelerateInSeconds: 12.5,
+  });
+  // Bajar aceleración lineal para que accelerateInSeconds tenga efecto
+  fpControls.value.setAccelerationRate(5); // de 60 → 5 (mucho más suave)
+  // Ajustar escalado global si el espacio es muy grande
+  fpControls.value.setWorldScale(2); // duplica desplazamiento efectivo
+  // Sensibilidad de ratón
+  fpControls.value.setMouseSensitivity(0.0025);
+  // Factor de velocidad de rueda del ratón más lento
+  fpControls.value.setWheelSpeedFactor(0.15); // 15% = mucho más lento
+  // Activar debug temporalmente para verificar
+  fpControls.value.toggleDebug(true);
+  setTimeout(() => fpControls.value.toggleDebug(false), 5000);
 
   // Iniciar loop de animación
   animate();
@@ -1823,24 +2227,29 @@ onUnmounted(() => {
 
 .ui-overlay {
   position: absolute;
-  top: var(--spacing-lg);
-  left: var(--spacing-lg);
+  top: 70px;
+  right: 15px;
   pointer-events: none;
   z-index: 100;
+  /* Reserved for future UI elements */
 }
 
 .control-panel {
-  background: var(--bg-container, rgba(26, 26, 31, 0.95));
+  background: rgba(26, 26, 31, 0.95);
   backdrop-filter: blur(12px);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-  box-shadow: var(--shadow-lg);
-  min-width: 280px;
-  max-width: 320px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  min-width: 300px;
+  max-width: 350px;
   max-height: 85vh;
   overflow-y: auto;
-  animation: slideDown 0.2s ease-out;
-  margin-top: var(--spacing-xs);
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: fixed;
+  top: 70px;
+  right: 15px;
+  z-index: 2000;
+  pointer-events: auto;
 }
 
 .control-section {
@@ -1878,47 +2287,100 @@ onUnmounted(() => {
   font-weight: var(--font-weight-medium, 500);
 }
 
-/* Config Panel Container */
-.config-panel-container {
-  pointer-events: auto;
-  position: relative;
-}
-
-.panel-header {
-  background: var(--bg-container, rgba(26, 26, 31, 0.95));
+/* Collapsed Panel (Small Corner Button) */
+.collapsed-panel {
+  position: fixed;
+  top: 70px;
+  right: 15px;
+  width: 48px;
+  height: 48px;
+  background: rgba(26, 26, 31, 0.9);
   backdrop-filter: blur(12px);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-  box-shadow: var(--shadow-lg);
-  padding: var(--spacing-md);
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   cursor: pointer;
   user-select: none;
   transition: all 0.2s ease;
-  min-width: 200px;
-  margin-bottom: var(--spacing-sm);
+  z-index: 2000;
+  pointer-events: auto;
 }
 
-.panel-header:hover {
-  background: var(--bg-container-hover, rgba(35, 35, 40, 0.95));
-  border-color: rgba(255, 255, 255, 0.15);
+.collapsed-panel:hover {
+  background: rgba(35, 35, 40, 0.95);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.collapsed-panel .settings-icon {
+  color: #ffffff;
+  font-size: 20px;
+  transition: color 0.2s ease;
+}
+
+/* Expanded Panel Header */
+.panel-header-expanded {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 8px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 16px;
 }
 
 .panel-title {
-  color: var(--text-primary, #ffffff);
-  font-size: 14px;
-  font-weight: 500;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
 }
 
-.panel-toggle-icon {
-  transition: transform 0.2s ease;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+.close-panel-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
 }
 
-.panel-toggle-icon.panel-open {
-  transform: rotate(180deg);
+.close-panel-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.close-panel-btn-corner {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  z-index: 10;
+}
+
+.close-panel-btn-corner:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
 }
 
 /* Embedding Select */
@@ -1943,7 +2405,8 @@ onUnmounted(() => {
   margin-bottom: var(--spacing-sm);
 }
 
-.radial-slider {
+.radial-slider,
+.lod-slider {
   width: 100%;
 }
 
@@ -1958,14 +2421,24 @@ onUnmounted(() => {
   color: var(--text-primary);
 }
 
-/* Controls Tooltip */
-.controls-tooltip {
-  font-size: var(--font-size-sm);
+/* Controls Info */
+.controls-info {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-sm);
 }
 
 .control-tip {
   margin: var(--spacing-xs) 0;
   color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+}
+
+.control-tip:last-child {
+  margin-bottom: 0;
 }
 
 .control-tip strong {
@@ -1973,7 +2446,18 @@ onUnmounted(() => {
   font-weight: var(--font-weight-semibold, 600);
 }
 
-/* Animation for dropdown */
+/* Animations for panel */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
 @keyframes slideDown {
   from {
     opacity: 0;
@@ -2050,7 +2534,7 @@ onUnmounted(() => {
   border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
   box-shadow: var(--shadow-md);
   padding: var(--spacing-sm, 8px) var(--spacing-md, 12px);
-  z-index: 1000;
+  z-index: 1500;
   display: flex;
   align-items: center;
   gap: var(--spacing-sm, 8px);
