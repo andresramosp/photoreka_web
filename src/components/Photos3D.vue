@@ -15,7 +15,7 @@
         ref="cameraRef"
         :position="[0, 0, 150]"
         :fov="75"
-        :aspect="1"
+        :aspect="cameraAspect"
         :near="0.1"
         :far="2000"
       />
@@ -265,7 +265,6 @@ import {
   SettingOutlined,
 } from "@vicons/antd";
 import { use3DPhotos } from "@/composables/use3DPhotos.js";
-import { useTextureCache } from "@/composables/useTextureCache.js";
 import { useFirstPersonControls } from "@/composables/useFirstPersonControls.js";
 import { visualAspectsOptions } from "@/stores/searchStore.js";
 import * as THREE from "three";
@@ -288,21 +287,6 @@ const {
   changeChunk,
   reset,
 } = use3DPhotos();
-
-// Sistema de caché de texturas
-const textureCache = useTextureCache({
-  maxCacheSize: 5000,
-  expiryDays: 7,
-});
-
-// Desestructurar funciones del caché (añadimos loadMultipleCachedTextures para batch)
-const {
-  loadTexture,
-  getCachedTextureSync,
-  loadMultipleCachedTextures,
-  deferredCacheFromBitmap,
-  enableCache, // 🔧 Obtener flag de configuración
-} = textureCache;
 
 // Referencias del DOM y Three.js
 const containerRef = ref();
@@ -327,7 +311,6 @@ const loaderSubtitle = ref("Preparing your photo collection...");
 const totalPhotosToLoad = ref(0);
 const loadedPhotosCount = ref(0);
 const loadingProgress = ref(0);
-const hasCachedPhotos = ref(false);
 // Fase inicial: reducimos trabajo por frame hasta que se cargue suficiente
 const initialLoadingPhase = ref(true);
 
@@ -347,15 +330,31 @@ const selectedChunk = ref(null);
 const fpControls = ref(null);
 let animationId = null;
 
+// Aspect ratio dinámico para evitar problemas de resize
+const cameraAspect = ref(1);
+
+// Función para actualizar aspect ratio sin disparar recargas
+const updateCameraAspect = () => {
+  if (containerRef.value) {
+    const rect = containerRef.value.getBoundingClientRect();
+    const newAspect = rect.width / rect.height || 1;
+    // Solo actualizar si hay un cambio significativo (>5%) para evitar micro-ajustes
+    if (Math.abs(cameraAspect.value - newAspect) > 0.05) {
+      cameraAspect.value = newAspect;
+    }
+  }
+};
+
 // Canvas configuration - Force WebGL2 with GPU acceleration
-const gl = ref({
+// IMPORTANTE: NO usar ref() aquí para evitar reactividad que cause re-cargas de fotos
+const gl = {
   clearColor: "#1a1a1a",
   antialias: true,
   powerPreference: "high-performance", // Prefer discrete GPU
   forceWebGL: true, // Force WebGL over Canvas 2D
   preserveDrawingBuffer: false, // Better performance
   premultipliedAlpha: false, // Better performance
-});
+};
 
 // Three.js objects - Improved lighting setup
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
@@ -377,6 +376,37 @@ planeGeometry.attributes.normal.setUsage(THREE.StaticDrawUsage);
 // Grid helper
 const gridHelper = new THREE.GridHelper(200, 40);
 gridHelper.position.y = -50;
+
+// Safe texture configuration helper
+const configureTextureSafely = (texture) => {
+  try {
+    // Configure texture parameters in the safest order
+    if (texture) {
+      texture.wrapS = THREE.ClampToEdgeWrapping;
+      texture.wrapT = THREE.ClampToEdgeWrapping;
+      texture.magFilter = THREE.LinearFilter;
+      texture.minFilter = THREE.LinearMipmapLinearFilter;
+      texture.generateMipmaps = true;
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.needsUpdate = true;
+    }
+  } catch (error) {
+    console.warn("⚠️ Error configuring texture parameters:", error);
+    // Fallback to minimal safe configuration
+    if (texture) {
+      try {
+        texture.magFilter = THREE.LinearFilter;
+        texture.minFilter = THREE.LinearFilter;
+        texture.needsUpdate = true;
+      } catch (fallbackError) {
+        console.error(
+          "❌ Critical texture configuration error:",
+          fallbackError
+        );
+      }
+    }
+  }
+};
 
 // Texture loader (habilitar CORS anónimo para Cloudflare si aplica)
 const textureLoader = new THREE.TextureLoader();
@@ -474,7 +504,8 @@ phCtx.fillRect(0, 0, 8, 8);
 phCtx.fillStyle = "#3b82f6"; // Azul más claro para contraste
 phCtx.fillRect(0, 0, 4, 8);
 const placeholderTexture = new THREE.CanvasTexture(placeholderCanvas);
-placeholderTexture.colorSpace = THREE.SRGBColorSpace;
+// Configure placeholder texture safely
+configureTextureSafely(placeholderTexture);
 
 const createPlaceholderMaterial = () =>
   new THREE.MeshBasicMaterial({
@@ -841,62 +872,13 @@ const updateTransitionPositions = (currentTime) => {
   }
 };
 
-// Función para detectar si tenemos fotos en cache
-const checkIfPhotosAreCached = async (photos) => {
-  if (!enableCache) {
-    console.log("🚫 Caché desactivada - no hay fotos cacheadas");
-    return false;
-  }
-  if (!photos || photos.length === 0) {
-    console.log("🔍 checkIfPhotosAreCached: No hay fotos para verificar");
-    return false;
-  }
-
-  let cachedCount = 0;
-  const photosToCheck = photos.slice(0, 10); // Comprobar las primeras 10 fotos
-
-  console.log("🔍 Verificando cache para", photosToCheck.length, "fotos...");
-
-  for (const photo of photosToCheck) {
-    const imageUrl = photo.thumbnailUrl || photo.url || photo.originalUrl;
-    if (imageUrl) {
-      try {
-        // Usar getCachedTextureSync en lugar de isTextureCached que podría no existir
-        const cachedTexture = getCachedTextureSync(imageUrl);
-        if (cachedTexture) {
-          cachedCount++;
-          console.log("✅ Cache hit:", imageUrl.substring(0, 50) + "...");
-        } else {
-          console.log("❌ Cache miss:", imageUrl.substring(0, 50) + "...");
-        }
-      } catch (e) {
-        console.warn("⚠️ Error verificando cache para:", imageUrl, e);
-      }
-    }
-  }
-
-  // Si más del 70% están cacheadas, consideramos que hay cache
-  const cacheRatio = cachedCount / photosToCheck.length;
-  const hasCache = cacheRatio > 0.7;
-
-  return hasCache;
-};
-
-// Función para configurar el loader según el estado de cache
+// Función para configurar el loader
 const setupLoaderForPhotos = async (photos) => {
   console.log("🚀 setupLoaderForPhotos iniciado para", photos.length, "fotos");
 
   totalPhotosToLoad.value = photos.length;
   loadedPhotosCount.value = 0;
   loadingProgress.value = 0;
-
-  console.log("🔍 Verificando estado de cache...");
-  hasCachedPhotos.value = await checkIfPhotosAreCached(photos);
-
-  console.log(
-    "📝 Configurando loader basado en resultado:",
-    hasCachedPhotos.value
-  );
 
   loaderTitle.value = "Loading Photos";
   loaderSubtitle.value = "Preparing your photo collection...";
@@ -914,9 +896,8 @@ const showLoader = () => {
   console.log("⏳ Mostrando loader discreto");
 };
 
-// Carga diferida de textura real usando el composable de caché
-// Añadido fast-path con createImageBitmap para primera carga NO cacheada
-const loadRealTextureForPhoto = async (photoObj, isCached = false) => {
+// Carga directa de textura usando THREE.TextureLoader
+const loadRealTextureForPhoto = async (photoObj) => {
   if (photoObj.__textureLoaded || photoObj.__loading) return;
   photoObj.__loading = true;
   const imageUrl =
@@ -929,59 +910,25 @@ const loadRealTextureForPhoto = async (photoObj, isCached = false) => {
   }
 
   try {
-    let texture;
-    if (isCached) {
-      // Ruta cacheada normal
-      texture = await textureCache.getCachedTexture(imageUrl);
-    } else {
-      // Ruta NO cacheada: intentar fast-path con createImageBitmap si disponible
-      const canUseBitmap = typeof createImageBitmap === "function";
-      if (canUseBitmap) {
-        try {
-          // Descargar y decodificar fuera del main thread cuando es posible
-          const response = await fetch(imageUrl, {
-            mode: "cors",
-            credentials: "omit",
-          });
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          const blob = await response.blob();
-          const bitmap = await createImageBitmap(blob); // decode off-thread
-          // Crear textura a partir del bitmap
-          const canvas = document.createElement("canvas");
-          canvas.width = bitmap.width;
-          canvas.height = bitmap.height;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(bitmap, 0, 0);
-          texture = new THREE.CanvasTexture(canvas);
-          texture.colorSpace = THREE.SRGBColorSpace;
-          // 🚀 Usar cacheo diferido mejorado con control de concurrencia (solo si caché está activada)
-          if (enableCache) {
-            textureCache.deferredCacheFromBitmap?.(imageUrl, bitmap);
-          }
-        } catch (fastErr) {
-          dlog("⚠️ Fast-path bitmap falló, usando ruta estándar:", fastErr);
-          texture = await loadTexture(imageUrl); // fallback existente
-        }
-      } else {
-        texture = await loadTexture(imageUrl); // fallback si no soportado
-      }
-    }
+    // Cargar textura directamente usando THREE.TextureLoader
+    const texture = await new Promise((resolve, reject) => {
+      textureLoader.load(
+        imageUrl,
+        (loadedTexture) => {
+          // Use safe texture configuration helper
+          configureTextureSafely(loadedTexture);
+          resolve(loadedTexture);
+        },
+        undefined, // onProgress
+        (error) => reject(error)
+      );
+    });
 
     if (!texture) {
       console.warn("No se pudo cargar textura:", imageUrl);
       photoObj.__textureLoaded = true;
       return;
     }
-
-    // Crear material con la textura - GPU optimized
-    // Optimize texture for GPU
-    texture.generateMipmaps = true;
-    texture.minFilter = THREE.LinearMipmapLinearFilter;
-    texture.magFilter = THREE.LinearFilter;
-    texture.wrapS = THREE.ClampToEdgeWrap;
-    texture.wrapT = THREE.ClampToEdgeWrap;
-    texture.format = THREE.RGBAFormat;
-    // texture.flipY = true; // Default value for images - keeps photos right-side up
 
     const newMat = new THREE.MeshBasicMaterial({
       map: texture,
@@ -993,7 +940,7 @@ const loadRealTextureForPhoto = async (photoObj, isCached = false) => {
       depthTest: true,
     });
 
-    // 🎨 IMPORTANTE: Almacenar referencia a la textura original para el sistema LOD
+    // Almacenar referencia a la textura original para el sistema LOD
     photoObj.__originalTexture = texture;
 
     // Reemplazar material placeholder
@@ -1017,53 +964,6 @@ const loadRealTextureForPhoto = async (photoObj, isCached = false) => {
     // Verificar nuevamente al finalizar
     checkAllTexturesLoaded();
   }
-};
-
-// ✨ Nueva función batch para cargar texturas cacheadas en un solo paso (Quick Win 1)
-const loadCachedTexturesBatch = async (photos) => {
-  if (!enableCache) {
-    console.log("🚫 Caché desactivada - omitiendo carga batch");
-    return 0;
-  }
-  if (!photos || photos.length === 0) return 0;
-  const urlMap = new Map(); // id -> url
-  photos.forEach((p) => {
-    if (p.__textureLoaded) return;
-    const url = p.thumbnailUrl || p.url || p.originalUrl;
-    if (url) urlMap.set(p.id, url);
-  });
-  const urls = [...urlMap.values()];
-  if (!urls.length) return 0;
-  let hits = 0;
-  try {
-    const texturesMap = await loadMultipleCachedTextures(urls);
-    photos.forEach((p) => {
-      if (p.__textureLoaded) return;
-      const url = urlMap.get(p.id);
-      const tex = texturesMap.get(url);
-      if (tex) {
-        // 🎨 IMPORTANTE: Almacenar referencia a la textura original para el sistema LOD
-        p.__originalTexture = tex;
-
-        // Reutilizar material placeholder si existe
-        if (!p.material) {
-          p.material = createPlaceholderMaterial();
-        }
-        p.material.map = tex;
-        p.material.needsUpdate = true;
-        p.__textureLoaded = true;
-        p.__loading = false;
-        hits++;
-      }
-    });
-    if (hits) {
-      updateLoadingProgress();
-      checkAllTexturesLoaded();
-    }
-  } catch (e) {
-    console.warn("Error en loadCachedTexturesBatch:", e);
-  }
-  return hits;
 };
 
 // Nueva función para encolar TODAS las fotos no cacheadas (sin filtro de frustum)
@@ -1140,31 +1040,15 @@ const registerNewPhotos = async (newPhotos) => {
     applyRadialScaling();
   }
 
-  // ✨ Batch: cargar todas las texturas cacheadas en un solo acceso
-  const cachedHits = await loadCachedTexturesBatch(prepared);
-  const photosNeedingDownload = prepared.filter((p) => !p.__textureLoaded);
-  dlog(
-    `📦 Cache hits: ${cachedHits} | Descarga necesaria: ${photosNeedingDownload.length}`
-  );
-
   // Aplicar filtro de aspectos visuales a las fotos nuevas
   applyVisualAspectsFilter();
 
-  const cachedPhotos = prepared.filter((p) => p.__textureLoaded);
-  const nonCachedPhotos = prepared.filter((p) => !p.__textureLoaded);
-  dlog(`💾 Fotos cacheadas: ${cachedPhotos.length}`);
-  dlog(`⏳ Fotos no cacheadas: ${nonCachedPhotos.length}`);
-  if (nonCachedPhotos.length > 0) enqueueAllNonCachedPhotos(nonCachedPhotos);
+  // Encolar todas las fotos para carga de texturas
+  if (prepared.length > 0) enqueueAllNonCachedPhotos(prepared);
 
   // Recalcular visibilidad global (frustum + filtros) tras registrar
   updateVisiblePhotos();
   if (useBillboarding.value) updateBillboardRotations();
-
-  // Verificar si podemos ocultar el loader
-  if (photosNeedingDownload.length === 0) {
-    dlog("🎯 Todas las texturas están cacheadas - ocultando loader");
-    checkAllTexturesLoaded();
-  }
 };
 
 // ✨ Nueva función optimizada para cambios de chunk que reutiliza texturas
@@ -1239,10 +1123,7 @@ const updatePhotosPositions = async (newPhotos) => {
     (p) => !p.__textureLoaded && !p.__loading
   );
   if (toTexture.length) {
-    const cachedHits = await loadCachedTexturesBatch(toTexture);
-    const needDownload = toTexture.filter((p) => !p.__textureLoaded);
-
-    if (needDownload.length) enqueueAllNonCachedPhotos(needDownload);
+    enqueueAllNonCachedPhotos(toTexture);
   }
 
   applyVisualAspectsFilter();
@@ -1580,12 +1461,8 @@ const createReducedTexture = (originalTexture) => {
   ctx.drawImage(originalTexture.image, 0, 0, canvas.width, canvas.height);
 
   const reducedTexture = new THREE.CanvasTexture(canvas);
-  reducedTexture.colorSpace = THREE.SRGBColorSpace;
-  reducedTexture.generateMipmaps = true;
-  reducedTexture.minFilter = THREE.LinearMipmapLinearFilter;
-  reducedTexture.magFilter = THREE.LinearFilter;
-  reducedTexture.wrapS = THREE.ClampToEdgeWrap;
-  reducedTexture.wrapT = THREE.ClampToEdgeWrap;
+  // Use safe texture configuration helper
+  configureTextureSafely(reducedTexture);
 
   return reducedTexture;
 };
@@ -1941,7 +1818,7 @@ const processTextureQueue = () => {
     )
       continue;
     scheduledDownloads.add(id);
-    limitTexture(() => loadRealTextureForPhoto(photoObj, false))
+    limitTexture(() => loadRealTextureForPhoto(photoObj))
       .catch(() => {})
       .finally(() => {
         scheduledDownloads.delete(id);
@@ -2067,14 +1944,12 @@ watch(
   { immediate: true }
 );
 
+// ResizeObserver para manejar cambios de tamaño sin disparar recargas
+let resizeObserver = null;
+
 // Lifecycle
 onMounted(async () => {
   try {
-    // Mostrar estado de la caché
-    console.log(
-      `🔧 Caché de texturas: ${enableCache ? "✅ ACTIVADA" : "🚫 DESACTIVADA"}`
-    );
-
     // Verificar capacidades GPU primero
     const gpuAvailable = checkGPUCapabilities();
     if (!gpuAvailable) {
@@ -2083,13 +1958,22 @@ onMounted(async () => {
       );
     }
 
-    // El loader central se configurará en loadAllPhotos
+    // Configurar aspect ratio inicial
+    updateCameraAspect();
 
-    // Inicializar sistema de caché de texturas (solo si está activado)
-    if (enableCache) {
-      await textureCache.initialize();
-    } else {
-      console.log("🚫 Omitiendo inicialización de caché de texturas");
+    // Configurar ResizeObserver para manejar cambios de tamaño SIN recargar fotos
+    if (containerRef.value && typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => {
+        // Throttle para evitar actualizaciones excesivas
+        requestAnimationFrame(() => {
+          updateCameraAspect();
+          console.log(
+            "📼 Aspect ratio actualizado por resize:",
+            cameraAspect.value
+          );
+        });
+      });
+      resizeObserver.observe(containerRef.value);
     }
 
     // Cargar fotos iniciales - usar un chunk por defecto si currentChunk es null
@@ -2117,6 +2001,12 @@ onUnmounted(() => {
   // Ocultar loader discreto
   showDiscreteLoader.value = false;
 
+  // Limpiar ResizeObserver
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
+
   // Limpiar controles FPS
 
   // Cancelar animación
@@ -2136,8 +2026,6 @@ onUnmounted(() => {
       photo.material.dispose();
     }
   });
-
-  // El composable de caché maneja la persistencia de IndexedDB automáticamente
 });
 </script>
 
