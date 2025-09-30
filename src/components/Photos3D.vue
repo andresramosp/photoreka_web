@@ -271,6 +271,12 @@ import { visualAspectsOptions } from "@/stores/searchStore.js";
 import * as THREE from "three";
 import pLimit from "p-limit";
 
+// ===== Debug Flag (wrap noisy logs) =====
+const DEBUG_3D = false; // pon a true temporalmente si quieres verbosidad
+function dlog(...args) {
+  if (DEBUG_3D) console.log(...args);
+}
+
 // Composable para manejo de fotos 3D
 const {
   photos3D,
@@ -317,6 +323,8 @@ const totalPhotosToLoad = ref(0);
 const loadedPhotosCount = ref(0);
 const loadingProgress = ref(0);
 const hasCachedPhotos = ref(false);
+// Fase inicial: reducimos trabajo por frame hasta que se cargue suficiente
+const initialLoadingPhase = ref(true);
 
 // Escaleo radial
 const inflateFactor = ref(2.5);
@@ -526,12 +534,20 @@ const updateLoadingProgress = () => {
     (loadedPhotosCount.value / totalPhotosToLoad.value) * 100
   );
   loadingProgress.value = Math.min(progress, 100);
-
-  console.log("📊 Progreso de carga:", {
+  dlog("📊 Progreso de carga:", {
     loaded: loadedPhotosCount.value,
     total: totalPhotosToLoad.value,
     progress: loadingProgress.value + "%",
   });
+
+  if (
+    initialLoadingPhase.value &&
+    (loadingProgress.value >= 80 ||
+      (textureQueue.value.length === 0 && !isLoading.value))
+  ) {
+    initialLoadingPhase.value = false;
+    dlog("🚀 Finaliza initialLoadingPhase (threshold alcanzado)");
+  }
 };
 
 // Función para verificar si todas las texturas están cargadas
@@ -542,7 +558,7 @@ const checkAllTexturesLoaded = () => {
   // Actualizar progreso
   updateLoadingProgress();
 
-  console.log("🔍 checkAllTexturesLoaded - Estado actual:", {
+  dlog("🔍 checkAllTexturesLoaded - Estado actual:", {
     photosCount: photosWithMaterials.value.length,
     isLoading: isLoading.value,
     queueLength: textureQueue.value.length,
@@ -978,6 +994,7 @@ const showLoader = () => {
 };
 
 // Carga diferida de textura real usando el composable de caché
+// Añadido fast-path con createImageBitmap para primera carga NO cacheada
 const loadRealTextureForPhoto = async (photoObj, isCached = false) => {
   if (photoObj.__textureLoaded || photoObj.__loading) return;
   photoObj.__loading = true;
@@ -991,11 +1008,43 @@ const loadRealTextureForPhoto = async (photoObj, isCached = false) => {
   }
 
   try {
-    // Si sabemos que está cacheada, usamos directamente el caché
-    // Si no, usamos loadTexture que maneja caché + descarga con rate limiting
-    const texture = isCached
-      ? await textureCache.getCachedTexture(imageUrl)
-      : await loadTexture(imageUrl);
+    let texture;
+    if (isCached) {
+      // Ruta cacheada normal
+      texture = await textureCache.getCachedTexture(imageUrl);
+    } else {
+      // Ruta NO cacheada: intentar fast-path con createImageBitmap si disponible
+      const canUseBitmap = typeof createImageBitmap === "function";
+      if (canUseBitmap) {
+        try {
+          // Descargar y decodificar fuera del main thread cuando es posible
+          const response = await fetch(imageUrl, {
+            mode: "cors",
+            credentials: "omit",
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const blob = await response.blob();
+          const bitmap = await createImageBitmap(blob); // decode off-thread
+          // Crear textura a partir del bitmap
+          const canvas = document.createElement("canvas");
+          canvas.width = bitmap.width;
+          canvas.height = bitmap.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(bitmap, 0, 0);
+          texture = new THREE.CanvasTexture(canvas);
+          texture.colorSpace = THREE.SRGBColorSpace;
+          // Cachear asíncronamente (no bloquear render loop)
+          queueMicrotask(() => {
+            textureCache.setCachedTextureFromBitmap?.(imageUrl, bitmap);
+          });
+        } catch (fastErr) {
+          dlog("⚠️ Fast-path bitmap falló, usando ruta estándar:", fastErr);
+          texture = await loadTexture(imageUrl); // fallback existente
+        }
+      } else {
+        texture = await loadTexture(imageUrl); // fallback si no soportado
+      }
+    }
 
     if (!texture) {
       console.warn("No se pudo cargar textura:", imageUrl);
@@ -1126,13 +1175,13 @@ const enqueueAllNonCachedPhotos = (photos) => {
     });
   }
 
-  console.log(`📋 Encoladas ${enqueuedCount} fotos no cacheadas para carga`);
+  dlog(`📋 Encoladas ${enqueuedCount} fotos no cacheadas para carga`);
   return enqueuedCount;
 };
 
 // Integración nueva: Inicializar foto con placeholder y encolar su ID
 const registerNewPhotos = async (newPhotos) => {
-  console.log("🔄 Registrando fotos nuevas, configurando loader discreto");
+  dlog("🔄 Registrando fotos nuevas, configurando loader discreto");
 
   // Configurar el loader según el estado de cache
   await setupLoaderForPhotos(newPhotos);
@@ -1169,8 +1218,8 @@ const registerNewPhotos = async (newPhotos) => {
   // ✨ Batch: cargar todas las texturas cacheadas en un solo acceso
   const cachedHits = await loadCachedTexturesBatch(prepared);
   const photosNeedingDownload = prepared.filter((p) => !p.__textureLoaded);
-  console.log(
-    `� Cache hits: ${cachedHits} | Descarga necesaria: ${photosNeedingDownload.length}`
+  dlog(
+    `📦 Cache hits: ${cachedHits} | Descarga necesaria: ${photosNeedingDownload.length}`
   );
 
   // Aplicar filtro de aspectos visuales a las fotos nuevas
@@ -1178,8 +1227,8 @@ const registerNewPhotos = async (newPhotos) => {
 
   const cachedPhotos = prepared.filter((p) => p.__textureLoaded);
   const nonCachedPhotos = prepared.filter((p) => !p.__textureLoaded);
-  console.log(`💾 Fotos cacheadas: ${cachedPhotos.length}`);
-  console.log(`⏳ Fotos no cacheadas: ${nonCachedPhotos.length}`);
+  dlog(`💾 Fotos cacheadas: ${cachedPhotos.length}`);
+  dlog(`⏳ Fotos no cacheadas: ${nonCachedPhotos.length}`);
   if (nonCachedPhotos.length > 0) enqueueAllNonCachedPhotos(nonCachedPhotos);
 
   // Recalcular visibilidad global (frustum + filtros) tras registrar
@@ -1188,7 +1237,7 @@ const registerNewPhotos = async (newPhotos) => {
 
   // Verificar si podemos ocultar el loader
   if (photosNeedingDownload.length === 0) {
-    console.log("🎯 Todas las texturas están cacheadas - ocultando loader");
+    dlog("🎯 Todas las texturas están cacheadas - ocultando loader");
     checkAllTexturesLoaded();
   }
 };
@@ -1937,23 +1986,21 @@ const animate = () => {
     currentPosition.value = newPosition;
   }
 
-  // Throttle heavy operations - only execute every THROTTLE_INTERVAL frames
-  if (frameCounter % THROTTLE_INTERVAL === 0 || cameraPositionChanged) {
-    // Actualizar frustum culling
+  const progressRatio =
+    totalPhotosToLoad.value > 0
+      ? loadedPhotosCount.value / totalPhotosToLoad.value
+      : 0;
+  const lodAllowed = !initialLoadingPhase.value || progressRatio >= 0.5;
+  const frustumInterval = initialLoadingPhase.value ? 9 : THROTTLE_INTERVAL;
+
+  if (frameCounter % frustumInterval === 0 || cameraPositionChanged) {
     updateVisiblePhotos();
-
-    // Actualizar rotaciones billboard si está habilitado
-    if (useBillboarding.value) {
-      updateBillboardRotations();
+    if (useBillboarding.value && lodAllowed) updateBillboardRotations();
+    if (lodAllowed) {
+      updatePhotoLOD();
+      updatePhotoOpacity();
     }
-
-    // IMPORTANTE: Llamar PRIMERO al sistema LOD, luego a opacidad
-    // El LOD maneja la calidad de texturas, la opacidad maneja la visibilidad
-    updatePhotoLOD();
-    updatePhotoOpacity();
-
-    // 🔧 Debug cada 10 segundos aprox (60fps * 3 frames * 200 = ~600 frames)
-    if (frameCounter % 600 === 0) {
+    if (!initialLoadingPhase.value && frameCounter % 600 === 0) {
       debugLODState();
     }
   }

@@ -187,7 +187,7 @@ const handleSubmit = async () => {
       // Usar replace para evitar que quede en el historial y forzar navegación inmediata
       router.replace("/dashboard");
     } else {
-      message.error(result.error || "Error logging in");
+      message.error(result.error || "Error logging in", { duration: 0 });
     }
   } catch (error) {
     // Validation failed, errors will be shown in form

@@ -503,6 +503,35 @@ export function useTextureCache(options = {}) {
     }
   };
 
+  // 🆕 Nuevo helper: guardar textura desde un ImageBitmap (evita crear <img> intermedio)
+  const setCachedTextureFromBitmap = async (url, bitmap) => {
+    if (!textureDB) await initDB();
+    try {
+      if (!bitmap) return;
+      if (cacheStats.value.dbSize >= maxCacheSize) {
+        await evictOldestTextures();
+      }
+      // Convertir ImageBitmap a ImageData usando un canvas temporal
+      const canvas = document.createElement("canvas");
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(bitmap, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const transaction = textureDB.transaction([STORE_NAME], "readwrite");
+      transaction.objectStore(STORE_NAME).put({
+        url,
+        imageData,
+        width: bitmap.width,
+        height: bitmap.height,
+        timestamp: Date.now(),
+      });
+      updateCacheSize();
+    } catch (e) {
+      console.warn("Error setCachedTextureFromBitmap:", url, e);
+    }
+  };
+
   // Cargar textura con caché (función principal)
   const loadTexture = async (url) => {
     // Intentar obtener de caché primero
@@ -627,6 +656,7 @@ export function useTextureCache(options = {}) {
     // Funciones principales
     loadTexture,
     setCachedTextureFromImage, // export helper por si se usa externamente
+    setCachedTextureFromBitmap, // nuevo helper para ImageBitmap
     initialize,
 
     // Funciones de verificación y acceso
