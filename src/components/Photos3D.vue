@@ -345,15 +345,20 @@ const updateCameraAspect = () => {
   }
 };
 
-// Canvas configuration - Force WebGL2 with GPU acceleration
+// Canvas configuration - Optimized for memory efficiency and context stability
 // IMPORTANTE: NO usar ref() aquí para evitar reactividad que cause re-cargas de fotos
 const gl = {
   clearColor: "#1a1a1a",
-  antialias: true,
+  antialias: false, // Disabled for better performance with many textures
   powerPreference: "high-performance", // Prefer discrete GPU
   forceWebGL: true, // Force WebGL over Canvas 2D
   preserveDrawingBuffer: false, // Better performance
   premultipliedAlpha: false, // Better performance
+  stencil: false, // Disable stencil buffer to save memory
+  depth: true, // Keep depth buffer for proper rendering
+  failIfMajorPerformanceCaveat: true, // Fail if software rendering
+  // Auto-adjust pixel ratio on low-end devices
+  pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
 };
 
 // Three.js objects - Improved lighting setup
@@ -377,16 +382,47 @@ planeGeometry.attributes.normal.setUsage(THREE.StaticDrawUsage);
 const gridHelper = new THREE.GridHelper(200, 40);
 gridHelper.position.y = -50;
 
-// Safe texture configuration helper
-const configureTextureSafely = (texture) => {
+// Helper function to resize textures aggressively for memory optimization
+const resizeTextureToMaxSize = (image, maxSize = 256) => {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  const { width, height } = image;
+
+  // If already small enough, return original
+  if (width <= maxSize && height <= maxSize) {
+    return image;
+  }
+
+  // Calculate new dimensions maintaining aspect ratio
+  const scale = Math.min(maxSize / width, maxSize / height);
+  canvas.width = Math.floor(width * scale);
+  canvas.height = Math.floor(height * scale);
+
+  // Use lower quality for aggressive compression
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "low";
+
+  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+  return canvas;
+};
+
+// Safe texture configuration helper - optimized for memory
+const configureTextureSafely = (texture, isSmallTexture = false) => {
   try {
     // Configure texture parameters in the safest order
     if (texture) {
       texture.wrapS = THREE.ClampToEdgeWrapping;
       texture.wrapT = THREE.ClampToEdgeWrapping;
       texture.magFilter = THREE.LinearFilter;
-      texture.minFilter = THREE.LinearMipmapLinearFilter;
-      texture.generateMipmaps = true;
+      // Disable mipmaps for small textures to save memory
+      if (isSmallTexture) {
+        texture.minFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
+      } else {
+        texture.minFilter = THREE.LinearMipmapLinearFilter;
+        texture.generateMipmaps = true;
+      }
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.needsUpdate = true;
     }
@@ -397,6 +433,7 @@ const configureTextureSafely = (texture) => {
       try {
         texture.magFilter = THREE.LinearFilter;
         texture.minFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
         texture.needsUpdate = true;
       } catch (fallbackError) {
         console.error(
@@ -424,8 +461,8 @@ const scheduledDownloads = new Set(); // evita doble scheduling mientras p-limit
 let dynamicBatch = 4; // tamaño inicial
 const MIN_BATCH = 2;
 const MAX_BATCH = 10;
-// Límite de concurrencia de descargas simultáneas (gestionado por p-limit)
-const MAX_CONCURRENT_DOWNLOADS = 20;
+// Límite de concurrencia de descargas simultáneas - Reducido para estabilidad
+const MAX_CONCURRENT_DOWNLOADS = 8;
 // Modo: pre-scheduling de toda la cola (true) o incremental por frame (false)
 const FULL_QUEUE_SCHEDULING = true;
 // Limitador de concurrencia usando p-limit
@@ -910,14 +947,27 @@ const loadRealTextureForPhoto = async (photoObj) => {
   }
 
   try {
-    // Cargar textura directamente usando THREE.TextureLoader
+    // Cargar textura con redimensionamiento agresivo para thumbnails
     const texture = await new Promise((resolve, reject) => {
       textureLoader.load(
         imageUrl,
         (loadedTexture) => {
-          // Use safe texture configuration helper
-          configureTextureSafely(loadedTexture);
-          resolve(loadedTexture);
+          // Resize to maximum 256x256 for aggressive memory optimization
+          if (loadedTexture.image) {
+            const resizedImage = resizeTextureToMaxSize(
+              loadedTexture.image,
+              256
+            );
+            const resizedTexture = new THREE.CanvasTexture(resizedImage);
+            // Configure with optimizations for small textures
+            const isSmall =
+              resizedImage.width <= 256 && resizedImage.height <= 256;
+            configureTextureSafely(resizedTexture, isSmall);
+            resolve(resizedTexture);
+          } else {
+            configureTextureSafely(loadedTexture, true);
+            resolve(loadedTexture);
+          }
         },
         undefined, // onProgress
         (error) => reject(error)
@@ -1444,25 +1494,29 @@ const extractDominantColor = (imageElement) => {
   return (r << 16) | (g << 8) | b; // Return as hex color
 };
 
-// Create reduced quality texture (lower resolution)
+// Create reduced quality texture (lower resolution) - Very aggressive compression
 const createReducedTexture = (originalTexture) => {
   if (!originalTexture || !originalTexture.image) return null;
 
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
 
-  // Reduce to 25% of original size for performance
-  const originalWidth = originalTexture.image.width || 512;
-  const originalHeight = originalTexture.image.height || 384;
+  // Enable low quality smoothing for aggressive compression
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "low";
 
-  canvas.width = Math.max(64, Math.floor(originalWidth * 0.5));
-  canvas.height = Math.max(48, Math.floor(originalHeight * 0.5));
+  // Reduce to 6.25% of original size (0.25 factor = 25% linear, 6.25% area)
+  const originalWidth = originalTexture.image.width || 256;
+  const originalHeight = originalTexture.image.height || 192;
+
+  canvas.width = Math.max(32, Math.floor(originalWidth * 0.25));
+  canvas.height = Math.max(24, Math.floor(originalHeight * 0.25));
 
   ctx.drawImage(originalTexture.image, 0, 0, canvas.width, canvas.height);
 
   const reducedTexture = new THREE.CanvasTexture(canvas);
-  // Use safe texture configuration helper
-  configureTextureSafely(reducedTexture);
+  // Configure as small texture (no mipmaps, optimized for memory)
+  configureTextureSafely(reducedTexture, true);
 
   return reducedTexture;
 };
