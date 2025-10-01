@@ -294,9 +294,29 @@ function dlog(...args) {
 }
 
 // ===== Texture Size Configuration =====
-const MAIN_TEXTURE_SIZE = 128; // Main texture resolution (px)
+// 🎯 ESTRATEGIA DE TEXTURAS:
+// - Descarga: Imagen original COMPLETA sin redimensionar (guardada en __originalImageElement)
+// - Material inicial: Textura 128px (MAIN_TEXTURE_SIZE) para optimizar memoria
+// - LOD REDUCED: Textura 32px (128px * 0.25) creada desde imagen original
+// - LOD FULL: Textura 128px (reutiliza __originalTexture)
+// - LOD ULTRA_CLOSE: Textura 768px creada desde imagen original (máxima calidad)
+const MAIN_TEXTURE_SIZE = 128; // Main texture resolution (px) - usado para vista normal
 const ULTRA_TEXTURE_SIZE = 768; // Ultra high-res texture for close viewing (px)
-const REDUCED_TEXTURE_FACTOR = 0.25; // Factor for reduced quality textures
+const REDUCED_TEXTURE_FACTOR = 0.25; // Factor for reduced quality textures (32px)
+
+// ===== Retry Configuration for 429 Errors =====
+const MAX_RETRIES = 3; // Maximum number of retry attempts for failed downloads
+const INITIAL_RETRY_DELAY = 1000; // Initial delay in ms (exponential backoff)
+const RETRY_MULTIPLIER = 2; // Multiplier for exponential backoff
+const MAX_RETRY_DELAY = 10000; // Maximum delay between retries (10 seconds)
+
+// Stats for monitoring 429 errors
+const error429Stats = ref({
+  total: 0,
+  retried: 0,
+  recovered: 0,
+  failed: 0,
+});
 
 // Composable para manejo de fotos 3D
 const {
@@ -989,7 +1009,7 @@ const showLoader = () => {
 };
 
 // FASE 1: Solo descargar imágenes sin crear texturas Three.js
-const downloadImageOnly = async (photoObj) => {
+const downloadImageOnly = async (photoObj, retryCount = 0) => {
   if (photoObj.__imageDownloaded || photoObj.__downloading) return;
   photoObj.__downloading = true;
   const imageUrl =
@@ -1013,33 +1033,152 @@ const downloadImageOnly = async (photoObj) => {
     });
 
     if (!imageElement) {
-      console.warn("No se pudo descargar imagen:", imageUrl);
-      photoObj.__imageDownloaded = true;
-      photoObj.__downloadError = true;
-      return;
+      throw new Error("Image element is null");
     }
 
-    // Redimensionar imagen para optimizar memoria
-    const resizedImage = resizeTextureToMaxSize(
-      imageElement,
-      MAIN_TEXTURE_SIZE
-    );
+    // 🔑 CRÍTICO: Guardar imagen ORIGINAL sin redimensionar para poder crear
+    // texturas de diferentes resoluciones (ULTRA, FULL, REDUCED) sin pérdida de calidad
+    downloadedImagesCache.set(photoObj.id, imageElement);
 
-    // Guardar en cache (NO crear textura todavía)
-    downloadedImagesCache.set(photoObj.id, resizedImage);
     photoObj.__imageDownloaded = true;
     photoObj.__downloadError = false;
+    photoObj.__retryCount = undefined; // Limpiar contador de reintentos si existía
+
+    // Si esta foto se recuperó después de un error 429, actualizar stats
+    if (photoObj.__had429Error) {
+      error429Stats.value.recovered++;
+      console.log(
+        `✅ Foto recuperada después de error 429 (retry ${retryCount}):`,
+        photoObj.id
+      );
+      photoObj.__had429Error = false;
+    }
 
     // Actualizar progreso
     updateLoadingProgress();
   } catch (e) {
-    console.warn("Fallo descarga imagen:", imageUrl, e);
+    // Detectar error 429 (Too Many Requests)
+    const is429Error =
+      e.message?.includes("429") ||
+      e.toString().includes("429") ||
+      e.status === 429;
+
+    if (is429Error) {
+      error429Stats.value.total++;
+      photoObj.__had429Error = true;
+      console.warn(
+        `⚠️ Error 429 detectado para foto ${photoObj.id} (intento ${
+          retryCount + 1
+        }/${MAX_RETRIES})`
+      );
+    }
+
+    // Intentar retry si no hemos alcanzado el máximo y es un error recuperable
+    if (retryCount < MAX_RETRIES && (is429Error || !e.message)) {
+      error429Stats.value.retried++;
+      photoObj.__retryCount = retryCount + 1;
+
+      // Calcular delay con backoff exponencial
+      const delay = Math.min(
+        INITIAL_RETRY_DELAY * Math.pow(RETRY_MULTIPLIER, retryCount),
+        MAX_RETRY_DELAY
+      );
+
+      console.log(
+        `🔄 Reintentando descarga en ${delay}ms... (intento ${retryCount + 1})`
+      );
+
+      // Esperar y reintentar
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      photoObj.__downloading = false; // Reset flag antes de retry
+      return downloadImageOnly(photoObj, retryCount + 1);
+    }
+
+    // Si llegamos aquí, falló definitivamente
+    console.warn(
+      `❌ Fallo definitivo descarga imagen (${retryCount} reintentos):`,
+      imageUrl,
+      e
+    );
+    error429Stats.value.failed++;
     photoObj.__imageDownloaded = true;
     photoObj.__downloadError = true;
+    photoObj.__canRetryOnDemand = true; // Marcar para retry bajo demanda
     updateLoadingProgress();
   } finally {
     photoObj.__downloading = false;
   }
+};
+
+// Función para reintentar carga de foto fallida bajo demanda (cuando usuario se acerca)
+const retryFailedPhotoOnDemand = async (photo) => {
+  if (
+    !photo.__downloadError ||
+    !photo.__canRetryOnDemand ||
+    photo.__downloading
+  ) {
+    return false;
+  }
+
+  console.log(
+    `🔄 Reintentando carga bajo demanda para foto fallida: ${photo.id}`
+  );
+
+  // Marcar que ya intentamos retry bajo demanda para no repetir constantemente
+  photo.__canRetryOnDemand = false;
+  photo.__downloadError = false; // Reset error flag
+  photo.__imageDownloaded = false; // Reset downloaded flag
+
+  // Intentar descargar de nuevo (sin contar como retry, es un intento fresco)
+  await downloadImageOnly(photo, 0);
+
+  // Si se descargó exitosamente, crear textura inmediatamente
+  if (photo.__imageDownloaded && !photo.__downloadError) {
+    const imageElement = downloadedImagesCache.get(photo.id);
+    if (imageElement) {
+      try {
+        // 🔑 Guardar imagen original COMPLETA para futuros cambios de LOD
+        photo.__originalImageElement = imageElement;
+
+        // Crear textura inicial redimensionada (128px)
+        const resizedImage = resizeTextureToMaxSize(
+          imageElement,
+          MAIN_TEXTURE_SIZE
+        );
+        const texture = new THREE.CanvasTexture(resizedImage);
+        const isSmall = true;
+        configureTextureSafely(texture, isSmall);
+
+        const newMat = new THREE.MeshBasicMaterial({
+          map: texture,
+          transparent: true,
+          side: THREE.DoubleSide,
+          alphaTest: 0.01,
+          depthWrite: false,
+          depthTest: true,
+        });
+
+        photo.__originalTexture = texture;
+
+        if (photo.material) {
+          photo.material.dispose();
+        }
+        photo.material = newMat;
+        photo.__textureLoaded = true;
+
+        console.log(
+          `✅ Foto fallida cargada exitosamente bajo demanda: ${photo.id}`
+        );
+        return true;
+      } catch (error) {
+        console.warn("Error creando textura bajo demanda:", photo.id, error);
+        photo.__downloadError = true;
+        return false;
+      }
+    }
+  }
+
+  return false;
 };
 
 // FASE 2: Crear texturas en bulk desde imágenes descargadas
@@ -1067,11 +1206,16 @@ const createTexturesInBulk = () => {
     }
 
     try {
-      // Crear textura Three.js desde imagen cacheada
-      const texture = new THREE.CanvasTexture(imageElement);
-      const isSmall =
-        imageElement.width <= MAIN_TEXTURE_SIZE &&
-        imageElement.height <= MAIN_TEXTURE_SIZE;
+      // 🔑 IMPORTANTE: Guardar imagen original COMPLETA para LOD de alta calidad
+      photo.__originalImageElement = imageElement;
+
+      // Crear textura inicial REDIMENSIONADA para optimizar memoria en vista normal
+      const resizedImage = resizeTextureToMaxSize(
+        imageElement,
+        MAIN_TEXTURE_SIZE
+      );
+      const texture = new THREE.CanvasTexture(resizedImage);
+      const isSmall = true; // Siempre es pequeña (128px)
       configureTextureSafely(texture, isSmall);
 
       const newMat = new THREE.MeshBasicMaterial({
@@ -1083,7 +1227,7 @@ const createTexturesInBulk = () => {
         depthTest: true,
       });
 
-      // Almacenar textura original para LOD
+      // Almacenar textura original (128px) para LOD FULL y REDUCED
       photo.__originalTexture = texture;
 
       // Reemplazar material placeholder
@@ -1101,8 +1245,8 @@ const createTexturesInBulk = () => {
 
   console.log("✅ Texturas creadas:", createdCount, "| Errores:", errorCount);
 
-  // Limpiar cache de imágenes (ya no necesario)
-  downloadedImagesCache.clear();
+  // 🔧 NO limpiar cache de imágenes - las fotos ahora mantienen referencia en __originalImageElement
+  // downloadedImagesCache.clear(); // ELIMINADO: necesitamos las imágenes para LOD
 };
 
 // Nueva función para encolar TODAS las fotos no cacheadas (sin filtro de frustum)
@@ -1646,47 +1790,42 @@ const createReducedTexture = (originalTexture) => {
 };
 
 // Create ultra high-res texture for very close viewing (768px)
-const createUltraTexture = async (photoObj) => {
+// 🔧 OPTIMIZADO: Reutiliza la imagen original ya descargada en lugar de descargar de nuevo
+const createUltraTexture = (photoObj) => {
   if (!photoObj || photoObj.__ultraTextureLoaded || photoObj.__ultraLoading)
     return null;
 
   photoObj.__ultraLoading = true;
-  const imageUrl =
-    photoObj.originalUrl || photoObj.url || photoObj.thumbnailUrl;
-
-  if (!imageUrl) {
-    photoObj.__ultraLoading = false;
-    return null;
-  }
 
   try {
-    const texture = await new Promise((resolve, reject) => {
-      textureLoader.load(
-        imageUrl,
-        (loadedTexture) => {
-          if (loadedTexture.image) {
-            const resizedImage = resizeTextureToMaxSize(
-              loadedTexture.image,
-              ULTRA_TEXTURE_SIZE
-            );
-            const ultraTexture = new THREE.CanvasTexture(resizedImage);
-            // Configure with full quality (mipmaps enabled)
-            configureTextureSafely(ultraTexture, false);
-            resolve(ultraTexture);
-          } else {
-            resolve(null);
-          }
-        },
-        undefined,
-        (error) => reject(error)
+    // 🎯 SOLUCIÓN: Usar la imagen original que ya descargamos, no descargar de nuevo
+    const originalImage =
+      photoObj.__originalImageElement || downloadedImagesCache.get(photoObj.id);
+
+    if (!originalImage) {
+      console.warn(
+        "⚠️ No hay imagen original para crear textura ultra:",
+        photoObj.id
       );
-    });
+      photoObj.__ultraTextureLoaded = true;
+      photoObj.__ultraLoading = false;
+      return null;
+    }
+
+    // Crear textura de alta resolución desde la imagen ya descargada
+    const resizedImage = resizeTextureToMaxSize(
+      originalImage,
+      ULTRA_TEXTURE_SIZE
+    );
+    const ultraTexture = new THREE.CanvasTexture(resizedImage);
+    // Configure with full quality (mipmaps enabled)
+    configureTextureSafely(ultraTexture, false);
 
     photoObj.__ultraTextureLoaded = true;
     photoObj.__ultraLoading = false;
-    return texture;
+    return ultraTexture;
   } catch (error) {
-    console.warn("⚠️ Error loading ultra texture:", error);
+    console.warn("⚠️ Error creating ultra texture:", error);
     photoObj.__ultraTextureLoaded = true;
     photoObj.__ultraLoading = false;
     return null;
@@ -1738,6 +1877,21 @@ const updatePhotoLOD = () => {
     const lodLevel = getLODLevel(distance);
     const currentLOD = photo.__currentLOD || LOD_LEVELS.FULL;
 
+    // 🆕 CRÍTICO: Detectar fotos fallidas y activar retry bajo demanda en nivel REDUCED
+    // Esto permite que las fotos que fallaron en la carga inicial se reintenten cuando
+    // el usuario se acerca a ellas, pero a una distancia razonable (no ultra cercana)
+    if (
+      photo.__downloadError &&
+      photo.__canRetryOnDemand &&
+      (lodLevel === LOD_LEVELS.REDUCED ||
+        lodLevel === LOD_LEVELS.FULL ||
+        lodLevel === LOD_LEVELS.ULTRA_CLOSE)
+    ) {
+      // Intentar cargar la foto fallida bajo demanda
+      retryFailedPhotoOnDemand(photo);
+      // Continuar con la lógica normal mientras se carga
+    }
+
     // Only update if LOD level changed
     if (lodLevel === currentLOD) {
       return;
@@ -1746,23 +1900,27 @@ const updatePhotoLOD = () => {
     photo.__currentLOD = lodLevel;
 
     // 🔧 SOLUCIÓN: NUNCA crear nuevos materiales, solo cambiar la textura del material existente
+    // 📌 IMPORTANTE: Las texturas de diferentes resoluciones (ultra, reduced) se crean desde
+    //    la imagen original ya descargada (__originalImageElement), NO se descarga de nuevo
     switch (lodLevel) {
       case LOD_LEVELS.ULTRA_CLOSE:
         // Cargar textura ultra alta resolución (768px) de forma lazy
+        // ✅ Reutiliza la imagen original, no descarga de nuevo
         if (!photo.__ultraTexture && !photo.__ultraTextureLoaded) {
-          createUltraTexture(photo).then((ultraTexture) => {
-            if (ultraTexture && photo.__currentLOD === LOD_LEVELS.ULTRA_CLOSE) {
-              photo.__ultraTexture = ultraTexture;
-              photo.material.map = ultraTexture;
-              photo.material.needsUpdate = true;
-            }
-          });
+          const ultraTexture = createUltraTexture(photo);
+          if (ultraTexture) {
+            photo.__ultraTexture = ultraTexture;
+            photo.material.map = ultraTexture;
+            photo.material.needsUpdate = true;
+            dlog(`🔍 LOD ULTRA_CLOSE aplicado para foto: ${photo.id}`);
+          }
         } else if (
           photo.__ultraTexture &&
           photo.material.map !== photo.__ultraTexture
         ) {
           photo.material.map = photo.__ultraTexture;
           photo.material.needsUpdate = true;
+          dlog(`🔍 LOD ULTRA_CLOSE restaurado para foto: ${photo.id}`);
         }
         // Asegurar visibilidad
         photo.__isLODHidden = false;
@@ -1783,6 +1941,7 @@ const updatePhotoLOD = () => {
         ) {
           photo.material.map = photo.__originalTexture;
           photo.material.needsUpdate = true;
+          dlog(`📷 LOD FULL aplicado para foto: ${photo.id}`);
         }
         // Asegurar visibilidad
         photo.__isLODHidden = false;
@@ -1802,6 +1961,19 @@ const updatePhotoLOD = () => {
             photo.__originalTexture
           );
         }
+
+        // 🔧 CRÍTICO: Aplicar la textura reducida al material
+        if (
+          photo.__reducedTexture &&
+          photo.material.map !== photo.__reducedTexture
+        ) {
+          photo.material.map = photo.__reducedTexture;
+          photo.material.needsUpdate = true;
+          dlog(`📉 LOD REDUCED aplicado para foto: ${photo.id}`);
+        }
+        // Asegurar visibilidad
+        photo.__isLODHidden = false;
+        break;
 
         if (
           photo.__reducedTexture &&
@@ -2288,6 +2460,19 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+  // Mostrar estadísticas finales de errores 429
+  if (error429Stats.value.total > 0) {
+    console.log("📊 Estadísticas finales de errores 429:", {
+      total: error429Stats.value.total,
+      retried: error429Stats.value.retried,
+      recovered: error429Stats.value.recovered,
+      failed: error429Stats.value.failed,
+      recoveryRate: `${Math.round(
+        (error429Stats.value.recovered / error429Stats.value.total) * 100
+      )}%`,
+    });
+  }
+
   // Ocultar loader discreto
   showDiscreteLoader.value = false;
 
