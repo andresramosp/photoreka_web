@@ -59,7 +59,12 @@
     </div>
 
     <!-- Expanded Panel Content -->
-    <div v-if="showConfigPanel" class="control-panel" @click.stop>
+    <div
+      v-if="showConfigPanel"
+      class="control-panel"
+      @click.stop
+      @wheel.stop.prevent
+    >
       <!-- Close Button (Top Right Corner) -->
       <button class="close-panel-btn-corner" @click="showConfigPanel = false">
         <n-icon>
@@ -87,16 +92,19 @@
       <!-- More Filters Toggle -->
       <div class="control-section">
         <div class="section-toggle" @click="showMoreFilters = !showMoreFilters">
-          <span class="section-toggle-label">Filters</span>
+          <span class="section-toggle-label">Search filters</span>
           <div class="section-toggle-indicators">
             <span
               v-if="
-                selectedVisualAspects.length > 0 || searchResults.length > 0
+                selectedVisualAspects.length > 0 ||
+                selectedArtisticScores.length > 0 ||
+                searchResults.length > 0
               "
               class="active-indicator"
             >
               {{
                 selectedVisualAspects.length +
+                selectedArtisticScores.length +
                 (searchResults.length > 0 ? 1 : 0)
               }}
             </span>
@@ -145,9 +153,76 @@
               </n-tree-select>
             </div>
 
+            <!-- Artistic Scores Filter -->
+            <div class="filter-item">
+              <div style="display: flex; align-items: center; gap: 4px">
+                <label class="filter-label" style="margin: 0"
+                  >Visual Scores</label
+                >
+                <n-tooltip trigger="hover" placement="top">
+                  <template #trigger>
+                    <n-icon
+                      size="12"
+                      style="color: rgba(255, 255, 255, 0.45); cursor: help"
+                    >
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                        />
+                      </svg>
+                    </n-icon>
+                  </template>
+                  Will include photos above 7 in the selected scores
+                </n-tooltip>
+              </div>
+              <n-tree-select
+                v-model:value="selectedArtisticScores"
+                multiple
+                clearable
+                placeholder="Any"
+                :options="createArtisticScoresTreeOptions()"
+                :max-tag-count="2"
+                class="aspects-select"
+                :disabled="showDiscreteLoader"
+                size="small"
+                check-strategy="child"
+                :show-path="false"
+                expand-on-click
+                @update:value="onArtisticScoresChange"
+                @click.stop
+              >
+                <template #empty>
+                  <div style="padding: 8px; color: #888; font-size: 12px">
+                    No artistic scores found
+                  </div>
+                </template>
+              </n-tree-select>
+            </div>
+
             <!-- Text Search Filter -->
             <div class="filter-item">
-              <label class="filter-label">Search by Content</label>
+              <div style="display: flex; align-items: center; gap: 4px">
+                <label class="filter-label" style="margin: 0"
+                  >Search by Content</label
+                >
+                <n-tooltip trigger="hover" placement="top">
+                  <template #trigger>
+                    <n-icon
+                      size="12"
+                      style="color: rgba(255, 255, 255, 0.45); cursor: help"
+                    >
+                      <svg viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
+                        />
+                      </svg>
+                    </n-icon>
+                  </template>
+                  Applies a shallow and approximate text-based search
+                </n-tooltip>
+              </div>
               <n-input
                 v-model:value="searchQuery"
                 placeholder="Search photos by description..."
@@ -156,6 +231,7 @@
                 class="text-search-input"
                 @input="onSearchChange"
                 @clear="clearSearch"
+                @keydown.stop
               >
                 <template #prefix>
                   <n-icon size="16">
@@ -328,6 +404,7 @@ import {
 import { use3DPhotos } from "@/composables/use3DPhotos.js";
 import { useFirstPersonControls } from "@/composables/useFirstPersonControls.js";
 import { visualAspectsOptions } from "@/stores/searchStore.js";
+import { useArtisticScores } from "@/composables/useArtisticScores.js";
 import { api } from "@/utils/axios";
 import * as THREE from "three";
 import pLimit from "p-limit";
@@ -412,6 +489,9 @@ const showNavigationControls = ref(false);
 
 // Filtro de aspectos visuales
 const selectedVisualAspects = ref([]);
+
+// Filtro de artistic scores
+const selectedArtisticScores = ref([]);
 
 // Filtro de búsqueda textual
 const searchQuery = ref("");
@@ -847,6 +927,24 @@ const treeSelectOptions = computed(() => {
   }));
 });
 
+// Computed para las opciones del tree select de artistic scores
+const createArtisticScoresTreeOptions = () => {
+  const { artisticScores } = useArtisticScores();
+
+  return Object.entries(artisticScores).map(([groupKey, group]) => ({
+    label: group.label,
+    key: groupKey,
+    disabled: false,
+    checkable: false,
+    children: group.criteria.map((criterion) => ({
+      label: criterion.label,
+      key: criterion.value,
+      disabled: false,
+      checkable: true,
+    })),
+  }));
+};
+
 // Create a mapping from visual aspect values to their categories
 const createVisualAspectCategoryMap = () => {
   const categoryMap = new Map();
@@ -880,13 +978,22 @@ const applyFilters = () => {
       return;
     }
 
-    if (selectedVisualAspects.value.length === 0) {
-      // Sin filtro de aspectos: mostrar foto si pasa búsqueda textual (o no hay búsqueda)
+    // Si no hay filtros de aspectos ni scores, mostrar foto
+    if (
+      selectedVisualAspects.value.length === 0 &&
+      selectedArtisticScores.value.length === 0
+    ) {
       photo.isVisible = true;
-    } else {
-      // Con filtro: aplicar lógica OR dentro de categorías y AND entre categorías
+      return;
+    }
+
+    let passesVisualAspects = true;
+    let passesArtisticScores = true;
+
+    // Filtro de Visual Aspects (lógica OR dentro de categorías, AND entre categorías)
+    if (selectedVisualAspects.value.length > 0) {
       if (!photo.descriptions?.visual_aspects) {
-        photo.isVisible = false;
+        passesVisualAspects = false;
       } else {
         // Agrupar aspectos seleccionados por categoría
         const selectedByCategory = new Map();
@@ -902,7 +1009,7 @@ const applyFilters = () => {
 
         // Para que la foto sea visible, debe cumplir TODAS las categorías seleccionadas (AND)
         // Pero dentro de cada categoría, solo necesita cumplir UNA opción (OR)
-        photo.isVisible = Array.from(selectedByCategory.entries()).every(
+        passesVisualAspects = Array.from(selectedByCategory.entries()).every(
           ([category, aspectsInCategory]) => {
             const photoAspects = photo.descriptions.visual_aspects[category];
             if (!photoAspects || !Array.isArray(photoAspects)) {
@@ -919,6 +1026,24 @@ const applyFilters = () => {
         );
       }
     }
+
+    // Filtro de Artistic Scores (score > 7 para cada score seleccionado)
+    if (selectedArtisticScores.value.length > 0) {
+      if (!photo.descriptions.artistic_scores) {
+        passesArtisticScores = false;
+      } else {
+        // Para pasar el filtro, la foto debe tener TODOS los scores seleccionados con valor > 7
+        passesArtisticScores = selectedArtisticScores.value.every(
+          (scoreKey) => {
+            const scoreValue = photo.descriptions.artistic_scores[scoreKey];
+            return scoreValue !== undefined && scoreValue > 7;
+          }
+        );
+      }
+    }
+
+    // La foto es visible solo si pasa AMBOS filtros (AND lógico)
+    photo.isVisible = passesVisualAspects && passesArtisticScores;
   });
 
   const visibleCount = photosWithMaterials.value.filter(
@@ -932,6 +1057,9 @@ const applyFilters = () => {
   const filterInfo = [];
   if (selectedVisualAspects.value.length > 0) {
     filterInfo.push(`${selectedVisualAspects.value.length} visual aspects`);
+  }
+  if (selectedArtisticScores.value.length > 0) {
+    filterInfo.push(`${selectedArtisticScores.value.length} artistic scores`);
   }
   if (hasSearchFilter) {
     filterInfo.push(
@@ -948,15 +1076,23 @@ const applyFilters = () => {
   }
 
   // Debug adicional: mostrar algunas fotos que NO pasaron el filtro
-  if (selectedVisualAspects.value.length > 0 && hiddenCount > 0) {
+  if (
+    (selectedVisualAspects.value.length > 0 ||
+      selectedArtisticScores.value.length > 0) &&
+    hiddenCount > 0
+  ) {
     const hiddenExamples = photosWithMaterials.value
       .filter((p) => p.isVisible === false)
       .slice(0, 3)
       .map((p) => ({
         id: String(p.id).substring(0, 8) + "...",
         hasVisualAspects: !!p.descriptions?.visual_aspects,
+        hasScores: !!p.descriptions.artistic_scores,
         aspectKeys: p.descriptions?.visual_aspects
           ? Object.keys(p.descriptions.visual_aspects)
+          : [],
+        scoreKeys: p.descriptions.artistic_scores
+          ? Object.keys(p.descriptions.artistic_scores)
           : [],
       }));
     console.log("🔍 Ejemplos de fotos ocultas por filtro:", hiddenExamples);
@@ -978,6 +1114,17 @@ const onVisualAspectsChange = () => {
   console.log(
     "🔄 onVisualAspectsChange triggered:",
     selectedVisualAspects.value
+  );
+  applyFilters();
+  updateVisiblePhotos();
+  updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
+};
+
+// Handler para cambio en filtro de artistic scores
+const onArtisticScoresChange = () => {
+  console.log(
+    "🔄 onArtisticScoresChange triggered:",
+    selectedArtisticScores.value
   );
   applyFilters();
   updateVisiblePhotos();
@@ -2812,7 +2959,7 @@ onUnmounted(() => {
 }
 
 .control-section {
-  padding: var(--spacing-lg);
+  padding: var(--spacing-md);
 }
 
 .control-section:not(:last-child) {
@@ -2930,7 +3077,6 @@ onUnmounted(() => {
   animation: slideDown 0.3s ease-out;
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
 
 /* Collapsed Panel (Small Corner Button) */
