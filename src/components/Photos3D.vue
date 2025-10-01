@@ -59,12 +59,7 @@
     </div>
 
     <!-- Expanded Panel Content -->
-    <div
-      v-if="showConfigPanel"
-      class="control-panel"
-      @click.stop
-      @wheel.stop.prevent
-    >
+    <div v-if="showConfigPanel" class="control-panel" @click.stop @wheel.stop>
       <!-- Close Button (Top Right Corner) -->
       <button class="close-panel-btn-corner" @click="showConfigPanel = false">
         <n-icon>
@@ -3153,8 +3148,8 @@ onUnmounted(() => {
 
 .close-panel-btn-corner {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 3px;
+  right: 3px;
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.6);
