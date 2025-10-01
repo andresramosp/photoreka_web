@@ -1281,15 +1281,23 @@ const handleClickOutside = (event) => {
 };
 
 const handleKeyDown = (event) => {
-  // Delete selected photos when Delete key is pressed
-  if (event.key === "Delete" || event.key === "Backspace") {
+  // Check if user is typing in an input field
+  const isTyping =
+    ["INPUT", "TEXTAREA"].includes(event.target.tagName) ||
+    event.target.contentEditable === "true" ||
+    event.target.isContentEditable;
+
+  // Delete selected photos ONLY when Delete (Supr) key is pressed
+  // Backspace is reserved for text editing and should not delete photos
+  if (event.key === "Delete" && !isTyping) {
+    event.preventDefault();
     deleteSelectedPhotos();
   }
 
   // Toggle interaction mode with 'S' key
   if (event.key === "s" || event.key === "S") {
     // Only if not typing in an input field
-    if (!["INPUT", "TEXTAREA"].includes(event.target.tagName)) {
+    if (!isTyping) {
       event.preventDefault();
       toggleInteractionMode();
     }
@@ -1298,7 +1306,7 @@ const handleKeyDown = (event) => {
   // Zoom in with 'A' key
   if (event.key === "a" || event.key === "A") {
     // Only if not typing in an input field
-    if (!["INPUT", "TEXTAREA"].includes(event.target.tagName)) {
+    if (!isTyping) {
       event.preventDefault();
       zoomTick(1);
     }
@@ -1307,7 +1315,7 @@ const handleKeyDown = (event) => {
   // Zoom out with 'Z' key
   if (event.key === "z" || event.key === "Z") {
     // Only if not typing in an input field
-    if (!["INPUT", "TEXTAREA"].includes(event.target.tagName)) {
+    if (!isTyping) {
       event.preventDefault();
       zoomTick(-1);
     }
