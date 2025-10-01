@@ -67,10 +67,10 @@
         </n-icon>
       </button>
 
-      <!-- Embedding Type Section -->
+      <!-- Clustering Type Section (Always Visible) -->
       <div class="control-section">
         <h4 class="section-title">Clustering Type</h4>
-        <div class="control-item">
+        <div class="control-item-full">
           <n-select
             :disabled="showDiscreteLoader"
             v-model:value="selectedChunk"
@@ -82,158 +82,193 @@
             @click.stop
           />
         </div>
-        <h4 class="section-title">Visual Aspects</h4>
-        <div class="control-item">
-          <n-tree-select
-            v-model:value="selectedVisualAspects"
-            multiple
-            clearable
-            placeholder="Any aspect"
-            :options="treeSelectOptions"
-            :max-tag-count="2"
-            class="aspects-select"
-            :disabled="showDiscreteLoader"
-            size="small"
-            check-strategy="child"
-            :show-path="false"
-            expand-on-click
-            @update:value="onVisualAspectsChange"
-            @click.stop
+      </div>
+
+      <!-- More Filters Toggle -->
+      <div class="control-section">
+        <div class="section-toggle" @click="showMoreFilters = !showMoreFilters">
+          <span class="section-toggle-label">Filters</span>
+          <div class="section-toggle-indicators">
+            <span
+              v-if="
+                selectedVisualAspects.length > 0 || searchResults.length > 0
+              "
+              class="active-indicator"
+            >
+              {{
+                selectedVisualAspects.length +
+                (searchResults.length > 0 ? 1 : 0)
+              }}
+            </span>
+            <n-icon
+              size="12"
+              class="toggle-icon"
+              :class="{ rotated: showMoreFilters }"
+            >
+              <svg viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6l-6-6l1.41-1.41z"
+                />
+              </svg>
+            </n-icon>
+          </div>
+        </div>
+
+        <!-- Collapsible Filters Container -->
+        <div v-if="showMoreFilters" class="filters-container">
+          <div class="filters-content">
+            <!-- Visual Aspects Filter -->
+            <div class="filter-item">
+              <label class="filter-label">Visual Aspects</label>
+              <n-tree-select
+                v-model:value="selectedVisualAspects"
+                multiple
+                clearable
+                placeholder="Any aspect"
+                :options="treeSelectOptions"
+                :max-tag-count="2"
+                class="aspects-select"
+                :disabled="showDiscreteLoader"
+                size="small"
+                check-strategy="child"
+                :show-path="false"
+                expand-on-click
+                @update:value="onVisualAspectsChange"
+                @click.stop
+              >
+                <template #empty>
+                  <div style="padding: 8px; color: #888; font-size: 12px">
+                    No visual aspects found
+                  </div>
+                </template>
+              </n-tree-select>
+            </div>
+
+            <!-- Text Search Filter -->
+            <div class="filter-item">
+              <label class="filter-label">Search by Content</label>
+              <n-input
+                v-model:value="searchQuery"
+                placeholder="Search photos by description..."
+                size="small"
+                :clearable="!isSearching"
+                class="text-search-input"
+                @input="onSearchChange"
+                @clear="clearSearch"
+              >
+                <template #prefix>
+                  <n-icon size="16">
+                    <svg viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5S14 7.01 14 9.5S11.99 14 9.5 14z"
+                      />
+                    </svg>
+                  </n-icon>
+                </template>
+                <template #suffix>
+                  <n-spin
+                    v-if="isSearching"
+                    size="small"
+                    class="search-spinner"
+                  />
+                </template>
+              </n-input>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Display Options Toggle -->
+      <div class="control-section">
+        <div
+          class="section-toggle"
+          @click="showDisplayOptions = !showDisplayOptions"
+        >
+          <span class="section-toggle-label">Display Options</span>
+          <n-icon
+            size="12"
+            class="toggle-icon"
+            :class="{ rotated: showDisplayOptions }"
           >
-            <template #empty>
-              <div style="padding: 8px; color: #888; font-size: 12px">
-                No visual aspects found
-              </div>
-            </template>
-          </n-tree-select>
-        </div>
-      </div>
-
-      <!-- Display Options Section -->
-      <div class="control-section">
-        <h4 class="section-title">Display Options</h4>
-
-        <div class="control-item">
-          <span class="control-label">Billboarding (Face Camera)</span>
-          <n-switch
-            v-model:value="useBillboarding"
-            @update:value="onBillboardingToggle"
-            size="small"
-            @click.stop
-          />
+            <svg viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6l-6-6l1.41-1.41z"
+              />
+            </svg>
+          </n-icon>
         </div>
 
-        <div class="control-item">
-          <span class="control-label">Distance Transparency</span>
-          <n-switch
-            v-model:value="useDistanceOpacity"
-            size="small"
-            @click.stop
-          />
-        </div>
-      </div>
-
-      <!-- LOD System Configuration (only show when enabled) -->
-      <!-- <div v-if="useLODSystem" class="control-section">
-        <h4 class="section-title">LOD Distance Thresholds</h4>
-
-        <div class="control-item">
-          <div class="slider-container">
-            <div class="slider-header">
-              <span class="control-label"
-                >Ultra HD: {{ LOD_DISTANCES.ULTRA_CLOSE_TO_FULL }}</span
-              >
-            </div>
-            <n-slider
-              v-model:value="LOD_DISTANCES.ULTRA_CLOSE_TO_FULL"
-              :min="5"
-              :max="25"
-              :step="1"
-              class="lod-slider"
+        <!-- Display Options Content -->
+        <div v-if="showDisplayOptions" class="options-container">
+          <div class="control-item">
+            <span class="control-label">Billboarding (Face Camera)</span>
+            <n-switch
+              v-model:value="useBillboarding"
+              @update:value="onBillboardingToggle"
+              size="small"
               @click.stop
             />
           </div>
-        </div>
 
-        <div class="control-item">
-          <div class="slider-container">
-            <div class="slider-header">
-              <span class="control-label"
-                >Reduce Quality: {{ LOD_DISTANCES.FULL_TO_REDUCED }}</span
-              >
-            </div>
-            <n-slider
-              v-model:value="LOD_DISTANCES.FULL_TO_REDUCED"
-              :min="30"
-              :max="100"
-              :step="5"
-              class="lod-slider"
+          <div class="control-item">
+            <span class="control-label">Distance Transparency</span>
+            <n-switch
+              v-model:value="useDistanceOpacity"
+              size="small"
               @click.stop
             />
           </div>
-        </div>
 
-        <div class="control-item">
-          <div class="slider-container">
-            <div class="slider-header">
-              <span class="control-label"
-                >Solid Color: {{ LOD_DISTANCES.REDUCED_TO_PLACEHOLDER }}</span
-              >
+          <!-- Radial Scaling Slider -->
+          <div class="control-item-full" style="margin-top: 12px">
+            <label
+              class="control-label"
+              style="margin-bottom: 8px; display: block"
+            >
+              Radial Scaling
+            </label>
+            <div class="slider-container">
+              <n-slider
+                v-model:value="inflateFactor"
+                @update:value="onInflateFactorChange"
+                :min="1.5"
+                :max="3.5"
+                :step="0.1"
+                :marks="{ 1.5: '1.5x', 2.5: '2.5x', 3.5: '3.5x' }"
+                class="radial-slider"
+                @click.stop
+              />
             </div>
-            <n-slider
-              v-model:value="LOD_DISTANCES.REDUCED_TO_PLACEHOLDER"
-              :min="80"
-              :max="200"
-              :step="10"
-              class="lod-slider"
-              @click.stop
-            />
-          </div>
-        </div>
-
-        <div class="control-item">
-          <div class="slider-container">
-            <div class="slider-header">
-              <span class="control-label"
-                >Hide Completely:
-                {{ LOD_DISTANCES.PLACEHOLDER_TO_HIDDEN }}</span
-              >
-            </div>
-            <n-slider
-              v-model:value="LOD_DISTANCES.PLACEHOLDER_TO_HIDDEN"
-              :min="150"
-              :max="400"
-              :step="25"
-              class="lod-slider"
-              @click.stop
-            />
-          </div>
-        </div>
-      </div> -->
-
-      <!-- Radial Scaling Section -->
-      <div class="control-section">
-        <h4 class="section-title">Radial Scaling</h4>
-        <div class="control-item">
-          <div class="slider-container">
-            <n-slider
-              v-model:value="inflateFactor"
-              @update:value="onInflateFactorChange"
-              :min="1.5"
-              :max="3.5"
-              :step="0.1"
-              :marks="{ 1: '1x', 2: '2x', 3: '3x' }"
-              class="radial-slider"
-              @click.stop
-            />
           </div>
         </div>
       </div>
 
-      <!-- Navigation Controls -->
+      <!-- Navigation Controls Toggle -->
       <div class="control-section">
-        <h4 class="section-title">Navigation Controls</h4>
-        <div class="controls-info">
+        <div
+          class="section-toggle"
+          @click="showNavigationControls = !showNavigationControls"
+        >
+          <span class="section-toggle-label">Navigation Controls</span>
+          <n-icon
+            size="12"
+            class="toggle-icon"
+            :class="{ rotated: showNavigationControls }"
+          >
+            <svg viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6l-6-6l1.41-1.41z"
+              />
+            </svg>
+          </n-icon>
+        </div>
+
+        <!-- Navigation Controls Content -->
+        <div v-if="showNavigationControls" class="controls-info">
           <div class="control-tip">
             <strong>Click on stage:</strong> Activate camera controls
           </div>
@@ -243,7 +278,6 @@
           <div class="control-tip">
             <strong>WASD:</strong> Navigate forward/back/left/right
           </div>
-
           <div class="control-tip">
             <strong>Wheel:</strong> Accelerate movement speed
           </div>
@@ -251,11 +285,6 @@
           <div class="control-tip"><strong>V:</strong> Move down</div>
         </div>
       </div>
-    </div>
-
-    <!-- UI Overlay (for other future UI elements) -->
-    <div class="ui-overlay">
-      <!-- Reserved for other UI elements -->
     </div>
 
     <!-- Discrete Loading Indicator -->
@@ -299,6 +328,7 @@ import {
 import { use3DPhotos } from "@/composables/use3DPhotos.js";
 import { useFirstPersonControls } from "@/composables/useFirstPersonControls.js";
 import { visualAspectsOptions } from "@/stores/searchStore.js";
+import { api } from "@/utils/axios";
 import * as THREE from "three";
 import pLimit from "p-limit";
 
@@ -375,8 +405,19 @@ const currentPosition = ref({ x: 0, y: 0, z: 80 });
 // Panel de configuración ocultable
 const showConfigPanel = ref(false);
 
+// Toggle states for collapsible sections
+const showMoreFilters = ref(false);
+const showDisplayOptions = ref(false);
+const showNavigationControls = ref(false);
+
 // Filtro de aspectos visuales
 const selectedVisualAspects = ref([]);
+
+// Filtro de búsqueda textual
+const searchQuery = ref("");
+const isSearching = ref(false);
+const searchResults = ref([]);
+let searchTimeout = null;
 
 // Loader discreto con progreso
 const showDiscreteLoader = ref(true);
@@ -821,11 +862,26 @@ const createVisualAspectCategoryMap = () => {
 
 const visualAspectCategoryMap = createVisualAspectCategoryMap();
 
-// Aplicar filtro de aspectos visuales (solo marca visibilidad, no elimina fotos)
-const applyVisualAspectsFilter = () => {
+// Aplicar filtro de aspectos visuales Y búsqueda textual (solo marca visibilidad, no elimina fotos)
+const applyFilters = () => {
+  // Crear Set de IDs de fotos que pasan el filtro de búsqueda textual
+  const searchFilteredIds = new Set();
+  const hasSearchFilter =
+    searchQuery.value.trim() && searchResults.value.length > 0;
+
+  if (hasSearchFilter) {
+    searchResults.value.forEach((photo) => searchFilteredIds.add(photo.id));
+  }
+
   photosWithMaterials.value.forEach((photo) => {
+    // Aplicar filtro de búsqueda textual PRIMERO (más restrictivo)
+    if (hasSearchFilter && !searchFilteredIds.has(photo.id)) {
+      photo.isVisible = false;
+      return;
+    }
+
     if (selectedVisualAspects.value.length === 0) {
-      // Sin filtro: mostrar todas las fotos
+      // Sin filtro de aspectos: mostrar foto si pasa búsqueda textual (o no hay búsqueda)
       photo.isVisible = true;
     } else {
       // Con filtro: aplicar lógica OR dentro de categorías y AND entre categorías
@@ -873,17 +929,22 @@ const applyVisualAspectsFilter = () => {
   ).length;
 
   // Log resumen de la lógica aplicada
+  const filterInfo = [];
   if (selectedVisualAspects.value.length > 0) {
-    const selectedByCategory = new Map();
-    selectedVisualAspects.value.forEach((selectedAspect) => {
-      const category = visualAspectCategoryMap.get(selectedAspect);
-      if (category) {
-        if (!selectedByCategory.has(category)) {
-          selectedByCategory.set(category, []);
-        }
-        selectedByCategory.get(category).push(selectedAspect);
-      }
-    });
+    filterInfo.push(`${selectedVisualAspects.value.length} visual aspects`);
+  }
+  if (hasSearchFilter) {
+    filterInfo.push(
+      `text search: "${searchQuery.value}" (${searchResults.value.length} results)`
+    );
+  }
+
+  if (filterInfo.length > 0) {
+    console.log(
+      `🔍 Filtros aplicados: ${filterInfo.join(
+        " + "
+      )} | Visibles: ${visibleCount} | Ocultas: ${hiddenCount}`
+    );
   }
 
   // Debug adicional: mostrar algunas fotos que NO pasaron el filtro
@@ -918,9 +979,98 @@ const onVisualAspectsChange = () => {
     "🔄 onVisualAspectsChange triggered:",
     selectedVisualAspects.value
   );
-  applyVisualAspectsFilter();
+  applyFilters();
   updateVisiblePhotos();
   updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
+};
+
+// Search functionality - Similar a PhotosDialog.vue
+const onSearchChange = () => {
+  // Clear any existing timeout
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+  }
+
+  // If search is empty, clear search
+  if (!searchQuery.value.trim()) {
+    clearSearch();
+    return;
+  }
+
+  // Debounce search to avoid too many API calls
+  searchTimeout = setTimeout(async () => {
+    await performSearch();
+  }, 1000);
+};
+
+const performSearch = async () => {
+  if (!searchQuery.value.trim()) {
+    clearSearch();
+    return;
+  }
+
+  isSearching.value = true;
+  searchResults.value = [];
+
+  try {
+    const payload = {
+      description: searchQuery.value.trim(),
+      options: {
+        iteration: 1,
+        pageSize: 100,
+        searchMode: "low_precision",
+      },
+    };
+
+    const { data: response } = await api.post(
+      "/api/search/semantic/sync",
+      payload
+    );
+
+    // Handle direct response from sync endpoint
+    if (response.data && response.data.results) {
+      const photos = [];
+      Object.entries(response.data.results).forEach(([iter, items]) => {
+        photos.push(...items.map((i) => i.photo));
+      });
+      searchResults.value = photos;
+
+      console.log(
+        `🔍 Búsqueda textual completada: "${searchQuery.value}" - ${photos.length} resultados`
+      );
+    } else {
+      // If no results, show empty array
+      searchResults.value = [];
+      console.log(`🔍 Búsqueda textual sin resultados: "${searchQuery.value}"`);
+    }
+
+    // Apply filters with search results
+    applyFilters();
+    updateVisiblePhotos();
+    updatePhotoEffects();
+  } catch (error) {
+    console.error("❌ Error searching photos:", error);
+    searchResults.value = [];
+  } finally {
+    isSearching.value = false;
+  }
+};
+
+const clearSearch = () => {
+  searchQuery.value = "";
+  searchResults.value = [];
+  isSearching.value = false;
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+    searchTimeout = null;
+  }
+
+  console.log("🔍 Búsqueda textual limpiada");
+
+  // Reapply filters without search
+  applyFilters();
+  updateVisiblePhotos();
+  updatePhotoEffects();
 };
 
 // Función de easing para animaciones suaves
@@ -1386,7 +1536,7 @@ const registerNewPhotos = async (newPhotos) => {
   }
 
   // Aplicar filtro de aspectos visuales a las fotos nuevas
-  applyVisualAspectsFilter();
+  applyFilters();
 
   // Encolar todas las fotos para carga de texturas
   if (prepared.length > 0) enqueueAllNonCachedPhotos(prepared);
@@ -1492,7 +1642,7 @@ const updatePhotosPositions = async (newPhotos) => {
     hideLoader();
   }
 
-  applyVisualAspectsFilter();
+  applyFilters();
   updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
 
   // ⚠️ NOTA: NO actualizamos LOD aquí porque las posiciones están en transición
@@ -2496,7 +2646,7 @@ watch(
       "🔄 selectedVisualAspects watcher triggered:",
       selectedVisualAspects.value
     );
-    applyVisualAspectsFilter();
+    applyFilters();
     updateVisiblePhotos();
     updatePhotoEffects(); // Usa helper que calcula distancias internamente
   },
@@ -2568,6 +2718,12 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+  // Clear search timeout on unmount
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+    searchTimeout = null;
+  }
+
   // Mostrar estadísticas finales de errores 429
   if (error429Stats.value.total > 0) {
     console.log("📊 Estadísticas finales de errores 429:", {
@@ -2684,10 +2840,97 @@ onUnmounted(() => {
   margin-bottom: 0;
 }
 
+.control-item-full {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
 .control-label {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
   font-weight: var(--font-weight-medium, 500);
+}
+
+/* Toggle Section Styles */
+.section-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  cursor: pointer;
+  padding: 8px 0;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.section-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.section-toggle-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.section-toggle-indicators {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.active-indicator {
+  font-size: 9px;
+  color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.15);
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-weight: 600;
+  min-width: 14px;
+  text-align: center;
+}
+
+.toggle-icon {
+  color: rgba(255, 255, 255, 0.5);
+  transition: transform 0.3s ease;
+}
+
+.toggle-icon.rotated {
+  transform: rotate(180deg);
+}
+
+/* Filters Container */
+.filters-container {
+  margin-top: 12px;
+  animation: slideDown 0.3s ease-out;
+}
+
+.filters-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Options Container (for Display Options) */
+.options-container {
+  margin-top: 12px;
+  animation: slideDown 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 /* Collapsed Panel (Small Corner Button) */
@@ -2796,6 +3039,24 @@ onUnmounted(() => {
   width: 100%;
 }
 
+/* Text Search Input */
+.text-search-input {
+  width: 100%;
+}
+
+.search-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-results-info {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--primary-color);
+  text-align: center;
+}
+
 /* Slider Container */
 .slider-container {
   width: 100%;
@@ -2830,7 +3091,8 @@ onUnmounted(() => {
   border: 1px solid rgba(59, 130, 246, 0.2);
   border-radius: var(--radius-sm);
   padding: var(--spacing-md);
-  margin-top: var(--spacing-sm);
+  margin-top: 12px;
+  animation: slideDown 0.3s ease-out;
 }
 
 .control-tip {
