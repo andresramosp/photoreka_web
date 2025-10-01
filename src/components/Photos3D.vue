@@ -212,10 +212,10 @@
             <n-slider
               v-model:value="inflateFactor"
               @update:value="onInflateFactorChange"
-              :min="1"
-              :max="3.0"
+              :min="1.5"
+              :max="3.5"
               :step="0.1"
-              :marks="{ 1: '1.0x', 2: '2.0x', 3: '3.0x' }"
+              :marks="{ 1: '1x', 2: '2x', 3: '3x' }"
               class="radial-slider"
               @click.stop
             />
