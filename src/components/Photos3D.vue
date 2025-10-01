@@ -959,7 +959,6 @@ const updateTransitionPositions = (currentTime) => {
   // Finalizar animación
   if (progress >= 1) {
     isTransitioning.value = false;
-    console.log("✅ Transición de posiciones completada");
 
     // Asegurar posiciones finales exactas
     const maxFinalIndex = Math.min(
@@ -980,11 +979,23 @@ const updateTransitionPositions = (currentTime) => {
     // Limpiar referencias
     animationTargetPositions = [];
 
-    console.log("🎯 Posiciones finales aplicadas correctamente");
-  }
-};
+    // 🎯 CRÍTICO: Actualizar LOD después de que la animación termine
+    // Las posiciones finales ya están aplicadas, ahora calcular LODs correctos
 
-// Función para configurar el loader
+    // 🔧 SOLUCIÓN: Forzar actualización de matrices de cámara ANTES de frustum culling
+    // Esto asegura que el frustum se calcule con las posiciones finales correctas
+    if (cameraRef.value) {
+      cameraRef.value.updateMatrixWorld(true);
+      cameraRef.value.updateProjectionMatrix();
+    }
+
+    // Limpiar cache de distancias para forzar recálculo
+    distanceCache.clear();
+
+    updateVisiblePhotos();
+    updatePhotoLOD();
+  }
+}; // Función para configurar el loader
 const setupLoaderForPhotos = async (photos) => {
   console.log("🚀 setupLoaderForPhotos iniciado para", photos.length, "fotos");
 
@@ -1247,6 +1258,11 @@ const createTexturesInBulk = () => {
 
   // 🔧 NO limpiar cache de imágenes - las fotos ahora mantienen referencia en __originalImageElement
   // downloadedImagesCache.clear(); // ELIMINADO: necesitamos las imágenes para LOD
+
+  // 🎯 CRÍTICO: Actualizar LOD inmediatamente después de crear texturas
+  // Esto asegura que las fotos tengan el nivel de detalle correcto desde el inicio
+  updateVisiblePhotos();
+  updatePhotoLOD();
 };
 
 // Nueva función para encolar TODAS las fotos no cacheadas (sin filtro de frustum)
@@ -1344,6 +1360,9 @@ const registerNewPhotos = async (newPhotos) => {
   // Recalcular visibilidad global (frustum + filtros) tras registrar
   updateVisiblePhotos();
   if (useBillboarding.value) updateBillboardRotations();
+
+  // 🎯 CRÍTICO: Actualizar LOD inmediatamente después de registrar fotos nuevas
+  updatePhotoLOD();
 };
 
 // ✨ Nueva función optimizada para cambios de chunk que reutiliza texturas
@@ -1439,6 +1458,9 @@ const updatePhotosPositions = async (newPhotos) => {
 
   applyVisualAspectsFilter();
   if (useBillboarding.value) updateBillboardRotations();
+
+  // ⚠️ NOTA: NO actualizamos LOD aquí porque las posiciones están en transición
+  // El LOD se actualizará automáticamente al finalizar la animación en updateTransitionPositions()
 };
 
 // Función para calcular posiciones escaladas sin modificar el estado
