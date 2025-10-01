@@ -490,6 +490,13 @@ const FULL_QUEUE_SCHEDULING = true;
 // Limitador de concurrencia usando p-limit
 const limitTexture = pLimit(MAX_CONCURRENT_DOWNLOADS);
 
+// Map para almacenar imágenes descargadas (imageId -> HTMLImageElement)
+const downloadedImagesCache = new Map();
+
+// Control de navegación durante carga inicial
+const navigationBlocked = ref(false);
+const downloadPhaseComplete = ref(false);
+
 // Performance optimization: throttling variables
 let frameCounter = 0;
 const THROTTLE_INTERVAL = 3; // Execute heavy operations every N frames
@@ -586,16 +593,16 @@ const cleanTextureQueue = () => {
   const initialQueueLength = textureQueue.value.length;
   if (initialQueueLength === 0) return 0;
 
-  // Filtrar solo las fotos que realmente necesitan carga
+  // Filtrar solo las fotos que realmente necesitan descarga
   const validIds = textureQueue.value.filter((id) => {
     const photo = photosWithMaterials.value.find((p) => p.id === id);
-    return photo && !photo.__textureLoaded && !photo.__loading;
+    return photo && !photo.__imageDownloaded && !photo.__downloading;
   });
 
   // Limpiar IDs que ya no son válidos del Set
   textureQueue.value.forEach((id) => {
     const photo = photosWithMaterials.value.find((p) => p.id === id);
-    if (!photo || photo.__textureLoaded) {
+    if (!photo || photo.__imageDownloaded) {
       queuedIds.delete(id);
     }
   });
@@ -620,9 +627,12 @@ const updateLoadingProgress = () => {
     return;
   }
 
-  const loadedPhotos = photosWithMaterials.value.filter(
-    (photo) => photo.__textureLoaded
-  );
+  // Durante fase de descarga, contar imágenes descargadas
+  // Después de bulk creation, contar texturas cargadas
+  const loadedPhotos = downloadPhaseComplete.value
+    ? photosWithMaterials.value.filter((photo) => photo.__textureLoaded)
+    : photosWithMaterials.value.filter((photo) => photo.__imageDownloaded);
+
   loadedPhotosCount.value = loadedPhotos.length;
 
   const progress = Math.round(
@@ -678,16 +688,39 @@ const checkAllTexturesLoaded = () => {
     (photo) => photo.__loading
   );
 
-  const allLoaded = photosWithMaterials.value.every(
-    (photo) => photo.__textureLoaded
+  // Verificar si fase de descarga está completa
+  const allDownloaded = photosWithMaterials.value.every(
+    (photo) => photo.__imageDownloaded
   );
-  const nothingLoading = photosWithMaterials.value.every(
-    (photo) => !photo.__loading
+  const nothingDownloading = photosWithMaterials.value.every(
+    (photo) => !photo.__downloading
   );
   const noQueuePending = textureQueue.value.length === 0;
 
-  // Solo ocultar cuando todo esté realmente terminado
-  if (allLoaded && nothingLoading && noQueuePending && !isLoading.value) {
+  // Si terminó la descarga pero aún no creamos texturas
+  if (
+    allDownloaded &&
+    nothingDownloading &&
+    noQueuePending &&
+    !isLoading.value &&
+    !downloadPhaseComplete.value
+  ) {
+    console.log("🎉 Fase de descarga completada. Creando texturas en bulk...");
+    downloadPhaseComplete.value = true;
+
+    // Crear texturas en bulk
+    createTexturesInBulk();
+
+    // Reactivar navegación
+    navigationBlocked.value = false;
+
+    // Activar controles de navegación si existen
+    if (fpControls.value) {
+      console.log("🎮 Activando controles de navegación...");
+      fpControls.value.setup();
+    }
+
+    // Ocultar loader
     hideLoader();
   }
 };
@@ -955,88 +988,121 @@ const showLoader = () => {
   console.log("⏳ Mostrando loader discreto");
 };
 
-// Carga directa de textura usando THREE.TextureLoader
-const loadRealTextureForPhoto = async (photoObj) => {
-  if (photoObj.__textureLoaded || photoObj.__loading) return;
-  photoObj.__loading = true;
+// FASE 1: Solo descargar imágenes sin crear texturas Three.js
+const downloadImageOnly = async (photoObj) => {
+  if (photoObj.__imageDownloaded || photoObj.__downloading) return;
+  photoObj.__downloading = true;
   const imageUrl =
     photoObj.thumbnailUrl || photoObj.url || photoObj.originalUrl;
 
   if (!imageUrl) {
-    photoObj.__loading = false;
-    photoObj.__textureLoaded = true;
+    photoObj.__downloading = false;
+    photoObj.__imageDownloaded = true;
+    photoObj.__downloadError = true;
     return;
   }
 
   try {
-    // Cargar textura con redimensionamiento agresivo para thumbnails
-    const texture = await new Promise((resolve, reject) => {
-      textureLoader.load(
-        imageUrl,
-        (loadedTexture) => {
-          // Resize to maximum size for better quality balance
-          if (loadedTexture.image) {
-            const resizedImage = resizeTextureToMaxSize(
-              loadedTexture.image,
-              MAIN_TEXTURE_SIZE
-            );
-            const resizedTexture = new THREE.CanvasTexture(resizedImage);
-            // Configure with optimizations for small textures
-            const isSmall =
-              resizedImage.width <= MAIN_TEXTURE_SIZE &&
-              resizedImage.height <= MAIN_TEXTURE_SIZE;
-            configureTextureSafely(resizedTexture, isSmall);
-            resolve(resizedTexture);
-          } else {
-            configureTextureSafely(loadedTexture, true);
-            resolve(loadedTexture);
-          }
-        },
-        undefined, // onProgress
-        (error) => reject(error)
-      );
+    // Descargar imagen SIN crear textura Three.js
+    const imageElement = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => resolve(img);
+      img.onerror = (error) => reject(error);
+      img.src = imageUrl;
     });
 
-    if (!texture) {
-      console.warn("No se pudo cargar textura:", imageUrl);
-      photoObj.__textureLoaded = true;
+    if (!imageElement) {
+      console.warn("No se pudo descargar imagen:", imageUrl);
+      photoObj.__imageDownloaded = true;
+      photoObj.__downloadError = true;
       return;
     }
 
-    const newMat = new THREE.MeshBasicMaterial({
-      map: texture,
-      transparent: true,
-      side: THREE.DoubleSide,
-      // GPU optimizations
-      alphaTest: 0.01,
-      depthWrite: false,
-      depthTest: true,
-    });
+    // Redimensionar imagen para optimizar memoria
+    const resizedImage = resizeTextureToMaxSize(
+      imageElement,
+      MAIN_TEXTURE_SIZE
+    );
 
-    // Almacenar referencia a la textura original para el sistema LOD
-    photoObj.__originalTexture = texture;
+    // Guardar en cache (NO crear textura todavía)
+    downloadedImagesCache.set(photoObj.id, resizedImage);
+    photoObj.__imageDownloaded = true;
+    photoObj.__downloadError = false;
 
-    // Reemplazar material placeholder
-    if (photoObj.material) {
-      photoObj.material.dispose?.();
-      photoObj.material = newMat;
-    } else {
-      photoObj.material = newMat;
-    }
-    photoObj.__textureLoaded = true;
-
-    // Verificar si todas las texturas están cargadas
-    checkAllTexturesLoaded();
+    // Actualizar progreso
+    updateLoadingProgress();
   } catch (e) {
-    console.warn("Fallo carga textura (mantengo placeholder):", imageUrl, e);
-    photoObj.__textureLoaded = true;
-    // Actualizar progreso incluso en caso de error
+    console.warn("Fallo descarga imagen:", imageUrl, e);
+    photoObj.__imageDownloaded = true;
+    photoObj.__downloadError = true;
     updateLoadingProgress();
   } finally {
-    photoObj.__loading = false;
-    // Verificar nuevamente al finalizar
-    checkAllTexturesLoaded();
+    photoObj.__downloading = false;
   }
+};
+
+// FASE 2: Crear texturas en bulk desde imágenes descargadas
+const createTexturesInBulk = () => {
+  console.log(
+    "🎨 Creando texturas en bulk para",
+    downloadedImagesCache.size,
+    "imágenes"
+  );
+
+  let createdCount = 0;
+  let errorCount = 0;
+
+  photosWithMaterials.value.forEach((photo) => {
+    // Si tiene error de descarga, mantener placeholder
+    if (photo.__downloadError) {
+      errorCount++;
+      return;
+    }
+
+    const imageElement = downloadedImagesCache.get(photo.id);
+    if (!imageElement) {
+      errorCount++;
+      return;
+    }
+
+    try {
+      // Crear textura Three.js desde imagen cacheada
+      const texture = new THREE.CanvasTexture(imageElement);
+      const isSmall =
+        imageElement.width <= MAIN_TEXTURE_SIZE &&
+        imageElement.height <= MAIN_TEXTURE_SIZE;
+      configureTextureSafely(texture, isSmall);
+
+      const newMat = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        side: THREE.DoubleSide,
+        alphaTest: 0.01,
+        depthWrite: false,
+        depthTest: true,
+      });
+
+      // Almacenar textura original para LOD
+      photo.__originalTexture = texture;
+
+      // Reemplazar material placeholder
+      if (photo.material) {
+        photo.material.dispose?.();
+      }
+      photo.material = newMat;
+      photo.__textureLoaded = true;
+      createdCount++;
+    } catch (error) {
+      console.warn("Error creando textura para foto:", photo.id, error);
+      errorCount++;
+    }
+  });
+
+  console.log("✅ Texturas creadas:", createdCount, "| Errores:", errorCount);
+
+  // Limpiar cache de imágenes (ya no necesario)
+  downloadedImagesCache.clear();
 };
 
 // Nueva función para encolar TODAS las fotos no cacheadas (sin filtro de frustum)
@@ -1048,8 +1114,8 @@ const enqueueAllNonCachedPhotos = (photos) => {
 
   photos.forEach((photo) => {
     if (
-      !photo.__textureLoaded &&
-      !photo.__loading &&
+      !photo.__imageDownloaded &&
+      !photo.__downloading &&
       !queuedIds.has(photo.id) &&
       !scheduledDownloads.has(photo.id)
     ) {
@@ -1081,6 +1147,10 @@ const enqueueAllNonCachedPhotos = (photos) => {
 const registerNewPhotos = async (newPhotos) => {
   dlog("🔄 Registrando fotos nuevas, configurando loader discreto");
 
+  // Bloquear navegación durante carga inicial
+  navigationBlocked.value = true;
+  downloadPhaseComplete.value = false;
+
   // Configurar el loader según el estado de cache
   await setupLoaderForPhotos(newPhotos);
   showLoader();
@@ -1092,6 +1162,9 @@ const registerNewPhotos = async (newPhotos) => {
     billboardRotation: [0, 0, 0],
     __textureLoaded: false,
     __loading: false,
+    __imageDownloaded: false,
+    __downloading: false,
+    __downloadError: false,
     isVisible: true, // Inicializar como visible
   }));
 
@@ -1119,6 +1192,11 @@ const registerNewPhotos = async (newPhotos) => {
   // Encolar todas las fotos para carga de texturas
   if (prepared.length > 0) enqueueAllNonCachedPhotos(prepared);
 
+  // Iniciar loop mínimo de descarga (solo processTextureQueue, sin Three.js)
+  if (!downloadLoopId) {
+    startDownloadLoop();
+  }
+
   // Recalcular visibilidad global (frustum + filtros) tras registrar
   updateVisiblePhotos();
   if (useBillboarding.value) updateBillboardRotations();
@@ -1126,9 +1204,6 @@ const registerNewPhotos = async (newPhotos) => {
 
 // ✨ Nueva función optimizada para cambios de chunk que reutiliza texturas
 const updatePhotosPositions = async (newPhotos) => {
-  await setupLoaderForPhotos(newPhotos);
-  showLoader();
-
   const byId = new Map(newPhotos.map((p) => [p.id, p]));
   const existingById = new Map(photosWithMaterials.value.map((p) => [p.id, p]));
 
@@ -1164,6 +1239,9 @@ const updatePhotosPositions = async (newPhotos) => {
         billboardRotation: [0, 0, 0],
         __textureLoaded: false,
         __loading: false,
+        __imageDownloaded: false,
+        __downloading: false,
+        __downloadError: false,
         isVisible: true,
         transitionStartPosition: [0, 0, 0],
       };
@@ -1191,17 +1269,32 @@ const updatePhotosPositions = async (newPhotos) => {
     calculateScaledPositions(targetPositions, inflateFactor.value)
   );
 
-  // Texturas a cargar (solo las nuevas)
+  // Imágenes a descargar (solo las nuevas)
   const toTexture = photosWithMaterials.value.filter(
-    (p) => !p.__textureLoaded && !p.__loading
+    (p) => !p.__imageDownloaded && !p.__downloading
   );
-  if (toTexture.length) {
+
+  // Solo mostrar loader y bloquear navegación si hay fotos nuevas que descargar
+  if (toTexture.length > 0) {
+    console.log(`🔄 Hay ${toTexture.length} fotos nuevas por descargar`);
+    await setupLoaderForPhotos(toTexture);
+    showLoader();
+    navigationBlocked.value = true;
+    downloadPhaseComplete.value = false;
     enqueueAllNonCachedPhotos(toTexture);
+
+    // Iniciar loop mínimo de descarga si no está corriendo
+    if (!downloadLoopId) {
+      startDownloadLoop();
+    }
+  } else {
+    console.log("✅ No hay fotos nuevas por descargar, solo recolocando");
+    // Asegurar que el loader esté oculto
+    hideLoader();
   }
 
   applyVisualAspectsFilter();
   if (useBillboarding.value) updateBillboardRotations();
-  checkAllTexturesLoaded();
 };
 
 // Función para calcular posiciones escaladas sin modificar el estado
@@ -1360,8 +1453,8 @@ const updateVisiblePhotos = () => {
   const cameraPos = camera.position;
   newVisibleFromFrustum.forEach((photo) => {
     if (
-      !photo.__textureLoaded &&
-      !photo.__loading &&
+      !photo.__imageDownloaded &&
+      !photo.__downloading &&
       !queuedIds.has(photo.id) &&
       !scheduledDownloads.has(photo.id)
     ) {
@@ -1895,7 +1988,8 @@ const animate = () => {
   if (frameTime < 14 && dynamicBatch < MAX_BATCH) dynamicBatch++;
   else if (frameTime > 26 && dynamicBatch > MIN_BATCH) dynamicBatch--;
 
-  if (fpControls.value) {
+  // Bloquear controles durante fase de descarga inicial
+  if (fpControls.value && !navigationBlocked.value) {
     fpControls.value.update();
   }
 
@@ -1935,19 +2029,22 @@ const animate = () => {
   const lodAllowed = !initialLoadingPhase.value || progressRatio >= 0.5;
   const frustumInterval = initialLoadingPhase.value ? 9 : THROTTLE_INTERVAL;
 
-  if (frameCounter % frustumInterval === 0 || cameraPositionChanged) {
-    updateVisiblePhotos();
-    if (useBillboarding.value && lodAllowed) updateBillboardRotations();
-    if (lodAllowed) {
-      updatePhotoLOD();
-      updatePhotoOpacity();
-    }
-    if (!initialLoadingPhase.value && frameCounter % 600 === 0) {
-      debugLODState();
+  // Solo ejecutar eventos Three.js si no estamos en fase de descarga bloqueada
+  if (!navigationBlocked.value) {
+    if (frameCounter % frustumInterval === 0 || cameraPositionChanged) {
+      updateVisiblePhotos();
+      if (useBillboarding.value && lodAllowed) updateBillboardRotations();
+      if (lodAllowed) {
+        updatePhotoLOD();
+        updatePhotoOpacity();
+      }
+      if (!initialLoadingPhase.value && frameCounter % 600 === 0) {
+        debugLODState();
+      }
     }
   }
 
-  // Procesar cola de texturas (batch dinámico)
+  // Procesar cola de descargas (siempre, incluso durante bloqueo)
   processTextureQueue();
 
   animationId = requestAnimationFrame(animate);
@@ -1957,11 +2054,11 @@ const animate = () => {
 const processTextureQueue = () => {
   if (textureQueue.value.length === 0) return;
 
-  // Limpieza ligera de elementos inválidos / ya cargados al frente
+  // Limpieza ligera de elementos inválidos / ya descargados al frente
   while (textureQueue.value.length) {
     const idFront = textureQueue.value[0];
     const objFront = photosWithMaterials.value.find((p) => p.id === idFront);
-    if (!objFront || objFront.__textureLoaded) {
+    if (!objFront || objFront.__imageDownloaded) {
       textureQueue.value.shift();
       queuedIds.delete(idFront);
       continue;
@@ -1982,13 +2079,13 @@ const processTextureQueue = () => {
     const photoObj = photosWithMaterials.value.find((p) => p.id === id);
     if (
       !photoObj ||
-      photoObj.__textureLoaded ||
-      photoObj.__loading ||
+      photoObj.__imageDownloaded ||
+      photoObj.__downloading ||
       scheduledDownloads.has(id)
     )
       continue;
     scheduledDownloads.add(id);
-    limitTexture(() => loadRealTextureForPhoto(photoObj))
+    limitTexture(() => downloadImageOnly(photoObj))
       .catch(() => {})
       .finally(() => {
         scheduledDownloads.delete(id);
@@ -2004,6 +2101,25 @@ const processTextureQueue = () => {
   }
 };
 
+// Loop mínimo solo para descargas (sin eventos Three.js)
+let downloadLoopId = null;
+const startDownloadLoop = () => {
+  const downloadLoop = () => {
+    // Solo procesar cola de descargas, sin eventos Three.js
+    processTextureQueue();
+
+    // Continuar mientras esté bloqueada la navegación
+    if (navigationBlocked.value) {
+      downloadLoopId = requestAnimationFrame(downloadLoop);
+    } else {
+      // Cuando termine fase de descarga, limpiar y el loop normal tomará el control
+      downloadLoopId = null;
+    }
+  };
+
+  downloadLoopId = requestAnimationFrame(downloadLoop);
+};
+
 // Inicializar controles FPS
 const initFirstPersonControls = () => {
   if (!cameraRef.value || !containerRef.value) {
@@ -2015,7 +2131,11 @@ const initFirstPersonControls = () => {
   const domElement = containerRef.value;
 
   fpControls.value = useFirstPersonControls(camera, domElement);
-  fpControls.value.setup();
+
+  // Solo activar controles si no estamos en fase de descarga bloqueada
+  if (!navigationBlocked.value) {
+    fpControls.value.setup();
+  }
 
   fpControls.value.setSpeedProfile({
     initial: 0.01, // control fino inicial
@@ -2179,9 +2299,12 @@ onUnmounted(() => {
 
   // Limpiar controles FPS
 
-  // Cancelar animación
+  // Cancelar animaciones
   if (animationId) {
     cancelAnimationFrame(animationId);
+  }
+  if (downloadLoopId) {
+    cancelAnimationFrame(downloadLoopId);
   }
 
   // Limpiar caches
