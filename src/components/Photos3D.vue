@@ -24,8 +24,15 @@
       <primitive :object="lightsGroup" />
 
       <!-- Photo planes - renderizar solo fotos visibles y no ocultas por LOD -->
+      <!-- v-memo: Solo re-renderizar cuando cambien position, rotation o material -->
       <template v-for="(photo, index) in photosToRender" :key="photo.id">
         <TresMesh
+          v-memo="[
+            photo.position,
+            photo.billboardRotation,
+            photo.material,
+            useBillboarding,
+          ]"
           :position="photo.position"
           :rotation="useBillboarding ? photo.billboardRotation : [0, 0, 0]"
         >
@@ -265,7 +272,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import {
+  ref,
+  computed,
+  onMounted,
+  onUnmounted,
+  watch,
+  markRaw,
+  shallowRef,
+} from "vue";
 import { TresCanvas } from "@tresjs/core";
 import {
   NTooltip,
@@ -302,13 +317,30 @@ function dlog(...args) {
 // - LOD ULTRA_CLOSE: Textura 768px creada desde imagen original (máxima calidad)
 const MAIN_TEXTURE_SIZE = 128; // Main texture resolution (px) - usado para vista normal
 const ULTRA_TEXTURE_SIZE = 768; // Ultra high-res texture for close viewing (px)
-const REDUCED_TEXTURE_FACTOR = 0.25; // Factor for reduced quality textures (32px)
+const REDUCED_TEXTURE_FACTOR = 0.75; // Factor for reduced quality textures (32px)
 
 // ===== Retry Configuration for 429 Errors =====
 const MAX_RETRIES = 3; // Maximum number of retry attempts for failed downloads
 const INITIAL_RETRY_DELAY = 1000; // Initial delay in ms (exponential backoff)
 const RETRY_MULTIPLIER = 2; // Multiplier for exponential backoff
 const MAX_RETRY_DELAY = 10000; // Maximum delay between retries (10 seconds)
+
+// Advanced LOD (Level of Detail) System Configuration
+const LOD_LEVELS = {
+  ULTRA_CLOSE: 0, // Ultra high-res texture (768px) when very close
+  FULL: 1, // Full texture quality (384px)
+  REDUCED: 2, // Lower quality texture
+  PLACEHOLDER: 3, // Solid color based on dominant photo color
+  HIDDEN: 4, // Not rendered at all
+};
+
+// LOD distance thresholds (adjustable and reactive)
+const LOD_DISTANCES = ref({
+  ULTRA_CLOSE_TO_FULL: 15, // Switch to high-res textures when very close
+  FULL_TO_REDUCED: 25, // Start reducing texture quality
+  // REDUCED_TO_PLACEHOLDER: 130, // Replace with solid color
+  PLACEHOLDER_TO_HIDDEN: 200, // Stop rendering completely
+});
 
 // Stats for monitoring 429 errors
 const error429Stats = ref({
@@ -357,7 +389,7 @@ const loadingProgress = ref(0);
 const initialLoadingPhase = ref(true);
 
 // Escaleo radial
-const inflateFactor = ref(2.5);
+const inflateFactor = ref(3);
 const originalPositions = ref([]);
 
 // Animación de transición
@@ -409,19 +441,22 @@ const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.7);
 directionalLight1.position.set(10, 10, 10);
 
 // Create lights group
-const lightsGroup = new THREE.Group();
+// 🎯 markRaw: Objetos Three.js NO deben ser reactivos para mejor performance
+const lightsGroup = markRaw(new THREE.Group());
 lightsGroup.add(ambientLight);
 lightsGroup.add(directionalLight1);
 
 // Geometry for photo planes - Optimized for GPU
-const planeGeometry = new THREE.PlaneGeometry(4, 3);
+// 🎯 markRaw: Evita que Vue haga este objeto reactivo (mejora de performance)
+const planeGeometry = markRaw(new THREE.PlaneGeometry(4, 3));
 // Set to not update geometry buffers frequently (GPU optimization)
 planeGeometry.attributes.position.setUsage(THREE.StaticDrawUsage);
 planeGeometry.attributes.uv.setUsage(THREE.StaticDrawUsage);
 planeGeometry.attributes.normal.setUsage(THREE.StaticDrawUsage);
 
 // Grid helper
-const gridHelper = new THREE.GridHelper(200, 40);
+// 🎯 markRaw: Grid helper tampoco necesita ser reactivo
+const gridHelper = markRaw(new THREE.GridHelper(200, 40));
 gridHelper.position.y = -50;
 
 // Helper function to resize textures aggressively for memory optimization
@@ -524,18 +559,20 @@ let lastCameraPosition = { x: 0, y: 0, z: 0 };
 const CAMERA_MOVE_THRESHOLD = 0.5; // Minimum movement to trigger updates
 
 // Reusable THREE.js objects to avoid garbage collection
-const reusableFrustum = new THREE.Frustum();
-const reusableMatrix = new THREE.Matrix4();
-const reusableVector3 = new THREE.Vector3();
-const reusableSphere = new THREE.Sphere();
+// 🎯 markRaw: Objetos reutilizables no necesitan tracking reactivo
+const reusableFrustum = markRaw(new THREE.Frustum());
+const reusableMatrix = markRaw(new THREE.Matrix4());
+const reusableVector3 = markRaw(new THREE.Vector3());
+const reusableSphere = markRaw(new THREE.Sphere());
 
 // Distance calculation cache
 const distanceCache = new Map();
 let cacheValidPosition = { x: 0, y: 0, z: 0 };
 
 // Reusable objects for billboard calculations
-const tempObject = new THREE.Object3D();
-const directionToCamera = new THREE.Vector3();
+// 🎯 markRaw: Objetos temporales de cálculo no necesitan reactividad
+const tempObject = markRaw(new THREE.Object3D());
+const directionToCamera = markRaw(new THREE.Vector3());
 
 // GPU verification and capabilities
 const checkGPUCapabilities = () => {
@@ -589,7 +626,8 @@ phCtx.fillStyle = "#1e40af"; // Azul primario del theme
 phCtx.fillRect(0, 0, 8, 8);
 phCtx.fillStyle = "#3b82f6"; // Azul más claro para contraste
 phCtx.fillRect(0, 0, 4, 8);
-const placeholderTexture = new THREE.CanvasTexture(placeholderCanvas);
+// 🎯 markRaw: Texturas Three.js no necesitan reactividad
+const placeholderTexture = markRaw(new THREE.CanvasTexture(placeholderCanvas));
 // Configure placeholder texture safely
 configureTextureSafely(placeholderTexture);
 
@@ -606,7 +644,8 @@ const createPlaceholderMaterial = () =>
   });
 
 // Frustum culling - solo renderizar fotos visibles
-const visiblePhotos = ref([]);
+const visiblePhotos = ref([]); // SOLO fotos actualmente en el frustum
+const cachedPhotosSet = new Set(); // IDs de fotos con texturas cargadas (para evitar recargas)
 
 // Función para limpiar la cola de texturas de fotos ya cargadas
 const cleanTextureQueue = () => {
@@ -881,7 +920,7 @@ const onVisualAspectsChange = () => {
   );
   applyVisualAspectsFilter();
   updateVisiblePhotos();
-  if (useBillboarding.value) updateBillboardRotations();
+  updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
 };
 
 // Función de easing para animaciones suaves
@@ -993,7 +1032,7 @@ const updateTransitionPositions = (currentTime) => {
     distanceCache.clear();
 
     updateVisiblePhotos();
-    updatePhotoLOD();
+    updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
   }
 }; // Función para configurar el loader
 const setupLoaderForPhotos = async (photos) => {
@@ -1262,7 +1301,7 @@ const createTexturesInBulk = () => {
   // 🎯 CRÍTICO: Actualizar LOD inmediatamente después de crear texturas
   // Esto asegura que las fotos tengan el nivel de detalle correcto desde el inicio
   updateVisiblePhotos();
-  updatePhotoLOD();
+  updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
 };
 
 // Nueva función para encolar TODAS las fotos no cacheadas (sin filtro de frustum)
@@ -1359,10 +1398,7 @@ const registerNewPhotos = async (newPhotos) => {
 
   // Recalcular visibilidad global (frustum + filtros) tras registrar
   updateVisiblePhotos();
-  if (useBillboarding.value) updateBillboardRotations();
-
-  // 🎯 CRÍTICO: Actualizar LOD inmediatamente después de registrar fotos nuevas
-  updatePhotoLOD();
+  updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
 };
 
 // ✨ Nueva función optimizada para cambios de chunk que reutiliza texturas
@@ -1457,7 +1493,7 @@ const updatePhotosPositions = async (newPhotos) => {
   }
 
   applyVisualAspectsFilter();
-  if (useBillboarding.value) updateBillboardRotations();
+  updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
 
   // ⚠️ NOTA: NO actualizamos LOD aquí porque las posiciones están en transición
   // El LOD se actualizará automáticamente al finalizar la animación en updateTransitionPositions()
@@ -1526,7 +1562,7 @@ const applyRadialScaling = () => {
 const onInflateFactorChange = () => {
   applyRadialScaling();
   updateVisiblePhotos();
-  if (useBillboarding.value) updateBillboardRotations();
+  updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
 };
 
 // Helper function to calculate distance with caching
@@ -1563,7 +1599,8 @@ const getCachedDistance = (photoId, photoPosition, cameraPosition) => {
   return distance;
 };
 
-// Función para actualizar fotos visibles usando Frustum Culling
+// Función para actualizar fotos visibles usando Frustum Culling ESTRICTO
+// 🎯 OPTIMIZACIÓN: visiblePhotos ahora contiene SOLO fotos en el frustum actual
 const updateVisiblePhotos = () => {
   if (!cameraRef.value || filteredPhotos.value.length === 0) {
     visiblePhotos.value = [];
@@ -1579,45 +1616,29 @@ const updateVisiblePhotos = () => {
   );
   reusableFrustum.setFromProjectionMatrix(reusableMatrix);
 
-  // Filtrar fotos que intersectan con el frustum (usar fotos filtradas)
-  const newVisibleFromFrustum = filteredPhotos.value.filter((photo) => {
+  // 🔥 CRÍTICO: Filtrar SOLO fotos que intersectan con el frustum ACTUAL
+  // No mantener fotos antiguas cacheadas en este array
+  visiblePhotos.value = filteredPhotos.value.filter((photo) => {
     reusableVector3.set(...photo.position);
     reusableSphere.set(reusableVector3, 2); // Radio de la esfera de la foto
     return reusableFrustum.intersectsSphere(reusableSphere);
   });
 
-  // ⚡ CLAVE: No sobrescribir, sino mantener fotos cacheadas + agregar nuevas del frustum
-  // PERO RESPETANDO el filtro de aspectos visuales (isVisible)
-  const existingCachedIds = new Set(
-    visiblePhotos.value
-      .filter((p) => p.__textureLoaded && p.isVisible !== false)
-      .map((p) => p.id)
-  );
-  const newPhotosToAdd = newVisibleFromFrustum.filter(
-    (photo) => !existingCachedIds.has(photo.id)
-  );
-
-  // 🔧 CORREGIDO: Separar filtros - primero frustum, luego LOD se aplica en renderizado
-  // NO filtrar por __isLODHidden aquí, solo por aspectos visuales y cache
-  const existingCached = visiblePhotos.value.filter(
-    (p) => p.__textureLoaded && p.isVisible !== false
-  );
-
-  // Las nuevas fotos del frustum siempre se añaden (LOD se decide después)
-  visiblePhotos.value = [...existingCached, ...newPhotosToAdd];
-
-  // 🔧 CRÍTICO: Restaurar visibilidad de fotos que vuelven al frustum
+  // 🔧 Restaurar visibilidad de fotos que están en el frustum
   visiblePhotos.value.forEach((photo) => {
-    // Si una foto está en el frustum, nunca debe estar permanentemente oculta
     if (photo.__isLODHidden) {
       photo.__isLODHidden = false;
       photo.__currentLOD = undefined; // Forzar recálculo en próximo frame
+    }
+    // Actualizar cache de fotos con texturas cargadas
+    if (photo.__textureLoaded) {
+      cachedPhotosSet.add(photo.id);
     }
   });
 
   // Encolar para carga real SOLO las que están visibles, no cargadas, y necesitan descarga de red
   const cameraPos = camera.position;
-  newVisibleFromFrustum.forEach((photo) => {
+  visiblePhotos.value.forEach((photo) => {
     if (
       !photo.__imageDownloaded &&
       !photo.__downloading &&
@@ -1633,6 +1654,7 @@ const updateVisiblePhotos = () => {
       queuedIds.add(photo.id);
     }
   });
+
   // Ordenar cola global una vez tras inserciones (small optimization)
   if (textureQueue.value.length > 1) {
     textureQueue.value.sort((aId, bId) => {
@@ -1663,14 +1685,64 @@ const calculateBillboardRotation = (photoPosition, cameraPosition) => {
   return [tempObject.rotation.x, tempObject.rotation.y, tempObject.rotation.z];
 };
 
-// Función para actualizar rotaciones billboard
-const updateBillboardRotations = () => {
+// 🚀 NUEVA: Calcular distancias para todas las fotos visibles UNA SOLA VEZ por frame
+// Esto evita recalcular distancias múltiples veces en LOD, Billboard y Opacity
+const calculateDistancesForVisiblePhotos = (cameraPosition) => {
+  return visiblePhotos.value.map((photo) => {
+    const distSq =
+      Math.pow(cameraPosition.x - photo.position[0], 2) +
+      Math.pow(cameraPosition.y - photo.position[1], 2) +
+      Math.pow(cameraPosition.z - photo.position[2], 2);
+
+    return {
+      photo,
+      distSq,
+      distance: Math.sqrt(distSq), // Calcular una sola vez
+    };
+  });
+};
+
+// 🎯 Helper: Actualizar LOD, Billboard y Opacity con cálculo de distancias integrado
+// Usar esta función cuando se llame fuera del loop principal
+const updatePhotoEffects = () => {
   if (!cameraRef.value || visiblePhotos.value.length === 0) return;
+
+  const photosWithDistances = calculateDistancesForVisiblePhotos(
+    cameraRef.value.position
+  );
+
+  // Ordenar por distancia una sola vez
+  photosWithDistances.sort((a, b) => a.distSq - b.distSq);
+
+  // Aplicar todas las funciones
+  updatePhotoLOD(photosWithDistances);
+  if (useBillboarding.value) updateBillboardRotations(photosWithDistances);
+  updatePhotoOpacity(photosWithDistances);
+};
+
+// Función para actualizar rotaciones billboard
+// 🎯 OPTIMIZADO: Usa distancias pre-calculadas y aplica solo a fotos cercanas
+// (fotos lejanas son pequeñas, no se nota tanto la rotación)
+const updateBillboardRotations = (photosWithDistances) => {
+  if (!cameraRef.value || photosWithDistances.length === 0) return;
 
   const camera = cameraRef.value;
   const cameraPosition = camera.position;
 
-  visiblePhotos.value.forEach((photo) => {
+  // 🎯 Solo aplicar billboard a fotos cercanas si hay muchas
+  // (optimización visual: fotos lejanas son tan pequeñas que no se nota)
+  let photosToProcess = photosWithDistances;
+
+  if (photosWithDistances.length > MAX_PHOTOS_FOR_BILLBOARD) {
+    // Ya vienen ordenadas por distancia, solo tomar las N más cercanas
+    photosToProcess = photosWithDistances.slice(0, MAX_PHOTOS_FOR_BILLBOARD);
+
+    dlog(
+      `🎨 Billboard: Procesando ${photosToProcess.length}/${photosWithDistances.length} fotos cercanas`
+    );
+  }
+
+  photosToProcess.forEach(({ photo }) => {
     photo.billboardRotation = calculateBillboardRotation(
       photo.position,
       cameraPosition
@@ -1678,25 +1750,13 @@ const updateBillboardRotations = () => {
   });
 };
 
-// Advanced LOD (Level of Detail) System Configuration
-const LOD_LEVELS = {
-  ULTRA_CLOSE: 0, // Ultra high-res texture (768px) when very close
-  FULL: 1, // Full texture quality (384px)
-  REDUCED: 2, // Lower quality texture
-  PLACEHOLDER: 3, // Solid color based on dominant photo color
-  HIDDEN: 4, // Not rendered at all
-};
-
-// LOD distance thresholds (adjustable and reactive)
-const LOD_DISTANCES = ref({
-  ULTRA_CLOSE_TO_FULL: 15, // Switch to high-res textures when very close
-  FULL_TO_REDUCED: 30, // Start reducing texture quality
-  REDUCED_TO_PLACEHOLDER: 130, // Replace with solid color
-  PLACEHOLDER_TO_HIDDEN: 200, // Stop rendering completely
-});
-
 // Enable/disable LOD system
 const useLODSystem = ref(true);
+
+// 🎯 Límite máximo de fotos para procesar Billboard/Opacity (efectos visuales menores)
+// LOD se aplica SIEMPRE a todas las fotos (es necesario para performance)
+const MAX_PHOTOS_FOR_BILLBOARD = 2000; // Billboard solo para fotos cercanas
+const MAX_PHOTOS_FOR_OPACITY = 2000; // Opacity solo para fotos cercanas
 
 // 🔧 Función de depuración para diagnosticar problemas LOD
 const debugLODState = () => {
@@ -1734,7 +1794,21 @@ const debugLODState = () => {
     }
   });
 
-  console.log("🔍 LOD Debug Stats:", stats);
+  // 🎯 Agregar estadísticas de rendimiento del frustum culling
+  const totalPhotos = photosWithMaterials.value.length;
+  const visibleCount = visiblePhotos.value.length;
+  const cullingEfficiency =
+    totalPhotos > 0 ? ((1 - visibleCount / totalPhotos) * 100).toFixed(1) : 0;
+
+  console.log("🔍 LOD Debug Stats:", {
+    ...stats,
+    frustumCulling: {
+      total: totalPhotos,
+      visible: visibleCount,
+      culled: totalPhotos - visibleCount,
+      efficiency: `${cullingEfficiency}%`,
+    },
+  });
   return stats;
 };
 
@@ -1862,8 +1936,8 @@ const getLODLevel = (distance) => {
 
   if (distance > distances.PLACEHOLDER_TO_HIDDEN) {
     return LOD_LEVELS.HIDDEN;
-  } else if (distance > distances.REDUCED_TO_PLACEHOLDER) {
-    return LOD_LEVELS.PLACEHOLDER;
+    // } else if (distance > distances.REDUCED_TO_PLACEHOLDER) {
+    //   return LOD_LEVELS.PLACEHOLDER;
   } else if (distance > distances.FULL_TO_REDUCED) {
     return LOD_LEVELS.REDUCED;
   } else if (distance > distances.ULTRA_CLOSE_TO_FULL) {
@@ -1874,27 +1948,22 @@ const getLODLevel = (distance) => {
 };
 
 // Sistema LOD corregido - MANTIENE los materiales originales siempre
-const updatePhotoLOD = () => {
+// � OPTIMIZADO: Usa distancias pre-calculadas y aplica a TODAS las fotos
+// (el LOD ES la optimización de performance, debe aplicarse siempre)
+const updatePhotoLOD = (photosWithDistances) => {
   if (
     !useLODSystem.value ||
     !cameraRef.value ||
-    visiblePhotos.value.length === 0
+    photosWithDistances.length === 0
   ) {
     return;
   }
 
-  const camera = cameraRef.value;
-  const cameraPosition = camera.position;
-
-  visiblePhotos.value.forEach((photo) => {
+  // 🎯 CRÍTICO: Aplicar LOD a TODAS las fotos visibles
+  // El LOD es la optimización (reduce calidad de texturas lejanas)
+  // Limitarlo sería contraproducente
+  photosWithDistances.forEach(({ photo, distance }) => {
     if (!photo.material) return;
-
-    // Use cached distance calculation
-    const distance = getCachedDistance(
-      photo.id,
-      photo.position,
-      cameraPosition
-    );
 
     const lodLevel = getLODLevel(distance);
     const currentLOD = photo.__currentLOD || LOD_LEVELS.FULL;
@@ -2082,15 +2151,17 @@ const MIN_DISTANCE = 60;
 const MAX_DISTANCE = 100;
 const MIN_OPACITY = 0.2;
 
-// Función ORIGINAL de opacidad por distancia (MANTENER INTACTA)
-const updatePhotoOpacity = () => {
+// Función de opacidad por distancia
+// 🎯 OPTIMIZADO: Usa distancias pre-calculadas y aplica solo a fotos cercanas
+// (efecto sutil, no crítico para fotos lejanas)
+const updatePhotoOpacity = (photosWithDistances) => {
   if (
     !useDistanceOpacity.value ||
     !cameraRef.value ||
-    visiblePhotos.value.length === 0
+    photosWithDistances.length === 0
   ) {
     // Si no está habilitado, asegurar que todas las fotos tengan opacidad 1
-    visiblePhotos.value.forEach((photo) => {
+    photosWithDistances.forEach(({ photo }) => {
       if (photo.material && photo.material.opacity !== 1) {
         photo.material.opacity = 1;
       }
@@ -2098,17 +2169,20 @@ const updatePhotoOpacity = () => {
     return;
   }
 
-  const camera = cameraRef.value;
-  const cameraPosition = camera.position;
+  // 🎯 Solo aplicar opacity a fotos cercanas si hay muchas
+  // (efecto visual menor, optimización válida)
+  let photosToProcess = photosWithDistances;
 
-  visiblePhotos.value.forEach((photo) => {
-    // Use cached distance calculation
-    const distance = getCachedDistance(
-      photo.id,
-      photo.position,
-      cameraPosition
+  if (photosWithDistances.length > MAX_PHOTOS_FOR_OPACITY) {
+    // Ya vienen ordenadas por distancia, solo tomar las N más cercanas
+    photosToProcess = photosWithDistances.slice(0, MAX_PHOTOS_FOR_OPACITY);
+
+    dlog(
+      `� Opacity: Procesando ${photosToProcess.length}/${photosWithDistances.length} fotos cercanas`
     );
+  }
 
+  photosToProcess.forEach(({ photo, distance }) => {
     let opacity = 1;
     if (distance > MIN_DISTANCE) {
       const fadeRange = MAX_DISTANCE - MIN_DISTANCE;
@@ -2125,7 +2199,7 @@ const updatePhotoOpacity = () => {
 // Handler para cambio de billboarding
 const onBillboardingToggle = () => {
   if (useBillboarding.value) {
-    updateBillboardRotations();
+    updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
   }
 };
 
@@ -2227,11 +2301,23 @@ const animate = () => {
   if (!navigationBlocked.value) {
     if (frameCounter % frustumInterval === 0 || cameraPositionChanged) {
       updateVisiblePhotos();
-      if (useBillboarding.value && lodAllowed) updateBillboardRotations();
-      if (lodAllowed) {
-        updatePhotoLOD();
-        updatePhotoOpacity();
+
+      // 🚀 OPTIMIZACIÓN: Calcular distancias UNA SOLA VEZ para todo el frame
+      if (lodAllowed && visiblePhotos.value.length > 0 && cameraRef.value) {
+        const photosWithDistances = calculateDistancesForVisiblePhotos(
+          cameraRef.value.position
+        );
+
+        // Ordenar por distancia una sola vez (de cerca a lejos)
+        photosWithDistances.sort((a, b) => a.distSq - b.distSq);
+
+        // Aplicar las 3 funciones usando las mismas distancias pre-calculadas
+        updatePhotoLOD(photosWithDistances);
+        if (useBillboarding.value)
+          updateBillboardRotations(photosWithDistances);
+        updatePhotoOpacity(photosWithDistances);
       }
+
       if (!initialLoadingPhase.value && frameCounter % 600 === 0) {
         debugLODState();
       }
@@ -2412,7 +2498,7 @@ watch(
     );
     applyVisualAspectsFilter();
     updateVisiblePhotos();
-    if (useBillboarding.value) updateBillboardRotations();
+    updatePhotoEffects(); // Usa helper que calcula distancias internamente
   },
   { deep: true }
 );
