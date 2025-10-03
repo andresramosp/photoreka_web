@@ -1107,6 +1107,9 @@ const onVisualAspectsChange = () => {
   const visibleCount = filteredPhotos.value.length;
   updateLODDistances(visibleCount);
 
+  // 🔧 CRITICAL: Marcar octree para reconstrucción con fotos filtradas
+  octreeNeedsRebuild.value = true;
+
   updateVisiblePhotos();
   updatePhotoEffects(); // Aplica Billboard con distancias pre-calculadas
 };
@@ -1122,6 +1125,9 @@ const onArtisticScoresChange = () => {
   // Update LOD distances based on new filtered count
   const visibleCount = filteredPhotos.value.length;
   updateLODDistances(visibleCount);
+
+  // 🔧 CRITICAL: Marcar octree para reconstrucción con fotos filtradas
+  octreeNeedsRebuild.value = true;
 
   updateVisiblePhotos();
   updatePhotoEffects(); // Aplica Billboard con distancias pre-calculadas
@@ -1194,6 +1200,9 @@ const performSearch = async () => {
     const visibleCount = filteredPhotos.value.length;
     updateLODDistances(visibleCount);
 
+    // 🔧 CRITICAL: Marcar octree para reconstrucción con fotos filtradas
+    octreeNeedsRebuild.value = true;
+
     updateVisiblePhotos();
     updatePhotoEffects();
   } catch (error) {
@@ -1221,6 +1230,9 @@ const clearSearch = () => {
   // Update LOD distances based on new filtered count
   const visibleCount = filteredPhotos.value.length;
   updateLODDistances(visibleCount);
+
+  // 🔧 CRITICAL: Marcar octree para reconstrucción con fotos filtradas
+  octreeNeedsRebuild.value = true;
 
   updateVisiblePhotos();
   updatePhotoEffects();
