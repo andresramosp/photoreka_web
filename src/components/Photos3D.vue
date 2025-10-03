@@ -419,7 +419,6 @@ const MAX_RETRY_DELAY = 10000; // Maximum delay between retries (10 seconds)
 
 // ===== LOD System Composable =====
 const {
-  MAIN_TEXTURE_SIZE,
   resizeTextureToMaxSize,
   configureTextureSafely,
   updatePhotoLOD,
@@ -994,9 +993,10 @@ const filteredPhotos = computed(() => {
 
 // 🔧 Computed para fotos que realmente se deben renderizar (filtrar las ocultas por LOD)
 const photosToRender = computed(() => {
-  // Only render photos that have their textures loaded
+  // SOLO renderizar fotos con texturas COMPLETAMENTE cargadas (no placeholders)
+  // Esto evita ver rectángulos blancos durante la carga
   return visiblePhotos.value.filter(
-    (photo) => photo.__textureLoaded || photo.__imageDownloaded
+    (photo) => photo.__textureLoaded && photo.material
   );
 });
 
@@ -1284,6 +1284,7 @@ const downloadImageOnly = async (
 
     photoObj.__imageDownloaded = true;
     photoObj.__downloadError = false;
+    photoObj.__canCreateTexture = true; // Marcar que está lista para crear textura en bulk
     photoObj.__retryCount = undefined; // Limpiar contador de reintentos si existía
 
     // Si esta foto se recuperó después de un error 429, actualizar stats
@@ -1377,47 +1378,49 @@ const retryFailedPhotoOnDemand = async (photo) => {
   // Intentar descargar de nuevo (marcado como retry bajo demanda para evitar bucle infinito)
   await downloadImageOnly(photo, 0, true);
 
-  // Si se descargó exitosamente, crear textura inmediatamente
+  // Si se descargó exitosamente, crear textura inmediatamente CON LOD correcto
   if (photo.__imageDownloaded && !photo.__downloadError) {
     const imageElement = downloadedImagesCache.get(photo.id);
+    const cameraPos = cameraRef.value?.position || { x: 0, y: 0, z: 80 };
     if (imageElement) {
       try {
-        // 🔑 Guardar imagen original COMPLETA para futuros cambios de LOD
-        photo.__originalImageElement = imageElement;
+        // Calcular distancia para LOD
+        const dx = cameraPos.x - photo.position[0];
+        const dy = cameraPos.y - photo.position[1];
+        const dz = cameraPos.z - photo.position[2];
+        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-        // Crear textura inicial redimensionada (128px)
-        const resizedImage = resizeTextureToMaxSize(
-          imageElement,
-          MAIN_TEXTURE_SIZE
-        );
+        // 🎯 Para retry, también usar ULTRA para mejor calidad visual
+        const lodLevel = "ULTRA";
+        const textureSize = 768;
+
+        // Crear textura en LOD correcto
+        const resizedImage = resizeTextureToMaxSize(imageElement, textureSize);
         const texture = new THREE.CanvasTexture(resizedImage);
-        const isSmall = true;
-        configureTextureSafely(texture, isSmall);
+        configureTextureSafely(texture, false);
+        texture.needsUpdate = true; // 🔑 CRÍTICO: Forzar actualización en GPU
 
-        const newMat = new THREE.MeshBasicMaterial({
+        const material = new THREE.MeshBasicMaterial({
           map: texture,
-          transparent: true,
           side: THREE.DoubleSide,
-          alphaTest: 0.01,
-          depthWrite: false,
-          depthTest: true,
+          transparent: true,
+          opacity: 1,
         });
 
-        photo.__originalTexture = texture;
-
-        if (photo.material) {
-          photo.material.dispose();
-        }
-        photo.material = newMat;
+        photo.material = markRaw(material);
         photo.__textureLoaded = true;
+        photo.__currentLOD = lodLevel;
+        photo.__originalImageElement = imageElement;
 
         console.log(
-          `✅ Foto fallida cargada exitosamente bajo demanda: ${photo.id}`
+          `✅ Textura retry creada con LOD ${lodLevel} para foto ${photo.id}`
         );
         return true;
       } catch (error) {
-        console.warn("Error creando textura bajo demanda:", photo.id, error);
-        photo.__downloadError = true;
+        console.error(
+          `❌ Error en retry de textura para foto ${photo.id}:`,
+          error
+        );
         return false;
       }
     }
@@ -1426,13 +1429,16 @@ const retryFailedPhotoOnDemand = async (photo) => {
   return false;
 };
 
-// FASE 2: Crear texturas en bulk desde imágenes descargadas
+// FASE 2: Crear texturas en bulk desde imágenes descargadas CON LOD correcto
 const createTexturesInBulk = () => {
   console.log(
     "🎨 Creando texturas en bulk para",
     downloadedImagesCache.size,
-    "imágenes"
+    "imágenes CON LOD correcto desde el inicio"
   );
+
+  // Calcular distancias a cámara ANTES de crear texturas
+  const cameraPos = cameraRef.value?.position || { x: 0, y: 0, z: 80 };
 
   let createdCount = 0;
   let errorCount = 0;
@@ -1451,36 +1457,57 @@ const createTexturesInBulk = () => {
     }
 
     try {
-      // 🔑 IMPORTANTE: Guardar imagen original COMPLETA para LOD de alta calidad
-      photo.__originalImageElement = imageElement;
+      // Calcular distancia a cámara para determinar LOD inicial correcto
+      const dx = cameraPos.x - photo.position[0];
+      const dy = cameraPos.y - photo.position[1];
+      const dz = cameraPos.z - photo.position[2];
+      const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-      // Crear textura inicial REDIMENSIONADA para optimizar memoria en vista normal
-      const resizedImage = resizeTextureToMaxSize(
-        imageElement,
-        MAIN_TEXTURE_SIZE
-      );
+      // 🎯 ESTRATEGIA INICIAL: Crear TODAS las texturas en ULTRA (768px)
+      // El sistema LOD las reducirá automáticamente cuando sea necesario
+      // Esto evita ver fotos negras/borrosas al inicio
+      const lodLevel = "ULTRA";
+      const textureSize = 768;
+
+      // Crear textura DIRECTAMENTE en el LOD correcto (SIN placeholder blanco)
+      const resizedImage = resizeTextureToMaxSize(imageElement, textureSize);
       const texture = new THREE.CanvasTexture(resizedImage);
-      const isSmall = true; // Siempre es pequeña (128px)
-      configureTextureSafely(texture, isSmall);
+      configureTextureSafely(texture, false); // false = textura grande (con mipmaps)
+      texture.needsUpdate = true; // 🔑 CRÍTICO: Forzar actualización en GPU
 
-      const newMat = new THREE.MeshBasicMaterial({
+      // Debug: verificar que la textura se creó correctamente
+      if (
+        !resizedImage ||
+        resizedImage.width === 0 ||
+        resizedImage.height === 0
+      ) {
+        console.error(`❌ Imagen inválida para foto ${photo.id}:`, {
+          hasResizedImage: !!resizedImage,
+          width: resizedImage?.width,
+          height: resizedImage?.height,
+          lodLevel,
+          textureSize,
+        });
+        errorCount++;
+        return;
+      }
+
+      // Crear material con la textura ya en LOD correcto
+      const material = new THREE.MeshBasicMaterial({
         map: texture,
-        transparent: true,
         side: THREE.DoubleSide,
-        alphaTest: 0.01,
-        depthWrite: false,
-        depthTest: true,
+        transparent: true,
+        opacity: 1,
       });
 
-      // Almacenar textura original (128px) para LOD FULL y REDUCED
-      photo.__originalTexture = texture;
-
-      // Reemplazar material placeholder
-      if (photo.material) {
-        photo.material.dispose?.();
-      }
-      photo.material = newMat;
+      photo.material = markRaw(material);
       photo.__textureLoaded = true;
+      photo.__currentLOD = 0; // LOD_LEVELS.ULTRA (número, no string)
+      photo.__originalImageElement = imageElement; // Imagen original para crear otras resoluciones
+      photo.__ultraTexture = texture; // Textura de 768px para LOD ULTRA
+      photo.__ultraTextureLoaded = true; // Marcar como cargada
+      photo.__originalTexture = texture; // También guardar como original (compatibilidad)
+
       createdCount++;
     } catch (error) {
       console.warn("Error creando textura para foto:", photo.id, error);
@@ -1489,6 +1516,15 @@ const createTexturesInBulk = () => {
   });
 
   console.log("✅ Texturas creadas:", createdCount, "| Errores:", errorCount);
+
+  // Log de distribución de LOD para debug
+  const lodStats = photosWithMaterials.value.reduce((acc, p) => {
+    if (p.__currentLOD) {
+      acc[p.__currentLOD] = (acc[p.__currentLOD] || 0) + 1;
+    }
+    return acc;
+  }, {});
+  console.log("📊 Distribución de LOD creada:", lodStats);
 
   // 🔧 NO limpiar cache de imágenes - las fotos ahora mantienen referencia en __originalImageElement
   // downloadedImagesCache.clear(); // ELIMINADO: necesitamos las imágenes para LOD
@@ -1551,7 +1587,7 @@ const registerNewPhotos = async (newPhotos) => {
 
   const prepared = newPhotos.map((p) => ({
     ...p,
-    material: null, // No material until texture is loaded
+    material: null, // NO crear material hasta que se descargue la imagen
     position: p.position || [0, 0, 0],
     billboardRotation: [0, 0, 0],
     __textureLoaded: false,
@@ -1559,6 +1595,7 @@ const registerNewPhotos = async (newPhotos) => {
     __imageDownloaded: false,
     __downloading: false,
     __downloadError: false,
+    __canCreateTexture: false, // Nueva flag: solo true cuando imagen esté lista
     isVisible: true, // Inicializar como visible
   }));
 

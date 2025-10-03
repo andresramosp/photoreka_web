@@ -2,7 +2,7 @@ import { ref } from "vue";
 import * as THREE from "three";
 
 // ===== Debug Flag (wrap noisy logs) =====
-const DEBUG_3D = false;
+const DEBUG_3D = true; // 🔥 TEMPORALMENTE HABILITADO para debugging LOD
 function dlog(...args) {
   if (DEBUG_3D) console.log(...args);
 }
@@ -24,7 +24,7 @@ const LOD_LEVELS = {
 
 // LOD distance threshold (adjustable and reactive)
 const LOD_DISTANCES = ref({
-  ULTRA_TO_REDUCED: 20, // Switch between ultra and reduced quality
+  ULTRA_TO_REDUCED: 30, // Switch between ultra and reduced quality (aumentado para que sea visible)
 });
 
 // Enable/disable LOD system
@@ -208,6 +208,10 @@ const updatePhotoLOD = (
     return;
   }
 
+  // 🔍 Debug: Log del primer frame para verificar que se está llamando
+  let changedCount = 0;
+  let skippedCount = 0;
+
   // 🎯 CRÍTICO: Aplicar LOD a TODAS las fotos visibles
   // El LOD es la optimización (reduce calidad de texturas lejanas)
   // Limitarlo sería contraproducente
@@ -232,9 +236,11 @@ const updatePhotoLOD = (
 
     // Only update if LOD level changed
     if (lodLevel === currentLOD) {
+      skippedCount++;
       return;
     }
 
+    changedCount++;
     photo.__currentLOD = lodLevel;
 
     // 🔧 SOLUCIÓN: NUNCA crear nuevos materiales, solo cambiar la textura del material existente
@@ -250,7 +256,11 @@ const updatePhotoLOD = (
             photo.__ultraTexture = ultraTexture;
             photo.material.map = ultraTexture;
             photo.material.needsUpdate = true;
-            dlog(`🔍 LOD ULTRA aplicado para foto: ${photo.id}`);
+            console.log(
+              `🔍 LOD ULTRA aplicado para foto ${
+                photo.id
+              } (distancia: ${distance.toFixed(1)})`
+            );
           }
         } else if (
           photo.__ultraTexture &&
@@ -258,23 +268,22 @@ const updatePhotoLOD = (
         ) {
           photo.material.map = photo.__ultraTexture;
           photo.material.needsUpdate = true;
-          dlog(`🔍 LOD ULTRA restaurado para foto: ${photo.id}`);
+          console.log(
+            `🔍 LOD ULTRA restaurado para foto ${
+              photo.id
+            } (distancia: ${distance.toFixed(1)})`
+          );
         }
         break;
 
       case LOD_LEVELS.REDUCED:
-        // Limpiar textura ultra si existía (gestión de memoria)
-        if (photo.__ultraTexture) {
-          photo.__ultraTexture.dispose?.();
-          photo.__ultraTexture = null;
-          photo.__ultraTextureLoaded = false;
-        }
+        // NO limpiar textura ultra, mantenerla para poder volver
+        // Solo no la usamos temporalmente
 
-        // Usar textura reducida (crear solo una vez)
-        if (!photo.__reducedTexture && photo.__originalTexture) {
-          photo.__reducedTexture = createReducedTexture(
-            photo.__originalTexture
-          );
+        // Usar textura reducida (crear solo una vez desde la ultra)
+        if (!photo.__reducedTexture && photo.__ultraTexture) {
+          photo.__reducedTexture = createReducedTexture(photo.__ultraTexture);
+          console.log(`🎨 Textura REDUCED creada para foto ${photo.id}`);
         }
 
         // 🔧 CRÍTICO: Aplicar la textura reducida al material
@@ -284,11 +293,22 @@ const updatePhotoLOD = (
         ) {
           photo.material.map = photo.__reducedTexture;
           photo.material.needsUpdate = true;
-          dlog(`📉 LOD REDUCED aplicado para foto: ${photo.id}`);
+          console.log(
+            `📉 LOD REDUCED aplicado para foto ${
+              photo.id
+            } (distancia: ${distance.toFixed(1)})`
+          );
         }
         break;
     }
   });
+
+  // 🔍 Log de resumen de cambios LOD
+  if (changedCount > 0) {
+    console.log(
+      `🔄 LOD actualizado: ${changedCount} cambios, ${skippedCount} sin cambios`
+    );
+  }
 };
 
 /**
