@@ -269,14 +269,7 @@
             />
           </div>
 
-          <div class="control-item">
-            <span class="control-label">Distance Transparency</span>
-            <n-switch
-              v-model:value="useDistanceOpacity"
-              size="small"
-              @click.stop
-            />
-          </div>
+          <!-- Distance Transparency ahora está pre-establecida en los niveles LOD -->
 
           <!-- Radial Scaling Slider -->
           <div class="control-item-full" style="margin-top: 12px">
@@ -346,10 +339,10 @@
     <!-- Discrete Loading Indicator -->
     <div v-if="showDiscreteLoader" class="discrete-loader">
       <div class="loader-spinner"></div>
-      <span class="loader-text">{{
-        loadingProgress == 0 ? "Building Stage" : "Loading Photos"
-      }}</span>
-      <span v-show="loadingProgress != 0" class="loader-percentage"
+      <span class="loader-text">{{ loaderTitle }}</span>
+      <span
+        v-if="loaderStage === 'downloading' && loadingProgress > 0"
+        class="loader-percentage"
         >{{ loadingProgress }}%</span
       >
     </div>
@@ -385,6 +378,7 @@ import { use3DPhotos } from "@/composables/3d-viewer/use3DPhotos.js";
 import { useFirstPersonControls } from "@/composables//3d-viewer/useFirstPersonControls.js";
 import { visualAspectsOptions } from "@/stores/searchStore.js";
 import { useArtisticScores } from "@/composables/useArtisticScores.js";
+import { useIndexedDBCache } from "@/composables/useIndexedDBCache.js";
 import { api } from "@/utils/axios";
 import * as THREE from "three";
 import pLimit from "p-limit";
@@ -436,7 +430,7 @@ const cameraRef = ref();
 
 // Estado del componente
 const useBillboarding = ref(true);
-const useDistanceOpacity = ref(true);
+// Nota: Distance opacity ahora está pre-establecida en cada nivel LOD (no requiere toggle)
 const currentPosition = ref({ x: 0, y: 0, z: 80 });
 
 // Panel de configuración ocultable
@@ -463,6 +457,7 @@ let searchTimeout = null;
 const showDiscreteLoader = ref(true);
 const loaderTitle = ref("Loading Photos");
 const loaderSubtitle = ref("Preparing your photo collection...");
+const loaderStage = ref("loading"); // 'loading' | 'downloading' | 'caching' | 'creating'
 const totalPhotosToLoad = ref(0);
 const loadedPhotosCount = ref(0);
 const loadingProgress = ref(0);
@@ -598,15 +593,31 @@ const limitTexture = pLimit(MAX_CONCURRENT_DOWNLOADS);
 // Map para almacenar imágenes descargadas (imageId -> HTMLImageElement)
 const downloadedImagesCache = new Map();
 
+// IndexedDB Cache
+const {
+  initDB,
+  bulkCheckCache,
+  bulkLoadFromCache,
+  bulkCacheImages,
+  getCacheStats,
+} = useIndexedDBCache();
+
+// Cache statistics
+const cacheStats = ref({ totalImages: 0 });
+const cachedPhotoIds = ref(new Set());
+const isCachingImages = ref(false);
+const cachingProgress = ref(0);
+
 // Control de navegación durante carga inicial
 const navigationBlocked = ref(false);
 const downloadPhaseComplete = ref(false);
+const cachePhaseComplete = ref(false);
 
 // Performance optimization: throttling variables
 let frameCounter = 0;
-const THROTTLE_INTERVAL = 3; // Execute heavy operations every N frames
+const THROTTLE_INTERVAL = 7; // Execute heavy operations every N frames
 let lastCameraPosition = { x: 0, y: 0, z: 0 };
-const CAMERA_MOVE_THRESHOLD = 0.5; // Minimum movement to trigger updates
+const CAMERA_MOVE_THRESHOLD = 0.8; // Minimum movement to trigger updates
 
 // Reusable THREE.js objects to avoid garbage collection
 // 🎯 markRaw: Objetos reutilizables no necesitan tracking reactivo
@@ -739,7 +750,7 @@ const updateLoadingProgress = () => {
 };
 
 // Función para verificar si todas las texturas están cargadas
-const checkAllTexturesLoaded = () => {
+const checkAllTexturesLoaded = async () => {
   // Primero limpiar la cola de elementos obsoletos
   cleanTextureQueue();
 
@@ -780,7 +791,7 @@ const checkAllTexturesLoaded = () => {
   );
   const noQueuePending = textureQueue.value.length === 0;
 
-  // Si terminó la descarga pero aún no creamos texturas
+  // 🎯 Si terminó la descarga/cache-load pero aún no cacheamos ni creamos texturas
   if (
     allDownloaded &&
     nothingDownloading &&
@@ -788,8 +799,30 @@ const checkAllTexturesLoaded = () => {
     !isLoading.value &&
     !downloadPhaseComplete.value
   ) {
-    console.log("🎉 Fase de descarga completada. Creando texturas en bulk...");
+    console.log("🎉 Todas las imágenes disponibles. Procesando...");
     downloadPhaseComplete.value = true;
+
+    // Verificar cuántas vienen de cache vs descargadas
+    const fromCache = photosWithMaterials.value.filter(
+      (p) => p.__fromCache
+    ).length;
+    const downloaded = photosWithMaterials.value.length - fromCache;
+    console.log(
+      `📊 Origen: ${fromCache} desde cache, ${downloaded} descargadas`
+    );
+
+    // Solo cachear las que NO vinieron de cache (las recién descargadas)
+    if (downloaded > 0) {
+      console.log(`💾 Cacheando ${downloaded} imágenes nuevas...`);
+      await bulkCacheDownloadedImages();
+    } else {
+      console.log(
+        `✅ Todas las imágenes vinieron de cache, saltando fase de cacheo`
+      );
+    }
+
+    console.log("🎨 Creando texturas en bulk...");
+    cachePhaseComplete.value = true;
 
     // Crear texturas en bulk
     createTexturesInBulk();
@@ -1037,7 +1070,7 @@ const onVisualAspectsChange = () => {
   );
   applyFilters();
   updateVisiblePhotos();
-  updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
+  updatePhotoEffects(); // Aplica Billboard con distancias pre-calculadas
 };
 
 // Handler para cambio en filtro de artistic scores
@@ -1048,7 +1081,7 @@ const onArtisticScoresChange = () => {
   );
   applyFilters();
   updateVisiblePhotos();
-  updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
+  updatePhotoEffects(); // Aplica Billboard con distancias pre-calculadas
 };
 
 // Search functionality - Similar a PhotosDialog.vue
@@ -1254,16 +1287,117 @@ const updateTransitionPositions = (currentTime) => {
     distanceCache.clear();
 
     updateVisiblePhotos();
-    updatePhotoEffects(); // Aplica Billboard y Opacity con distancias pre-calculadas
+    updatePhotoEffects(); // Aplica Billboard con distancias pre-calculadas
   }
-}; // Función para configurar el loader
+}; // Nueva fase: Cachear todas las imágenes descargadas en IndexedDB
+const bulkCacheDownloadedImages = async () => {
+  isCachingImages.value = true;
+  loaderStage.value = "caching";
+  loaderTitle.value = "Caching Images";
+  loaderSubtitle.value = "Saving images for faster future loads...";
+  cachingProgress.value = 0;
+
+  const imagesToCache = [];
+
+  // Debug: contar fotos por estado
+  const totalPhotos = photosWithMaterials.value.length;
+  const downloadedPhotos = photosWithMaterials.value.filter(
+    (p) => p.__imageDownloaded
+  ).length;
+  const withImageElement = photosWithMaterials.value.filter(
+    (p) => p.__imageElement
+  ).length;
+  const withErrors = photosWithMaterials.value.filter(
+    (p) => p.__downloadError
+  ).length;
+
+  console.log(`📊 Estado antes de cachear:`, {
+    total: totalPhotos,
+    downloaded: downloadedPhotos,
+    withImageElement: withImageElement,
+    errors: withErrors,
+    eligibleForCache: photosWithMaterials.value.filter(
+      (p) => p.__imageDownloaded && !p.__downloadError && p.__imageElement
+    ).length,
+  });
+
+  // Preparar datos para cacheo en bulk - SOLO las que NO vienen de cache
+  for (const photo of photosWithMaterials.value) {
+    // 🎯 Skip fotos que ya vienen de cache (no necesitan re-cachearse)
+    if (photo.__fromCache) {
+      continue;
+    }
+
+    if (
+      photo.__imageDownloaded &&
+      !photo.__downloadError &&
+      photo.__imageElement
+    ) {
+      try {
+        // Convert HTMLImageElement to Blob
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = photo.__imageElement.width;
+        canvas.height = photo.__imageElement.height;
+        ctx.drawImage(photo.__imageElement, 0, 0);
+
+        const blob = await new Promise((resolve) => {
+          canvas.toBlob((b) => resolve(b), "image/jpeg", 0.95);
+        });
+
+        if (blob) {
+          imagesToCache.push({
+            id: photo.id,
+            blob: blob,
+            url: photo.__imageUrl,
+          });
+        }
+      } catch (error) {
+        console.warn(`⚠️ Error preparing image ${photo.id} for cache:`, error);
+      }
+    }
+  }
+
+  console.log(`💾 Cacheando ${imagesToCache.length} imágenes en IndexedDB...`);
+
+  if (imagesToCache.length > 0) {
+    try {
+      const result = await bulkCacheImages(imagesToCache);
+      console.log(
+        `✅ Cacheo completado: ${result.success} exitosos, ${result.failed} fallidos`
+      );
+
+      // Update cache stats
+      cacheStats.value = await getCacheStats();
+      console.log(
+        `📊 Total de imágenes en cache después de guardar: ${cacheStats.value.totalImages}`
+      );
+
+      // Add newly cached IDs to set
+      imagesToCache.forEach(({ id }) => cachedPhotoIds.value.add(id));
+    } catch (error) {
+      console.error("❌ Error durante cacheo en bulk:", error);
+    }
+  } else {
+    console.warn(
+      `⚠️ No hay imágenes elegibles para cachear de ${photosWithMaterials.value.length} fotos totales`
+    );
+  }
+
+  isCachingImages.value = false;
+  cachingProgress.value = 100;
+};
+
+// Función para configurar el loader
 const setupLoaderForPhotos = async (photos) => {
   console.log("🚀 setupLoaderForPhotos iniciado para", photos.length, "fotos");
 
   totalPhotosToLoad.value = photos.length;
   loadedPhotosCount.value = 0;
   loadingProgress.value = 0;
+  cachingProgress.value = 0;
 
+  loaderStage.value = "loading";
   loaderTitle.value = "Loading Photos";
   loaderSubtitle.value = "Preparing your photo collection...";
 };
@@ -1315,6 +1449,10 @@ const downloadImageOnly = async (
     // 🔑 CRÍTICO: Guardar imagen ORIGINAL sin redimensionar para poder crear
     // texturas de diferentes resoluciones (ULTRA, FULL, REDUCED) sin pérdida de calidad
     downloadedImagesCache.set(photoObj.id, imageElement);
+
+    // Store image metadata for bulk caching later
+    photoObj.__imageElement = imageElement;
+    photoObj.__imageUrl = imageUrl;
 
     photoObj.__imageDownloaded = true;
     photoObj.__downloadError = false;
@@ -1474,6 +1612,9 @@ const createLODObject = (imageElement, position) => {
 
 // FASE 2: Crear objetos THREE.LOD desde imágenes descargadas con 3 niveles de calidad
 const createTexturesInBulk = () => {
+  loaderStage.value = "creating";
+  loaderTitle.value = "Creating Textures";
+  loaderSubtitle.value = "Preparing 3D view...";
   let createdCount = 0;
   let errorCount = 0;
 
@@ -1570,6 +1711,79 @@ const enqueueAllNonCachedPhotos = (photos) => {
   return enqueuedCount;
 };
 
+// Nueva función: Cargar imágenes desde cache antes de descargar
+const loadImagesFromCache = async (photos) => {
+  loaderStage.value = "loading";
+  loaderTitle.value = "Loading Photos";
+  loaderSubtitle.value = "Checking local storage...";
+
+  const photoIds = photos.map((p) => p.id);
+
+  console.log(`🔍 Cargando fotos desde cache para ${photoIds.length} fotos...`);
+
+  try {
+    // Load cached images in bulk (devuelve solo los que existen)
+    const cachedBlobs = await bulkLoadFromCache(photoIds);
+
+    console.log(`✅ Cargadas ${cachedBlobs.size} imágenes desde cache`);
+
+    if (cachedBlobs.size > 0) {
+      loaderSubtitle.value = `Loading ${cachedBlobs.size} photos from cache...`;
+      cachedPhotoIds.value = new Set(cachedBlobs.keys());
+
+      // Convert Blobs to HTMLImageElements and store in cache
+      let loadedFromCache = 0;
+      for (const [photoId, blob] of cachedBlobs.entries()) {
+        try {
+          const imageUrl = URL.createObjectURL(blob);
+          const img = await new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = () => {
+              URL.revokeObjectURL(imageUrl);
+              resolve(image);
+            };
+            image.onerror = reject;
+            image.src = imageUrl;
+          });
+
+          downloadedImagesCache.set(photoId, img);
+
+          // Mark photo as downloaded from cache
+          const photo = photos.find((p) => p.id === photoId);
+          if (photo) {
+            photo.__imageDownloaded = true;
+            photo.__downloadError = false;
+            photo.__canCreateTexture = true;
+            photo.__fromCache = true;
+            photo.__imageElement = img;
+            photo.__imageUrl =
+              photo.thumbnailUrl || photo.url || photo.originalUrl; // For potential re-caching
+          }
+
+          loadedFromCache++;
+        } catch (error) {
+          console.warn(`⚠️ Error loading cached image ${photoId}:`, error);
+          // Remove from cached set if loading fails
+          cachedPhotoIds.value.delete(photoId);
+        }
+      }
+
+      console.log(
+        `✅ ${loadedFromCache} imágenes cargadas exitosamente desde cache`
+      );
+      updateLoadingProgress();
+    }
+
+    // Update cache stats
+    cacheStats.value = await getCacheStats();
+
+    return cached.size;
+  } catch (error) {
+    console.error("❌ Error cargando desde cache:", error);
+    return 0;
+  }
+};
+
 // Integración nueva: Inicializar foto con placeholder y encolar su ID
 const registerNewPhotos = async (newPhotos) => {
   dlog("🔄 Registrando fotos nuevas, configurando loader discreto");
@@ -1577,30 +1791,158 @@ const registerNewPhotos = async (newPhotos) => {
   // Bloquear navegación durante carga inicial
   navigationBlocked.value = true;
   downloadPhaseComplete.value = false;
+  cachePhaseComplete.value = false;
 
   // Configurar el loader según el estado de cache
   await setupLoaderForPhotos(newPhotos);
   showLoader();
 
+  // ===== PASO 1: Buscar en cache y cargar en bulk =====
+  loaderStage.value = "loading";
+  loaderTitle.value = "Loading Photos";
+  loaderSubtitle.value = "Checking local storage...";
+
+  const photoIds = newPhotos.map((p) => p.id);
+  console.log(`🔍 Cargando fotos desde cache para ${photoIds.length} fotos...`);
+
+  // Cargar blobs desde cache en bulk (devuelve solo los que existen)
+  const cachedBlobs = await bulkLoadFromCache(photoIds);
+  console.log(`✅ Cargadas ${cachedBlobs.size} imágenes desde cache`);
+
+  // Convertir blobs a HTMLImageElements y guardar en downloadedImagesCache
+  for (const [photoId, blob] of cachedBlobs.entries()) {
+    try {
+      const imageUrl = URL.createObjectURL(blob);
+      const img = await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => {
+          URL.revokeObjectURL(imageUrl);
+          resolve(image);
+        };
+        image.onerror = reject;
+        image.src = imageUrl;
+      });
+
+      // Guardar en el mismo Map que las descargadas
+      downloadedImagesCache.set(photoId, img);
+    } catch (error) {
+      console.warn(`⚠️ Error loading cached image ${photoId}:`, error);
+      cachedBlobs.delete(photoId); // Remover de la lista de cacheadas
+    }
+  }
+
+  console.log(`✅ ${downloadedImagesCache.size} imágenes listas desde cache`);
+
+  // ===== PASO 2: Descargar las restantes desde network =====
+  const photosToDownload = newPhotos.filter((p) => !cachedBlobs.has(p.id));
+
+  if (photosToDownload.length > 0) {
+    console.log(`📥 Descargando ${photosToDownload.length} fotos restantes...`);
+    loaderStage.value = "downloading";
+    loaderTitle.value = "Loading Photos";
+    loaderSubtitle.value = `Downloading ${photosToDownload.length} photos...`;
+
+    // Descargar en paralelo con p-limit
+    const downloadPromises = photosToDownload.map((photo) =>
+      limitTexture(async () => {
+        const imageUrl = photo.thumbnailUrl || photo.url || photo.originalUrl;
+        if (!imageUrl) return;
+
+        try {
+          const img = await new Promise((resolve, reject) => {
+            const image = new Image();
+            image.crossOrigin = "anonymous";
+            image.onload = () => resolve(image);
+            image.onerror = reject;
+            image.src = imageUrl;
+          });
+
+          // Guardar en el mismo Map
+          downloadedImagesCache.set(photo.id, img);
+
+          // Actualizar progreso
+          const loaded = downloadedImagesCache.size;
+          const total = newPhotos.length;
+          loadingProgress.value = Math.round((loaded / total) * 100);
+        } catch (error) {
+          console.warn(`⚠️ Error descargando ${photo.id}:`, error);
+        }
+      })
+    );
+
+    await Promise.all(downloadPromises);
+    console.log(
+      `✅ Total de imágenes cargadas: ${downloadedImagesCache.size}/${newPhotos.length}`
+    );
+  } else {
+    console.log(`✅ Todas las fotos estaban en cache!`);
+  }
+
+  // ===== PASO 3: Cachear las nuevas descargas =====
+  if (photosToDownload.length > 0) {
+    console.log(`💾 Cacheando ${photosToDownload.length} nuevas imágenes...`);
+    loaderStage.value = "caching";
+    loaderTitle.value = "Caching Images";
+
+    const imagesToCache = [];
+    for (const photo of photosToDownload) {
+      const img = downloadedImagesCache.get(photo.id);
+      if (!img) continue;
+
+      try {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        const blob = await new Promise((resolve) => {
+          canvas.toBlob((b) => resolve(b), "image/jpeg", 0.95);
+        });
+
+        if (blob) {
+          imagesToCache.push({
+            id: photo.id,
+            blob: blob,
+            url: photo.thumbnailUrl || photo.url || photo.originalUrl,
+          });
+        }
+      } catch (error) {
+        console.warn(`⚠️ Error preparando ${photo.id} para cache:`, error);
+      }
+    }
+
+    if (imagesToCache.length > 0) {
+      const result = await bulkCacheImages(imagesToCache);
+      console.log(
+        `✅ Cacheo completado: ${result.success} exitosos, ${result.failed} fallidos`
+      );
+    }
+  }
+
+  // ===== PASO 4: Crear texturas =====
+  console.log(`🎨 Creando texturas para ${newPhotos.length} fotos...`);
+  loaderStage.value = "creating";
+  loaderTitle.value = "Creating Textures";
+
   const prepared = newPhotos.map((p) => ({
     ...p,
-    lodObject: null, // LOD object will be created when image is downloaded
+    lodObject: null,
     position: p.position || [0, 0, 0],
     billboardRotation: [0, 0, 0],
     __textureLoaded: false,
     __loading: false,
-    __imageDownloaded: false,
+    __imageDownloaded: downloadedImagesCache.has(p.id),
     __downloading: false,
-    __downloadError: false,
-    __canCreateTexture: false,
+    __downloadError: !downloadedImagesCache.has(p.id),
+    __canCreateTexture: downloadedImagesCache.has(p.id),
     isVisible: true,
   }));
 
-  // Guardar posiciones originales si aún no las tenemos
+  // Guardar posiciones originales
   if (originalPositions.value.length === 0) {
     originalPositions.value = prepared.map((p) => [...p.position]);
   } else {
-    // Agregar las nuevas posiciones originales
     const newOriginals = prepared
       .slice(photosWithMaterials.value.length)
       .map((p) => [...p.position]);
@@ -1609,25 +1951,26 @@ const registerNewPhotos = async (newPhotos) => {
 
   photosWithMaterials.value = [...photosWithMaterials.value, ...prepared];
 
-  // Aplicar escaleo actual si es diferente de 1.0
   if (inflateFactor.value !== 1.0) {
     applyRadialScaling();
   }
 
-  // Aplicar filtro de aspectos visuales a las fotos nuevas
   applyFilters();
 
-  // Encolar todas las fotos para carga de texturas
-  if (prepared.length > 0) enqueueAllNonCachedPhotos(prepared);
+  // Crear texturas inmediatamente (no encolar para descarga)
+  createTexturesInBulk();
 
-  // Iniciar loop mínimo de descarga (solo processTextureQueue, sin Three.js)
-  if (!downloadLoopId) {
-    startDownloadLoop();
+  // Reactivar navegación
+  navigationBlocked.value = false;
+
+  if (fpControls.value) {
+    fpControls.value.setup();
   }
 
-  // Recalcular visibilidad global (frustum + filtros) tras registrar
+  hideLoader();
+
   updateVisiblePhotos();
-  updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
+  updatePhotoEffects();
 };
 
 // ✨ Nueva función optimizada para cambios de chunk que reutiliza texturas
@@ -1726,6 +2069,21 @@ const updatePhotosPositions = async (newPhotos) => {
     showLoader();
     navigationBlocked.value = true;
     downloadPhaseComplete.value = false;
+    cachePhaseComplete.value = false;
+
+    // Intentar cargar desde cache primero
+    const cachedCount = await loadImagesFromCache(toTexture);
+
+    if (cachedCount > 0) {
+      console.log(
+        `⚡ ${cachedCount} fotos cargadas desde cache en cambio de chunk`
+      );
+      loaderStage.value = "downloading";
+      loaderSubtitle.value = `Loading ${
+        toTexture.length - cachedCount
+      } remaining photos...`;
+    }
+
     enqueueAllNonCachedPhotos(toTexture);
 
     // Iniciar loop mínimo de descarga si no está corriendo
@@ -1739,7 +2097,7 @@ const updatePhotosPositions = async (newPhotos) => {
   }
 
   applyFilters();
-  updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
+  updatePhotoEffects(); // Aplica Billboard con distancias pre-calculadas
 
   // ⚠️ NOTA: NO actualizamos LOD aquí porque las posiciones están en transición
   // El LOD se actualizará automáticamente al finalizar la animación en updateTransitionPositions()
@@ -1817,7 +2175,7 @@ const applyRadialScaling = () => {
 const onInflateFactorChange = () => {
   applyRadialScaling();
   updateVisiblePhotos();
-  updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
+  updatePhotoEffects(); // Aplica Billboard con distancias pre-calculadas
 };
 
 // Helper function to calculate distance with caching
@@ -1936,7 +2294,8 @@ const calculateBillboardRotation = (photoPosition, cameraPosition) => {
 };
 
 // 🚀 NUEVA: Calcular distancias para todas las fotos visibles UNA SOLA VEZ por frame
-// Esto evita recalcular distancias múltiples veces en LOD, Billboard y Opacity
+// Esto evita recalcular distancias múltiples veces en LOD y Billboard
+// Nota: La opacidad ya está pre-establecida en cada nivel LOD
 const calculateDistancesForVisiblePhotos = (cameraPosition) => {
   return visiblePhotos.value.map((photo) => {
     const distSq =
@@ -1952,8 +2311,9 @@ const calculateDistancesForVisiblePhotos = (cameraPosition) => {
   });
 };
 
-// 🎯 Helper: Actualizar Billboard y Opacity con cálculo de distancias integrado
+// 🎯 Helper: Actualizar Billboard con cálculo de distancias integrado
 // Usar esta función cuando se llame fuera del loop principal
+// Nota: La opacidad ya está pre-establecida en cada nivel LOD, no necesita cálculo
 const updatePhotoEffects = () => {
   if (!cameraRef.value || visiblePhotos.value.length === 0) return;
 
@@ -1964,9 +2324,8 @@ const updatePhotoEffects = () => {
   // Ordenar por distancia una sola vez
   photosWithDistances.sort((a, b) => a.distSq - b.distSq);
 
-  // Aplicar billboarding y opacity (sin LOD)
+  // Aplicar billboarding (la opacidad ya está establecida en los materiales LOD)
   if (useBillboarding.value) updateBillboardRotations(photosWithDistances);
-  updatePhotoOpacity(photosWithDistances);
 };
 
 // Función para actualizar rotaciones billboard
@@ -2002,74 +2361,15 @@ const updateBillboardRotations = (photosWithDistances) => {
   });
 };
 
-// 🎯 Límite máximo de fotos para procesar Billboard/Opacity (efectos visuales menores)
+// 🎯 Límite máximo de fotos para procesar Billboard (efecto visual menor)
 // LOD se aplica SIEMPRE a todas las fotos (es necesario para performance)
+// Opacidad está pre-establecida en cada nivel LOD (no requiere cálculo por frame)
 const MAX_PHOTOS_FOR_BILLBOARD = 2000; // Billboard solo para fotos cercanas
-const MAX_PHOTOS_FOR_OPACITY = 2000; // Opacity solo para fotos cercanas
-
-// Mantener configuración original de opacidad por distancia
-const MIN_DISTANCE = 60;
-const MAX_DISTANCE = 100;
-const MIN_OPACITY = 0.2;
-
-// Función de opacidad por distancia
-// 🎯 OPTIMIZADO: Usa distancias pre-calculadas y aplica solo a fotos cercanas
-// (efecto sutil, no crítico para fotos lejanas)
-const updatePhotoOpacity = (photosWithDistances) => {
-  if (
-    !useDistanceOpacity.value ||
-    !cameraRef.value ||
-    photosWithDistances.length === 0
-  ) {
-    // Si no está habilitado, asegurar que todas las fotos tengan opacidad 1
-    photosWithDistances.forEach(({ photo }) => {
-      if (photo.lodObject) {
-        photo.lodObject.traverse((child) => {
-          if (child.isMesh && child.material) {
-            child.material.opacity = 1;
-          }
-        });
-      }
-    });
-    return;
-  }
-
-  // 🎯 Solo aplicar opacity a fotos cercanas si hay muchas
-  // (efecto visual menor, optimización válida)
-  let photosToProcess = photosWithDistances;
-
-  if (photosWithDistances.length > MAX_PHOTOS_FOR_OPACITY) {
-    // Ya vienen ordenadas por distancia, solo tomar las N más cercanas
-    photosToProcess = photosWithDistances.slice(0, MAX_PHOTOS_FOR_OPACITY);
-
-    dlog(
-      `� Opacity: Procesando ${photosToProcess.length}/${photosWithDistances.length} fotos cercanas`
-    );
-  }
-
-  photosToProcess.forEach(({ photo, distance }) => {
-    if (!photo.lodObject) return;
-
-    let opacity = 1;
-    if (distance > MIN_DISTANCE) {
-      const fadeRange = MAX_DISTANCE - MIN_DISTANCE;
-      const fadeProgress = Math.min((distance - MIN_DISTANCE) / fadeRange, 1);
-      opacity = Math.max(MIN_OPACITY, 1 - fadeProgress);
-    }
-
-    // Apply opacity to all materials in LOD
-    photo.lodObject.traverse((child) => {
-      if (child.isMesh && child.material) {
-        child.material.opacity = opacity;
-      }
-    });
-  });
-};
 
 // Handler para cambio de billboarding
 const onBillboardingToggle = () => {
   if (useBillboarding.value) {
-    updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
+    updatePhotoEffects(); // Aplica Billboard con distancias pre-calculadas
   }
 };
 
@@ -2188,10 +2488,9 @@ const animate = () => {
         // Ordenar por distancia una sola vez (de cerca a lejos)
         photosWithDistances.sort((a, b) => a.distSq - b.distSq);
 
-        // Aplicar billboarding y opacity
+        // Aplicar billboarding (la opacidad ya está en los materiales LOD)
         if (useBillboarding.value)
           updateBillboardRotations(photosWithDistances);
-        updatePhotoOpacity(photosWithDistances);
       }
     }
   }
@@ -2392,6 +2691,21 @@ let resizeObserver = null;
 // Lifecycle
 onMounted(async () => {
   try {
+    // Initialize IndexedDB
+    console.log("💾 Inicializando IndexedDB cache...");
+    try {
+      await initDB();
+      cacheStats.value = await getCacheStats();
+      console.log(
+        `✅ IndexedDB inicializado. Imágenes en cache: ${cacheStats.value.totalImages}`
+      );
+    } catch (error) {
+      console.warn(
+        "⚠️ No se pudo inicializar IndexedDB, funcionando sin cache:",
+        error
+      );
+    }
+
     // Verificar capacidades GPU primero
     const gpuAvailable = checkGPUCapabilities();
     if (!gpuAvailable) {
@@ -2977,5 +3291,23 @@ onUnmounted(() => {
   min-width: 35px;
   text-align: right;
   white-space: nowrap;
+}
+
+.loader-stage-badge {
+  font-size: 16px;
+  line-height: 1;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
 }
 </style>

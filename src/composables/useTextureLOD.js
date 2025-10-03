@@ -3,7 +3,7 @@
  * Returns textures ready to use with THREE.LOD.addLevel()
  */
 
-import * as THREE from 'three';
+import * as THREE from "three";
 
 /**
  * Resize image to specific dimensions maintaining aspect ratio
@@ -12,8 +12,11 @@ import * as THREE from 'three';
  * @returns {HTMLCanvasElement} Resized canvas
  */
 function resizeImageToSize(imageElement, targetSize) {
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d', { alpha: true, willReadFrequently: false });
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d", {
+    alpha: true,
+    willReadFrequently: false,
+  });
 
   const aspectRatio = imageElement.width / imageElement.height;
   let targetWidth, targetHeight;
@@ -28,9 +31,9 @@ function resizeImageToSize(imageElement, targetSize) {
 
   canvas.width = targetWidth;
   canvas.height = targetHeight;
-  
+
   ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
+  ctx.imageSmoothingQuality = "high";
   ctx.drawImage(imageElement, 0, 0, targetWidth, targetHeight);
 
   return canvas;
@@ -52,39 +55,43 @@ function createTextureFromCanvas(canvas) {
 }
 
 /**
- * Create THREE.js material with texture
+ * Create THREE.js material with texture and optional opacity
  * @param {THREE.Texture} texture - Texture to apply
+ * @param {number} opacity - Material opacity (0.0 to 1.0)
  * @returns {THREE.MeshBasicMaterial} Material with texture
  */
-function createMaterialWithTexture(texture) {
+function createMaterialWithTexture(texture, opacity = 1.0) {
   return new THREE.MeshBasicMaterial({
     map: texture,
     side: THREE.DoubleSide,
     transparent: true,
+    opacity: opacity,
   });
 }
 
 /**
- * Create textures at multiple resolutions for LOD
+ * Create textures at multiple resolutions for LOD with pre-established opacity
  * @param {HTMLImageElement} imageElement - Source image
- * @param {Array} sizes - Array of {size, distance} objects
+ * @param {Array} sizes - Array of {size, distance, opacity} objects
  * @returns {Array} Array of {material, texture, canvas, distance} objects
  */
 export function createLODTextures(imageElement, sizes) {
   if (!imageElement) return [];
 
-  return sizes.map(({ size, distance }) => {
-    try {
-      const canvas = resizeImageToSize(imageElement, size);
-      const texture = createTextureFromCanvas(canvas);
-      const material = createMaterialWithTexture(texture);
-      
-      return { material, texture, canvas, distance };
-    } catch (error) {
-      console.error(`Error creating LOD texture at size ${size}:`, error);
-      return null;
-    }
-  }).filter(Boolean);
+  return sizes
+    .map(({ size, distance, opacity = 1.0 }) => {
+      try {
+        const canvas = resizeImageToSize(imageElement, size);
+        const texture = createTextureFromCanvas(canvas);
+        const material = createMaterialWithTexture(texture, opacity);
+
+        return { material, texture, canvas, distance };
+      } catch (error) {
+        console.error(`Error creating LOD texture at size ${size}:`, error);
+        return null;
+      }
+    })
+    .filter(Boolean);
 }
 
 /**
@@ -93,7 +100,7 @@ export function createLODTextures(imageElement, sizes) {
  */
 export function disposeLODTextures(lodTextures) {
   if (!lodTextures) return;
-  
+
   lodTextures.forEach(({ material, texture, canvas }) => {
     if (texture) texture.dispose();
     if (material) material.dispose();
