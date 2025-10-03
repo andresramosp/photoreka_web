@@ -403,7 +403,7 @@ import {
 } from "@/composables/3d-viewer/useTextureLOD.js";
 import {
   getLODConfigurations,
-  MAX_DISTANCE_VISIBLE,
+  getMaxVisibleDistance,
 } from "@/composables/lodUtils.js";
 
 // ===== Debug Flag (wrap noisy logs) =====
@@ -1102,6 +1102,11 @@ const onVisualAspectsChange = () => {
     selectedVisualAspects.value
   );
   applyFilters();
+
+  // Update LOD distances based on new filtered count
+  const visibleCount = filteredPhotos.value.length;
+  updateLODDistances(visibleCount);
+
   updateVisiblePhotos();
   updatePhotoEffects(); // Aplica Billboard con distancias pre-calculadas
 };
@@ -1113,6 +1118,11 @@ const onArtisticScoresChange = () => {
     selectedArtisticScores.value
   );
   applyFilters();
+
+  // Update LOD distances based on new filtered count
+  const visibleCount = filteredPhotos.value.length;
+  updateLODDistances(visibleCount);
+
   updateVisiblePhotos();
   updatePhotoEffects(); // Aplica Billboard con distancias pre-calculadas
 };
@@ -1179,6 +1189,11 @@ const performSearch = async () => {
 
     // Apply filters with search results
     applyFilters();
+
+    // Update LOD distances based on new filtered count
+    const visibleCount = filteredPhotos.value.length;
+    updateLODDistances(visibleCount);
+
     updateVisiblePhotos();
     updatePhotoEffects();
   } catch (error) {
@@ -1202,6 +1217,11 @@ const clearSearch = () => {
 
   // Reapply filters without search
   applyFilters();
+
+  // Update LOD distances based on new filtered count
+  const visibleCount = filteredPhotos.value.length;
+  updateLODDistances(visibleCount);
+
   updateVisiblePhotos();
   updatePhotoEffects();
 };
@@ -1591,7 +1611,12 @@ const retryFailedPhotoOnDemand = async (photo) => {
     const imageElement = downloadedImagesCache.get(photo.id);
     if (imageElement) {
       try {
-        const lodObject = createLODObject(imageElement, photo.position);
+        const visibleCount = filteredPhotos.value.length;
+        const lodObject = createLODObject(
+          imageElement,
+          photo.position,
+          visibleCount
+        );
 
         if (lodObject) {
           if (photo.lodObject) {
@@ -1624,8 +1649,9 @@ const retryFailedPhotoOnDemand = async (photo) => {
 };
 
 // Helper function to create THREE.LOD object for a photo
-const createLODObject = (imageElement, position) => {
-  const lodConfigs = getLODConfigurations();
+// Uses dynamic LOD distances based on the number of visible photos
+const createLODObject = (imageElement, position, visiblePhotoCount = 2000) => {
+  const lodConfigs = getLODConfigurations(visiblePhotoCount);
   const lodTextures = createLODTextures(imageElement, lodConfigs);
 
   if (!lodTextures || lodTextures.length === 0) return null;
@@ -1646,6 +1672,44 @@ const createLODObject = (imageElement, position) => {
   return markRaw(lod);
 };
 
+// Helper function to update LOD distances for existing LOD objects
+// This allows dynamic adjustment without recreating textures
+const updateLODDistances = (visiblePhotoCount) => {
+  const lodConfigs = getLODConfigurations(visiblePhotoCount);
+  const maxVisibleDistance = getMaxVisibleDistance(visiblePhotoCount);
+
+  console.log(
+    `🔄 Updating LOD distances for ${visiblePhotoCount} visible photos`
+  );
+  console.log(
+    "📏 New LOD distances:",
+    lodConfigs.map((c) => `${c.level}: ${c.distance}m`).join(", ")
+  );
+  console.log(`🌐 Max visible distance: ${maxVisibleDistance}m`);
+
+  let updatedCount = 0;
+
+  photosWithMaterials.value.forEach((photo) => {
+    if (!photo.lodObject) return;
+
+    const lod = photo.lodObject;
+
+    // THREE.LOD stores levels in an array, we need to update the distance for each level
+    // The levels array has objects with { distance, object }
+    if (lod.levels && lod.levels.length > 0) {
+      // Update distances for each level
+      lodConfigs.forEach((config, index) => {
+        if (lod.levels[index]) {
+          lod.levels[index].distance = config.distance;
+        }
+      });
+      updatedCount++;
+    }
+  });
+
+  console.log(`✅ Updated LOD distances for ${updatedCount} photo objects`);
+};
+
 // FASE 2: Crear objetos THREE.LOD desde imágenes descargadas con 3 niveles de calidad
 const createTexturesInBulk = () => {
   loaderStage.value = "creating";
@@ -1653,6 +1717,9 @@ const createTexturesInBulk = () => {
   loaderSubtitle.value = "Preparing 3D view...";
   let createdCount = 0;
   let errorCount = 0;
+
+  // Calculate visible photo count for dynamic LOD configuration
+  const visibleCount = filteredPhotos.value.length;
 
   photosWithMaterials.value.forEach((photo) => {
     if (photo.__downloadError) {
@@ -1667,8 +1734,12 @@ const createTexturesInBulk = () => {
     }
 
     try {
-      // Create THREE.LOD object with 3 quality levels
-      const lodObject = createLODObject(imageElement, photo.position);
+      // Create THREE.LOD object with dynamic quality levels based on visible photo count
+      const lodObject = createLODObject(
+        imageElement,
+        photo.position,
+        visibleCount
+      );
 
       if (!lodObject) {
         errorCount++;
@@ -1685,13 +1756,14 @@ const createTexturesInBulk = () => {
       photo.__loading = false;
 
       // Set initial visibility based on filter state and distance
-      // Photos beyond MAX_DISTANCE_VISIBLE should not be visible at all
+      // Photos beyond dynamic max visible distance should not be visible at all
       if (cameraRef.value && photo.isVisible !== false) {
+        const maxVisibleDistance = getMaxVisibleDistance(visibleCount);
         const dx = photo.position[0] - cameraRef.value.position.x;
         const dy = photo.position[1] - cameraRef.value.position.y;
         const dz = photo.position[2] - cameraRef.value.position.z;
         const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        lodObject.visible = distance <= MAX_DISTANCE_VISIBLE;
+        lodObject.visible = distance <= maxVisibleDistance;
       } else {
         lodObject.visible = photo.isVisible !== false;
       }
@@ -2267,8 +2339,9 @@ const getCachedDistance = (photoId, photoPosition, cameraPosition) => {
 
 // Función para actualizar fotos visibles usando Frustum Culling ESTRICTO con Octree
 // 🎯 OPTIMIZACIÓN: Usa spatial partitioning para evitar checks innecesarios
-// 🚫 DISTANCIA MÁXIMA: Fotos más allá de MAX_DISTANCE_VISIBLE son completamente ocultas
+// 🚫 DISTANCIA MÁXIMA DINÁMICA: Fotos más allá de getMaxVisibleDistance() son completamente ocultas
 //    (no se renderizan, no consumen recursos, lodObject.visible = false)
+//    La distancia máxima se ajusta según el número de fotos visibles (filtradas)
 const updateVisiblePhotos = () => {
   if (!cameraRef.value || filteredPhotos.value.length === 0) {
     visiblePhotos.value = [];
@@ -2276,6 +2349,9 @@ const updateVisiblePhotos = () => {
   }
 
   const camera = cameraRef.value;
+
+  // Calculate max visible distance based on filtered photo count
+  const maxVisibleDistance = getMaxVisibleDistance(filteredPhotos.value.length);
 
   // Rebuild octree if needed (after position changes)
   if (octreeNeedsRebuild.value && filteredPhotos.value.length > 0) {
@@ -2305,13 +2381,13 @@ const updateVisiblePhotos = () => {
     reusableSphere.set(reusableVector3, 2); // Radio de la esfera de la foto
 
     // 🚫 FILTRO CRÍTICO: Verificar distancia máxima ANTES del frustum check
-    // Fotos más allá de MAX_DISTANCE_VISIBLE NO SE RENDERIZAN (cero recursos)
+    // Fotos más allá de la distancia máxima dinámica NO SE RENDERIZAN (cero recursos)
     const dx = photo.position[0] - camera.position.x;
     const dy = photo.position[1] - camera.position.y;
     const dz = photo.position[2] - camera.position.z;
     const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-    if (distance > MAX_DISTANCE_VISIBLE) {
+    if (distance > maxVisibleDistance) {
       // Ocultar completamente el LOD object
       if (photo.lodObject) {
         photo.lodObject.visible = false;
@@ -2330,11 +2406,7 @@ const updateVisiblePhotos = () => {
     return isInFrustum;
   });
 
-  dlog(
-    `🔍 Octree culling: ${filteredPhotos.value.length} total -> ${candidatePhotos.length} candidates -> ${visiblePhotos.value.length} visible (within ${MAX_DISTANCE_VISIBLE} units)`
-  );
-
-  // 🔧 Actualizar cache de fotos con texturas cargadas
+  // Actualizar cache de fotos con texturas cargadas
   visiblePhotos.value.forEach((photo) => {
     if (photo.__textureLoaded) {
       cachedPhotosSet.add(photo.id);
