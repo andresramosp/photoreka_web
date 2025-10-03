@@ -26,6 +26,9 @@
       <!-- LOD Group containing all photo LODs -->
       <primitive :object="lodGroup" />
 
+      <!-- Octree Debug Visualization -->
+      <primitive :object="octreeDebugGroup" />
+
       <!-- Grid helper -->
       <primitive :object="gridHelper" />
     </TresCanvas>
@@ -269,6 +272,17 @@
             />
           </div>
 
+          <!-- Octree Debug Visualization -->
+          <div class="control-item" v-if="DEBUG_3D">
+            <span class="control-label">Octree Debug (Dev)</span>
+            <n-switch
+              v-model:value="showOctreeDebug"
+              @update:value="onOctreeDebugToggle"
+              size="small"
+              @click.stop
+            />
+          </div>
+
           <!-- Distance Transparency ahora está pre-establecida en los niveles LOD -->
 
           <!-- Radial Scaling Slider -->
@@ -379,13 +393,14 @@ import { useFirstPersonControls } from "@/composables//3d-viewer/useFirstPersonC
 import { visualAspectsOptions } from "@/stores/searchStore.js";
 import { useArtisticScores } from "@/composables/useArtisticScores.js";
 import { useIndexedDBCache } from "@/composables/useIndexedDBCache.js";
+import { useOctree } from "@/composables/3d-viewer/useOctree.js";
 import { api } from "@/utils/axios";
 import * as THREE from "three";
 import pLimit from "p-limit";
 import {
   createLODTextures,
   disposeLODTextures,
-} from "@/composables/useTextureLOD.js";
+} from "@/composables/3d-viewer/useTextureLOD.js";
 import { getLODConfigurations } from "@/composables/lodUtils.js";
 
 // ===== Debug Flag (wrap noisy logs) =====
@@ -432,6 +447,10 @@ const cameraRef = ref();
 const useBillboarding = ref(true);
 // Nota: Distance opacity ahora está pre-establecida en cada nivel LOD (no requiere toggle)
 const currentPosition = ref({ x: 0, y: 0, z: 80 });
+
+// Debug mode for octree visualization
+const showOctreeDebug = ref(false);
+const octreeDebugGroup = markRaw(new THREE.Group());
 
 // Panel de configuración ocultable
 const showConfigPanel = ref(false);
@@ -601,6 +620,17 @@ const {
   bulkCacheImages,
   getCacheStats,
 } = useIndexedDBCache();
+
+// Octree for spatial partitioning
+const {
+  buildOctree,
+  queryFrustum,
+  queryRadius,
+  getStats: getOctreeStats,
+  getAllBounds,
+  clear: clearOctree,
+} = useOctree(8, 5); // maxObjects=8, maxLevels=5
+const octreeNeedsRebuild = ref(true);
 
 // Cache statistics
 const cacheStats = ref({ totalImages: 0 });
@@ -1286,6 +1316,9 @@ const updateTransitionPositions = (currentTime) => {
     // Limpiar cache de distancias para forzar recálculo
     distanceCache.clear();
 
+    // Marcar octree para reconstrucción después de cambios de posición
+    octreeNeedsRebuild.value = true;
+
     updateVisiblePhotos();
     updatePhotoEffects(); // Aplica Billboard con distancias pre-calculadas
   }
@@ -1969,6 +2002,9 @@ const registerNewPhotos = async (newPhotos) => {
 
   hideLoader();
 
+  // Marcar octree para reconstrucción con nuevas fotos
+  octreeNeedsRebuild.value = true;
+
   updateVisiblePhotos();
   updatePhotoEffects();
 };
@@ -2050,6 +2086,9 @@ const updatePhotosPositions = async (newPhotos) => {
 
   // Actualizar originales (se usan para escaleo radial)
   originalPositions.value = newOriginalPositions;
+
+  // Marcar octree para reconstrucción después de la animación
+  octreeNeedsRebuild.value = true;
 
   // Animar
   animatePositionTransition(
@@ -2174,6 +2213,8 @@ const applyRadialScaling = () => {
 // Handler para cambio en el slider de escaleo
 const onInflateFactorChange = () => {
   applyRadialScaling();
+  // Marcar octree para reconstrucción después de escalado radial
+  octreeNeedsRebuild.value = true;
   updateVisiblePhotos();
   updatePhotoEffects(); // Aplica Billboard con distancias pre-calculadas
 };
@@ -2212,8 +2253,8 @@ const getCachedDistance = (photoId, photoPosition, cameraPosition) => {
   return distance;
 };
 
-// Función para actualizar fotos visibles usando Frustum Culling ESTRICTO
-// 🎯 OPTIMIZACIÓN: visiblePhotos ahora contiene SOLO fotos en el frustum actual
+// Función para actualizar fotos visibles usando Frustum Culling ESTRICTO con Octree
+// 🎯 OPTIMIZACIÓN: Usa spatial partitioning para evitar checks innecesarios
 const updateVisiblePhotos = () => {
   if (!cameraRef.value || filteredPhotos.value.length === 0) {
     visiblePhotos.value = [];
@@ -2222,6 +2263,14 @@ const updateVisiblePhotos = () => {
 
   const camera = cameraRef.value;
 
+  // Rebuild octree if needed (after position changes)
+  if (octreeNeedsRebuild.value && filteredPhotos.value.length > 0) {
+    buildOctree(filteredPhotos.value);
+    octreeNeedsRebuild.value = false;
+    const stats = getOctreeStats();
+    console.log("🌳 Octree rebuilt for frustum culling:", stats);
+  }
+
   // Reutilizar objetos existentes para evitar garbage collection
   reusableMatrix.multiplyMatrices(
     camera.projectionMatrix,
@@ -2229,13 +2278,23 @@ const updateVisiblePhotos = () => {
   );
   reusableFrustum.setFromProjectionMatrix(reusableMatrix);
 
-  // 🔥 CRÍTICO: Filtrar SOLO fotos que intersectan con el frustum ACTUAL
-  // No mantener fotos antiguas cacheadas en este array
-  visiblePhotos.value = filteredPhotos.value.filter((photo) => {
+  // � OPTIMIZACIÓN OCTREE: Query solo objetos en nodos relevantes
+  const candidatePhotos =
+    filteredPhotos.value.length > 100
+      ? queryFrustum(reusableFrustum)
+      : filteredPhotos.value;
+
+  // �🔥 CRÍTICO: Filtrar SOLO fotos que intersectan con el frustum ACTUAL
+  // Verificación final con esfera para mayor precisión
+  visiblePhotos.value = candidatePhotos.filter((photo) => {
     reusableVector3.set(...photo.position);
     reusableSphere.set(reusableVector3, 2); // Radio de la esfera de la foto
     return reusableFrustum.intersectsSphere(reusableSphere);
   });
+
+  dlog(
+    `🔍 Octree culling: ${filteredPhotos.value.length} total -> ${candidatePhotos.length} candidates -> ${visiblePhotos.value.length} visible`
+  );
 
   // 🔧 Actualizar cache de fotos con texturas cargadas
   visiblePhotos.value.forEach((photo) => {
@@ -2270,6 +2329,67 @@ const updateVisiblePhotos = () => {
       const b = photosWithMaterials.value.find((p) => p.id === bId);
       return (a?.__priority || 0) - (b?.__priority || 0);
     });
+  }
+
+  // Actualizar visualización debug del octree si está activada
+  if (showOctreeDebug.value) {
+    updateOctreeDebugVisualization();
+  }
+};
+
+// Función para visualizar los bounds del Octree (debug)
+const updateOctreeDebugVisualization = () => {
+  // Limpiar visualización anterior
+  while (octreeDebugGroup.children.length > 0) {
+    const child = octreeDebugGroup.children[0];
+    if (child.geometry) child.geometry.dispose();
+    if (child.material) child.material.dispose();
+    octreeDebugGroup.remove(child);
+  }
+
+  if (!showOctreeDebug.value) return;
+
+  // Obtener todos los bounds del octree
+  const bounds = getAllBounds();
+
+  // Crear wireframe boxes para cada bound
+  const material = new THREE.LineBasicMaterial({
+    color: 0x00ff00,
+    opacity: 0.3,
+    transparent: true,
+  });
+
+  bounds.forEach((box) => {
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    box.getSize(size);
+    box.getCenter(center);
+
+    const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+    const edges = new THREE.EdgesGeometry(geometry);
+    const line = new THREE.LineSegments(edges, material.clone());
+    line.position.copy(center);
+
+    octreeDebugGroup.add(line);
+    geometry.dispose();
+    edges.dispose();
+  });
+
+  console.log(`🐛 Octree debug: Visualizando ${bounds.length} bounds`);
+};
+
+// Handler para toggle de debug del octree
+const onOctreeDebugToggle = () => {
+  if (showOctreeDebug.value) {
+    updateOctreeDebugVisualization();
+  } else {
+    // Limpiar visualización
+    while (octreeDebugGroup.children.length > 0) {
+      const child = octreeDebugGroup.children[0];
+      if (child.geometry) child.geometry.dispose();
+      if (child.material) child.material.dispose();
+      octreeDebugGroup.remove(child);
+    }
   }
 };
 
@@ -2794,6 +2914,15 @@ onUnmounted(() => {
 
   // Limpiar caches
   distanceCache.clear();
+
+  // Limpiar octree y su visualización debug
+  clearOctree();
+  while (octreeDebugGroup.children.length > 0) {
+    const child = octreeDebugGroup.children[0];
+    if (child.geometry) child.geometry.dispose();
+    if (child.material) child.material.dispose();
+    octreeDebugGroup.remove(child);
+  }
 
   // Limpiar objetos LOD
   photosWithMaterials.value.forEach((photo) => {
