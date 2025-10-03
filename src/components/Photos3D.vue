@@ -652,32 +652,6 @@ const checkGPUCapabilities = () => {
   return true;
 };
 
-// Placeholder material (se clona por foto para poder variar opacidad individual)
-const placeholderCanvas = document.createElement("canvas");
-placeholderCanvas.width = 8;
-placeholderCanvas.height = 8;
-const phCtx = placeholderCanvas.getContext("2d");
-phCtx.fillStyle = "#1e40af"; // Azul primario del theme
-phCtx.fillRect(0, 0, 8, 8);
-phCtx.fillStyle = "#3b82f6"; // Azul más claro para contraste
-phCtx.fillRect(0, 0, 4, 8);
-// 🎯 markRaw: Texturas Three.js no necesitan reactividad
-const placeholderTexture = markRaw(new THREE.CanvasTexture(placeholderCanvas));
-// Configure placeholder texture safely
-configureTextureSafely(placeholderTexture);
-
-const createPlaceholderMaterial = () =>
-  new THREE.MeshBasicMaterial({
-    map: placeholderTexture,
-    transparent: true,
-    opacity: 0.85,
-    side: THREE.DoubleSide,
-    // GPU optimizations
-    alphaTest: 0.01, // Discard nearly transparent pixels early in GPU
-    depthWrite: false, // Better for transparent objects
-    depthTest: true,
-  });
-
 // Frustum culling - solo renderizar fotos visibles
 const visiblePhotos = ref([]); // SOLO fotos actualmente en el frustum
 const cachedPhotosSet = new Set(); // IDs de fotos con texturas cargadas (para evitar recargas)
@@ -1020,7 +994,10 @@ const filteredPhotos = computed(() => {
 
 // 🔧 Computed para fotos que realmente se deben renderizar (filtrar las ocultas por LOD)
 const photosToRender = computed(() => {
-  return visiblePhotos.value.filter((photo) => !photo.__isLODHidden);
+  // Only render photos that have their textures loaded
+  return visiblePhotos.value.filter(
+    (photo) => photo.__textureLoaded || photo.__imageDownloaded
+  );
 });
 
 // Handler para cambio en filtro de aspectos visuales
@@ -1574,7 +1551,7 @@ const registerNewPhotos = async (newPhotos) => {
 
   const prepared = newPhotos.map((p) => ({
     ...p,
-    material: createPlaceholderMaterial(),
+    material: null, // No material until texture is loaded
     position: p.position || [0, 0, 0],
     billboardRotation: [0, 0, 0],
     __textureLoaded: false,
@@ -1842,13 +1819,8 @@ const updateVisiblePhotos = () => {
     return reusableFrustum.intersectsSphere(reusableSphere);
   });
 
-  // 🔧 Restaurar visibilidad de fotos que están en el frustum
+  // 🔧 Actualizar cache de fotos con texturas cargadas
   visiblePhotos.value.forEach((photo) => {
-    if (photo.__isLODHidden) {
-      photo.__isLODHidden = false;
-      photo.__currentLOD = undefined; // Forzar recálculo en próximo frame
-    }
-    // Actualizar cache de fotos con texturas cargadas
     if (photo.__textureLoaded) {
       cachedPhotosSet.add(photo.id);
     }

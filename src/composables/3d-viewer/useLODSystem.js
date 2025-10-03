@@ -10,43 +10,33 @@ function dlog(...args) {
 // ===== Texture Size Configuration =====
 // 🎯 ESTRATEGIA DE TEXTURAS:
 // - Descarga: Imagen original COMPLETA sin redimensionar (guardada en __originalImageElement)
-// - Material inicial: Textura 128px (MAIN_TEXTURE_SIZE) para optimizar memoria
-// - LOD REDUCED: Textura 32px (128px * 0.25) creada desde imagen original
-// - LOD FULL: Textura 128px (reutiliza __originalTexture)
-// - LOD ULTRA_CLOSE: Textura 768px creada desde imagen original (máxima calidad)
-const MAIN_TEXTURE_SIZE = 128; // Main texture resolution (px) - usado para vista normal
+// - Material inicial: Textura 128px (REDUCED_TEXTURE_SIZE) para optimizar memoria
+// - LOD REDUCED: Textura 128px creada desde imagen original (fotos lejanas)
+// - LOD ULTRA: Textura 768px creada desde imagen original (fotos cercanas - máxima calidad)
 const ULTRA_TEXTURE_SIZE = 768; // Ultra high-res texture for close viewing (px)
-const REDUCED_TEXTURE_FACTOR = 0.75; // Factor for reduced quality textures (32px)
+const REDUCED_TEXTURE_SIZE = 56; // Reduced texture resolution (px)
 
-// Advanced LOD (Level of Detail) System Configuration
+// LOD (Level of Detail) System - 2 niveles
 const LOD_LEVELS = {
-  ULTRA_CLOSE: 0, // Ultra high-res texture (768px) when very close
-  FULL: 1, // Full texture quality (384px)
-  REDUCED: 2, // Lower quality texture
-  PLACEHOLDER: 3, // Solid color based on dominant photo color
-  HIDDEN: 4, // Not rendered at all
+  ULTRA: 0, // Ultra high-res texture (768px) when close
+  REDUCED: 1, // Reduced texture (128px) when far
 };
 
-// LOD distance thresholds (adjustable and reactive)
+// LOD distance threshold (adjustable and reactive)
 const LOD_DISTANCES = ref({
-  ULTRA_CLOSE_TO_FULL: 15, // Switch to high-res textures when very close
-  FULL_TO_REDUCED: 25, // Start reducing texture quality
-  // REDUCED_TO_PLACEHOLDER: 130, // Replace with solid color
-  PLACEHOLDER_TO_HIDDEN: 200, // Stop rendering completely
+  ULTRA_TO_REDUCED: 20, // Switch between ultra and reduced quality
 });
 
 // Enable/disable LOD system
 const useLODSystem = ref(true);
 
-// Cache for dominant colors and reduced textures
-const dominantColorCache = new Map();
+// Cache for reduced textures
 const reducedTextureCache = new Map();
-const placeholderMaterialCache = new Map();
 
 /**
  * Helper function to resize textures aggressively for memory optimization
  */
-const resizeTextureToMaxSize = (image, maxSize = MAIN_TEXTURE_SIZE) => {
+const resizeTextureToMaxSize = (image, maxSize = REDUCED_TEXTURE_SIZE) => {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
 
@@ -111,41 +101,6 @@ const configureTextureSafely = (texture, isSmallTexture = false) => {
 };
 
 /**
- * Extract dominant color from image (fast approximation)
- */
-const extractDominantColor = (imageElement) => {
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-
-  // Use small canvas for performance
-  canvas.width = 32;
-  canvas.height = 24;
-
-  ctx.drawImage(imageElement, 0, 0, 32, 24);
-
-  const imageData = ctx.getImageData(0, 0, 32, 24);
-  const data = imageData.data;
-
-  let r = 0,
-    g = 0,
-    b = 0;
-  const pixelCount = data.length / 4;
-
-  // Average color calculation (fast)
-  for (let i = 0; i < data.length; i += 4) {
-    r += data[i];
-    g += data[i + 1];
-    b += data[i + 2];
-  }
-
-  r = Math.floor(r / pixelCount);
-  g = Math.floor(g / pixelCount);
-  b = Math.floor(b / pixelCount);
-
-  return (r << 16) | (g << 8) | b; // Return as hex color
-};
-
-/**
  * Create reduced quality texture (lower resolution) - Very aggressive compression
  */
 const createReducedTexture = (originalTexture) => {
@@ -158,18 +113,17 @@ const createReducedTexture = (originalTexture) => {
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "low";
 
-  // Reduce to very small size for aggressive memory optimization
+  // Reduce to fixed size for memory optimization
   const originalWidth = originalTexture.image.width || 256;
   const originalHeight = originalTexture.image.height || 192;
 
-  canvas.width = Math.max(
-    32,
-    Math.floor(originalWidth * REDUCED_TEXTURE_FACTOR)
+  // Calculate dimensions maintaining aspect ratio
+  const scale = Math.min(
+    REDUCED_TEXTURE_SIZE / originalWidth,
+    REDUCED_TEXTURE_SIZE / originalHeight
   );
-  canvas.height = Math.max(
-    24,
-    Math.floor(originalHeight * REDUCED_TEXTURE_FACTOR)
-  );
+  canvas.width = Math.floor(originalWidth * scale);
+  canvas.height = Math.floor(originalHeight * scale);
 
   ctx.drawImage(originalTexture.image, 0, 0, canvas.width, canvas.height);
 
@@ -229,21 +183,15 @@ const createUltraTexture = (photoObj, downloadedImagesCache) => {
  * Determine LOD level based on distance
  */
 const getLODLevel = (distance) => {
-  if (!useLODSystem.value) return LOD_LEVELS.FULL;
+  if (!useLODSystem.value) return LOD_LEVELS.REDUCED;
 
   const distances = LOD_DISTANCES.value;
 
-  if (distance > distances.PLACEHOLDER_TO_HIDDEN) {
-    return LOD_LEVELS.HIDDEN;
-    // } else if (distance > distances.REDUCED_TO_PLACEHOLDER) {
-    //   return LOD_LEVELS.PLACEHOLDER;
-  } else if (distance > distances.FULL_TO_REDUCED) {
+  if (distance > distances.ULTRA_TO_REDUCED) {
     return LOD_LEVELS.REDUCED;
-  } else if (distance > distances.ULTRA_CLOSE_TO_FULL) {
-    return LOD_LEVELS.FULL;
   }
 
-  return LOD_LEVELS.ULTRA_CLOSE;
+  return LOD_LEVELS.ULTRA;
 };
 
 /**
@@ -267,18 +215,15 @@ const updatePhotoLOD = (
     if (!photo.material) return;
 
     const lodLevel = getLODLevel(distance);
-    const currentLOD = photo.__currentLOD || LOD_LEVELS.FULL;
+    const currentLOD = photo.__currentLOD || LOD_LEVELS.REDUCED;
 
-    // 🆕 CRÍTICO: Detectar fotos fallidas y activar retry bajo demanda en nivel REDUCED
+    // 🆕 CRÍTICO: Detectar fotos fallidas y activar retry bajo demanda
     // Esto permite que las fotos que fallaron en la carga inicial se reintenten cuando
-    // el usuario se acerca a ellas, pero a una distancia razonable (no ultra cercana)
+    // el usuario se acerca a ellas
     if (
       retryFailedPhotoOnDemand &&
       photo.__downloadError &&
-      photo.__canRetryOnDemand &&
-      (lodLevel === LOD_LEVELS.REDUCED ||
-        lodLevel === LOD_LEVELS.FULL ||
-        lodLevel === LOD_LEVELS.ULTRA_CLOSE)
+      photo.__canRetryOnDemand
     ) {
       // Intentar cargar la foto fallida bajo demanda
       retryFailedPhotoOnDemand(photo);
@@ -296,7 +241,7 @@ const updatePhotoLOD = (
     // 📌 IMPORTANTE: Las texturas de diferentes resoluciones (ultra, reduced) se crean desde
     //    la imagen original ya descargada (__originalImageElement), NO se descarga de nuevo
     switch (lodLevel) {
-      case LOD_LEVELS.ULTRA_CLOSE:
+      case LOD_LEVELS.ULTRA:
         // Cargar textura ultra alta resolución (768px) de forma lazy
         // ✅ Reutiliza la imagen original, no descarga de nuevo
         if (!photo.__ultraTexture && !photo.__ultraTextureLoaded) {
@@ -305,7 +250,7 @@ const updatePhotoLOD = (
             photo.__ultraTexture = ultraTexture;
             photo.material.map = ultraTexture;
             photo.material.needsUpdate = true;
-            dlog(`🔍 LOD ULTRA_CLOSE aplicado para foto: ${photo.id}`);
+            dlog(`🔍 LOD ULTRA aplicado para foto: ${photo.id}`);
           }
         } else if (
           photo.__ultraTexture &&
@@ -313,31 +258,8 @@ const updatePhotoLOD = (
         ) {
           photo.material.map = photo.__ultraTexture;
           photo.material.needsUpdate = true;
-          dlog(`🔍 LOD ULTRA_CLOSE restaurado para foto: ${photo.id}`);
+          dlog(`🔍 LOD ULTRA restaurado para foto: ${photo.id}`);
         }
-        // Asegurar visibilidad
-        photo.__isLODHidden = false;
-        break;
-
-      case LOD_LEVELS.FULL:
-        // Limpiar textura ultra si existía (gestión de memoria)
-        if (photo.__ultraTexture) {
-          photo.__ultraTexture.dispose?.();
-          photo.__ultraTexture = null;
-          photo.__ultraTextureLoaded = false;
-        }
-
-        // Restaurar textura original completa
-        if (
-          photo.__originalTexture &&
-          photo.material.map !== photo.__originalTexture
-        ) {
-          photo.material.map = photo.__originalTexture;
-          photo.material.needsUpdate = true;
-          dlog(`📷 LOD FULL aplicado para foto: ${photo.id}`);
-        }
-        // Asegurar visibilidad
-        photo.__isLODHidden = false;
         break;
 
       case LOD_LEVELS.REDUCED:
@@ -364,77 +286,7 @@ const updatePhotoLOD = (
           photo.material.needsUpdate = true;
           dlog(`📉 LOD REDUCED aplicado para foto: ${photo.id}`);
         }
-        // Asegurar visibilidad
-        photo.__isLODHidden = false;
         break;
-
-      case LOD_LEVELS.PLACEHOLDER:
-        // Crear textura de color sólido (crear solo una vez)
-        if (!photo.__placeholderTexture) {
-          if (!photo.__dominantColor && photo.__originalTexture?.image) {
-            photo.__dominantColor = extractDominantColor(
-              photo.__originalTexture.image
-            );
-          }
-
-          if (photo.__dominantColor) {
-            // Crear una pequeña textura con el color predominante
-            const canvas = document.createElement("canvas");
-            canvas.width = 4;
-            canvas.height = 4;
-            const ctx = canvas.getContext("2d");
-            const color = photo.__dominantColor;
-            const r = (color >> 16) & 255;
-            const g = (color >> 8) & 255;
-            const b = color & 255;
-            ctx.fillStyle = `rgb(${r},${g},${b})`;
-            ctx.fillRect(0, 0, 4, 4);
-
-            photo.__placeholderTexture = new THREE.CanvasTexture(canvas);
-            photo.__placeholderTexture.colorSpace = THREE.SRGBColorSpace;
-          }
-        }
-
-        // Solo cambiar la textura, NO el material
-        if (
-          photo.__placeholderTexture &&
-          photo.material.map !== photo.__placeholderTexture
-        ) {
-          photo.material.map = photo.__placeholderTexture;
-          photo.material.needsUpdate = true;
-        }
-        // Asegurar visibilidad
-        photo.__isLODHidden = false;
-        break;
-
-      case LOD_LEVELS.HIDDEN:
-        // Marcar como oculta (se filtra en updateVisiblePhotos)
-        photo.__isLODHidden = true;
-        break;
-    }
-
-    // 🔧 CRÍTICO: Si salimos del estado HIDDEN, SIEMPRE restaurar visibilidad
-    if (lodLevel !== LOD_LEVELS.HIDDEN) {
-      photo.__isLODHidden = false;
-    }
-  });
-};
-
-/**
- * Helper function to preload dominant colors for visible photos
- */
-const preloadDominantColors = async (visiblePhotos) => {
-  if (!useLODSystem.value) return;
-
-  const photosNeedingColors = visiblePhotos.filter(
-    (photo) => photo.__originalTexture?.image && !photo.__dominantColor
-  );
-
-  photosNeedingColors.forEach((photo) => {
-    if (photo.__originalTexture?.image) {
-      photo.__dominantColor = extractDominantColor(
-        photo.__originalTexture.image
-      );
     }
   });
 };
@@ -447,11 +299,8 @@ const debugLODState = (visiblePhotos, totalPhotos) => {
 
   const stats = {
     total: visiblePhotos.length,
-    full: 0,
-    ultraClose: 0,
+    ultra: 0,
     reduced: 0,
-    placeholder: 0,
-    hidden: 0,
     withoutTexture: 0,
   };
 
@@ -461,22 +310,13 @@ const debugLODState = (visiblePhotos, totalPhotos) => {
       return;
     }
 
-    const lod = photo.__currentLOD || LOD_LEVELS.FULL;
+    const lod = photo.__currentLOD || LOD_LEVELS.REDUCED;
     switch (lod) {
-      case LOD_LEVELS.ULTRA_CLOSE:
-        stats.ultraClose++;
-        break;
-      case LOD_LEVELS.FULL:
-        stats.full++;
+      case LOD_LEVELS.ULTRA:
+        stats.ultra++;
         break;
       case LOD_LEVELS.REDUCED:
         stats.reduced++;
-        break;
-      case LOD_LEVELS.PLACEHOLDER:
-        stats.placeholder++;
-        break;
-      case LOD_LEVELS.HIDDEN:
-        stats.hidden++;
         break;
     }
   });
@@ -505,30 +345,25 @@ export function useLODSystemComposable() {
   return {
     // Constants
     LOD_LEVELS,
-    MAIN_TEXTURE_SIZE,
     ULTRA_TEXTURE_SIZE,
-    REDUCED_TEXTURE_FACTOR,
+    REDUCED_TEXTURE_SIZE,
 
     // Reactive state
     LOD_DISTANCES,
     useLODSystem,
 
     // Caches
-    dominantColorCache,
     reducedTextureCache,
-    placeholderMaterialCache,
 
     // Helper functions
     resizeTextureToMaxSize,
     configureTextureSafely,
-    extractDominantColor,
     createReducedTexture,
     createUltraTexture,
     getLODLevel,
 
     // Main LOD functions
     updatePhotoLOD,
-    preloadDominantColors,
     debugLODState,
   };
 }
