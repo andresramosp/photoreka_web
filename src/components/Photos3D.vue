@@ -23,23 +23,8 @@
       <!-- Lighting -->
       <primitive :object="lightsGroup" />
 
-      <!-- Photo planes - renderizar solo fotos visibles y no ocultas por LOD -->
-      <!-- v-memo: Solo re-renderizar cuando cambien position, rotation o material -->
-      <template v-for="(photo, index) in photosToRender" :key="photo.id">
-        <TresMesh
-          v-memo="[
-            photo.position,
-            photo.billboardRotation,
-            photo.material,
-            useBillboarding,
-          ]"
-          :position="photo.position"
-          :rotation="useBillboarding ? photo.billboardRotation : [0, 0, 0]"
-        >
-          <primitive :object="planeGeometry" />
-          <primitive :object="photo.material" v-if="photo.material" />
-        </TresMesh>
-      </template>
+      <!-- LOD Group containing all photo LODs -->
+      <primitive :object="lodGroup" />
 
       <!-- Grid helper -->
       <primitive :object="gridHelper" />
@@ -403,6 +388,11 @@ import { useArtisticScores } from "@/composables/useArtisticScores.js";
 import { api } from "@/utils/axios";
 import * as THREE from "three";
 import pLimit from "p-limit";
+import {
+  createLODTextures,
+  disposeLODTextures,
+} from "@/composables/useTextureLOD.js";
+import { getLODConfigurations } from "@/composables/lodUtils.js";
 
 // ===== Debug Flag (wrap noisy logs) =====
 const DEBUG_3D = false; // pon a true temporalmente si quieres verbosidad
@@ -550,11 +540,43 @@ planeGeometry.attributes.normal.setUsage(THREE.StaticDrawUsage);
 const gridHelper = markRaw(new THREE.GridHelper(200, 40));
 gridHelper.position.y = -50;
 
+// Group for LOD objects
+const lodGroup = markRaw(new THREE.Group());
+
 // Texture loader (habilitar CORS anónimo para Cloudflare si aplica)
 const textureLoader = new THREE.TextureLoader();
 try {
   textureLoader.setCrossOrigin && textureLoader.setCrossOrigin("anonymous");
 } catch (_) {}
+
+// Helper function to dispose LOD object and all its resources
+const disposeLODObject = (lodObject) => {
+  if (!lodObject) return;
+
+  // Dispose all meshes and materials in LOD
+  lodObject.traverse((child) => {
+    if (child.isMesh) {
+      if (child.material) {
+        if (child.material.map) {
+          child.material.map.dispose();
+        }
+        child.material.dispose();
+      }
+      // Don't dispose geometry as it's shared (planeGeometry)
+    }
+  });
+
+  // Dispose stored textures
+  if (lodObject.userData.lodTextures) {
+    disposeLODTextures(lodObject.userData.lodTextures);
+    lodObject.userData.lodTextures = null;
+  }
+
+  // Remove from LOD group
+  if (lodObject.parent) {
+    lodObject.parent.remove(lodObject);
+  }
+};
 
 // Fotos con materiales cargados
 const photosWithMaterials = ref([]);
@@ -987,10 +1009,10 @@ const filteredPhotos = computed(() => {
 
 // 🔧 Computed para fotos que realmente se deben renderizar (filtrar las ocultas por LOD)
 const photosToRender = computed(() => {
-  // SOLO renderizar fotos con texturas COMPLETAMENTE cargadas (no placeholders)
-  // Esto evita ver rectángulos blancos durante la carga
+  // SOLO renderizar fotos con texturas LOD COMPLETAMENTE cargadas
+  // Esto evita ver rectángulos vacíos durante la carga
   return visiblePhotos.value.filter(
-    (photo) => photo.__textureLoaded && photo.material
+    (photo) => photo.__textureLoaded && photo.lodObject
   );
 });
 
@@ -1175,6 +1197,15 @@ const updateTransitionPositions = (currentTime) => {
       startPos[1] + (targetPos[1] - startPos[1]) * easedProgress,
       startPos[2] + (targetPos[2] - startPos[2]) * easedProgress,
     ];
+
+    // Sync LOD object position
+    if (photo.lodObject) {
+      photo.lodObject.position.set(
+        photo.position[0],
+        photo.position[1],
+        photo.position[2]
+      );
+    }
   }
 
   // Finalizar animación
@@ -1368,48 +1399,30 @@ const retryFailedPhotoOnDemand = async (photo) => {
   // Intentar descargar de nuevo (marcado como retry bajo demanda para evitar bucle infinito)
   await downloadImageOnly(photo, 0, true);
 
-  // Si se descargó exitosamente, crear textura inmediatamente con tamaño fijo
+  // Si se descargó exitosamente, crear LOD inmediatamente
   if (photo.__imageDownloaded && !photo.__downloadError) {
     const imageElement = downloadedImagesCache.get(photo.id);
     if (imageElement) {
       try {
-        // Resize to fixed 728px
-        const resizedCanvas = resizeImageToSize(imageElement, TEXTURE_SIZE);
+        const lodObject = createLODObject(imageElement, photo.position);
 
-        // Create texture
-        const texture = new THREE.CanvasTexture(resizedCanvas);
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.minFilter = THREE.LinearFilter;
-        texture.magFilter = THREE.LinearFilter;
-        texture.generateMipmaps = false;
-        texture.needsUpdate = true;
-
-        // Create material
-        const material = new THREE.MeshBasicMaterial({
-          map: texture,
-          side: THREE.DoubleSide,
-          transparent: true,
-        });
-
-        // Replace placeholder
-        if (photo.material) {
-          photo.material.dispose();
-          if (photo.material.map) {
-            photo.material.map.dispose();
+        if (lodObject) {
+          if (photo.lodObject) {
+            disposeLODObject(photo.lodObject);
           }
+
+          photo.lodObject = lodObject;
+          photo.__textureLoaded = true;
+          photo.__loading = false;
+
+          // Add to LOD group
+          lodGroup.add(lodObject);
+
+          return true;
         }
-
-        photo.material = markRaw(material);
-        photo.__textureLoaded = true;
-        photo.__loading = false;
-
-        console.log(
-          `✅ Textura creada exitosamente para foto reintentada: ${photo.id}`
-        );
-        return true;
       } catch (error) {
         console.error(
-          `❌ Error creando textura para foto reintentada ${photo.id}:`,
+          `Error creating LOD for retried photo ${photo.id}:`,
           error
         );
         photo.__downloadError = true;
@@ -1420,42 +1433,35 @@ const retryFailedPhotoOnDemand = async (photo) => {
   return false;
 };
 
-// Helper function to resize image to fixed size
-const resizeImageToSize = (imageElement, maxSize) => {
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
+// Helper function to create THREE.LOD object for a photo
+const createLODObject = (imageElement, position) => {
+  const lodConfigs = getLODConfigurations();
+  const lodTextures = createLODTextures(imageElement, lodConfigs);
 
-  const aspectRatio = imageElement.width / imageElement.height;
-  let targetWidth, targetHeight;
+  if (!lodTextures || lodTextures.length === 0) return null;
 
-  if (imageElement.width > imageElement.height) {
-    targetWidth = Math.min(imageElement.width, maxSize);
-    targetHeight = targetWidth / aspectRatio;
-  } else {
-    targetHeight = Math.min(imageElement.height, maxSize);
-    targetWidth = targetHeight * aspectRatio;
-  }
+  // Create THREE.LOD object
+  const lod = new THREE.LOD();
+  lod.position.set(position[0], position[1], position[2]);
 
-  canvas.width = targetWidth;
-  canvas.height = targetHeight;
-  ctx.drawImage(imageElement, 0, 0, targetWidth, targetHeight);
+  // Add each LOD level with its mesh
+  lodTextures.forEach(({ material, distance }) => {
+    const mesh = new THREE.Mesh(planeGeometry, material);
+    lod.addLevel(mesh, distance);
+  });
 
-  return canvas;
+  // Store textures for cleanup
+  lod.userData.lodTextures = lodTextures;
+
+  return markRaw(lod);
 };
 
-// FASE 2: Crear texturas en bulk desde imágenes descargadas con tamaño fijo 728px
+// FASE 2: Crear objetos THREE.LOD desde imágenes descargadas con 3 niveles de calidad
 const createTexturesInBulk = () => {
-  console.log(
-    "🎨 Creando texturas en bulk para",
-    downloadedImagesCache.size,
-    "imágenes con tamaño fijo 728px"
-  );
-
   let createdCount = 0;
   let errorCount = 0;
 
   photosWithMaterials.value.forEach((photo) => {
-    // Si tiene error de descarga, mantener placeholder
     if (photo.__downloadError) {
       errorCount++;
       return;
@@ -1468,46 +1474,41 @@ const createTexturesInBulk = () => {
     }
 
     try {
-      // Resize to fixed 728px
-      const resizedCanvas = resizeImageToSize(imageElement, TEXTURE_SIZE);
+      // Create THREE.LOD object with 3 quality levels
+      const lodObject = createLODObject(imageElement, photo.position);
 
-      // Create texture from resized canvas
-      const texture = new THREE.CanvasTexture(resizedCanvas);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.minFilter = THREE.LinearFilter;
-      texture.magFilter = THREE.LinearFilter;
-      texture.generateMipmaps = false;
-      texture.needsUpdate = true;
-
-      // Create material with texture
-      const material = new THREE.MeshBasicMaterial({
-        map: texture,
-        side: THREE.DoubleSide,
-        transparent: true,
-      });
-
-      // Replace placeholder material
-      if (photo.material) {
-        photo.material.dispose();
-        if (photo.material.map) {
-          photo.material.map.dispose();
-        }
+      if (!lodObject) {
+        errorCount++;
+        return;
       }
 
-      photo.material = markRaw(material);
+      // Dispose old LOD if exists
+      if (photo.lodObject) {
+        disposeLODObject(photo.lodObject);
+      }
+
+      photo.lodObject = lodObject;
       photo.__textureLoaded = true;
       photo.__loading = false;
 
+      // Add to LOD group
+      lodGroup.add(lodObject);
+
       createdCount++;
     } catch (error) {
-      console.error(`❌ Error creando textura para foto ${photo.id}:`, error);
+      console.error(`Error creating LOD for photo ${photo.id}:`, error);
       errorCount++;
     }
   });
 
-  console.log("✅ Texturas creadas:", createdCount, "| Errores:", errorCount);
+  console.log("✅ LOD objects created:", createdCount, "| Errors:", errorCount);
+  console.log(
+    "📊 Photos with LOD:",
+    photosWithMaterials.value.filter((p) => p.lodObject).length
+  );
+  console.log("📊 Visible photos:", visiblePhotos.value.length);
+  console.log("📊 Photos to render:", photosToRender.value.length);
 
-  // Update visible photos and effects
   updateVisiblePhotos();
   updatePhotoEffects();
 };
@@ -1564,7 +1565,7 @@ const registerNewPhotos = async (newPhotos) => {
 
   const prepared = newPhotos.map((p) => ({
     ...p,
-    material: null, // NO crear material hasta que se descargue la imagen
+    lodObject: null, // LOD object will be created when image is downloaded
     position: p.position || [0, 0, 0],
     billboardRotation: [0, 0, 0],
     __textureLoaded: false,
@@ -1572,8 +1573,8 @@ const registerNewPhotos = async (newPhotos) => {
     __imageDownloaded: false,
     __downloading: false,
     __downloadError: false,
-    __canCreateTexture: false, // Nueva flag: solo true cuando imagen esté lista
-    isVisible: true, // Inicializar como visible
+    __canCreateTexture: false,
+    isVisible: true,
   }));
 
   // Guardar posiciones originales si aún no las tenemos
@@ -1633,6 +1634,15 @@ const updatePhotosPositions = async (newPhotos) => {
       // actualizar datos mínimos; NO reemplazar material / flags
       existing.position = [...(existing.position || targetPos)]; // se interpolará, no saltar directo
       existing.coordinates = targetPos;
+
+      // Sync LOD position to current position (will animate to target)
+      if (existing.lodObject) {
+        existing.lodObject.position.set(
+          existing.position[0],
+          existing.position[1],
+          existing.position[2]
+        );
+      }
     }
   });
 
@@ -1642,8 +1652,8 @@ const updatePhotosPositions = async (newPhotos) => {
       const targetPos = np.position || np.coordinates || [0, 0, 0];
       const obj = {
         ...np,
-        material: createPlaceholderMaterial(),
-        position: [0, 0, 0], // partir del origen para animar hacia target
+        lodObject: null,
+        position: [0, 0, 0],
         billboardRotation: [0, 0, 0],
         __textureLoaded: false,
         __loading: false,
@@ -1663,6 +1673,14 @@ const updatePhotosPositions = async (newPhotos) => {
   // 3. Eliminar las que ya no vienen
   if (photosWithMaterials.value.length !== newPhotos.length) {
     const validIds = new Set(newPhotos.map((p) => p.id));
+
+    // Limpiar LOD objects de fotos que se van a eliminar
+    photosWithMaterials.value.forEach((photo) => {
+      if (!validIds.has(photo.id) && photo.lodObject) {
+        disposeLODObject(photo.lodObject);
+      }
+    });
+
     photosWithMaterials.value = photosWithMaterials.value.filter((p) =>
       validIds.has(p.id)
     );
@@ -1764,6 +1782,15 @@ const applyRadialScaling = () => {
   photosWithMaterials.value.forEach((photo, index) => {
     if (index >= scaledPositions.length) return;
     photo.position = scaledPositions[index];
+
+    // Sync LOD object position
+    if (photo.lodObject) {
+      photo.lodObject.position.set(
+        photo.position[0],
+        photo.position[1],
+        photo.position[2]
+      );
+    }
   });
 };
 
@@ -1946,10 +1973,13 @@ const updateBillboardRotations = (photosWithDistances) => {
   }
 
   photosToProcess.forEach(({ photo }) => {
-    photo.billboardRotation = calculateBillboardRotation(
-      photo.position,
-      cameraPosition
-    );
+    if (!photo.lodObject) return;
+
+    // Calculate billboard rotation
+    const rotation = calculateBillboardRotation(photo.position, cameraPosition);
+
+    // Apply rotation to LOD object
+    photo.lodObject.rotation.set(rotation[0], rotation[1], rotation[2]);
   });
 };
 
@@ -1974,8 +2004,12 @@ const updatePhotoOpacity = (photosWithDistances) => {
   ) {
     // Si no está habilitado, asegurar que todas las fotos tengan opacidad 1
     photosWithDistances.forEach(({ photo }) => {
-      if (photo.material && photo.material.opacity !== 1) {
-        photo.material.opacity = 1;
+      if (photo.lodObject) {
+        photo.lodObject.traverse((child) => {
+          if (child.isMesh && child.material) {
+            child.material.opacity = 1;
+          }
+        });
       }
     });
     return;
@@ -1995,6 +2029,8 @@ const updatePhotoOpacity = (photosWithDistances) => {
   }
 
   photosToProcess.forEach(({ photo, distance }) => {
+    if (!photo.lodObject) return;
+
     let opacity = 1;
     if (distance > MIN_DISTANCE) {
       const fadeRange = MAX_DISTANCE - MIN_DISTANCE;
@@ -2002,9 +2038,12 @@ const updatePhotoOpacity = (photosWithDistances) => {
       opacity = Math.max(MIN_OPACITY, 1 - fadeProgress);
     }
 
-    if (photo.material) {
-      photo.material.opacity = opacity;
-    }
+    // Apply opacity to all materials in LOD
+    photo.lodObject.traverse((child) => {
+      if (child.isMesh && child.material) {
+        child.material.opacity = opacity;
+      }
+    });
   });
 };
 
@@ -2031,8 +2070,11 @@ const onChunkChange = async (newValue) => {
     textureQueue.value = [];
     queuedIds.clear();
   } else {
-    console.log("♻️ Fotos existentes detectadas: optimizando transición");
-    // Solo limpiar la cola de texturas, mantener fotos con sus materiales
+    console.log(
+      "♻️ Fotos existentes detectadas: manteniendo LODs, solo actualizando posiciones"
+    );
+    // NO limpiar LOD objects - solo limpiar cola de texturas
+    // Los LODs se reutilizarán y solo se actualizarán sus posiciones
     textureQueue.value = [];
     queuedIds.clear();
   }
@@ -2108,6 +2150,15 @@ const animate = () => {
   if (!navigationBlocked.value) {
     if (frameCounter % frustumInterval === 0 || cameraPositionChanged) {
       updateVisiblePhotos();
+
+      // Update LOD levels based on camera position (THREE.LOD.update())
+      if (cameraRef.value) {
+        visiblePhotos.value.forEach((photo) => {
+          if (photo.lodObject) {
+            photo.lodObject.update(cameraRef.value);
+          }
+        });
+      }
 
       // Calcular distancias UNA SOLA VEZ para todo el frame
       if (visiblePhotos.value.length > 0 && cameraRef.value) {
@@ -2411,15 +2462,20 @@ onUnmounted(() => {
   // Limpiar caches
   distanceCache.clear();
 
-  // Limpiar materiales
+  // Limpiar objetos LOD
   photosWithMaterials.value.forEach((photo) => {
-    if (photo.material) {
-      if (photo.material.map) {
-        photo.material.map.dispose();
-      }
-      photo.material.dispose();
+    if (photo.lodObject) {
+      disposeLODObject(photo.lodObject);
     }
   });
+
+  // Clear LOD group
+  while (lodGroup.children.length > 0) {
+    lodGroup.remove(lodGroup.children[0]);
+  }
+
+  // Limpiar cache de imágenes
+  downloadedImagesCache.clear();
 });
 </script>
 
