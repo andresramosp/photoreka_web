@@ -400,7 +400,6 @@ import { use3DPhotos } from "@/composables/3d-viewer/use3DPhotos.js";
 import { useFirstPersonControls } from "@/composables//3d-viewer/useFirstPersonControls.js";
 import { visualAspectsOptions } from "@/stores/searchStore.js";
 import { useArtisticScores } from "@/composables/useArtisticScores.js";
-import { useLODSystemComposable } from "@/composables/3d-viewer/useLODSystem.js";
 import { api } from "@/utils/axios";
 import * as THREE from "three";
 import pLimit from "p-limit";
@@ -417,13 +416,8 @@ const INITIAL_RETRY_DELAY = 1000; // Initial delay in ms (exponential backoff)
 const RETRY_MULTIPLIER = 2; // Multiplier for exponential backoff
 const MAX_RETRY_DELAY = 10000; // Maximum delay between retries (10 seconds)
 
-// ===== LOD System Composable =====
-const {
-  resizeTextureToMaxSize,
-  configureTextureSafely,
-  updatePhotoLOD,
-  debugLODState,
-} = useLODSystemComposable();
+// ===== Fixed Texture Size (728px) =====
+const TEXTURE_SIZE = 728;
 
 // Stats for monitoring 429 errors
 const error429Stats = ref({
@@ -1206,11 +1200,7 @@ const updateTransitionPositions = (currentTime) => {
     // Limpiar referencias
     animationTargetPositions = [];
 
-    // 🎯 CRÍTICO: Actualizar LOD después de que la animación termine
-    // Las posiciones finales ya están aplicadas, ahora calcular LODs correctos
-
-    // 🔧 SOLUCIÓN: Forzar actualización de matrices de cámara ANTES de frustum culling
-    // Esto asegura que el frustum se calcule con las posiciones finales correctas
+    // Forzar actualización de matrices de cámara ANTES de frustum culling
     if (cameraRef.value) {
       cameraRef.value.updateMatrixWorld(true);
       cameraRef.value.updateProjectionMatrix();
@@ -1220,7 +1210,7 @@ const updateTransitionPositions = (currentTime) => {
     distanceCache.clear();
 
     updateVisiblePhotos();
-    updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
+    updatePhotoEffects(); // Aplica Billboard y Opacity con distancias pre-calculadas
   }
 }; // Función para configurar el loader
 const setupLoaderForPhotos = async (photos) => {
@@ -1378,50 +1368,51 @@ const retryFailedPhotoOnDemand = async (photo) => {
   // Intentar descargar de nuevo (marcado como retry bajo demanda para evitar bucle infinito)
   await downloadImageOnly(photo, 0, true);
 
-  // Si se descargó exitosamente, crear textura inmediatamente CON LOD correcto
+  // Si se descargó exitosamente, crear textura inmediatamente con tamaño fijo
   if (photo.__imageDownloaded && !photo.__downloadError) {
     const imageElement = downloadedImagesCache.get(photo.id);
-    const cameraPos = cameraRef.value?.position || { x: 0, y: 0, z: 80 };
     if (imageElement) {
       try {
-        // Calcular distancia para LOD
-        const dx = cameraPos.x - photo.position[0];
-        const dy = cameraPos.y - photo.position[1];
-        const dz = cameraPos.z - photo.position[2];
-        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        // Resize to fixed 728px
+        const resizedCanvas = resizeImageToSize(imageElement, TEXTURE_SIZE);
 
-        // 🎯 Para retry, también usar ULTRA para mejor calidad visual
-        const lodLevel = "ULTRA";
-        const textureSize = 768;
+        // Create texture
+        const texture = new THREE.CanvasTexture(resizedCanvas);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
+        texture.needsUpdate = true;
 
-        // Crear textura en LOD correcto
-        const resizedImage = resizeTextureToMaxSize(imageElement, textureSize);
-        const texture = new THREE.CanvasTexture(resizedImage);
-        configureTextureSafely(texture, false);
-        texture.needsUpdate = true; // 🔑 CRÍTICO: Forzar actualización en GPU
-
+        // Create material
         const material = new THREE.MeshBasicMaterial({
           map: texture,
           side: THREE.DoubleSide,
           transparent: true,
-          opacity: 1,
         });
+
+        // Replace placeholder
+        if (photo.material) {
+          photo.material.dispose();
+          if (photo.material.map) {
+            photo.material.map.dispose();
+          }
+        }
 
         photo.material = markRaw(material);
         photo.__textureLoaded = true;
-        photo.__currentLOD = lodLevel;
-        photo.__originalImageElement = imageElement;
+        photo.__loading = false;
 
         console.log(
-          `✅ Textura retry creada con LOD ${lodLevel} para foto ${photo.id}`
+          `✅ Textura creada exitosamente para foto reintentada: ${photo.id}`
         );
         return true;
       } catch (error) {
         console.error(
-          `❌ Error en retry de textura para foto ${photo.id}:`,
+          `❌ Error creando textura para foto reintentada ${photo.id}:`,
           error
         );
-        return false;
+        photo.__downloadError = true;
       }
     }
   }
@@ -1429,16 +1420,36 @@ const retryFailedPhotoOnDemand = async (photo) => {
   return false;
 };
 
-// FASE 2: Crear texturas en bulk desde imágenes descargadas CON LOD correcto
+// Helper function to resize image to fixed size
+const resizeImageToSize = (imageElement, maxSize) => {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  const aspectRatio = imageElement.width / imageElement.height;
+  let targetWidth, targetHeight;
+
+  if (imageElement.width > imageElement.height) {
+    targetWidth = Math.min(imageElement.width, maxSize);
+    targetHeight = targetWidth / aspectRatio;
+  } else {
+    targetHeight = Math.min(imageElement.height, maxSize);
+    targetWidth = targetHeight * aspectRatio;
+  }
+
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  ctx.drawImage(imageElement, 0, 0, targetWidth, targetHeight);
+
+  return canvas;
+};
+
+// FASE 2: Crear texturas en bulk desde imágenes descargadas con tamaño fijo 728px
 const createTexturesInBulk = () => {
   console.log(
     "🎨 Creando texturas en bulk para",
     downloadedImagesCache.size,
-    "imágenes CON LOD correcto desde el inicio"
+    "imágenes con tamaño fijo 728px"
   );
-
-  // Calcular distancias a cámara ANTES de crear texturas
-  const cameraPos = cameraRef.value?.position || { x: 0, y: 0, z: 80 };
 
   let createdCount = 0;
   let errorCount = 0;
@@ -1457,82 +1468,48 @@ const createTexturesInBulk = () => {
     }
 
     try {
-      // Calcular distancia a cámara para determinar LOD inicial correcto
-      const dx = cameraPos.x - photo.position[0];
-      const dy = cameraPos.y - photo.position[1];
-      const dz = cameraPos.z - photo.position[2];
-      const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      // Resize to fixed 728px
+      const resizedCanvas = resizeImageToSize(imageElement, TEXTURE_SIZE);
 
-      // 🎯 ESTRATEGIA INICIAL: Crear TODAS las texturas en ULTRA (768px)
-      // El sistema LOD las reducirá automáticamente cuando sea necesario
-      // Esto evita ver fotos negras/borrosas al inicio
-      const lodLevel = "ULTRA";
-      const textureSize = 768;
+      // Create texture from resized canvas
+      const texture = new THREE.CanvasTexture(resizedCanvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.generateMipmaps = false;
+      texture.needsUpdate = true;
 
-      // Crear textura DIRECTAMENTE en el LOD correcto (SIN placeholder blanco)
-      const resizedImage = resizeTextureToMaxSize(imageElement, textureSize);
-      const texture = new THREE.CanvasTexture(resizedImage);
-      configureTextureSafely(texture, false); // false = textura grande (con mipmaps)
-      texture.needsUpdate = true; // 🔑 CRÍTICO: Forzar actualización en GPU
-
-      // Debug: verificar que la textura se creó correctamente
-      if (
-        !resizedImage ||
-        resizedImage.width === 0 ||
-        resizedImage.height === 0
-      ) {
-        console.error(`❌ Imagen inválida para foto ${photo.id}:`, {
-          hasResizedImage: !!resizedImage,
-          width: resizedImage?.width,
-          height: resizedImage?.height,
-          lodLevel,
-          textureSize,
-        });
-        errorCount++;
-        return;
-      }
-
-      // Crear material con la textura ya en LOD correcto
+      // Create material with texture
       const material = new THREE.MeshBasicMaterial({
         map: texture,
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 1,
       });
+
+      // Replace placeholder material
+      if (photo.material) {
+        photo.material.dispose();
+        if (photo.material.map) {
+          photo.material.map.dispose();
+        }
+      }
 
       photo.material = markRaw(material);
       photo.__textureLoaded = true;
-      photo.__currentLOD = 0; // LOD_LEVELS.ULTRA (número, no string)
-      photo.__originalImageElement = imageElement; // Imagen original para crear otras resoluciones
-      photo.__ultraTexture = texture; // Textura de 768px para LOD ULTRA
-      photo.__ultraTextureLoaded = true; // Marcar como cargada
-      photo.__originalTexture = texture; // También guardar como original (compatibilidad)
+      photo.__loading = false;
 
       createdCount++;
     } catch (error) {
-      console.warn("Error creando textura para foto:", photo.id, error);
+      console.error(`❌ Error creando textura para foto ${photo.id}:`, error);
       errorCount++;
     }
   });
 
   console.log("✅ Texturas creadas:", createdCount, "| Errores:", errorCount);
 
-  // Log de distribución de LOD para debug
-  const lodStats = photosWithMaterials.value.reduce((acc, p) => {
-    if (p.__currentLOD) {
-      acc[p.__currentLOD] = (acc[p.__currentLOD] || 0) + 1;
-    }
-    return acc;
-  }, {});
-  console.log("📊 Distribución de LOD creada:", lodStats);
-
-  // 🔧 NO limpiar cache de imágenes - las fotos ahora mantienen referencia en __originalImageElement
-  // downloadedImagesCache.clear(); // ELIMINADO: necesitamos las imágenes para LOD
-
-  // 🎯 CRÍTICO: Actualizar LOD inmediatamente después de crear texturas
-  // Esto asegura que las fotos tengan el nivel de detalle correcto desde el inicio
+  // Update visible photos and effects
   updateVisiblePhotos();
-  updatePhotoEffects(); // Aplica LOD, Billboard y Opacity con distancias pre-calculadas
+  updatePhotoEffects();
 };
 
 // Nueva función para encolar TODAS las fotos no cacheadas (sin filtro de frustum)
@@ -1929,7 +1906,7 @@ const calculateDistancesForVisiblePhotos = (cameraPosition) => {
   });
 };
 
-// 🎯 Helper: Actualizar LOD, Billboard y Opacity con cálculo de distancias integrado
+// 🎯 Helper: Actualizar Billboard y Opacity con cálculo de distancias integrado
 // Usar esta función cuando se llame fuera del loop principal
 const updatePhotoEffects = () => {
   if (!cameraRef.value || visiblePhotos.value.length === 0) return;
@@ -1941,12 +1918,7 @@ const updatePhotoEffects = () => {
   // Ordenar por distancia una sola vez
   photosWithDistances.sort((a, b) => a.distSq - b.distSq);
 
-  // Aplicar todas las funciones
-  updatePhotoLOD(
-    photosWithDistances,
-    retryFailedPhotoOnDemand,
-    downloadedImagesCache
-  );
+  // Aplicar billboarding y opacity (sin LOD)
   if (useBillboarding.value) updateBillboardRotations(photosWithDistances);
   updatePhotoOpacity(photosWithDistances);
 };
@@ -2130,11 +2102,6 @@ const animate = () => {
     currentPosition.value = newPosition;
   }
 
-  const progressRatio =
-    totalPhotosToLoad.value > 0
-      ? loadedPhotosCount.value / totalPhotosToLoad.value
-      : 0;
-  const lodAllowed = !initialLoadingPhase.value || progressRatio >= 0.5;
   const frustumInterval = initialLoadingPhase.value ? 9 : THROTTLE_INTERVAL;
 
   // Solo ejecutar eventos Three.js si no estamos en fase de descarga bloqueada
@@ -2142,8 +2109,8 @@ const animate = () => {
     if (frameCounter % frustumInterval === 0 || cameraPositionChanged) {
       updateVisiblePhotos();
 
-      // 🚀 OPTIMIZACIÓN: Calcular distancias UNA SOLA VEZ para todo el frame
-      if (lodAllowed && visiblePhotos.value.length > 0 && cameraRef.value) {
+      // Calcular distancias UNA SOLA VEZ para todo el frame
+      if (visiblePhotos.value.length > 0 && cameraRef.value) {
         const photosWithDistances = calculateDistancesForVisiblePhotos(
           cameraRef.value.position
         );
@@ -2151,19 +2118,10 @@ const animate = () => {
         // Ordenar por distancia una sola vez (de cerca a lejos)
         photosWithDistances.sort((a, b) => a.distSq - b.distSq);
 
-        // Aplicar las 3 funciones usando las mismas distancias pre-calculadas
-        updatePhotoLOD(
-          photosWithDistances,
-          retryFailedPhotoOnDemand,
-          downloadedImagesCache
-        );
+        // Aplicar billboarding y opacity
         if (useBillboarding.value)
           updateBillboardRotations(photosWithDistances);
         updatePhotoOpacity(photosWithDistances);
-      }
-
-      if (!initialLoadingPhase.value && frameCounter % 600 === 0) {
-        debugLODState(visiblePhotos.value, photosWithMaterials.value.length);
       }
     }
   }
