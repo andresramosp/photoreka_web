@@ -401,7 +401,10 @@ import {
   createLODTextures,
   disposeLODTextures,
 } from "@/composables/3d-viewer/useTextureLOD.js";
-import { getLODConfigurations } from "@/composables/lodUtils.js";
+import {
+  getLODConfigurations,
+  MAX_DISTANCE_VISIBLE,
+} from "@/composables/lodUtils.js";
 
 // ===== Debug Flag (wrap noisy logs) =====
 const DEBUG_3D = false; // pon a true temporalmente si quieres verbosidad
@@ -1681,8 +1684,17 @@ const createTexturesInBulk = () => {
       photo.__textureLoaded = true;
       photo.__loading = false;
 
-      // Set initial visibility based on filter state
-      lodObject.visible = photo.isVisible !== false;
+      // Set initial visibility based on filter state and distance
+      // Photos beyond MAX_DISTANCE_VISIBLE should not be visible at all
+      if (cameraRef.value && photo.isVisible !== false) {
+        const dx = photo.position[0] - cameraRef.value.position.x;
+        const dy = photo.position[1] - cameraRef.value.position.y;
+        const dz = photo.position[2] - cameraRef.value.position.z;
+        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        lodObject.visible = distance <= MAX_DISTANCE_VISIBLE;
+      } else {
+        lodObject.visible = photo.isVisible !== false;
+      }
 
       // Add to LOD group
       lodGroup.add(lodObject);
@@ -2255,6 +2267,8 @@ const getCachedDistance = (photoId, photoPosition, cameraPosition) => {
 
 // Función para actualizar fotos visibles usando Frustum Culling ESTRICTO con Octree
 // 🎯 OPTIMIZACIÓN: Usa spatial partitioning para evitar checks innecesarios
+// 🚫 DISTANCIA MÁXIMA: Fotos más allá de MAX_DISTANCE_VISIBLE son completamente ocultas
+//    (no se renderizan, no consumen recursos, lodObject.visible = false)
 const updateVisiblePhotos = () => {
   if (!cameraRef.value || filteredPhotos.value.length === 0) {
     visiblePhotos.value = [];
@@ -2289,11 +2303,35 @@ const updateVisiblePhotos = () => {
   visiblePhotos.value = candidatePhotos.filter((photo) => {
     reusableVector3.set(...photo.position);
     reusableSphere.set(reusableVector3, 2); // Radio de la esfera de la foto
-    return reusableFrustum.intersectsSphere(reusableSphere);
+
+    // 🚫 FILTRO CRÍTICO: Verificar distancia máxima ANTES del frustum check
+    // Fotos más allá de MAX_DISTANCE_VISIBLE NO SE RENDERIZAN (cero recursos)
+    const dx = photo.position[0] - camera.position.x;
+    const dy = photo.position[1] - camera.position.y;
+    const dz = photo.position[2] - camera.position.z;
+    const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+    if (distance > MAX_DISTANCE_VISIBLE) {
+      // Ocultar completamente el LOD object
+      if (photo.lodObject) {
+        photo.lodObject.visible = false;
+      }
+      return false;
+    }
+
+    // Verificar frustum para fotos dentro del rango visible
+    const isInFrustum = reusableFrustum.intersectsSphere(reusableSphere);
+
+    // Actualizar visibilidad del LOD object
+    if (photo.lodObject) {
+      photo.lodObject.visible = isInFrustum;
+    }
+
+    return isInFrustum;
   });
 
   dlog(
-    `🔍 Octree culling: ${filteredPhotos.value.length} total -> ${candidatePhotos.length} candidates -> ${visiblePhotos.value.length} visible`
+    `🔍 Octree culling: ${filteredPhotos.value.length} total -> ${candidatePhotos.length} candidates -> ${visiblePhotos.value.length} visible (within ${MAX_DISTANCE_VISIBLE} units)`
   );
 
   // 🔧 Actualizar cache de fotos con texturas cargadas

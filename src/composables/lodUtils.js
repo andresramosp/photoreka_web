@@ -3,11 +3,15 @@
  * Uses THREE.js native LOD system with 3 quality levels
  */
 
+// Maximum distance beyond which photos are completely hidden (no rendering, no computation)
+// This is NOT an LOD level - photos beyond this distance consume ZERO resources
+export const MAX_DISTANCE_VISIBLE = 180;
+
 // LOD Configuration - Texture sizes, distances and opacity for THREE.LOD.addLevel()
 // Opacity is pre-established per LOD level for better performance
 export const LOD_LEVELS = {
   ULTRA: {
-    size: 1024,
+    size: 768,
     distance: 0, // Show from 0 to 5 units
     opacity: 1.0, // Fully visible - very close photos
   },
@@ -18,16 +22,16 @@ export const LOD_LEVELS = {
   },
   MEDIUM: {
     size: 128,
-    distance: 15, // Show from 15 to 70 units
+    distance: 15, // Show from 15 to 60 units
     opacity: 0.85, // Slightly faded - medium distance
   },
   LOW: {
     size: 24,
-    distance: 70, // Show from 70 to 100 units
+    distance: 60, // Show from 60 to 100 units
     opacity: 0.5, // More faded - far distance
   },
   VERY_LOW: {
-    size: 2,
+    size: 4,
     distance: 100, // Show from 100+ units (very distant)
     opacity: 0.3, // Heavily faded - very far distance
   },
@@ -70,4 +74,30 @@ export function getLODConfigurations() {
       opacity: LOD_LEVELS.VERY_LOW.opacity,
     },
   ];
+}
+
+/**
+ * Check if a photo should be visible based on distance from camera
+ * Returns true if within MAX_DISTANCE_VISIBLE, false otherwise
+ * @param {number} distance - Distance from camera to photo
+ * @returns {boolean} Whether the photo should be visible
+ */
+export function isPhotoWithinVisibleDistance(distance) {
+  return distance <= MAX_DISTANCE_VISIBLE;
+}
+
+/**
+ * Filter photos by visible distance from camera position
+ * @param {Array} photos - Array of photo objects with position property
+ * @param {Object} cameraPosition - Camera position {x, y, z}
+ * @returns {Array} Filtered array of photos within visible distance
+ */
+export function filterPhotosByVisibleDistance(photos, cameraPosition) {
+  return photos.filter((photo) => {
+    const dx = photo.position[0] - cameraPosition.x;
+    const dy = photo.position[1] - cameraPosition.y;
+    const dz = photo.position[2] - cameraPosition.z;
+    const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    return isPhotoWithinVisibleDistance(distance);
+  });
 }
