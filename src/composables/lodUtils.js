@@ -6,7 +6,7 @@
 // LOD Configuration - Texture sizes and distances for THREE.LOD.addLevel()
 export const LOD_LEVELS = {
   HIGH: {
-    size: 1024,
+    size: 768,
     distance: 0, // Show from 0 to 15 units
   },
   MEDIUM: {

@@ -878,6 +878,10 @@ const applyFilters = () => {
     // Aplicar filtro de búsqueda textual PRIMERO (más restrictivo)
     if (hasSearchFilter && !searchFilteredIds.has(photo.id)) {
       photo.isVisible = false;
+      // Hide LOD object
+      if (photo.lodObject) {
+        photo.lodObject.visible = false;
+      }
       return;
     }
 
@@ -887,6 +891,10 @@ const applyFilters = () => {
       selectedArtisticScores.value.length === 0
     ) {
       photo.isVisible = true;
+      // Show LOD object
+      if (photo.lodObject) {
+        photo.lodObject.visible = true;
+      }
       return;
     }
 
@@ -947,6 +955,11 @@ const applyFilters = () => {
 
     // La foto es visible solo si pasa AMBOS filtros (AND lógico)
     photo.isVisible = passesVisualAspects && passesArtisticScores;
+
+    // Sync LOD object visibility
+    if (photo.lodObject) {
+      photo.lodObject.visible = photo.isVisible;
+    }
   });
 
   const visibleCount = photosWithMaterials.value.filter(
@@ -1415,6 +1428,9 @@ const retryFailedPhotoOnDemand = async (photo) => {
           photo.__textureLoaded = true;
           photo.__loading = false;
 
+          // Set initial visibility based on filter state
+          lodObject.visible = photo.isVisible !== false;
+
           // Add to LOD group
           lodGroup.add(lodObject);
 
@@ -1490,6 +1506,9 @@ const createTexturesInBulk = () => {
       photo.lodObject = lodObject;
       photo.__textureLoaded = true;
       photo.__loading = false;
+
+      // Set initial visibility based on filter state
+      lodObject.visible = photo.isVisible !== false;
 
       // Add to LOD group
       lodGroup.add(lodObject);
