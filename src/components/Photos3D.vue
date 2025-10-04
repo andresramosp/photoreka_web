@@ -298,9 +298,9 @@
                 v-model:value="inflateFactor"
                 @update:value="onInflateFactorChange"
                 :min="1"
-                :max="5"
+                :max="3"
                 :step="0.1"
-                :marks="{ 1: '1x', 3: '3x', 5: '5x' }"
+                :marks="{ 1: '1x', 2: '2x', 3: '3x' }"
                 class="radial-slider"
                 @click.stop
               />
@@ -513,7 +513,7 @@ const loadingProgress = ref(0);
 const initialLoadingPhase = ref(true);
 
 // Escaleo radial
-const inflateFactor = ref(3);
+const inflateFactor = ref(1);
 const originalPositions = ref([]);
 
 // Performance mode: 1 = high-quality, 2 = balanced, 3 = high-performance

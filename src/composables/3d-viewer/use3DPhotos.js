@@ -1,6 +1,7 @@
 // composables/use3DPhotos.js
 import { ref, computed } from "vue";
 import { api } from "@/utils/axios";
+import adaptiveInitialSpacing from "@/utils/adaptiveInitialSpacing";
 
 export function use3DPhotos() {
   // Estado reactivo
@@ -47,6 +48,40 @@ export function use3DPhotos() {
     try {
       const photos = await loadPhotos(chunkName);
 
+      // Extract raw coordinates for adaptive spacing
+      const rawPositions = photos.map(
+        (p) => p.coordinates || p.position || p.coords || [0, 0, 0]
+      );
+
+      let adaptedPositions = rawPositions;
+      try {
+        adaptedPositions = adaptiveInitialSpacing(rawPositions, {
+          inflateFactorBase: 1.08, // menor radial global
+          gamma: 1.9,
+          cellSize: 4.2,
+          densityThreshold: 0.1,
+          minSeparation: 5,
+          iterations: 3,
+          enableRelaxation: true,
+          aggressiveness: 1.15,
+          clusterIterations: 2,
+          highDensityThreshold: 0.6,
+          highDensityBoost: 0.4,
+          nnLocalScale: true,
+          nnTarget: 5.4,
+        });
+        console.log("🧩 Adaptive initial spacing aplicado", {
+          total: adaptedPositions.length,
+          sampleBefore: rawPositions.slice(0, 2),
+          sampleAfter: adaptedPositions.slice(0, 2),
+        });
+      } catch (e) {
+        console.warn(
+          "⚠️ Falló adaptiveInitialSpacing, usando posiciones raw",
+          e
+        );
+      }
+
       if (reuseExisting && photos3D.value.length > 0) {
         // Modo reutilización: actualizar solo las coordenadas de las fotos existentes
         console.log(
@@ -55,8 +90,11 @@ export function use3DPhotos() {
 
         // Crear un mapa de ID -> nuevas coordenadas
         const coordsMap = new Map();
-        photos.forEach((photo) => {
-          coordsMap.set(photo.id, photo.coordinates || [0, 0, 0]);
+        photos.forEach((photo, idx) => {
+          coordsMap.set(
+            photo.id,
+            adaptedPositions[idx] || photo.coordinates || [0, 0, 0]
+          );
         });
 
         // Actualizar las fotos existentes con las nuevas coordenadas
@@ -73,11 +111,16 @@ export function use3DPhotos() {
         });
       } else {
         // Modo normal: reemplazar todas las fotos
-        const processedPhotos = photos.map((photo) => ({
-          ...photo,
-          // Asegurar que las coordenadas están disponibles
-          position: photo.coordinates || [0, 0, 0],
-        }));
+        const processedPhotos = photos.map((photo, idx) => {
+          const newPos = adaptedPositions[idx];
+          return {
+            ...photo,
+            // Guardar también coordenadas transformadas para consistencia futura
+            position: newPos,
+            coordinates: newPos,
+            rawCoordinates: photo.coordinates || [0, 0, 0], // por si se requiere debug
+          };
+        });
 
         console.log(`📸 Cargadas ${processedPhotos.length} fotos`);
         photos3D.value = processedPhotos;
