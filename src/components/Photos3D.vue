@@ -306,6 +306,32 @@
               />
             </div>
           </div>
+
+          <!-- Performance Mode Slider -->
+          <div class="control-item-full" style="margin-top: 12px">
+            <label
+              class="control-label"
+              style="margin-bottom: 8px; display: block"
+            >
+              Performance Mode
+            </label>
+            <div class="slider-container">
+              <n-slider
+                v-model:value="performanceMode"
+                @update:value="onPerformanceModeChange"
+                :min="1"
+                :max="3"
+                :step="1"
+                :marks="{
+                  1: 'Low',
+                  2: 'Balanced',
+                  3: 'Quality',
+                }"
+                class="performance-slider"
+                @click.stop
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -489,6 +515,9 @@ const initialLoadingPhase = ref(true);
 // Escaleo radial
 const inflateFactor = ref(3);
 const originalPositions = ref([]);
+
+// Performance mode: 1 = high-quality, 2 = balanced, 3 = high-performance
+const performanceMode = ref(2); // Default: balanced
 
 // Animación de transición
 const isTransitioning = ref(false);
@@ -1690,10 +1719,29 @@ const retryFailedPhotoOnDemand = async (photo) => {
   return false;
 };
 
+// Helper function to get performance multiplier from performanceMode
+// 1 = high-quality (0.67x distances), 2 = balanced (1.0x), 3 = high-performance (1.5x)
+const getPerformanceMultiplier = () => {
+  switch (performanceMode.value) {
+    case 1: // High Quality
+      return 0.6;
+    case 2: // Balanced
+      return 1.0;
+    case 3: // High Performance
+      return 1.5;
+    default:
+      return 1.0;
+  }
+};
+
 // Helper function to create THREE.LOD object for a photo
 // Uses dynamic LOD distances based on the number of visible photos
 const createLODObject = (imageElement, position, visiblePhotoCount = 2000) => {
-  const lodConfigs = getLODConfigurations(visiblePhotoCount);
+  const performanceMultiplier = getPerformanceMultiplier();
+  const lodConfigs = getLODConfigurations(
+    visiblePhotoCount,
+    performanceMultiplier
+  );
   const lodTextures = createLODTextures(imageElement, lodConfigs);
 
   if (!lodTextures || lodTextures.length === 0) return null;
@@ -1717,8 +1765,15 @@ const createLODObject = (imageElement, position, visiblePhotoCount = 2000) => {
 // Helper function to update LOD distances for existing LOD objects
 // This allows dynamic adjustment without recreating textures
 const updateLODDistances = (visiblePhotoCount) => {
-  const lodConfigs = getLODConfigurations(visiblePhotoCount);
-  const maxVisibleDistance = getMaxVisibleDistance(visiblePhotoCount);
+  const performanceMultiplier = getPerformanceMultiplier();
+  const lodConfigs = getLODConfigurations(
+    visiblePhotoCount,
+    performanceMultiplier
+  );
+  const maxVisibleDistance = getMaxVisibleDistance(
+    visiblePhotoCount,
+    performanceMultiplier
+  );
 
   console.log(
     `🔄 Updating LOD distances for ${visiblePhotoCount} visible photos`
@@ -1800,7 +1855,10 @@ const createTexturesInBulk = () => {
       // Set initial visibility based on filter state and distance
       // Photos beyond dynamic max visible distance should not be visible at all
       if (cameraRef.value && photo.isVisible !== false) {
-        const maxVisibleDistance = getMaxVisibleDistance(visibleCount);
+        const maxVisibleDistance = getMaxVisibleDistance(
+          visibleCount,
+          getPerformanceMultiplier()
+        );
         const dx = photo.position[0] - cameraRef.value.position.x;
         const dy = photo.position[1] - cameraRef.value.position.y;
         const dz = photo.position[2] - cameraRef.value.position.z;
@@ -2348,6 +2406,21 @@ const onInflateFactorChange = () => {
   updatePhotoEffects(); // Aplica Billboard con distancias pre-calculadas
 };
 
+// Handler para cambio en performance mode
+const onPerformanceModeChange = () => {
+  const visibleCount = filteredPhotos.value.length;
+  console.log(
+    `🎮 Performance mode changed to: ${
+      performanceMode.value
+    } (multiplier: ${getPerformanceMultiplier()}x)`
+  );
+  // Recalcular y actualizar todas las distancias LOD
+  updateLODDistances(visibleCount);
+  // Actualizar fotos visibles con las nuevas distancias
+  updateVisiblePhotos();
+  updatePhotoEffects();
+};
+
 // Helper function to calculate distance with caching
 const getCachedDistance = (photoId, photoPosition, cameraPosition) => {
   // Check if cache is still valid (camera hasn't moved significantly)
@@ -2396,7 +2469,10 @@ const updateVisiblePhotos = () => {
   const camera = cameraRef.value;
 
   // Calculate max visible distance based on filtered photo count
-  const maxVisibleDistance = getMaxVisibleDistance(filteredPhotos.value.length);
+  const maxVisibleDistance = getMaxVisibleDistance(
+    filteredPhotos.value.length,
+    getPerformanceMultiplier()
+  );
 
   // Rebuild octree if needed (after position changes)
   if (octreeNeedsRebuild.value && filteredPhotos.value.length > 0) {
@@ -3120,6 +3196,7 @@ onUnmounted(() => {
   max-width: 350px;
   max-height: 85vh;
   overflow-y: auto;
+  overflow-x: hidden; /* Prevent horizontal scroll */
   animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: fixed;
   top: 70px;
@@ -3376,6 +3453,8 @@ onUnmounted(() => {
 /* Slider Container */
 .slider-container {
   width: 100%;
+  padding: 0 8px 0 4px; /* Minimal padding, more on right to prevent overflow */
+  box-sizing: border-box;
 }
 
 .slider-header {
@@ -3386,8 +3465,48 @@ onUnmounted(() => {
 }
 
 .radial-slider,
-.lod-slider {
+.lod-slider,
+.performance-slider {
   width: 100%;
+}
+
+/* Adjust n-slider mark labels to be smaller and prevent overflow */
+.radial-slider :deep(.n-slider-marks),
+.lod-slider :deep(.n-slider-marks),
+.performance-slider :deep(.n-slider-marks) {
+  padding: 0 2px; /* Add small padding to marks container */
+}
+
+.radial-slider :deep(.n-slider-mark),
+.lod-slider :deep(.n-slider-mark),
+.performance-slider :deep(.n-slider-mark) {
+  font-size: 9px !important;
+  white-space: nowrap;
+  overflow: visible;
+}
+
+.radial-slider :deep(.n-slider-mark-text),
+.lod-slider :deep(.n-slider-mark-text),
+.performance-slider :deep(.n-slider-mark-text) {
+  font-size: 9px !important;
+  transform: translateX(-50%);
+  max-width: 60px;
+  text-align: center;
+}
+
+/* Special handling for first and last marks to prevent overflow */
+.radial-slider :deep(.n-slider-mark:first-child .n-slider-mark-text),
+.lod-slider :deep(.n-slider-mark:first-child .n-slider-mark-text),
+.performance-slider :deep(.n-slider-mark:first-child .n-slider-mark-text) {
+  transform: translateX(0);
+  text-align: left;
+}
+
+.radial-slider :deep(.n-slider-mark:last-child .n-slider-mark-text),
+.lod-slider :deep(.n-slider-mark:last-child .n-slider-mark-text),
+.performance-slider :deep(.n-slider-mark:last-child .n-slider-mark-text) {
+  transform: translateX(-100%);
+  text-align: right;
 }
 
 /* Info Icon */

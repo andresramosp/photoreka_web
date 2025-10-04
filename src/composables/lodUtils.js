@@ -13,7 +13,7 @@ const BASE_MAX_DISTANCE_VISIBLE = 180;
 const multiplier = 1; // Adjust this multiplier to scale all distances uniformly if needed
 export const LOD_LEVELS = {
   ULTRA: {
-    size: 768 * multiplier,
+    size: 768,
     baseDistance: 0, // Base distance for 2000+ photos
     opacity: 1.0, // Fully visible - very close photos
   },
@@ -34,7 +34,7 @@ export const LOD_LEVELS = {
   },
   VERY_LOW: {
     size: 4 * multiplier,
-    baseDistance: 100, // Base distance for 2000+ photos (very distant)
+    baseDistance: 120, // Base distance for 2000+ photos (very distant)
     opacity: 0.3, // Heavily faded - very far distance
   },
 };
@@ -92,9 +92,13 @@ function calculateLODScaleFactor(photoCount) {
  * @param {number} photoCount - Number of visible photos after filters
  * @returns {number} Maximum distance in units
  */
-export function getMaxVisibleDistance(photoCount = BASE_PHOTO_COUNT) {
+export function getMaxVisibleDistance(
+  photoCount = BASE_PHOTO_COUNT,
+  performanceMultiplier = 1.0
+) {
   const scaleFactor = calculateLODScaleFactor(photoCount);
-  return Math.round(BASE_MAX_DISTANCE_VISIBLE * scaleFactor);
+  const finalMultiplier = scaleFactor * performanceMultiplier;
+  return Math.round(BASE_MAX_DISTANCE_VISIBLE * finalMultiplier);
 }
 
 /**
@@ -102,10 +106,18 @@ export function getMaxVisibleDistance(photoCount = BASE_PHOTO_COUNT) {
  * Distances scale based on visible photo count to maintain visual quality
  *
  * @param {number} photoCount - Number of visible photos after filters (default: BASE_PHOTO_COUNT)
+ * @param {number} performanceMultiplier - Performance multiplier for distances (default: 1.0)
+ *   - 0.67 for high-quality (closer transitions, more detail)
+ *   - 1.0 for balanced (default)
+ *   - 1.5 for high-performance (further transitions, better FPS)
  * @returns {Array} Array of {level, size, distance, opacity} objects
  */
-export function getLODConfigurations(photoCount = BASE_PHOTO_COUNT) {
+export function getLODConfigurations(
+  photoCount = BASE_PHOTO_COUNT,
+  performanceMultiplier = 1.0
+) {
   const scaleFactor = calculateLODScaleFactor(photoCount);
+  const finalMultiplier = scaleFactor * performanceMultiplier;
 
   return [
     {
@@ -117,65 +129,26 @@ export function getLODConfigurations(photoCount = BASE_PHOTO_COUNT) {
     {
       level: "HIGH",
       size: LOD_LEVELS.HIGH.size,
-      distance: Math.round(LOD_LEVELS.HIGH.baseDistance * scaleFactor),
+      distance: Math.round(LOD_LEVELS.HIGH.baseDistance * finalMultiplier),
       opacity: LOD_LEVELS.HIGH.opacity,
     },
     {
       level: "MEDIUM",
       size: LOD_LEVELS.MEDIUM.size,
-      distance: Math.round(LOD_LEVELS.MEDIUM.baseDistance * scaleFactor),
+      distance: Math.round(LOD_LEVELS.MEDIUM.baseDistance * finalMultiplier),
       opacity: LOD_LEVELS.MEDIUM.opacity,
     },
     {
       level: "LOW",
       size: LOD_LEVELS.LOW.size,
-      distance: Math.round(LOD_LEVELS.LOW.baseDistance * scaleFactor),
+      distance: Math.round(LOD_LEVELS.LOW.baseDistance * finalMultiplier),
       opacity: LOD_LEVELS.LOW.opacity,
     },
     {
       level: "VERY_LOW",
       size: LOD_LEVELS.VERY_LOW.size,
-      distance: Math.round(LOD_LEVELS.VERY_LOW.baseDistance * scaleFactor),
+      distance: Math.round(LOD_LEVELS.VERY_LOW.baseDistance * finalMultiplier),
       opacity: LOD_LEVELS.VERY_LOW.opacity,
     },
   ];
-}
-
-/**
- * Check if a photo should be visible based on distance from camera
- * Returns true if within dynamically calculated max visible distance
- * @param {number} distance - Distance from camera to photo
- * @param {number} photoCount - Number of visible photos (for dynamic distance calculation)
- * @returns {boolean} Whether the photo should be visible
- */
-export function isPhotoWithinVisibleDistance(
-  distance,
-  photoCount = BASE_PHOTO_COUNT
-) {
-  const maxDistance = getMaxVisibleDistance(photoCount);
-  return distance <= maxDistance;
-}
-
-/**
- * Filter photos by visible distance from camera position
- * @param {Array} photos - Array of photo objects with position property
- * @param {Object} cameraPosition - Camera position {x, y, z}
- * @param {number} photoCount - Number of visible photos (for dynamic distance calculation)
- * @returns {Array} Filtered array of photos within visible distance
- */
-export function filterPhotosByVisibleDistance(
-  photos,
-  cameraPosition,
-  photoCount = null
-) {
-  const effectivePhotoCount = photoCount !== null ? photoCount : photos.length;
-  const maxDistance = getMaxVisibleDistance(effectivePhotoCount);
-
-  return photos.filter((photo) => {
-    const dx = photo.position[0] - cameraPosition.x;
-    const dy = photo.position[1] - cameraPosition.y;
-    const dz = photo.position[2] - cameraPosition.z;
-    const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-    return distance <= maxDistance;
-  });
 }
