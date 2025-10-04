@@ -432,7 +432,7 @@ const error429Stats = ref({
 // Composable para manejo de fotos 3D
 const {
   photos3D,
-  isLoading,
+  isLoadingPositions,
   currentChunk,
   error,
   chunkOptions,
@@ -477,7 +477,7 @@ let searchTimeout = null;
 
 // Loader discreto con progreso
 const showDiscreteLoader = ref(true);
-const loaderTitle = ref("Loading Photos");
+const loaderTitle = ref("");
 const loaderSubtitle = ref("Preparing your photo collection...");
 const loaderStage = ref("loading"); // 'loading' | 'downloading' | 'caching' | 'creating'
 const totalPhotosToLoad = ref(0);
@@ -667,6 +667,7 @@ let cacheValidPosition = { x: 0, y: 0, z: 0 };
 // 🎯 markRaw: Objetos temporales de cálculo no necesitan reactividad
 const tempObject = markRaw(new THREE.Object3D());
 const directionToCamera = markRaw(new THREE.Vector3());
+// Quaternions reutilizables para interpolación suave (SLERP)
 
 // GPU verification and capabilities
 const checkGPUCapabilities = () => {
@@ -775,7 +776,7 @@ const updateLoadingProgress = () => {
   if (
     initialLoadingPhase.value &&
     (loadingProgress.value >= 80 ||
-      (textureQueue.value.length === 0 && !isLoading.value))
+      (textureQueue.value.length === 0 && !isLoadingPositions.value))
   ) {
     initialLoadingPhase.value = false;
     dlog("🚀 Finaliza initialLoadingPhase (threshold alcanzado)");
@@ -792,18 +793,18 @@ const checkAllTexturesLoaded = async () => {
 
   dlog("🔍 checkAllTexturesLoaded - Estado actual:", {
     photosCount: photosWithMaterials.value.length,
-    isLoading: isLoading.value,
+    isLoadingPositions: isLoadingPositions.value,
     queueLength: textureQueue.value.length,
     progress: loadingProgress.value + "%",
   });
 
   // Si no hay fotos y ya no está cargando, ocultar loader
-  if (photosWithMaterials.value.length === 0 && !isLoading.value) {
+  if (photosWithMaterials.value.length === 0 && !isLoadingPositions.value) {
     return;
   }
 
   // Si no hay fotos pero aún está cargando, mantener loader
-  if (photosWithMaterials.value.length === 0 && isLoading.value) {
+  if (photosWithMaterials.value.length === 0 && isLoadingPositions.value) {
     return;
   }
 
@@ -829,7 +830,7 @@ const checkAllTexturesLoaded = async () => {
     allDownloaded &&
     nothingDownloading &&
     noQueuePending &&
-    !isLoading.value &&
+    !isLoadingPositions.value &&
     !downloadPhaseComplete.value
   ) {
     console.log("🎉 Todas las imágenes disponibles. Procesando...");
@@ -857,8 +858,18 @@ const checkAllTexturesLoaded = async () => {
     console.log("🎨 Creando texturas en bulk...");
     cachePhaseComplete.value = true;
 
-    // Crear texturas en bulk
-    createTexturesInBulk();
+    // 🔧 CRÍTICO: Solo crear texturas si NO existen LOD objects
+    // En cambios de chunk, los LOD objects ya existen y solo necesitan actualizar posiciones
+    const needsTextureCreation = photosWithMaterials.value.some(
+      (p) => p.__imageDownloaded && !p.lodObject
+    );
+
+    if (needsTextureCreation) {
+      console.log("🎨 Creando LOD objects para fotos sin texturas...");
+      createTexturesInBulk();
+    } else {
+      console.log("✅ LOD objects ya existen, saltando creación de texturas");
+    }
 
     // Reactivar navegación
     navigationBlocked.value = false;
@@ -1245,9 +1256,15 @@ const easeInOutCubic = (t) => {
 
 // Variable para almacenar las posiciones target de la animación actual
 let animationTargetPositions = [];
+// Variable para almacenar las posiciones originales pendientes de actualizar
+let pendingOriginalPositionsUpdate = null;
 
 // Función para animar la transición entre posiciones
-const animatePositionTransition = (fromPositions, toPositions) => {
+const animatePositionTransition = (
+  fromPositions,
+  toPositions,
+  newOriginalPositions = null
+) => {
   if (fromPositions.length !== toPositions.length) {
     console.warn("⚠️ Número diferente de posiciones en la transición:", {
       from: fromPositions.length,
@@ -1262,7 +1279,8 @@ const animatePositionTransition = (fromPositions, toPositions) => {
     // Llamar recursivamente con arrays ajustados
     return animatePositionTransition(
       adjustedFromPositions,
-      adjustedToPositions
+      adjustedToPositions,
+      newOriginalPositions
     );
   }
 
@@ -1274,6 +1292,9 @@ const animatePositionTransition = (fromPositions, toPositions) => {
   // Guardar posiciones target para la animación
   animationTargetPositions = [...toPositions]; // Hacer copia profunda
 
+  // Guardar posiciones originales pendientes para actualizar al final de la animación
+  pendingOriginalPositionsUpdate = newOriginalPositions;
+
   isTransitioning.value = true;
   animationStartTime.value = performance.now();
 };
@@ -1283,6 +1304,9 @@ const updateTransitionPositions = (currentTime) => {
   if (!isTransitioning.value || animationTargetPositions.length === 0) {
     // Log solo una vez para evitar spam
     if (isTransitioning.value && animationTargetPositions.length === 0) {
+      console.warn(
+        "⚠️ updateTransitionPositions: isTransitioning=true pero no hay animationTargetPositions"
+      );
     }
     return;
   }
@@ -1334,6 +1358,12 @@ const updateTransitionPositions = (currentTime) => {
       ];
     }
 
+    // 🔧 Actualizar originalPositions AHORA que terminó la animación
+    if (pendingOriginalPositionsUpdate) {
+      originalPositions.value = pendingOriginalPositionsUpdate;
+      console.log("✅ originalPositions actualizado después de la animación");
+    }
+
     // Limpiar propiedades temporales
     photosWithMaterials.value.forEach((photo) => {
       delete photo.transitionStartPosition;
@@ -1341,6 +1371,7 @@ const updateTransitionPositions = (currentTime) => {
 
     // Limpiar referencias
     animationTargetPositions = [];
+    pendingOriginalPositionsUpdate = null;
 
     // Forzar actualización de matrices de cámara ANTES de frustum culling
     if (cameraRef.value) {
@@ -1466,8 +1497,7 @@ const setupLoaderForPhotos = async (photos) => {
   cachingProgress.value = 0;
 
   loaderStage.value = "loading";
-  loaderTitle.value = "Loading Photos";
-  loaderSubtitle.value = "Preparing your photo collection...";
+  loaderTitle.value = "Loading photos";
 };
 
 // Función para ocultar loader (mantener navegación siempre activa)
@@ -1843,7 +1873,7 @@ const enqueueAllNonCachedPhotos = (photos) => {
 // Nueva función: Cargar imágenes desde cache antes de descargar
 const loadImagesFromCache = async (photos) => {
   loaderStage.value = "loading";
-  loaderTitle.value = "Loading Photos";
+  loaderTitle.value = "Loading photos";
   loaderSubtitle.value = "Checking local storage...";
 
   const photoIds = photos.map((p) => p.id);
@@ -1928,7 +1958,7 @@ const registerNewPhotos = async (newPhotos) => {
 
   // ===== PASO 1: Buscar en cache y cargar en bulk =====
   loaderStage.value = "loading";
-  loaderTitle.value = "Loading Photos";
+  loaderTitle.value = "Loading photos";
   loaderSubtitle.value = "Checking local storage...";
 
   const photoIds = newPhotos.map((p) => p.id);
@@ -1968,7 +1998,7 @@ const registerNewPhotos = async (newPhotos) => {
   if (photosToDownload.length > 0) {
     console.log(`📥 Descargando ${photosToDownload.length} fotos restantes...`);
     loaderStage.value = "downloading";
-    loaderTitle.value = "Loading Photos";
+    loaderTitle.value = "Loading photos";
     loaderSubtitle.value = `Downloading ${photosToDownload.length} photos...`;
 
     // Descargar en paralelo con p-limit
@@ -2121,22 +2151,16 @@ const updatePhotosPositions = async (newPhotos) => {
     const targetPos = np.position || np.coordinates || [0, 0, 0];
     newOriginalPositions.push([...targetPos]);
     if (existing) {
-      // preparar transición
-      startPositions.push([...(existing.position || targetPos)]);
+      // preparar transición - usar posición ACTUAL como punto de inicio
+      const currentPos = existing.position || targetPos;
+      startPositions.push([...currentPos]);
       targetPositions.push([...targetPos]);
-      existing.transitionStartPosition = [...(existing.position || targetPos)];
-      // actualizar datos mínimos; NO reemplazar material / flags
-      existing.position = [...(existing.position || targetPos)]; // se interpolará, no saltar directo
+      existing.transitionStartPosition = [...currentPos];
+      // NO actualizar existing.position aquí - se hará durante la animación
       existing.coordinates = targetPos;
 
-      // Sync LOD position to current position (will animate to target)
-      if (existing.lodObject) {
-        existing.lodObject.position.set(
-          existing.position[0],
-          existing.position[1],
-          existing.position[2]
-        );
-      }
+      // 🔧 NO sincronizar LOD position aquí - mantener posición actual
+      // La sincronización se hará durante la animación en updateTransitionPositions
     }
   });
 
@@ -2180,8 +2204,9 @@ const updatePhotosPositions = async (newPhotos) => {
     );
   }
 
-  // Actualizar originales (se usan para escaleo radial)
-  originalPositions.value = newOriginalPositions;
+  // 🔧 NO actualizar originalPositions aquí - se hará cuando termine la animación
+  // Guardar en variable temporal para actualizar después
+  const pendingOriginalPositions = newOriginalPositions;
 
   // Marcar octree para reconstrucción después de la animación
   octreeNeedsRebuild.value = true;
@@ -2189,7 +2214,8 @@ const updatePhotosPositions = async (newPhotos) => {
   // Animar
   animatePositionTransition(
     startPositions,
-    calculateScaledPositions(targetPositions, inflateFactor.value)
+    calculateScaledPositions(targetPositions, inflateFactor.value),
+    pendingOriginalPositions // Pasar las nuevas posiciones originales para actualizar al final
   );
 
   // Imágenes a descargar (solo las nuevas)
@@ -2284,6 +2310,13 @@ const applyRadialScaling = () => {
     originalPositions.value.length === 0
   )
     return;
+
+  // 🔧 NO aplicar escalado durante una transición de animación
+  // Esto evita que los LOD objects salten a posiciones incorrectas
+  if (isTransitioning.value) {
+    console.log("⏸️ Escalado radial pospuesto: animación en curso");
+    return;
+  }
 
   // Usar la función de cálculo y aplicar al estado
   const scaledPositions = calculateScaledPositions(
@@ -2592,14 +2625,14 @@ const updateBillboardRotations = (photosWithDistances) => {
     );
   }
 
+  // 🚀 Billboard directo: aplicar lookAt() sin interpolación
+  // Es el método más eficiente y suave (sin retraso)
   photosToProcess.forEach(({ photo }) => {
     if (!photo.lodObject) return;
 
-    // Calculate billboard rotation
-    const rotation = calculateBillboardRotation(photo.position, cameraPosition);
-
-    // Apply rotation to LOD object
-    photo.lodObject.rotation.set(rotation[0], rotation[1], rotation[2]);
+    // Aplicar lookAt() directamente al LOD object
+    // Three.js optimiza esto internamente
+    photo.lodObject.lookAt(cameraPosition);
   });
 };
 
@@ -2618,8 +2651,7 @@ const onBillboardingToggle = () => {
 // Handler para cambio de chunk
 const onChunkChange = async (newValue) => {
   // 🚨 MOSTRAR LOADER INMEDIATAMENTE antes de la llamada a la API
-  loaderTitle.value = "Loading Photos";
-  loaderSubtitle.value = "Fetching new coordinates...";
+  loaderTitle.value = "Building stage";
   loadingProgress.value = 0;
   showLoader();
 
@@ -2640,22 +2672,14 @@ const onChunkChange = async (newValue) => {
     queuedIds.clear();
   }
 
-  console.log("🧹 Iniciando cambio de chunk...");
-
-  // Llamada a changeChunk que hará la petición al backend
-  console.log("🚀 Llamando a changeChunk para obtener nuevas coordenadas...");
   await changeChunk(newValue);
-
-  console.log("✅ Cambio de chunk completado:", {
-    newPhotosLength: photos3D.value.length,
-    newMaterialsLength: photosWithMaterials.value.length,
-  });
 };
 
 // Función de retry
 const retryLoad = async () => {
   reset();
   showLoader();
+  loaderTitle.value = "Building stage";
   await loadAllPhotos(currentChunk.value);
 };
 
@@ -2888,13 +2912,13 @@ watch(
 );
 
 // Watcher: controlar el loader central cuando esté cargando
-watch(isLoading, (newIsLoading, oldIsLoading) => {
+watch(isLoadingPositions, (newIsLoading, oldIsLoading) => {
   if (newIsLoading) {
     console.log("⏳ Proceso de carga iniciado");
     // No mostrar el loader aquí, se maneja en registerNewPhotos/updatePhotosPositions
   } else {
     console.log(
-      "✅ isLoading = false, verificando si todas las texturas están listas"
+      "✅ isLoadingPositions = false, verificando si todas las texturas están listas"
     );
     // Cuando termine de cargar, verificar si todas las texturas están listas
     checkAllTexturesLoaded();
@@ -2983,6 +3007,7 @@ onMounted(async () => {
     if (currentChunk.value === null) {
       currentChunk.value = initialChunk;
     }
+    loaderTitle.value = "Building stage";
     await loadAllPhotos(initialChunk);
 
     // Inicializar controles después de un pequeño delay

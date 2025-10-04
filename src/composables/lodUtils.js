@@ -10,29 +10,30 @@ const BASE_MAX_DISTANCE_VISIBLE = 180;
 // LOD Configuration - Base configuration for 2000+ photos
 // Texture sizes and opacity are fixed, distances are dynamically adjusted based on visible photo count
 // Opacity is pre-established per LOD level for better performance
+const multiplier = 1; // Adjust this multiplier to scale all distances uniformly if needed
 export const LOD_LEVELS = {
   ULTRA: {
-    size: 768,
+    size: 768 * multiplier,
     baseDistance: 0, // Base distance for 2000+ photos
     opacity: 1.0, // Fully visible - very close photos
   },
   HIGH: {
-    size: 512,
+    size: 512 * multiplier,
     baseDistance: 5, // Base distance for 2000+ photos
     opacity: 1.0, // Fully visible - close photos
   },
   MEDIUM: {
-    size: 128,
+    size: 128 * multiplier,
     baseDistance: 15, // Base distance for 2000+ photos
     opacity: 0.85, // Slightly faded - medium distance
   },
   LOW: {
-    size: 24,
+    size: 56 * multiplier,
     baseDistance: 60, // Base distance for 2000+ photos
     opacity: 0.5, // More faded - far distance
   },
   VERY_LOW: {
-    size: 4,
+    size: 4 * multiplier,
     baseDistance: 100, // Base distance for 2000+ photos (very distant)
     opacity: 0.3, // Heavily faded - very far distance
   },

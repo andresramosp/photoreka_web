@@ -5,7 +5,7 @@ import { api } from "@/utils/axios";
 export function use3DPhotos() {
   // Estado reactivo
   const photos3D = ref([]);
-  const isLoading = ref(false);
+  const isLoadingPositions = ref(false);
   const currentChunk = ref("general"); // Chunk seleccionado
   const error = ref(null);
 
@@ -41,7 +41,7 @@ export function use3DPhotos() {
     // Actualizar currentChunk al principio
     currentChunk.value = chunkName;
 
-    isLoading.value = true;
+    isLoadingPositions.value = true;
     error.value = null;
 
     try {
@@ -88,7 +88,7 @@ export function use3DPhotos() {
       error.value = err.message;
       console.error("Error en loadAllPhotos:", err);
     } finally {
-      isLoading.value = false;
+      isLoadingPositions.value = false;
     }
   };
 
@@ -129,7 +129,7 @@ export function use3DPhotos() {
   return {
     // Estado
     photos3D,
-    isLoading,
+    isLoadingPositions,
     currentChunk,
     error,
 
